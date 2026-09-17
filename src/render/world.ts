@@ -1,0 +1,629 @@
+import { TAU, clamp, dist, ease, hashNoise, lerp } from '../core/math.ts'
+import type {
+  Enemy,
+  FxApi,
+  Pickup,
+  Player,
+  Projectile,
+  Tree,
+  WeaponBehavior,
+  WeaponDef,
+  WeaponId,
+  World,
+} from '../core/types.ts'
+import { WEAPONS } from '../data/weapons.ts'
+import { drawPaddock } from './ground.ts'
+import {
+  ART,
+  ENEMY_PALETTES,
+  enemySprite,
+  markerSprite,
+  pickupSprite,
+  playerSprite,
+  projectileSprite,
+  qualityBucket,
+  type SpriteCache,
+  treeSprite,
+  weaponSprite,
+} from './sprites.ts'
+import {
+  n01,
+  PAPER_CREAM,
+  rgba,
+  vignette,
+} from './watercolor.ts'
+
+export interface ViewSize {
+  w: number
+  h: number
+  dpr: number
+}
+
+const cmds: { y: number; z: number; kind: number; idx: number }[] = []
+let cmdN = 0
+
+function pushCmd(y: number, z: number, kind: number, idx: number): void {
+  const c = cmds[cmdN]
+  if (c) {
+    c.y = y
+    c.z = z
+    c.kind = kind
+    c.idx = idx
+  } else {
+    cmds[cmdN] = { y, z, kind, idx }
+  }
+  cmdN++
+}
+
+function slotOffset(slot: number, r: number): { x: number; y: number; a: number } {
+  const a = -Math.PI / 2 + (slot / 6) * TAU
+  return { x: Math.cos(a) * r * 1.62, y: Math.sin(a) * r * 1.18, a }
+}
+
+function weaponLook(id: WeaponId): WeaponDef {
+  return WEAPONS[id]
+}
+
+let qScale = 2
+
+function blit(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLCanvasElement,
+  worldScale: number,
+  alpha = 1,
+): void {
+  ctx.save()
+  ctx.globalAlpha *= alpha
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  const s = worldScale / qScale
+  ctx.scale(s, s)
+  ctx.drawImage(img, -img.width / 2, -img.height / 2)
+  ctx.restore()
+}
+
+function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, alpha = 0.3): void {
+  ctx.save()
+  ctx.translate(x, y + r * 0.62)
+  ctx.scale(1, 0.38)
+  ctx.globalAlpha = alpha
+  ctx.fillStyle = '#1c1610'
+  ctx.beginPath()
+  ctx.arc(0, 0, r * 1.18, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
+function hpArc(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  frac: number,
+  boss: boolean,
+): void {
+  const f = clamp(frac, 0, 1)
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.strokeStyle = rgba('#2a221c', 0.35)
+  ctx.lineWidth = boss ? 4 : 3
+  ctx.beginPath()
+  ctx.arc(0, 0, r, Math.PI * 1.15, Math.PI * 1.85)
+  ctx.stroke()
+  ctx.strokeStyle = boss ? '#d4b060' : '#c4453c'
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.arc(0, 0, r, Math.PI * 1.15, Math.PI * 1.15 + Math.PI * 0.7 * f)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawTrail(ctx: CanvasRenderingContext2D, p: Projectile): void {
+  const pts = p.trail
+  if (pts.length < 2 || p.def.trail === 'none') return
+  ctx.save()
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1]
+    const b = pts[i]
+    if (!a || !b) continue
+    const u = i / pts.length
+    const col =
+      p.def.trail === 'ember' ? '#e07038' : p.def.trail === 'spark' ? '#c8e8ff' : p.def.paint === 'spit' ? '#8aaa4a' : '#2a221c'
+    ctx.strokeStyle = rgba(col, 0.12 + u * 0.4)
+    ctx.lineWidth = p.r * (0.4 + u * 0.9)
+    ctx.beginPath()
+    ctx.moveTo(a.x, a.y)
+    ctx.lineTo(b.x, b.y)
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
+function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile, cache: SpriteCache): void {
+  drawTrail(ctx, p)
+  const spr = projectileSprite(cache, p.def.paint, qScale)
+  ctx.save()
+  ctx.translate(p.x, p.y)
+  ctx.rotate(p.angle)
+  const sc = (p.r * 2) / 14
+  blit(ctx, spr, sc, clamp(p.life / Math.max(0.05, p.maxLife), 0.35, 1))
+  ctx.restore()
+}
+
+function drawTree(ctx: CanvasRenderingContext2D, t: Tree, cache: SpriteCache): void {
+  const spr = treeSprite(cache, qScale)
+  ctx.save()
+  ctx.translate(t.x, t.y)
+  ctx.rotate(Math.sin(t.sway) * 0.12)
+  const sc = (t.r * 2) / 70
+  blit(ctx, spr, sc, 1)
+  if (t.hitFlash > 0.02) {
+    ctx.globalAlpha = t.hitFlash * 0.45
+    ctx.fillStyle = '#fff6e8'
+    ctx.beginPath()
+    ctx.ellipse(0, -8, t.r * 0.95, t.r * 0.75, 0, 0, TAU)
+    ctx.fill()
+  }
+  ctx.restore()
+}
+
+function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache, time: number): void {
+  const spr = pickupSprite(cache, p.type, qScale)
+  const bob = Math.sin(p.t * 3.2 + time) * 3
+  const pr = p.type === 'chest' ? 12 : p.type === 'materialBig' ? 10 : 8
+  drawShadow(ctx, p.x, p.y + bob + 4, pr, 0.28)
+  ctx.save()
+  ctx.translate(p.x, p.y + bob)
+  if (p.magnet) {
+    const ang = Math.atan2(p.vy, p.vx)
+    const spd = Math.hypot(p.vx, p.vy)
+    ctx.rotate(ang)
+    const stretch = 1 + clamp(spd / 380, 0, 0.85)
+    ctx.scale(stretch, 1 / Math.sqrt(stretch))
+  }
+  const sc = p.type === 'chest' ? 0.85 : p.type === 'materialBig' ? 0.95 : 0.72
+  blit(ctx, spr, sc)
+  ctx.restore()
+}
+
+function drawMarker(ctx: CanvasRenderingContext2D, x: number, y: number, u: number, cache: SpriteCache): void {
+  const spr = markerSprite(cache, qScale)
+  const bloom = lerp(0.45, 1.15, ease.outCubic(clamp(u, 0, 1)))
+  const alpha = 0.25 + 0.65 * Math.sin(clamp(u, 0, 1) * Math.PI)
+  ctx.save()
+  ctx.translate(x, y)
+  blit(ctx, spr, bloom, alpha)
+  ctx.restore()
+}
+
+function drawEmbers(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, t: number, uid: number): void {
+  ctx.save()
+  for (let i = 0; i < 5; i++) {
+    const a = t * 3 + i * 1.3 + n01(uid + i, 3) * TAU
+    const d = r * (0.4 + n01(i, uid) * 0.7)
+    ctx.globalAlpha = 0.45 + 0.4 * Math.sin(t * 8 + i)
+    ctx.fillStyle = i % 2 === 0 ? '#e07038' : '#f0d060'
+    ctx.beginPath()
+    ctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d * 0.7 - r * 0.2, 1.4 + (i % 3) * 0.6, 0, TAU)
+    ctx.fill()
+  }
+  ctx.restore()
+}
+
+function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, cache: SpriteCache, time: number): void {
+  const pal = e.def.palette ?? ENEMY_PALETTES[e.def.paint]
+  const spr = enemySprite(cache, e.def.paint, pal, e.elite, e.boss, qScale)
+  const spawn = clamp(e.anim.spawnT, 0, 1)
+  const dying = e.anim.deathT >= 0
+  const death = dying ? clamp(e.anim.deathT, 0, 1) : 0
+  const appear = ease.outCubic(spawn)
+  let ox = e.x + e.anim.kick.x
+  let oy = e.y + e.anim.kick.y + e.anim.bob
+  if (e.state === 'windup' || e.state === 'charging') {
+    const mag = e.state === 'windup' ? 2.4 : 0.9
+    ox += (hashNoise(Math.floor(time * 48), e.uid) - 0.5) * mag * 2
+    oy += (hashNoise(Math.floor(time * 48), e.uid + 9) - 0.5) * mag * 2
+  }
+  drawShadow(ctx, ox, e.y, e.r, 0.4 * appear * (1 - death))
+  ctx.save()
+  ctx.translate(ox, oy)
+  if (dying) ctx.rotate((n01(e.uid, 2) - 0.5) * 0.5 * death)
+  const bloom = lerp(1.7, 1, appear) * (1 + death * 0.75)
+  const squash = clamp(e.anim.squash || 1, 0.45, 1.8)
+  ctx.scale(squash * bloom, (1 / squash) * bloom * (1 + death * 0.15))
+  ctx.globalAlpha = appear * (1 - death)
+  if (spawn < 0.85) {
+    ctx.save()
+    ctx.globalAlpha = (1 - spawn) * 0.4
+    ctx.fillStyle = pal.body
+    ctx.beginPath()
+    ctx.arc(0, 0, e.r * 2.1, 0, TAU)
+    ctx.fill()
+    ctx.restore()
+  }
+  const sc = e.r / (e.boss ? 48 : e.elite ? 34 : ART.bodyR)
+  blit(ctx, spr, sc)
+  if (e.anim.hitFlash > 0.02) {
+    ctx.save()
+    ctx.globalAlpha = e.anim.hitFlash * 0.65
+    ctx.fillStyle = '#fff6e8'
+    ctx.beginPath()
+    ctx.ellipse(0, 0, e.r * 1.05, e.r * 0.9, 0, 0, TAU)
+    ctx.fill()
+    ctx.restore()
+  }
+  if (e.slow > 0) {
+    ctx.save()
+    ctx.globalCompositeOperation = 'multiply'
+    ctx.globalAlpha = clamp(e.slow / 2, 0.15, 0.4)
+    ctx.fillStyle = '#6a88b8'
+    ctx.beginPath()
+    ctx.ellipse(0, 0, e.r * 1.05, e.r * 0.9, 0, 0, TAU)
+    ctx.fill()
+    ctx.restore()
+  }
+  ctx.restore()
+  if (e.burn > 0) drawEmbers(ctx, ox, oy, e.r, time, e.uid)
+  if (e.elite || e.boss) {
+    hpArc(ctx, ox, oy - e.r * bloom - 8, e.boss ? 22 : 14, e.maxHp > 0 ? e.hp / e.maxHp : 0, e.boss)
+  }
+  if ((e.state === 'windup' || e.state === 'charging') && (e.aim.x !== 0 || e.aim.y !== 0)) {
+    const ang = Math.atan2(e.aim.y, e.aim.x)
+    const len = e.state === 'charging' ? e.r * 5 : e.r * 3.5
+    ctx.save()
+    ctx.strokeStyle = rgba('#c4453c', e.state === 'windup' ? 0.45 : 0.25)
+    ctx.setLineDash([6, 5])
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(ox, oy)
+    ctx.lineTo(ox + Math.cos(ang) * len, oy + Math.sin(ang) * len)
+    ctx.stroke()
+    ctx.restore()
+  }
+}
+
+function muzzleFlash(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, t: number): void {
+  const u = clamp(1 - t / 0.18, 0, 1)
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(angle)
+  ctx.globalAlpha = u * 0.9
+  ctx.fillStyle = '#f0d060'
+  ctx.beginPath()
+  ctx.ellipse(8, 0, 10 * u, 5 * u, 0, 0, TAU)
+  ctx.fill()
+  ctx.fillStyle = '#fff6e8'
+  ctx.beginPath()
+  ctx.ellipse(12, 0, 5 * u, 3 * u, 0, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
+function drawChainBolt(
+  ctx: CanvasRenderingContext2D,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  seed: number,
+  t: number,
+): void {
+  const n = 8
+  const dx = x1 - x0
+  const dy = y1 - y0
+  const len = Math.hypot(dx, dy) || 1
+  const nx = -dy / len
+  const ny = dx / len
+  ctx.save()
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  const fade = Math.sin(clamp(t, 0, 1) * Math.PI)
+  ctx.globalAlpha = 0.35 * fade
+  ctx.strokeStyle = '#88ddff'
+  ctx.lineWidth = 6
+  ctx.beginPath()
+  ctx.moveTo(x0, y0)
+  for (let i = 1; i < n; i++) {
+    const u = i / n
+    const jig = (hashNoise(i + Math.floor(t * 18), seed) - 0.5) * 22
+    ctx.lineTo(x0 + dx * u + nx * jig, y0 + dy * u + ny * jig)
+  }
+  ctx.lineTo(x1, y1)
+  ctx.stroke()
+  ctx.globalAlpha = 0.9 * fade
+  ctx.strokeStyle = '#e8f6ff'
+  ctx.lineWidth = 1.8
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawAuraRing(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, time: number): void {
+  const flick = 0.55 + 0.45 * Math.abs(Math.sin(time * 9) * Math.sin(time * 13.1))
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.globalAlpha = 0.28 * flick
+  ctx.strokeStyle = '#e09040'
+  ctx.lineWidth = 8
+  ctx.beginPath()
+  ctx.ellipse(0, 0, radius, radius * 0.88, 0, 0, TAU)
+  ctx.stroke()
+  ctx.globalAlpha = 0.14 * flick
+  ctx.strokeStyle = '#f0d060'
+  ctx.lineWidth = 3
+  ctx.beginPath()
+  ctx.ellipse(0, 0, radius * 0.86, radius * 0.76, 0, 0, TAU)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function weaponAngleAndPos(
+  player: Player,
+  slot: number,
+  angle: number,
+  swingT: number,
+  behavior: WeaponBehavior,
+): { x: number; y: number; rot: number; smear?: { a0: number; a1: number; r: number } } {
+  const off = slotOffset(slot, player.r)
+  let x = player.x + off.x + player.anim.kick.x
+  let y = player.y + off.y + player.anim.bob + player.anim.kick.y
+  let rot = angle
+  let smear: { a0: number; a1: number; r: number } | undefined
+  if (swingT >= 0) {
+    const t = clamp(swingT, 0, 1)
+    if (behavior.type === 'sweep') {
+      const e = ease.outCubic(t)
+      const a0 = angle - behavior.arc * 0.5
+      const a1 = angle + behavior.arc * 0.5
+      rot = lerp(a0, a1, e)
+      smear = { a0, a1: rot, r: Math.hypot(off.x, off.y) + 8 }
+    } else if (behavior.type === 'thrust') {
+      const lung = Math.sin(t * Math.PI) * behavior.reach * 0.55
+      x += Math.cos(angle) * lung
+      y += Math.sin(angle) * lung
+    } else if (behavior.type === 'shoot') {
+      const rec = ease.punch(t) * 14
+      x -= Math.cos(angle) * rec
+      y -= Math.sin(angle) * rec
+    }
+  }
+  return { x, y, rot, smear }
+}
+
+function drawPlayerWeapons(
+  ctx: CanvasRenderingContext2D,
+  world: World,
+  cache: SpriteCache,
+  behind: boolean,
+): void {
+  const player = world.player
+  const frame = Math.floor(world.time * 8) % 4
+  for (let i = 0; i < player.weapons.length; i++) {
+    const w = player.weapons[i]
+    if (!w) continue
+    const look = weaponLook(w.id)
+    const behavior = look.behavior
+    if (behavior.type === 'orbit') continue
+    if (behavior.type === 'aura' && !behind) {
+      drawAuraRing(ctx, player.x, player.y, behavior.radius, world.time)
+    }
+    const off = slotOffset(w.slot, player.r)
+    const isBack = off.y < 0
+    if (isBack !== behind) continue
+    const pose = weaponAngleAndPos(player, w.slot, w.angle, w.swingT, behavior)
+    if (pose.smear && w.swingT >= 0) {
+      ctx.save()
+      ctx.globalAlpha = 0.22 * Math.sin(clamp(w.swingT, 0, 1) * Math.PI)
+      ctx.strokeStyle = '#c4b090'
+      ctx.lineWidth = 10
+      ctx.lineCap = 'round'
+      ctx.beginPath()
+      ctx.arc(player.x, player.y + player.anim.bob, pose.smear.r, pose.smear.a0, pose.smear.a1)
+      ctx.stroke()
+      ctx.restore()
+    }
+    const spr = weaponSprite(cache, look.paint, look.paint === 'torch' || look.paint === 'wand' ? frame : 0, qScale)
+    ctx.save()
+    ctx.translate(pose.x, pose.y)
+    ctx.rotate(pose.rot)
+    blit(ctx, spr, 0.7)
+    ctx.restore()
+    if (behavior.type === 'shoot' && w.swingT >= 0 && w.swingT < 0.18) {
+      muzzleFlash(ctx, pose.x, pose.y, pose.rot, w.swingT)
+    }
+    if (behavior.type === 'chain' && w.swingT >= 0 && w.targetUid != null) {
+      const jumps = behavior.jumps
+      const jumpRange = behavior.jumpRange
+      const hit = new Set<number>()
+      let fromX = pose.x
+      let fromY = pose.y
+      let next: Enemy | undefined = world.enemies.find((en) => en.uid === w.targetUid)
+      for (let j = 0; j < jumps && next; j++) {
+        drawChainBolt(ctx, fromX, fromY, next.x, next.y, w.uid + j, w.swingT)
+        hit.add(next.uid)
+        fromX = next.x
+        fromY = next.y
+        let best: Enemy | undefined
+        let bestD = jumpRange
+        for (let k = 0; k < world.enemies.length; k++) {
+          const en = world.enemies[k]
+          if (!en || hit.has(en.uid) || en.anim.deathT >= 0) continue
+          const d = dist(fromX, fromY, en.x, en.y)
+          if (d < bestD) {
+            bestD = d
+            best = en
+          }
+        }
+        next = best
+      }
+    }
+  }
+}
+
+function drawOrbitWeapons(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCache): void {
+  const player = world.player
+  const frame = Math.floor(world.time * 8) % 4
+  for (let i = 0; i < player.weapons.length; i++) {
+    const w = player.weapons[i]
+    if (!w) continue
+    const look = weaponLook(w.id)
+    if (look.behavior.type !== 'orbit') continue
+    const { count, radius } = look.behavior
+    const spin = world.time * 2.35
+    for (let b = 0; b < count; b++) {
+      const a = spin + (b / count) * TAU
+      const x = player.x + Math.cos(a) * radius
+      const y = player.y + Math.sin(a) * radius + player.anim.bob * 0.3
+      const spr = weaponSprite(cache, look.paint, frame, qScale)
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.rotate(a + Math.PI / 2)
+      const pulse = w.swingT >= 0 ? 1 + Math.sin(w.swingT * Math.PI) * 0.12 : 1
+      blit(ctx, spr, 0.65 * pulse)
+      ctx.restore()
+    }
+  }
+}
+
+function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCache): void {
+  const p = world.player
+  const pal = p.character.palette
+  const spr = playerSprite(cache, pal, p.facingAngle, p.anim.moving, p.anim.t, qScale)
+  const x = p.x + p.anim.kick.x
+  const y = p.y + p.anim.kick.y + p.anim.bob
+  drawShadow(ctx, x, p.y, p.r, p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.14 : 0.42)
+  drawPlayerWeapons(ctx, world, cache, true)
+  ctx.save()
+  ctx.translate(x, y)
+  const spd = Math.hypot(p.vx, p.vy)
+  ctx.rotate(clamp(p.vx / 220, -0.28, 0.28) + clamp(spd / 400, 0, 0.08) * Math.sign(p.vx || p.anim.facing))
+  const squash = clamp(p.anim.squash || 1, 0.45, 1.8)
+  ctx.scale(squash, 1 / squash)
+  let alpha = 1
+  if (p.invuln > 0) alpha = Math.sin(p.anim.t * 24) > 0 ? 1 : 0.32
+  ctx.save()
+  ctx.globalAlpha = 0.2 * alpha
+  ctx.fillStyle = '#f7f1e2'
+  ctx.beginPath()
+  ctx.ellipse(0, 2, p.r * 1.55, p.r * 1.32, 0, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+  const sc = p.r / ART.bodyR
+  blit(ctx, spr, sc, alpha)
+  if (p.anim.hitFlash > 0.02) {
+    ctx.globalAlpha = p.anim.hitFlash * 0.7 * alpha
+  ctx.fillStyle = '#fff6e8'
+    ctx.beginPath()
+    ctx.ellipse(0, 0, p.r * 1.05, p.r * 0.9, 0, 0, TAU)
+    ctx.fill()
+  }
+  ctx.restore()
+  drawPlayerWeapons(ctx, world, cache, false)
+  drawOrbitWeapons(ctx, world, cache)
+}
+
+export function drawWorld(
+  ctx: CanvasRenderingContext2D,
+  world: World,
+  dt: number,
+  fx: FxApi & { drawFloor(ctx: CanvasRenderingContext2D): void },
+  cache: SpriteCache,
+  view: ViewSize,
+): void {
+  fx.update(dt)
+  const cam = world.camera
+  const cssW = cam.w > 0 ? cam.w : view.w
+  const cssH = cam.h > 0 ? cam.h : view.h
+  const zoom = cam.zoom > 0 ? cam.zoom : 1
+  qScale = qualityBucket(zoom, view.dpr)
+  ctx.save()
+  ctx.fillStyle = PAPER_CREAM
+  ctx.fillRect(0, 0, cssW, cssH)
+
+  const shake = cam.shake
+  const sx = Math.sin(world.time * 53.1) * shake
+  const sy = Math.cos(world.time * 47.7) * shake
+
+  ctx.save()
+  ctx.translate(cssW * 0.5, cssH * 0.5)
+  ctx.scale(zoom, zoom)
+  ctx.translate(-cam.x + sx, -cam.y + sy)
+
+  const hw = cssW / (2 * zoom) + Math.abs(shake) + 48
+  const hh = cssH / (2 * zoom) + Math.abs(shake) + 48
+  const aw = world.arenaHalfW
+  const ah = world.arenaHalfH
+  drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale))
+  fx.drawFloor(ctx)
+
+  cmdN = 0
+  for (let i = 0; i < world.trees.length; i++) {
+    const t = world.trees[i]
+    if (t) pushCmd(t.y, 2, 0, i)
+  }
+  for (let i = 0; i < world.pickups.length; i++) {
+    const p = world.pickups[i]
+    if (p) pushCmd(p.y, 1, 1, i)
+  }
+  for (let i = 0; i < world.markers.length; i++) {
+    const m = world.markers[i]
+    if (m) pushCmd(m.y, 0, 2, i)
+  }
+  for (let i = 0; i < world.enemies.length; i++) {
+    const e = world.enemies[i]
+    if (e) pushCmd(e.y, 3, 3, i)
+  }
+  pushCmd(world.player.y, 4, 4, 0)
+
+  const list = cmds.slice(0, cmdN)
+  list.sort((a, b) => a.y - b.y || a.z - b.z)
+
+  let playerDrawn = false
+  for (let i = 0; i < list.length; i++) {
+    const c = list[i]
+    if (!c) continue
+    if (c.kind === 0) {
+      const t = world.trees[c.idx]
+      if (t) drawTree(ctx, t, cache)
+    } else if (c.kind === 1) {
+      const p = world.pickups[c.idx]
+      if (p) drawPickup(ctx, p, cache, world.time)
+    } else if (c.kind === 2) {
+      const m = world.markers[c.idx]
+      if (m) drawMarker(ctx, m.x, m.y, m.life > 0 ? m.t / m.life : 1, cache)
+    } else if (c.kind === 3) {
+      const e = world.enemies[c.idx]
+      if (e) drawEnemy(ctx, e, cache, world.time)
+    } else if (c.kind === 4 && !playerDrawn) {
+      playerDrawn = true
+      drawPlayer(ctx, world, cache)
+    }
+  }
+
+  const enemyShots: Projectile[] = []
+  const playerShots: Projectile[] = []
+  for (let i = 0; i < world.projectiles.length; i++) {
+    const p = world.projectiles[i]
+    if (!p) continue
+    if (p.owner === 'enemy') enemyShots.push(p)
+    else playerShots.push(p)
+  }
+  enemyShots.sort((a, b) => a.y - b.y)
+  playerShots.sort((a, b) => a.y - b.y)
+  for (let i = 0; i < enemyShots.length; i++) {
+    const p = enemyShots[i]
+    if (p) drawProjectile(ctx, p, cache)
+  }
+  for (let i = 0; i < playerShots.length; i++) {
+    const p = playerShots[i]
+    if (p) drawProjectile(ctx, p, cache)
+  }
+
+  fx.drawWorld(ctx)
+  ctx.restore()
+
+  fx.drawScreen(ctx, cssW, cssH)
+  vignette(ctx, cssW, cssH, 0.4)
+  ctx.restore()
+}
