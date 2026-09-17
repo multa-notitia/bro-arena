@@ -190,7 +190,7 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
     anim.moving = false
     anim.bob = Math.sin(anim.t * 2) * 0.4
     anim.kick.x = damp(anim.kick.x, 0, 8, dt)
-    anim.kick.y = damp(anim.kick.y, 0, 9, dt)
+    anim.kick.y = damp(anim.kick.y, 0, 8, dt)
     if (anim.deathT < 0) anim.deathT = 0
     anim.deathT = Math.min(1, anim.deathT + dt / 0.55)
     return
