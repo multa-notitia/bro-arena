@@ -513,7 +513,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   blit(ctx, spr, sc, alpha)
   if (p.anim.hitFlash > 0.02) {
     ctx.globalAlpha = p.anim.hitFlash * 0.7 * alpha
-  ctx.fillStyle = '#fff6e8'
+    ctx.fillStyle = '#fff6e8'
     ctx.beginPath()
     ctx.ellipse(0, 0, p.r * 1.05, p.r * 0.9, 0, 0, TAU)
     ctx.fill()
