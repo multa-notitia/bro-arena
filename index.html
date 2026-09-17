@@ -7,116 +7,25 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1"
     />
-    <meta name="theme-color" content="#1a1410" />
-    <title>Bro — Last potato standing</title>
+    <meta name="theme-color" content="#2a2118" />
     <meta
       name="description"
-      content="A Brotato-style survivor arena. Auto-fire weapons, vacuum XP, and survive the blight."
+      content="A watercolour survivor arena. Last potato standing."
     />
+    <title>Bro — Last potato standing</title>
   </head>
   <body>
     <noscript>
       <div class="noscript">
-        Bro needs JavaScript to run the arena. Turn it on and reload.
+        Bro needs JavaScript to run the paddock. Turn it on and reload — a potato
+        cannot mash on its own.
       </div>
     </noscript>
 
-    <div id="app">
-      <canvas id="arena" aria-label="Survivor arena"></canvas>
-
-      <div id="hud" class="hud" hidden>
-        <div class="hud-top">
-          <div class="stat-block">
-            <span class="stat-label">HP</span>
-            <div class="bar hp-bar" role="meter" aria-label="Health">
-              <div id="hp-fill" class="bar-fill"></div>
-            </div>
-            <span id="hp-text" class="stat-num">100</span>
-          </div>
-          <div class="wave-block">
-            <span id="wave-text">Wave 1</span>
-            <span id="timer-text">0:28</span>
-          </div>
-          <button id="btn-pause" class="icon-btn" type="button" aria-label="Pause">
-            Pause
-          </button>
-        </div>
-        <div class="xp-row">
-          <span class="stat-label">Lv <span id="level-text">1</span></span>
-          <div class="bar xp-bar" role="meter" aria-label="Experience">
-            <div id="xp-fill" class="bar-fill"></div>
-          </div>
-        </div>
-        <div id="weapons" class="weapons" aria-label="Weapons"></div>
-        <p id="banner" class="banner" hidden></p>
-      </div>
-
-      <div id="stick" class="stick" hidden>
-        <div class="stick-base">
-          <div id="stick-knob" class="stick-knob"></div>
-        </div>
-      </div>
-
-      <div id="screen-boot" class="screen">
-        <p class="kicker">Booting paddock</p>
-        <h1 class="title-mark">BRO</h1>
-        <p id="boot-copy" class="muted">Peeling the arena…</p>
-        <div class="spinner" aria-hidden="true"></div>
-      </div>
-
-      <div id="screen-error" class="screen" hidden>
-        <p class="kicker">Arena</p>
-        <h1>The arena won’t boot</h1>
-        <p id="error-copy" class="lede">
-          Canvas failed to start. Try Chrome, Firefox, or Safari, then reload.
-        </p>
-        <button id="btn-retry" class="btn" type="button">Try again</button>
-      </div>
-
-      <div id="screen-title" class="screen" hidden>
-        <p class="kicker">Survivor arena</p>
-        <h1 class="title-mark">BRO</h1>
-        <p class="tag">Last potato standing.</p>
-        <p class="lede">
-          The blight pours into the paddock. You don’t aim — your weapons do.
-          Move, vacuum the XP, and don’t get mashed.
-        </p>
-        <div class="actions">
-          <button id="btn-play" class="btn" type="button">Enter the paddock</button>
-        </div>
-        <ul class="howto">
-          <li><strong>Desktop:</strong> WASD or arrows to move. P pauses. 1–3 pick upgrades.</li>
-          <li><strong>Phone:</strong> drag the left stick. Pause sits top-right.</li>
-        </ul>
-      </div>
-
-      <div id="screen-pause" class="screen dim" hidden>
-        <p class="kicker">Held</p>
-        <h1>Paused</h1>
-        <p class="lede">The blight waits. It will not wait forever once you move.</p>
-        <div class="actions">
-          <button id="btn-resume" class="btn" type="button">Keep running</button>
-          <button id="btn-quit" class="btn ghost" type="button">Quit to title</button>
-        </div>
-      </div>
-
-      <div id="screen-levelup" class="screen dim" hidden>
-        <p class="kicker">Level up</p>
-        <h1>You grew.</h1>
-        <p class="lede">Pick a mutation. The next wave will not be polite.</p>
-        <div id="upgrade-cards" class="cards"></div>
-        <p class="hint">Press 1, 2, or 3 — or tap a card.</p>
-      </div>
-
-      <div id="screen-over" class="screen" hidden>
-        <p class="kicker">Run over</p>
-        <h1>Mashed.</h1>
-        <p id="over-stats" class="lede"></p>
-        <div class="actions">
-          <button id="btn-again" class="btn" type="button">Try again</button>
-          <button id="btn-title" class="btn ghost" type="button">Quit to title</button>
-        </div>
-      </div>
+    <canvas id="arena" aria-label="The paddock"></canvas>
+    <div id="ui"></div>
+    <div id="stick" hidden>
+      <div id="stick-knob"></div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

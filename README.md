@@ -1,6 +1,8 @@
 # Bro
 
-A Brotato-style survivor arena in the browser. You are the last potato in the paddock. Weapons fire themselves. XP walks home. The blight does not get bored.
+A Brotato-style survivor arena in the browser, painted in watercolour. You are the last potato in the paddock. Weapons fire themselves. Materials walk home. The blight does not get bored.
+
+Vite + TypeScript, canvas 2D, zero runtime dependencies. Every sprite, effect, and sound is generated procedurally — no image or audio assets.
 
 ## Run locally
 
@@ -18,15 +20,31 @@ npm run build
 npm run preview
 ```
 
-No API keys. Audio is synthesized in the browser and starts after the first click.
+No API keys or services. Audio starts after the first click.
 
-## First slice
+## What is in the game
 
-- **Player** — a potato you steer with WASD / arrows on desktop, or a left-side stick on a phone.
-- **Enemies** — sprouts, lumps, runners, and brutes that scale with the wave.
-- **Auto-attack weapons** — Peeler from the start; Spud Gun, Peel Orbit, and Mash Hammer as level-up unlocks.
-- **XP / level-up** — gems drop, get vacuumed in, and pause the run for three mutation cards (keys 1–3 or tap).
-- **Waves** — timed pressure, a short quiet between waves, then a thicker mix.
-- **States** — boot/loading, empty paddock on the title screen, canvas boot error with retry, pause, level-up, mashed (game over).
+- **Characters** — 8 potatoes with their own stats, starting weapons, perks, and palettes.
+- **Waves** — 20 timed waves, hordes, elites from wave 6, bosses on waves 10 and 20.
+- **Enemies** — 13 kinds: chasers, wanderers, chargers, shooters, spawners, tanks, elites, bosses with phases.
+- **Weapons** — 16 weapons in 4 tiers across melee, ranged, and elemental classes; thrust, sweep, shoot, orbit, aura, and chain-lightning behaviours; combine duplicates to tier up; up to 6 slots.
+- **Stats** — Brotato's sheet: max HP, regen, life steal, damage, melee/ranged/elemental damage, attack speed, crit, range, armor, dodge, speed, luck, harvesting, pickup range, XP gain, knockback, consumable heal.
+- **Economy** — materials double as XP and currency; shop between waves with tiered offers, reroll, lock, sell; 30+ passive items with specials; chests from elites; trees drop fruit.
+- **Level-ups** — 4 stat cards per level, tier odds driven by luck and wave.
+- **Watercolour renderer** — wet-edge washes, granulation, paper grain, loose ink outlines, splatter deaths, ink-bloom spawns, squash/stretch animation, weapon swing/recoil/orbit animation, projectile trails, ink-wipe transitions.
+- **Audio** — synthesized SFX for every event and procedural music for title, wave, boss, and shop.
+- **Screens** — boot, error, title, character select, HUD, level-up, shop, pause with stats, game over, victory.
+- **Controls** — WASD / arrows on desktop, P or Escape to pause, 1–4 for level-up cards; virtual joystick on touch devices.
 
-Desktop HUD sits in a top row. On a phone the stick appears, pause is a large tap target, and level-up cards stack full width.
+## Layout
+
+```
+src/
+  core/     shared types and math (the contract between modules)
+  data/     characters, weapons, items, enemies, waves, level-ups, economy
+  game/     simulation and the run state machine
+  render/   watercolour painter, sprite cache, world drawing, particle fx
+  ui/       DOM screens, HUD, keyboard and joystick input
+  audio/    synthesized sfx and procedural music
+  main.ts   wiring
+```
