@@ -14,6 +14,7 @@ export { ITEMS, ITEM_LIST } from './items.ts'
 export { rollLevelUps } from './levelups.ts'
 export {
   addStats,
+  applyForm,
   BASE_STATS,
   computeStats,
   emptyStats,
