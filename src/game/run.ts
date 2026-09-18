@@ -2,6 +2,7 @@ import { Rng } from '../core/math.ts'
 import type {
   AudioApi,
   CharacterDef,
+  Form,
   InputApi,
   LevelUpOption,
   RenderApi,
@@ -13,7 +14,7 @@ import { CHARACTERS, characterById } from '../data/characters.ts'
 import { rollLevelUps } from '../data/levelups.ts'
 import { WAVE_COUNT, waveDef } from '../data/waves.ts'
 import { peekKillSource, takeKillSource } from './combat.ts'
-import { updateEnemies } from './enemies.ts'
+import { nightmaresAlive, updateEnemies } from './enemies.ts'
 import { applyLevelUp } from './levelup.ts'
 import { collectAllNow, magnetAll, updatePickups } from './pickups.ts'
 import { updatePlayer } from './player.ts'
@@ -60,7 +61,9 @@ export class Run {
   private settleT = 0
   private transitioning = false
   private chosen: CharacterDef | null = null
+  private chosenForm: Form = 'normal'
   private levelOptions: LevelUpOption[] = []
+  private musicT = 0
 
   constructor(deps: RunDeps) {
     this.deps = deps
@@ -78,7 +81,7 @@ export class Run {
     this.lastNow = 0
     ui.setHudVisible(false)
     ui.setJoystickVisible(false)
-    ui.setBootCopy('Peeling the paddock…')
+    ui.setBootCopy('Wetting the paper…')
     ui.showScreen('boot')
     ui.onPauseRequest(() => this.requestPause())
     ui.onTitle({
@@ -106,7 +109,8 @@ export class Run {
 
     if (this._phase === 'boot') {
       this.bootT += dt
-      if (this.bootT > 0.35) this.enterTitle()
+      if (this.bootT > 0.2) this.deps.ui.setBootCopy('The soil is settling.')
+      if (this.bootT > 0.45) this.enterTitle()
       return
     }
 
@@ -186,22 +190,29 @@ export class Run {
   private enterCharSelect(): void {
     this._phase = 'charselect'
     this.deps.ui.showScreen('charselect')
-    this.deps.ui.renderCharSelect(CHARACTERS, (id) => this.pickCharacter(id))
+    this.deps.ui.renderCharSelect(CHARACTERS, (id, form) => this.pickCharacter(id, form))
   }
 
-  private pickCharacter(id: string): void {
+  private pickCharacter(id: string, form: Form = 'normal'): void {
     const { audio, canvas } = this.deps
     audio.unlock()
     audio.play('uiClick')
     const ch = characterById(id)
     this.chosen = ch
+    this.chosenForm = form
     this.rng = new Rng()
     this.killedBy = null
     this.dying = false
     this.settling = false
     this.shop = emptySession()
     this.deps.render.fx.clear()
-    this.world = createWorld(ch, waveDef(1), canvas.clientWidth || canvas.width, canvas.clientHeight || canvas.height)
+    this.world = createWorld(
+      ch,
+      waveDef(1),
+      canvas.clientWidth || canvas.width,
+      canvas.clientHeight || canvas.height,
+      form,
+    )
     beginWave(this.world, this.sim(), 1)
     this.enterWaveView()
   }
@@ -216,8 +227,20 @@ export class Run {
     this.deps.ui.showScreen(null)
     this.deps.ui.setHudVisible(true)
     this.deps.ui.setJoystickVisible(this.deps.input.coarse)
-    const bossWave = !!this.world.waveDef.boss
-    this.deps.audio.setMusic(bossWave && this.world.boss ? 'boss' : 'wave')
+    this.musicT = 2
+    this.syncWaveMusic(this.world)
+  }
+
+  private syncWaveMusic(world: World): void {
+    if (world.boss && world.boss.state !== 'dying' && world.boss.hp > 0) {
+      this.deps.audio.setMusic('boss')
+      return
+    }
+    if (world.player.form === 'nightmare' || nightmaresAlive(world) >= 5) {
+      this.deps.audio.setMusic('nightmare')
+      return
+    }
+    this.deps.audio.setMusic('wave')
   }
 
   private tickWave(world: World, dt: number): void {
@@ -225,6 +248,11 @@ export class Run {
     const simDt = dt * world.slowMo
     world.time += simDt
     this.deps.ui.setJoystickVisible(this.deps.input.coarse)
+    this.musicT += simDt
+    if (this.musicT >= 2) {
+      this.musicT = 0
+      this.syncWaveMusic(world)
+    }
 
     if (this.dying) {
       this.deathTimer -= dt
@@ -271,7 +299,7 @@ export class Run {
       this.deathTimer = 0.6
       world.slowMo = 0.22
       world.player.anim.deathT = 0
-      this.killedBy = peekKillSource() ?? takeKillSource() ?? 'the paddock'
+      this.killedBy = peekKillSource() ?? takeKillSource() ?? 'the soil'
       this.deps.ui.setJoystickVisible(false)
     }
   }
@@ -403,7 +431,7 @@ export class Run {
     if (!this.world) return
     this._phase = 'gameover'
     this.world.paused = true
-    const killedBy = this.killedBy ?? takeKillSource() ?? 'the blight'
+    const killedBy = this.killedBy ?? takeKillSource() ?? 'the Mud'
     this.deps.audio.play('gameOver')
     this.deps.audio.setMusic('none')
     this.deps.ui.setHudVisible(false)
@@ -437,6 +465,6 @@ export class Run {
     }
     this.deps.audio.unlock()
     this.deps.audio.play('uiClick')
-    this.pickCharacter(this.chosen.id)
+    this.pickCharacter(this.chosen.id, this.chosenForm)
   }
 }

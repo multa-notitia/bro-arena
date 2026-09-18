@@ -209,7 +209,7 @@ export function buyOffer(world: World, ctx: SimCtx, session: ShopSession, offerU
   if (offer.kind === 'weapon') {
     const id = offer.id as WeaponId
     if (!canFitWeapon(world, id, offer.tier)) {
-      ctx.ui.toast('No room in the belt.')
+      ctx.ui.toast('No room in the hands.')
       return false
     }
     world.player.materials -= offer.price
