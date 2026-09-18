@@ -2,6 +2,7 @@ import './style.css'
 import { createAudio } from './audio/index.ts'
 import { Run } from './game/run.ts'
 import { createRenderer } from './render/index.ts'
+import { applyPaintStyleToDom } from './render/look.ts'
 import { createUi } from './ui/index.ts'
 import { createInput } from './ui/input.ts'
 
@@ -45,6 +46,7 @@ function resize(): void {
   render.resize(w, h, dpr)
 }
 
+applyPaintStyleToDom()
 resize()
 window.addEventListener('resize', resize)
 window.addEventListener('orientationchange', resize)

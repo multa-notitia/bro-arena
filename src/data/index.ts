@@ -1,4 +1,4 @@
-export { CHARACTERS, characterById } from './characters.ts'
+export { CHARACTERS, GATE_CHARACTERS, GATE_IDS, characterById } from './characters.ts'
 export {
   harvestPayout,
   itemPrice,
