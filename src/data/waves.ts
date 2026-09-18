@@ -38,7 +38,7 @@ function w(
   return wave
 }
 
-/** Art-direction slice: pea, sprout, and carrot-like charger only. */
+/** Farm loop: pea / sprout / charger early; garlic / pumpkin / chili unlock later. Pool is leftover — live spawns come from planted beds. */
 const EARLY: Pool = [
   { kind: 'blob', weight: 70 },
   { kind: 'sprout', weight: 30 },

@@ -9,6 +9,7 @@ export {
   weaponPrice,
   xpForLevel,
 } from './economy.ts'
+export { CROPS, CROP_LIST, cropByEnemy } from './crops.ts'
 export { ENEMIES } from './enemies.ts'
 export { ITEMS, ITEM_LIST } from './items.ts'
 export { rollLevelUps } from './levelups.ts'

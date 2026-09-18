@@ -109,7 +109,7 @@ export const CHARACTERS: CharacterDef[] = [
     id: 'lucky',
     name: 'Radish',
     species: 'radish',
-    flavor: 'Small, red, and the mud missed it twice.',
+    flavor: 'Pointy top, V brows, mud on the lower body. The wet-soil radish, not a chili.',
     stats: { luck: 40, harvesting: 10, maxHp: -3 },
     startingWeapons: [{ id: 'knife', tier: 1 }],
     palette: veg('#e05a7a', '#a0344f', '#4f8a3c', '#ff4fd8', '#4a1824', '#1c080c', '#2e2016'),
@@ -201,10 +201,14 @@ export const CHARACTERS: CharacterDef[] = [
 
 const BY_ID = new Map(CHARACTERS.map((c) => [c.id, c]))
 
-/** This slice: Spud and Carrot only. Everyone else stays in the pack, hidden. */
-export const GATE_IDS: readonly string[] = ['well-rounded', 'ranger']
+/** This slice: Radish from the wet-soil board first, plus Spud, Carrot, and Chili. */
+export const GATE_IDS: readonly string[] = ['lucky', 'well-rounded', 'ranger', 'mage']
 
-export const GATE_CHARACTERS: CharacterDef[] = CHARACTERS.filter((c) => GATE_IDS.includes(c.id))
+export const GATE_CHARACTERS: CharacterDef[] = GATE_IDS.map((id) => {
+  const found = BY_ID.get(id)
+  if (!found) throw new Error(`Unknown gate character: ${id}`)
+  return found
+})
 
 export function characterById(id: string): CharacterDef {
   const found = BY_ID.get(id)
