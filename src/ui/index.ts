@@ -2,6 +2,7 @@ import { clamp, formatClock } from '../core/math.ts'
 import { TIER_NAMES } from '../core/types.ts'
 import type {
   CharacterDef,
+  Form,
   HudSnapshot,
   ItemPaint,
   LevelUpOption,
@@ -52,7 +53,7 @@ function fmtNum(n: number): string {
 }
 
 function muteLabel(muted: boolean): string {
-  return muted ? 'Sound is off' : 'Hush the paddock'
+  return muted ? 'Let it scream' : 'Quiet the garden'
 }
 
 const SKELETON = `
@@ -80,6 +81,7 @@ const SKELETON = `
       <div class="scrap wave-scrap">
         <div id="hud-wave" class="wave-name">Wave 1</div>
         <div id="hud-clock" class="wave-clock">0:00</div>
+        <div id="hud-mud" class="mud-meter" hidden>Mud · <span id="hud-mud-count">0</span></div>
       </div>
       <div id="hud-boss" class="scrap" hidden>
         <div id="hud-boss-name" class="boss-name"></div>
@@ -107,58 +109,59 @@ const SKELETON = `
 
 <div id="screen-boot" class="overlay cover" hidden>
   <div class="cover-inner">
-    <p class="kicker">Paddock</p>
+    <p class="kicker">THE PLOT</p>
     <h1 class="title-mark">BRO</h1>
-    <p id="boot-copy" class="lede">Soaking the paper. Sharpening a stick.</p>
+    <p id="boot-copy" class="lede">Wetting the paper…</p>
     <div class="spinner" aria-hidden="true"></div>
   </div>
 </div>
 
 <div id="screen-error" class="overlay cover" hidden>
   <div class="cover-inner">
-    <p class="kicker">Torn paper</p>
-    <h1>The paddock split.</h1>
-    <p id="error-copy" class="lede">Something in the wash went wrong. Reload and try not to look directly at it.</p>
+    <p class="kicker">THE PLOT</p>
+    <h1>The Plot won't load.</h1>
+    <p id="error-copy" class="lede">The wash tore. Reload.</p>
     <div class="actions">
-      <button id="error-retry" class="btn primary" type="button">Reload the paddock</button>
+      <button id="error-retry" class="btn primary" type="button">Try again</button>
     </div>
   </div>
 </div>
 
 <div id="screen-title" class="overlay cover" hidden>
+  <div class="title-vignette" aria-hidden="true"></div>
+  <div class="title-drips" aria-hidden="true"></div>
   <div class="cover-inner">
-    <p class="kicker">Survivor arena</p>
+    <p class="kicker">THE PLOT</p>
     <h1 class="title-mark">BRO</h1>
-    <p class="tag">Last potato standing.</p>
+    <p class="tag">Everything in the garden has a face. Most of them are screaming.</p>
     <p class="lede">
-      The blight comes for the paddock. You do not aim. Your kit does.
-      Keep moving, pocket the green, and try not to get mashed.
+      The rain came, the mud came up, and the vegetables that went under came back wrong. Stay clean. Or don't.
     </p>
     <div class="actions">
-      <button id="btn-play" class="btn primary" type="button">Walk into the paddock</button>
-      <button id="btn-title-mute" class="btn ghost" type="button" aria-pressed="false">Hush the paddock</button>
+      <button id="btn-play" class="btn primary" type="button">Go out into the Plot</button>
+      <button id="btn-title-mute" class="btn ghost" type="button" aria-pressed="false">Quiet the garden</button>
     </div>
     <ul class="howto">
-      <li><strong>Desk:</strong> WASD or arrows. P or Escape holds the wave. 1–4 pick a thickening.</li>
-      <li><strong>Phone:</strong> drag the left stick. Pause sits top-right. Big thumbs, small dignity.</li>
+      <li>WASD or arrows to move. P holds still. 1–4 pick. M quiets.</li>
+      <li>Drag the stick. Pause is top right.</li>
     </ul>
   </div>
 </div>
 
 <div id="screen-charselect" class="overlay cover" hidden>
   <div class="sheet sheet-wide">
-    <p class="kicker">The gate</p>
-    <h1>Pick a potato</h1>
-    <p class="lede">Eight ways to get mashed. Arrows and Enter, or poke one with a finger.</p>
+    <p class="kicker">THE GATE</p>
+    <h1>Pick a vegetable</h1>
+    <p class="lede">Eight ways to end up in the soil. Arrows and Enter, or tap. Each one has a clean form and a Mud form — flip the card.</p>
     <div id="char-grid" class="char-grid"></div>
   </div>
 </div>
 
 <div id="screen-levelup" class="overlay dim" hidden>
   <div class="sheet">
-    <p class="kicker">Thickening</p>
+    <p class="kicker">GROWTH</p>
     <h1>You grew.</h1>
-    <p id="levelup-remain" class="lede">Take your pick. The next wave already knows.</p>
+    <p id="levelup-remain" class="lede">One pick. The garden already knows.</p>
     <div id="levelup-cards" class="level-cards"></div>
     <p class="hint">Keys 1 to 4, or tap a card.</p>
   </div>
@@ -167,26 +170,26 @@ const SKELETON = `
 <div id="screen-shop" class="overlay dim" hidden>
   <div class="sheet sheet-wide">
     <header class="shop-head">
-      <p class="kicker">Between waves</p>
-      <h1>The hawker's blanket</h1>
+      <p class="kicker">BETWEEN ROWS</p>
+      <h1>The gardener's table</h1>
       <p id="shop-lede" class="lede"></p>
       <p class="bag-line">Bag <strong id="shop-bag">0</strong></p>
     </header>
     <div class="shop-grid">
       <section class="shop-col">
-        <h2>On offer</h2>
+        <h2>On the table</h2>
         <div id="shop-offers" class="offers"></div>
-        <button id="shop-reroll" class="btn ghost" type="button">Reroll</button>
+        <button id="shop-reroll" class="btn ghost" type="button">Turn over</button>
       </section>
       <section class="shop-col">
-        <h2>On you</h2>
+        <h2>In your hands</h2>
         <p id="shop-slots" class="muted-line"></p>
         <div id="shop-weapons" class="owned-list"></div>
         <h2>Pockets</h2>
         <div id="shop-items" class="item-list"></div>
       </section>
       <section class="shop-col shop-col-stats">
-        <h2>The potato</h2>
+        <h2>The vegetable</h2>
         <div id="shop-stats" class="stats-panel"></div>
         <div class="shop-go">
           <button id="shop-next" class="btn primary big" type="button">Next wave</button>
@@ -198,13 +201,13 @@ const SKELETON = `
 
 <div id="screen-pause" class="overlay dim" hidden>
   <div class="sheet pause-sheet">
-    <p class="kicker">Held</p>
-    <h1>Paused.</h1>
-    <p class="lede">The blight is patient. You do not have to be. The numbers below are still yours.</p>
+    <p class="kicker">HELD</p>
+    <h1>Holding still.</h1>
+    <p class="lede">The Mud is patient. The numbers below are still yours.</p>
     <div class="actions">
-      <button id="btn-resume" class="btn primary" type="button">Keep running</button>
+      <button id="btn-resume" class="btn primary" type="button">Keep going</button>
       <button id="btn-quit" class="btn ghost" type="button">Walk off</button>
-      <button id="btn-pause-mute" class="btn ghost" type="button" aria-pressed="false">Hush the paddock</button>
+      <button id="btn-pause-mute" class="btn ghost" type="button" aria-pressed="false">Quiet the garden</button>
     </div>
     <div id="pause-stats" class="stats-panel"></div>
   </div>
@@ -212,8 +215,8 @@ const SKELETON = `
 
 <div id="screen-stats" class="overlay dim" hidden>
   <div class="sheet">
-    <p class="kicker">Ledger</p>
-    <h1>The paddock's account</h1>
+    <p class="kicker">LEDGER</p>
+    <h1>What the garden wrote</h1>
     <p class="lede">Every number it has on you. Nothing here is a compliment.</p>
     <div id="stats-body" class="stats-panel"></div>
   </div>
@@ -221,13 +224,14 @@ const SKELETON = `
 
 <div id="screen-gameover" class="overlay dim" hidden>
   <div class="sheet">
-    <p class="kicker">Run over</p>
-    <h1>Mashed.</h1>
-    <p id="over-lede" class="lede">That's as far as this potato got.</p>
+    <p class="kicker">UNDER</p>
+    <h1>Composted.</h1>
+    <div id="over-hero" class="summary-hero"></div>
+    <p id="over-lede" class="lede"></p>
     <ul id="over-summary" class="summary-list"></ul>
     <div id="over-build" class="build-block"></div>
     <div class="actions">
-      <button id="btn-over-retry" class="btn primary" type="button">Peel another</button>
+      <button id="btn-over-retry" class="btn primary" type="button">Again</button>
       <button id="btn-over-title" class="btn ghost" type="button">Back to the gate</button>
     </div>
   </div>
@@ -235,13 +239,14 @@ const SKELETON = `
 
 <div id="screen-victory" class="overlay dim" hidden>
   <div class="sheet">
-    <p class="kicker">The blight went quiet</p>
-    <h1>Last potato standing.</h1>
-    <p id="win-lede" class="lede">The paddock went still. You did not.</p>
+    <p class="kicker">DAWN</p>
+    <h1 id="win-heading">Still clean.</h1>
+    <div id="win-hero" class="summary-hero"></div>
+    <p id="win-lede" class="lede"></p>
     <ul id="win-summary" class="summary-list"></ul>
     <div id="win-build" class="build-block"></div>
     <div class="actions">
-      <button id="btn-win-again" class="btn primary" type="button">Do it again</button>
+      <button id="btn-win-again" class="btn primary" type="button">Again</button>
       <button id="btn-win-title" class="btn ghost" type="button">Back to the gate</button>
     </div>
   </div>
@@ -258,6 +263,18 @@ interface WeaponSlotEls {
   cdFrac: number
 }
 
+interface CharCardView {
+  ch: CharacterDef
+  form: Form
+  root: HTMLElement
+  img: HTMLImageElement
+  nameEl: HTMLElement
+  flavorEl: HTMLElement
+  perksEl: HTMLElement
+  cleanBtn: HTMLButtonElement
+  mudBtn: HTMLButtonElement
+}
+
 interface HudCache {
   hp: number
   maxHp: number
@@ -271,6 +288,8 @@ interface HudCache {
   bossName: string | null
   bossHp: number
   bossMax: number
+  form: Form | null
+  nightmaresAlive: number
 }
 
 export function createUi(
@@ -293,6 +312,8 @@ export function createUi(
   const levelEl = must<HTMLElement>('#hud-level')
   const waveEl = must<HTMLElement>('#hud-wave')
   const clockEl = must<HTMLElement>('#hud-clock')
+  const mudMeter = must<HTMLDivElement>('#hud-mud')
+  const mudCount = must<HTMLElement>('#hud-mud-count')
   const bossWrap = must<HTMLDivElement>('#hud-boss')
   const bossNameEl = must<HTMLElement>('#hud-boss-name')
   const bossFill = must<HTMLDivElement>('#hud-boss-fill')
@@ -329,11 +350,14 @@ export function createUi(
   const btnQuit = must<HTMLButtonElement>('#btn-quit')
   const btnPauseMute = must<HTMLButtonElement>('#btn-pause-mute')
   const overLede = must<HTMLElement>('#over-lede')
+  const overHero = must<HTMLDivElement>('#over-hero')
   const overSummary = must<HTMLUListElement>('#over-summary')
   const overBuild = must<HTMLDivElement>('#over-build')
   const btnOverRetry = must<HTMLButtonElement>('#btn-over-retry')
   const btnOverTitle = must<HTMLButtonElement>('#btn-over-title')
+  const winHeading = must<HTMLElement>('#win-heading')
   const winLede = must<HTMLElement>('#win-lede')
+  const winHero = must<HTMLDivElement>('#win-hero')
   const winSummary = must<HTMLUListElement>('#win-summary')
   const winBuild = must<HTMLDivElement>('#win-build')
   const btnWinAgain = must<HTMLButtonElement>('#btn-win-again')
@@ -375,11 +399,22 @@ export function createUi(
     return url
   }
 
-  function portraitOf(character: CharacterDef): string {
-    let url = portraitCache.get(character.id)
+  function portraitOf(character: CharacterDef, form: Form = 'normal'): string {
+    const key = `${character.id}:${form}`
+    let url = portraitCache.get(key)
     if (url === undefined) {
-      url = art.portrait(character, 160)
-      portraitCache.set(character.id, url)
+      url = art.portrait(character, 160, form)
+      portraitCache.set(key, url)
+    }
+    return url
+  }
+
+  function characterIcon(species: string, form: Form): string {
+    const key = `c:${species}:${form}`
+    let url = iconCache.get(key)
+    if (url === undefined) {
+      url = art.icon('character', species, undefined, 96, form)
+      iconCache.set(key, url)
     }
     return url
   }
@@ -434,6 +469,8 @@ export function createUi(
     bossName: null,
     bossHp: Number.NaN,
     bossMax: Number.NaN,
+    form: null,
+    nightmaresAlive: -1,
   }
 
   let activeOverlay: OverlayId | null = null
@@ -448,9 +485,9 @@ export function createUi(
   let overHandlers: { retry(): void; title(): void } | null = null
   let winHandlers: { again(): void; title(): void } | null = null
 
-  let charIds: string[] = []
+  let charCards: CharCardView[] = []
   let charIndex = 0
-  let charPick: ((id: string) => void) | null = null
+  let charPick: ((id: string, form: Form) => void) | null = null
   let levelIds: string[] = []
   let levelPick: ((id: string) => void) | null = null
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -502,17 +539,51 @@ export function createUi(
   }
 
   function highlightChar(): void {
-    const cards = charGrid.querySelectorAll<HTMLElement>('.char-card')
-    cards.forEach((card, i) => {
+    charCards.forEach((view, i) => {
       const on = i === charIndex
-      card.classList.toggle('is-selected', on)
-      if (on) card.focus()
+      view.root.classList.toggle('is-selected', on)
+      if (on) view.root.focus()
     })
+  }
+
+  function fillPerks(host: HTMLElement, lines: string[]): void {
+    host.replaceChildren()
+    for (const line of lines) host.append(h('li', { text: line }))
+  }
+
+  function applyCardForm(view: CharCardView): void {
+    const mud = view.form === 'nightmare'
+    const variant = mud ? view.ch.nightmare : null
+    const name = variant ? variant.name : view.ch.name
+    view.root.classList.toggle('is-mud', mud)
+    view.root.style.setProperty('--glow', view.ch.palette.glow ?? '#d9ff5c')
+    view.img.src = portraitOf(view.ch, view.form)
+    view.img.alt = name
+    view.nameEl.textContent = name
+    view.flavorEl.textContent = variant ? variant.flavor : view.ch.flavor
+    fillPerks(view.perksEl, variant ? variant.perks : view.ch.perks)
+    view.cleanBtn.classList.toggle('is-on', !mud)
+    view.mudBtn.classList.toggle('is-on', mud)
+    view.cleanBtn.setAttribute('aria-pressed', String(!mud))
+    view.mudBtn.setAttribute('aria-pressed', String(mud))
+  }
+
+  function flipChar(index: number): void {
+    const view = charCards[index]
+    if (!view) return
+    view.form = view.form === 'nightmare' ? 'normal' : 'nightmare'
+    applyCardForm(view)
+  }
+
+  function setCharForm(view: CharCardView, form: Form): void {
+    if (view.form === form) return
+    view.form = form
+    applyCardForm(view)
   }
 
   function summaryRows(summary: RunSummary): HTMLLIElement[] {
     const rows: { k: string; v: string }[] = [
-      { k: 'Potato', v: summary.characterName },
+      { k: 'Name', v: summary.characterName },
       {
         k: 'Waves',
         v: summary.won
@@ -552,7 +623,7 @@ export function createUi(
     const itemHead = h('h2', { text: 'What was in the pockets' })
     const itemRow = h('div', { className: 'build-row' })
     if (summary.items.length === 0) {
-      itemRow.append(h('p', { className: 'empty-note', text: 'Pockets empty. The hawker will miss you.' }))
+      itemRow.append(h('p', { className: 'empty-note', text: 'Pockets empty.' }))
     } else {
       for (const it of summary.items) {
         const chip = h('div', { className: `build-chip tier-${it.tier}` })
@@ -563,6 +634,12 @@ export function createUi(
       }
     }
     host.append(weapHead, weapRow, itemHead, itemRow)
+  }
+
+  function fillHero(host: HTMLElement, summary: RunSummary): void {
+    host.replaceChildren(
+      img(characterIcon(summary.species, summary.form), summary.characterName, 96, 96),
+    )
   }
 
   errorRetry.addEventListener('click', () => {
@@ -635,28 +712,32 @@ export function createUi(
       }
       return
     }
-    if (activeOverlay === 'charselect' && charIds.length > 0) {
-      const n = charIds.length
-      const cols = window.matchMedia('(min-width: 760px)').matches ? 4 : 2
-      if (
-        e.code === 'ArrowRight' ||
-        e.code === 'ArrowLeft' ||
-        e.code === 'ArrowDown' ||
-        e.code === 'ArrowUp'
-      ) {
+    if (activeOverlay === 'charselect' && charCards.length > 0) {
+      const n = charCards.length
+      if (e.code === 'ArrowDown' || e.code === 'ArrowUp') {
         e.preventDefault()
-        if (e.code === 'ArrowRight') charIndex = (charIndex + 1) % n
-        else if (e.code === 'ArrowLeft') charIndex = (charIndex - 1 + n) % n
-        else if (e.code === 'ArrowDown') charIndex = (charIndex + cols) % n
-        else charIndex = (charIndex - cols + n) % n
+        if (e.code === 'ArrowDown') charIndex = (charIndex + 1) % n
+        else charIndex = (charIndex - 1 + n) % n
+        highlightChar()
+        return
+      }
+      if (e.code === 'ArrowLeft' || e.code === 'ArrowRight' || e.code === 'KeyF') {
+        e.preventDefault()
+        if (e.target instanceof HTMLElement) {
+          const card = e.target.closest('.char-card')
+          if (card) {
+            const i = charCards.findIndex((v) => v.root === card)
+            if (i >= 0) charIndex = i
+          }
+        }
+        flipChar(charIndex)
         highlightChar()
         return
       }
       if (e.code === 'Enter') {
-        if (e.target instanceof HTMLElement && e.target.closest('.char-card')) return
         e.preventDefault()
-        const id = charIds[charIndex]
-        if (id !== undefined && charPick) charPick(id)
+        const view = charCards[charIndex]
+        if (view && charPick) charPick(view.ch.id, view.form)
       }
     }
   })
@@ -680,6 +761,7 @@ export function createUi(
 
     setHudVisible(visible: boolean): void {
       hud.hidden = !visible
+      if (!visible) document.body.classList.remove('form-nightmare')
     },
 
     renderHud(snap: HudSnapshot): void {
@@ -714,6 +796,21 @@ export function createUi(
       if (clock !== hudCache.clock) {
         hudCache.clock = clock
         clockEl.textContent = clock
+      }
+      if (snap.form !== hudCache.form) {
+        hudCache.form = snap.form
+        document.body.classList.toggle('form-nightmare', snap.form === 'nightmare')
+      }
+      if (snap.nightmaresAlive !== hudCache.nightmaresAlive) {
+        hudCache.nightmaresAlive = snap.nightmaresAlive
+        if (snap.nightmaresAlive > 0) {
+          mudMeter.hidden = false
+          mudCount.textContent = String(snap.nightmaresAlive)
+          mudMeter.classList.toggle('is-hot', snap.nightmaresAlive >= 5)
+        } else {
+          mudMeter.hidden = true
+          mudMeter.classList.remove('is-hot')
+        }
       }
 
       const boss = snap.boss
@@ -774,29 +871,64 @@ export function createUi(
       }
     },
 
-    renderCharSelect(characters: CharacterDef[], onPick: (id: string) => void): void {
+    renderCharSelect(characters: CharacterDef[], onPick: (id: string, form: Form) => void): void {
       charPick = onPick
-      charIds = characters.map((c) => c.id)
       charIndex = 0
+      charCards = []
       charGrid.replaceChildren()
       for (const ch of characters) {
-        const card = h('button', { className: 'char-card' })
-        card.type = 'button'
+        const card = h('div', { className: 'char-card' })
+        card.tabIndex = 0
         card.dataset.id = ch.id
-        card.append(img(portraitOf(ch), ch.name, 160, 160))
-        card.append(h('h2', { text: ch.name }))
-        card.append(h('p', { className: 'char-flavor', text: ch.flavor }))
-        const perks = h('ul', { className: 'perk-list' })
-        for (const line of ch.perks) {
-          perks.append(h('li', { text: line }))
+        const portrait = img(portraitOf(ch, 'normal'), ch.name, 160, 160)
+        const nameEl = h('h2', { text: ch.name })
+        const flavorEl = h('p', { className: 'char-flavor', text: ch.flavor })
+        const perksEl = h('ul', { className: 'perk-list' })
+        fillPerks(perksEl, ch.perks)
+        const toggle = h('div', { className: 'form-toggle' })
+        toggle.setAttribute('role', 'group')
+        toggle.setAttribute('aria-label', 'Form')
+        const cleanBtn = h('button', { className: 'form-seg is-on', text: 'Clean' })
+        cleanBtn.type = 'button'
+        cleanBtn.setAttribute('aria-pressed', 'true')
+        const mudBtn = h('button', { className: 'form-seg', text: 'Mud' })
+        mudBtn.type = 'button'
+        mudBtn.setAttribute('aria-pressed', 'false')
+        toggle.append(cleanBtn, mudBtn)
+        const view: CharCardView = {
+          ch,
+          form: 'normal',
+          root: card,
+          img: portrait,
+          nameEl,
+          flavorEl,
+          perksEl,
+          cleanBtn,
+          mudBtn,
         }
-        card.append(perks)
-        card.addEventListener('click', () => {
-          charIndex = Math.max(0, charIds.indexOf(ch.id))
+        applyCardForm(view)
+        cleanBtn.addEventListener('click', (ev) => {
+          ev.stopPropagation()
+          charIndex = charCards.indexOf(view)
+          setCharForm(view, 'normal')
           highlightChar()
-          onPick(ch.id)
         })
+        mudBtn.addEventListener('click', (ev) => {
+          ev.stopPropagation()
+          charIndex = charCards.indexOf(view)
+          setCharForm(view, 'nightmare')
+          highlightChar()
+        })
+        toggle.addEventListener('click', (ev) => ev.stopPropagation())
+        card.addEventListener('click', (ev) => {
+          if (ev.target instanceof HTMLElement && ev.target.closest('.form-toggle')) return
+          charIndex = charCards.indexOf(view)
+          highlightChar()
+          onPick(ch.id, view.form)
+        })
+        card.append(portrait, nameEl, flavorEl, perksEl, toggle)
         charGrid.append(card)
+        charCards.push(view)
       }
       highlightChar()
     },
@@ -804,11 +936,8 @@ export function createUi(
     renderLevelUp(options: LevelUpOption[], remaining: number, onPick: (id: string) => void): void {
       levelPick = onPick
       levelIds = options.map((o) => o.id)
-      if (remaining > 1) {
-        levelRemain.textContent = `${remaining} thickenings in the queue, including this one. Pick, then pick again.`
-      } else {
-        levelRemain.textContent = 'One pick. Make it count. The next wave already knows.'
-      }
+      levelRemain.textContent = 'One pick. The garden already knows.'
+      levelRemain.dataset.remaining = String(remaining)
       levelCards.replaceChildren()
       options.forEach((opt, i) => {
         const card = h('button', { className: `level-card tier-${opt.tier}` })
@@ -830,11 +959,11 @@ export function createUi(
     renderShop(view: ShopView, handlers: ShopHandlers): void {
       shopHandlers = handlers
       applyStats(view)
-      shopLede.textContent = `Wave ${view.wave} is in the ground. Wave ${view.nextWave} is putting its boots on.`
+      shopLede.textContent = `Wave ${view.wave} is under. Wave ${view.nextWave} is coming up.`
       shopBag.textContent = String(view.materials)
       shopReroll.textContent =
-        view.freeRerolls > 0 ? 'Reroll · Free' : `Reroll · ${view.rerollPrice}`
-      shopSlots.textContent = `${view.weapons.length} of ${view.weaponSlots} weapon slots taken.`
+        view.freeRerolls > 0 ? 'Turn over · Free' : `Turn over · ${view.rerollPrice}`
+      shopSlots.textContent = `${view.weapons.length} of ${view.weaponSlots} hands full.`
 
       shopOffers.replaceChildren()
       for (const offer of view.offers) {
@@ -878,7 +1007,7 @@ export function createUi(
       shopWeapons.replaceChildren()
       if (view.weapons.length === 0) {
         shopWeapons.append(
-          h('p', { className: 'empty-note', text: 'Nothing on the belt yet. The hawker has ideas.' }),
+          h('p', { className: 'empty-note', text: 'Hands empty.' }),
         )
       } else {
         for (const w of view.weapons) {
@@ -923,16 +1052,19 @@ export function createUi(
 
     renderGameOver(summary: RunSummary, handlers: { retry(): void; title(): void }): void {
       overHandlers = handlers
-      overLede.textContent = summary.killedBy
-        ? `Cut down by ${summary.killedBy}. That's as far as this potato got.`
-        : "That's as far as this potato got."
+      const clock = formatClock(summary.timeSeconds)
+      const killer = summary.killedBy ?? 'the soil'
+      overLede.textContent = `${summary.characterName} went under on wave ${summary.wave} after ${clock}. Killed by ${killer}.`
+      fillHero(overHero, summary)
       overSummary.replaceChildren(...summaryRows(summary))
       fillBuild(overBuild, summary)
     },
 
     renderVictory(summary: RunSummary, handlers: { again(): void; title(): void }): void {
       winHandlers = handlers
-      winLede.textContent = `Twenty waves. ${summary.kills} things that will not get up. The paddock went still. You did not.`
+      winHeading.textContent = summary.form === 'nightmare' ? 'Still yours.' : 'Still clean.'
+      winLede.textContent = `${summary.characterName} walked out of the Plot. 20 waves. The Mud will remember.`
+      fillHero(winHero, summary)
       winSummary.replaceChildren(...summaryRows(summary))
       fillBuild(winBuild, summary)
     },
