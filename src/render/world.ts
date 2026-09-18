@@ -1,25 +1,38 @@
 import { TAU, clamp, dist, ease, hashNoise, lerp } from '../core/math.ts'
 import type {
   Enemy,
+  Form,
   FxApi,
   Pickup,
   Player,
   Projectile,
+  SpawnMarker,
   Tree,
   WeaponBehavior,
   WeaponDef,
   WeaponId,
   World,
 } from '../core/types.ts'
+import { ENEMIES } from '../data/enemies.ts'
 import { WEAPONS } from '../data/weapons.ts'
+import {
+  glowOf,
+  creatureSprite,
+  handLocal,
+  mudOf,
+  paintLiveFeatures,
+  resolveMouth,
+  resolveScream,
+  resolveSpecies,
+  screamScale,
+  sizeBucket,
+  speciesRig,
+  SPECIES_PALETTES,
+} from './creatures.ts'
 import { drawPaddock } from './ground.ts'
 import {
-  ART,
-  ENEMY_PALETTES,
-  enemySprite,
   markerSprite,
   pickupSprite,
-  playerSprite,
   projectileSprite,
   qualityBucket,
   type SpriteCache,
@@ -188,12 +201,18 @@ function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache
   ctx.restore()
 }
 
-function drawMarker(ctx: CanvasRenderingContext2D, x: number, y: number, u: number, cache: SpriteCache): void {
-  const spr = markerSprite(cache, qScale)
+function markerForm(kind: SpawnMarker['kind']): Form {
+  return ENEMIES[kind]?.form === 'nightmare' ? 'nightmare' : 'normal'
+}
+
+function drawMarker(ctx: CanvasRenderingContext2D, m: SpawnMarker, cache: SpriteCache): void {
+  const form = markerForm(m.kind)
+  const spr = markerSprite(cache, form, qScale)
+  const u = m.life > 0 ? m.t / m.life : 1
   const bloom = lerp(0.45, 1.15, ease.outCubic(clamp(u, 0, 1)))
   const alpha = 0.25 + 0.65 * Math.sin(clamp(u, 0, 1) * Math.PI)
   ctx.save()
-  ctx.translate(x, y)
+  ctx.translate(m.x, m.y)
   blit(ctx, spr, bloom, alpha)
   ctx.restore()
 }
@@ -213,12 +232,21 @@ function drawEmbers(ctx: CanvasRenderingContext2D, x: number, y: number, r: numb
 }
 
 function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, cache: SpriteCache, time: number): void {
-  const pal = e.def.palette ?? ENEMY_PALETTES[e.def.paint]
-  const spr = enemySprite(cache, e.def.paint, pal, e.elite, e.boss, qScale)
+  const species = resolveSpecies(e.def.paint, e.def.species, e.kind)
+  const form: Form = e.form ?? e.def.form ?? 'normal'
+  const pal = e.def.palette ?? SPECIES_PALETTES[species]
+  const artR = sizeBucket(e.r)
+  const spr = creatureSprite(cache, species, pal, form, artR, qScale)
   const spawn = clamp(e.anim.spawnT, 0, 1)
   const dying = e.anim.deathT >= 0
   const death = dying ? clamp(e.anim.deathT, 0, 1) : 0
   const appear = ease.outCubic(spawn)
+  const scream = resolveScream(e.anim, e.state, e.stateT)
+  const ss = screamScale(scream)
+  const mouth = resolveMouth(e.anim, form, scream)
+  const gait = e.anim.gait ?? 0
+  const blink = e.anim.blink ?? -1
+  const facing = e.anim.facing ?? 1
   let ox = e.x + e.anim.kick.x
   let oy = e.y + e.anim.kick.y + e.anim.bob
   if (e.state === 'windup' || e.state === 'charging') {
@@ -232,19 +260,40 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, cache: SpriteCache, 
   if (dying) ctx.rotate((n01(e.uid, 2) - 0.5) * 0.5 * death)
   const bloom = lerp(1.7, 1, appear) * (1 + death * 0.75)
   const squash = clamp(e.anim.squash || 1, 0.45, 1.8)
-  ctx.scale(squash * bloom, (1 / squash) * bloom * (1 + death * 0.15))
+  ctx.scale(squash * bloom * ss.sx, (1 / squash) * bloom * ss.sy * (1 + death * 0.15))
   ctx.globalAlpha = appear * (1 - death)
   if (spawn < 0.85) {
     ctx.save()
-    ctx.globalAlpha = (1 - spawn) * 0.4
-    ctx.fillStyle = pal.body
+    ctx.globalAlpha = (1 - spawn) * 0.45
+    ctx.fillStyle = form === 'nightmare' ? mudOf(pal) : pal.body
     ctx.beginPath()
     ctx.arc(0, 0, e.r * 2.1, 0, TAU)
     ctx.fill()
     ctx.restore()
   }
-  const sc = e.r / (e.boss ? 48 : e.elite ? 34 : ART.bodyR)
+  const sc = e.r / artR
+  ctx.save()
+  ctx.scale(facing, 1)
   blit(ctx, spr, sc)
+  ctx.restore()
+  ctx.save()
+  ctx.scale(sc, sc)
+  paintLiveFeatures(ctx, {
+    species,
+    pal,
+    r: artR,
+    form,
+    mouth,
+    blink,
+    gait,
+    scream,
+    facing,
+    lookX: e.aim.x !== 0 || e.aim.y !== 0 ? Math.cos(Math.atan2(e.aim.y, e.aim.x)) : 0.25 * facing,
+    lookY: e.aim.y !== 0 ? Math.sign(e.aim.y) * 0.2 : 0.1,
+    t: e.anim.t,
+    uid: e.uid,
+  })
+  ctx.restore()
   if (e.anim.hitFlash > 0.02) {
     ctx.save()
     ctx.globalAlpha = e.anim.hitFlash * 0.65
@@ -267,7 +316,7 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, cache: SpriteCache, 
   ctx.restore()
   if (e.burn > 0) drawEmbers(ctx, ox, oy, e.r, time, e.uid)
   if (e.elite || e.boss) {
-    hpArc(ctx, ox, oy - e.r * bloom - 8, e.boss ? 22 : 14, e.maxHp > 0 ? e.hp / e.maxHp : 0, e.boss)
+    hpArc(ctx, ox, oy - e.r * bloom * ss.sy - 8, e.boss ? 22 : 14, e.maxHp > 0 ? e.hp / e.maxHp : 0, e.boss)
   }
   if ((e.state === 'windup' || e.state === 'charging') && (e.aim.x !== 0 || e.aim.y !== 0)) {
     const ang = Math.atan2(e.aim.y, e.aim.x)
@@ -396,6 +445,7 @@ function drawPlayerWeapons(
   world: World,
   cache: SpriteCache,
   behind: boolean,
+  held?: Record<number, { x: number; y: number }>,
 ): void {
   const player = world.player
   const frame = Math.floor(world.time * 8) % 4
@@ -408,11 +458,14 @@ function drawPlayerWeapons(
     if (behavior.type === 'aura' && !behind) {
       drawAuraRing(ctx, player.x, player.y, behavior.radius, world.time)
     }
+    const heldPos = w.slot === 0 || w.slot === 1 ? held?.[w.slot] : undefined
     const off = slotOffset(w.slot, player.r)
-    const isBack = off.y < 0
+    const isBack = heldPos ? heldPos.y < player.y + player.anim.bob : off.y < 0
     if (isBack !== behind) continue
-    const pose = weaponAngleAndPos(player, w.slot, w.angle, w.swingT, behavior)
-    if (pose.smear && w.swingT >= 0) {
+    const pose = heldPos
+      ? { x: heldPos.x, y: heldPos.y, rot: w.angle, smear: undefined as { a0: number; a1: number; r: number } | undefined }
+      : weaponAngleAndPos(player, w.slot, w.angle, w.swingT, behavior)
+    if (!heldPos && pose.smear && w.swingT >= 0) {
       ctx.save()
       ctx.globalAlpha = 0.22 * Math.sin(clamp(w.swingT, 0, 1) * Math.PI)
       ctx.strokeStyle = '#c4b090'
@@ -489,28 +542,89 @@ function drawOrbitWeapons(ctx: CanvasRenderingContext2D, world: World, cache: Sp
 function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCache): void {
   const p = world.player
   const pal = p.character.palette
-  const spr = playerSprite(cache, pal, p.facingAngle, p.anim.moving, p.anim.t, qScale)
+  const species = resolveSpecies(p.character.species ?? 'potato', p.character.species, p.character.id)
+  const form: Form = p.form ?? 'normal'
+  const artR = sizeBucket(p.r)
+  const spr = creatureSprite(cache, species, pal, form, artR, qScale)
   const x = p.x + p.anim.kick.x
   const y = p.y + p.anim.kick.y + p.anim.bob
+  const scream = resolveScream(p.anim, undefined, undefined)
+  const ss = screamScale(scream)
+  const mouth = resolveMouth(p.anim, form, scream)
+  const gait = p.anim.gait ?? (p.anim.moving ? (p.anim.t * 1.7) % 1 : 0)
+  const blink = p.anim.blink ?? -1
+  const facing = p.anim.facing ?? 1
+  const squash = clamp(p.anim.squash || 1, 0.45, 1.8)
+  const sc = p.r / artR
+  const bodyRot = clamp(p.vx / 220, -0.28, 0.28) + clamp(Math.hypot(p.vx, p.vy) / 400, 0, 0.08) * Math.sign(p.vx || p.anim.facing)
+  const sx = sc * squash * ss.sx
+  const sy = sc * ss.sy / squash
+  const rig = speciesRig(species, artR)
+  const has0 = p.weapons.some((w) => w && w.slot === 0)
+  const has1 = p.weapons.some((w) => w && w.slot === 1)
+  const localL = has1 ? handLocal(rig, gait, -1, facing) : undefined
+  const localR = has0 ? handLocal(rig, gait, 1, facing) : undefined
+  const held: Record<number, { x: number; y: number }> = {}
+  const c = Math.cos(bodyRot)
+  const s = Math.sin(bodyRot)
+  if (localR) {
+    held[0] = { x: x + localR.x * sx * c - localR.y * sy * s, y: y + localR.x * sx * s + localR.y * sy * c }
+  }
+  if (localL) {
+    held[1] = { x: x + localL.x * sx * c - localL.y * sy * s, y: y + localL.x * sx * s + localL.y * sy * c }
+  }
+
   drawShadow(ctx, x, p.y, p.r, p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.14 : 0.42)
-  drawPlayerWeapons(ctx, world, cache, true)
+  drawPlayerWeapons(ctx, world, cache, true, held)
   ctx.save()
   ctx.translate(x, y)
-  const spd = Math.hypot(p.vx, p.vy)
-  ctx.rotate(clamp(p.vx / 220, -0.28, 0.28) + clamp(spd / 400, 0, 0.08) * Math.sign(p.vx || p.anim.facing))
-  const squash = clamp(p.anim.squash || 1, 0.45, 1.8)
-  ctx.scale(squash, 1 / squash)
+  ctx.rotate(bodyRot)
+  ctx.scale(squash * ss.sx, ss.sy / squash)
   let alpha = 1
   if (p.invuln > 0) alpha = Math.sin(p.anim.t * 24) > 0 ? 1 : 0.32
+  if (form === 'normal') {
+    ctx.save()
+    ctx.globalAlpha = 0.2 * alpha
+    ctx.fillStyle = '#f7f1e2'
+    ctx.beginPath()
+    ctx.ellipse(0, 2, p.r * 1.55, p.r * 1.32, 0, 0, TAU)
+    ctx.fill()
+    ctx.restore()
+  } else {
+    ctx.save()
+    ctx.globalCompositeOperation = 'lighter'
+    ctx.globalAlpha = 0.16 * alpha
+    ctx.fillStyle = glowOf(pal)
+    ctx.beginPath()
+    ctx.ellipse(0, 0, p.r * 1.35, p.r * 1.2, 0, 0, TAU)
+    ctx.fill()
+    ctx.restore()
+  }
+  ctx.globalAlpha = alpha
   ctx.save()
-  ctx.globalAlpha = 0.2 * alpha
-  ctx.fillStyle = '#f7f1e2'
-  ctx.beginPath()
-  ctx.ellipse(0, 2, p.r * 1.55, p.r * 1.32, 0, 0, TAU)
-  ctx.fill()
+  ctx.scale(facing, 1)
+  blit(ctx, spr, sc)
   ctx.restore()
-  const sc = p.r / ART.bodyR
-  blit(ctx, spr, sc, alpha)
+  ctx.save()
+  ctx.scale(sc, sc)
+  paintLiveFeatures(ctx, {
+    species,
+    pal,
+    r: artR,
+    form,
+    mouth,
+    blink,
+    gait,
+    scream,
+    facing,
+    lookX: Math.cos(p.facingAngle),
+    lookY: Math.sin(p.facingAngle) * 0.3,
+    t: p.anim.t,
+    holdL: localL,
+    holdR: localR,
+    uid: 1,
+  })
+  ctx.restore()
   if (p.anim.hitFlash > 0.02) {
     ctx.globalAlpha = p.anim.hitFlash * 0.7 * alpha
     ctx.fillStyle = '#fff6e8'
@@ -519,7 +633,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     ctx.fill()
   }
   ctx.restore()
-  drawPlayerWeapons(ctx, world, cache, false)
+  drawPlayerWeapons(ctx, world, cache, false, held)
   drawOrbitWeapons(ctx, world, cache)
 }
 
@@ -591,7 +705,7 @@ export function drawWorld(
       if (p) drawPickup(ctx, p, cache, world.time)
     } else if (c.kind === 2) {
       const m = world.markers[c.idx]
-      if (m) drawMarker(ctx, m.x, m.y, m.life > 0 ? m.t / m.life : 1, cache)
+      if (m) drawMarker(ctx, m, cache)
     } else if (c.kind === 3) {
       const e = world.enemies[c.idx]
       if (e) drawEnemy(ctx, e, cache, world.time)

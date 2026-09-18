@@ -1,4 +1,4 @@
-import type { CharacterDef, Palette, RenderApi, World } from '../core/types.ts'
+import type { CharacterDef, Form, Palette, RenderApi, World } from '../core/types.ts'
 import { createFx } from './fx.ts'
 import { createSpriteCache, iconDataUrl, portraitDataUrl } from './sprites.ts'
 import { drawWorld } from './world.ts'
@@ -17,11 +17,11 @@ export function createRenderer(): RenderApi {
     draw(ctx: CanvasRenderingContext2D, world: World, dt: number) {
       drawWorld(ctx, world, dt, fx, cache, view)
     },
-    icon(kind: 'weapon' | 'item' | 'enemy' | 'character', paint: string, palette?: Palette, size?: number) {
-      return iconDataUrl(cache, kind, paint, palette, size ?? 48, view.dpr)
+    icon(kind: 'weapon' | 'item' | 'enemy' | 'character', paint: string, palette?: Palette, size?: number, form?: Form) {
+      return iconDataUrl(cache, kind, paint, palette, size ?? 48, view.dpr, form ?? 'normal')
     },
-    portrait(character: CharacterDef, size: number) {
-      return portraitDataUrl(cache, character, size, view.dpr)
+    portrait(character: CharacterDef, size: number, form?: Form) {
+      return portraitDataUrl(cache, character, size, view.dpr, form ?? 'normal')
     },
   }
 }

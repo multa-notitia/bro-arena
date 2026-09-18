@@ -1,6 +1,6 @@
 import { TAU, clamp, ease, hashNoise, lerp } from '../core/math.ts'
 import type { DamageNumberOpts, FxApi } from '../core/types.ts'
-import { n01, wobbleBlob } from './watercolor.ts'
+import { n01, parseRgb, wobbleBlob } from './watercolor.ts'
 
 const MAX_PARTICLES = 600
 const MAX_STAINS = 80
@@ -170,6 +170,25 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
           s.life = STAIN_LIFE
           s.maxLife = STAIN_LIFE
           stains.push(s)
+        }
+        const rgb = parseRgb(color)
+        if (rgb.r + rgb.g + rgb.b < 220) {
+          const bloom = alloc()
+          bloom.kind = 'bloom'
+          bloom.x = x
+          bloom.y = y
+          bloom.size = size * 1.35
+          bloom.color = '#d9ff5c'
+          bloom.life = 0.38
+          bloom.maxLife = 0.38
+          const puff = alloc()
+          puff.kind = 'puff'
+          puff.x = x
+          puff.y = y
+          puff.size = size * 0.9
+          puff.color = '#d9ff5c'
+          puff.life = 0.28
+          puff.maxLife = 0.28
         }
       }
     },
