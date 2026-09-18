@@ -962,7 +962,7 @@ export function createUi(
         applyCardForm(view)
         toggle.addEventListener('click', (ev) => ev.stopPropagation())
         card.addEventListener('click', (ev) => {
-          if (ev.target instanceof HTMLElement && ev.target.closest('.char-card')) return
+          if (ev.target instanceof HTMLElement && ev.target.closest('.form-toggle')) return
           charIndex = charCards.indexOf(view)
           highlightChar()
           onPick(ch.id, view.model)
