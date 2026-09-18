@@ -2,10 +2,12 @@ import type { HudSnapshot, ItemPaint, RunSummary, World } from '../core/types.ts
 import { ITEMS } from '../data/items.ts'
 import { WEAPONS, weaponCooldown } from '../data/weapons.ts'
 import { WAVE_COUNT } from '../data/waves.ts'
+import { nightmaresAlive } from './enemies.ts'
 
 export function hudSnapshot(world: World, fps: number): HudSnapshot {
   const p = world.player
   const boss = world.boss
+  const displayName = p.form === 'nightmare' ? p.character.nightmare.name : p.character.name
   return {
     hp: Math.max(0, p.hp),
     maxHp: p.stats.maxHp,
@@ -18,7 +20,11 @@ export function hudSnapshot(world: World, fps: number): HudSnapshot {
     waveTotal: WAVE_COUNT,
     boss:
       boss && boss.anim.deathT < 1
-        ? { name: boss.def.name, hp: Math.max(0, boss.hp), maxHp: boss.maxHp }
+        ? {
+            name: boss.form === 'nightmare' ? boss.def.nightmareName || boss.def.name : boss.def.name,
+            hp: Math.max(0, boss.hp),
+            maxHp: boss.maxHp,
+          }
         : null,
     weapons: p.weapons.map((w) => {
       const def = WEAPONS[w.id]
@@ -31,7 +37,9 @@ export function hudSnapshot(world: World, fps: number): HudSnapshot {
         cooldownFrac: cd > 0 ? Math.max(0, Math.min(1, w.cooldown / cd)) : 0,
       }
     }),
-    characterName: p.character.name,
+    characterName: displayName,
+    form: p.form,
+    nightmaresAlive: nightmaresAlive(world),
     fps,
   }
 }
@@ -49,8 +57,11 @@ export function runSummary(
     if (!def) continue
     items.push({ name: def.name, tier: def.tier, paint: def.paint as ItemPaint, count })
   }
+  const displayName = p.form === 'nightmare' ? p.character.nightmare.name : p.character.name
   return {
-    characterName: p.character.name,
+    characterName: displayName,
+    species: p.character.species,
+    form: p.form,
     wave: world.wave,
     wavesTotal: WAVE_COUNT,
     won: opts.won,

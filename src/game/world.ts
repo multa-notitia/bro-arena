@@ -2,6 +2,7 @@ import { clamp, damp, Rng } from '../core/math.ts'
 import type {
   AudioApi,
   CharacterDef,
+  Form,
   RenderApi,
   Tree,
   UiApi,
@@ -28,8 +29,9 @@ export function createWorld(
   wdef: WaveDef,
   viewW: number,
   viewH: number,
+  form: Form = 'normal',
 ): World {
-  const player = createPlayer(character)
+  const player = createPlayer(character, form)
   return {
     time: 0,
     waveTime: 0,
@@ -71,9 +73,9 @@ export function syncViewport(world: World, canvas: HTMLCanvasElement): void {
   const h = canvas.clientHeight || canvas.height
   world.camera.w = Math.max(1, w)
   world.camera.h = Math.max(1, h)
-  // Show roughly 1050 world px across on desktop so the potato reads at a
-  // Brotato-like size; phones fall back to a wider view so enemies stay visible.
-  world.camera.zoom = clamp(world.camera.w / 1050, 0.95, 1.9)
+  // ~1050 world px across on desktop so the vegetable reads at a playable size.
+  // ~780 world px across on desktop so faces and limbs read; phones stay wider.
+  world.camera.zoom = clamp(world.camera.w / 780, 1.0, 2.4)
 }
 
 export function clampToArena(world: World, x: number, y: number, r: number): Vec {

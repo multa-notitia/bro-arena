@@ -1,6 +1,6 @@
 import { dist2 } from '../core/math.ts'
 import type { Enemy, StatusEffect, World } from '../core/types.ts'
-import { countSpecial, healPlayer } from './player.ts'
+import { extraState, countSpecial, healPlayer, startPlayerScream } from './player.ts'
 import { spawnMaterial } from './pickups.ts'
 import type { SimCtx } from './world.ts'
 
@@ -42,6 +42,7 @@ export function dealDamageToEnemy(
     crit = ctx.rng.chance(chance / 100)
     if (crit) dmg *= opts.critMult ?? 2
   }
+  if (enemy.state === 'screaming') dmg *= 1.5
 
   dmg = Math.max(1, Math.round(dmg))
   enemy.hp -= dmg
@@ -147,6 +148,14 @@ export function damagePlayer(
   ctx.render.fx.splat(player.x, player.y, player.character.palette.body, 12, 6)
   ctx.render.fx.damageNumber(player.x, player.y - 20, taken)
 
+  const extra = extraState(player)
+  if (player.form === 'nightmare' && taken >= 3) {
+    startPlayerScream(player)
+    ctx.audio.play('scream', { gain: 0.35 })
+  } else {
+    extra.flinchT = 0.3
+  }
+
   if (sourceEnemy) {
     const away = unit(player.x - sourceEnemy.x, player.y - sourceEnemy.y)
     player.anim.kick.x += away.x * 14
@@ -168,12 +177,17 @@ export function damagePlayer(
   if (player.hp <= 0) {
     player.hp = 0
     player.anim.deathT = 0
-    setKillSource(source)
+    setKillSource(killLabel(source, sourceEnemy))
   }
   return true
 }
 
 let killSource: string | null = null
+
+function killLabel(source: string, enemy?: Enemy): string {
+  if (!enemy) return source
+  return enemy.form === 'nightmare' ? enemy.def.nightmareName || enemy.def.name : enemy.def.name
+}
 
 export function setKillSource(name: string): void {
   killSource = name

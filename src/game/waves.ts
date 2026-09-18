@@ -110,9 +110,8 @@ export function beginWave(world: World, ctx: SimCtx, index: number): void {
     if (w.cooldown > 10) w.cooldown = 0.15
   }
   ctx.audio.play('waveStart')
-  ctx.audio.setMusic('wave')
-  const sub = wdef.boss ? 'Something in the dirt just sat up.' : undefined
-  ctx.ui.banner(`Wave ${index}`, sub, 2200)
+  ctx.audio.setMusic(world.player.form === 'nightmare' ? 'nightmare' : 'wave')
+  ctx.ui.banner(`Wave ${index}`, wdef.boss ? 'The soil is moving.' : undefined, 2200)
 }
 
 export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
@@ -127,7 +126,7 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
   for (const m of world.markers) {
     m.t += dt
     if (m.t >= m.life) {
-      spawnEnemy(world, m.kind, m.x, m.y, ctx, eliteMarkers.has(m))
+      spawnEnemy(world, m.kind, m.x, m.y, ctx, eliteMarkers.has(m), undefined, true)
     } else {
       markers.push(m)
     }
@@ -150,7 +149,7 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
         d.hordeFired[i] = true
         const n = ctx.rng.int(10, 18)
         for (let k = 0; k < n; k++) placeMarker(world, pickKind(world, ctx), ctx, false, 0.7)
-        ctx.ui.banner('Horde', 'They brought friends.', 1400)
+        ctx.ui.banner('Horde', 'The row emptied at once.', 1400)
       }
     }
 
@@ -159,7 +158,7 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
       if (t === undefined || world.waveTime < t) break
       d.elitesSpawned += 1
       placeMarker(world, pickKind(world, ctx), ctx, true, 1.15)
-      ctx.ui.banner('Elite', 'Bigger. Meaner. Still mashable.', 1400)
+      ctx.ui.banner('Elite', 'The row grew something bigger.', 1400)
     }
 
     if (def.boss && !d.bossSpawned && world.waveTime >= 3) {
@@ -170,8 +169,8 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
         world.boss = boss
         ctx.audio.play('bossRoar')
         ctx.audio.setMusic('boss')
-        const name = ENEMIES[def.boss]?.name ?? 'Boss'
-        ctx.ui.banner(name, 'The paddock holds its breath.', 2600)
+        const name = ENEMIES[def.boss]?.nightmareName ?? ENEMIES[def.boss]?.name ?? 'The soil'
+        ctx.ui.banner(name, 'The soil is moving.', 2600)
       }
     }
   }

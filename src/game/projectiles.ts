@@ -156,7 +156,7 @@ export function updateProjectiles(world: World, dt: number, ctx: SimCtx): void {
         const rad = p.r + pl.r
         if (dist2(p.x, p.y, pl.x, pl.y) <= rad * rad) {
           p.hitUids.push(-1)
-          if (pl.invuln <= 0) damagePlayer(world, p.damage, ctx, 'a stray shot')
+          if (pl.invuln <= 0) damagePlayer(world, p.damage, ctx, 'a seed')
           dead = true
         }
       }

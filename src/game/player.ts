@@ -2,6 +2,7 @@ import { clamp, damp, ease, uid, wrapAngle } from '../core/math.ts'
 import type {
   AnimState,
   CharacterDef,
+  Form,
   ItemSpecial,
   Player,
   Stats,
@@ -22,8 +23,16 @@ const MOVE_FRICTION = 11
 const BASE_SPEED = 210
 const SQUASH_TIME = 0.22
 
+export interface PlayerExtra {
+  squashT: number
+  matHeal: number
+  blinkWait: number
+  screamLeft: number
+  flinchT: number
+}
+
 const bonusByPlayer = new WeakMap<Player, Partial<Stats>>()
-const extraByPlayer = new WeakMap<Player, { squashT: number; matHeal: number }>()
+const extraByPlayer = new WeakMap<Player, PlayerExtra>()
 
 export function createAnim(spawnT = 1): AnimState {
   return {
@@ -36,7 +45,71 @@ export function createAnim(spawnT = 1): AnimState {
     hitFlash: 0,
     kick: { x: 0, y: 0 },
     moving: false,
+    mouth: 0,
+    scream: -1,
+    gait: 0,
+    blink: -1,
   }
+}
+
+export interface FaceClock {
+  blinkWait: number
+}
+
+/** Shared face/gait tick for player and enemies. */
+export function tickFaceAnim(
+  anim: AnimState,
+  dt: number,
+  clock: FaceClock,
+  opts: {
+    moving: boolean
+    speed: number
+    form: Form
+    screaming: boolean
+    screamProgress: number
+    flinchT: number
+    nextBlink: () => number
+  },
+): void {
+  if (opts.moving && opts.speed > 8) {
+    anim.gait += (opts.speed / 160) * dt
+    if (anim.gait >= 1) anim.gait -= Math.floor(anim.gait)
+  }
+
+  if (opts.screaming) {
+    anim.scream = opts.screamProgress
+    anim.mouth = 1
+    anim.blink = -1
+    return
+  }
+  anim.scream = -1
+
+  if (anim.blink >= 0) {
+    anim.blink += dt / 0.15
+    if (anim.blink >= 1) {
+      anim.blink = -1
+      clock.blinkWait = opts.nextBlink()
+    }
+  } else {
+    clock.blinkWait -= dt
+    if (clock.blinkWait <= 0) anim.blink = 0
+  }
+
+  if (opts.flinchT > 0) {
+    anim.mouth = 0.6
+    return
+  }
+  if (opts.form === 'nightmare') {
+    anim.mouth = 0.35 + (opts.moving ? Math.sin(anim.t * 10) * 0.08 : 0)
+  } else if (opts.moving) {
+    anim.mouth = 0.12 + Math.sin(anim.t * 14) * 0.13
+  } else {
+    anim.mouth = 0.04 + Math.sin(anim.t * 2.4) * 0.03
+  }
+}
+
+export function startPlayerScream(player: Player): void {
+  extraState(player).screamLeft = 0.5
 }
 
 export function makeWeapon(id: WeaponId, tier: Tier, slot: number): WeaponInstance {
@@ -75,16 +148,16 @@ export function getLevelBonus(player: Player): Partial<Stats> {
   return bonus
 }
 
-export function extraState(player: Player): { squashT: number; matHeal: number } {
+export function extraState(player: Player): PlayerExtra {
   let extra = extraByPlayer.get(player)
   if (!extra) {
-    extra = { squashT: 1, matHeal: 0 }
+    extra = { squashT: 1, matHeal: 0, blinkWait: 4, screamLeft: 0, flinchT: 0 }
     extraByPlayer.set(player, extra)
   }
   return extra
 }
 
-export function createPlayer(character: CharacterDef): Player {
+export function createPlayer(character: CharacterDef, form: Form = 'normal'): Player {
   const weapons = character.startingWeapons.map((w, i) => makeWeapon(w.id, w.tier, i))
   const items: string[] = []
   const stats = computeStats(
@@ -92,6 +165,7 @@ export function createPlayer(character: CharacterDef): Player {
     items,
     {},
     weapons.map((w) => ({ id: w.id, tier: w.tier })),
+    form,
   )
   const player: Player = {
     x: 0,
@@ -102,6 +176,7 @@ export function createPlayer(character: CharacterDef): Player {
     hp: stats.maxHp,
     stats,
     character,
+    form,
     weapons,
     items,
     materials: character.special === 'startRich' ? START_RICH : 0,
@@ -119,7 +194,7 @@ export function createPlayer(character: CharacterDef): Player {
     materialsCollected: 0,
   }
   bonusByPlayer.set(player, {})
-  extraByPlayer.set(player, { squashT: 1, matHeal: 0 })
+  extraByPlayer.set(player, { squashT: 1, matHeal: 0, blinkWait: 4, screamLeft: 0, flinchT: 0 })
   return player
 }
 
@@ -131,6 +206,7 @@ export function recomputeStats(player: Player): void {
     player.items,
     bonus,
     player.weapons.map((w) => ({ id: w.id, tier: w.tier })),
+    player.form,
   )
   const delta = player.stats.maxHp - prevMax
   if (delta > 0) player.hp += delta
@@ -162,8 +238,12 @@ export function addXp(player: Player, amount: number, ctx: SimCtx): void {
     player.pendingLevelUps += 1
     player.xpNext = xpForLevel(player.level)
     ctx.audio.play('levelUp')
-    ctx.render.fx.text(player.x, player.y - 36, 'LEVEL', player.character.palette.accent)
+    ctx.render.fx.text(player.x, player.y - 36, 'GROWTH', player.character.palette.accent)
     ctx.render.fx.sparkle(player.x, player.y, player.character.palette.accent)
+    if (player.form === 'nightmare') {
+      startPlayerScream(player)
+      ctx.audio.play('scream', { gain: 0.35 })
+    }
   }
 }
 
@@ -184,6 +264,10 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
   anim.t += dt
   if (anim.spawnT < 1) anim.spawnT = Math.min(1, anim.spawnT + dt / 0.4)
 
+  const extra = extraState(player)
+  extra.flinchT = Math.max(0, extra.flinchT - dt)
+  if (extra.screamLeft > 0) extra.screamLeft = Math.max(0, extra.screamLeft - dt)
+
   if (player.hp <= 0) {
     player.vx = 0
     player.vy = 0
@@ -193,6 +277,8 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
     anim.kick.y = damp(anim.kick.y, 0, 8, dt)
     if (anim.deathT < 0) anim.deathT = 0
     anim.deathT = Math.min(1, anim.deathT + dt / 0.55)
+    anim.scream = -1
+    anim.mouth = 0.2
     return
   }
 
@@ -231,7 +317,6 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
     anim.bob = Math.sin(anim.t * 2.3) * 1.4
   }
 
-  const extra = extraState(player)
   if (Math.abs(player.vx) > 10) {
     const next: 1 | -1 = player.vx >= 0 ? 1 : -1
     if (next !== anim.facing) {
@@ -258,4 +343,15 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
   }
 
   player.facingAngle = wrapAngle(player.facingAngle)
+
+  const screaming = extra.screamLeft > 0
+  tickFaceAnim(anim, dt, extra, {
+    moving: anim.moving,
+    speed: spd,
+    form: player.form,
+    screaming,
+    screamProgress: screaming ? 1 - extra.screamLeft / 0.5 : 0,
+    flinchT: extra.flinchT,
+    nextBlink: () => ctx.rng.range(3, 6),
+  })
 }
