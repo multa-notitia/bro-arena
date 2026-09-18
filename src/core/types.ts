@@ -152,12 +152,16 @@ export type PaintStyle = 'a' | 'b' | 'c'
 
 /**
  * Player model variant of the same vegetable.
- * A current wash, B Direction B sketch face/body, C Direction C stain-cute.
+ * A wash, B sketch, C stain-cute, plus `painted` (old chili sheet) and
+ * `board` (exact Direction A wet-soil painting, currently the magenta radish).
  */
-export type ModelDir = 'a' | 'b' | 'c'
+export type ModelDir = 'a' | 'b' | 'c' | 'painted' | 'board'
 
 export const PAINT_STYLES: readonly PaintStyle[] = ['a', 'b', 'c']
+/** Procedural faces. Image looks are offered only where cut frames exist. */
 export const MODEL_DIRS: readonly ModelDir[] = ['a', 'b', 'c']
+export const PAINTED_DIR: ModelDir = 'painted'
+export const BOARD_DIR: ModelDir = 'board'
 
 export type WeaponPaint =
   | 'fist'
@@ -511,7 +515,7 @@ export interface Player extends Vec {
   character: CharacterDef
   /** Players are always `normal`. Kept so snapshots and HUD stay typed. */
   form: Form
-  /** Face/body construction for this run (A wash / B sketch / C stain). */
+  /** Face/body construction for this run (Wash / Sketch / Stain / Painted / Board). */
   model: ModelDir
   weapons: WeaponInstance[]
   items: string[]
@@ -595,7 +599,13 @@ export interface Projectile extends Vec {
   homing: number
 }
 
-export type PickupType = 'material' | 'materialBig' | 'fruit' | 'chest'
+export type PickupType = 'material' | 'materialBig' | 'fruit' | 'chest' | 'seed'
+
+/** Crops you can sow. Matching monsters come up from that bed. */
+export type CropId = 'pea' | 'sprout' | 'carrot' | 'garlic' | 'pumpkin' | 'chili'
+
+export const CROP_IDS: readonly CropId[] = ['pea', 'sprout', 'carrot', 'garlic', 'pumpkin', 'chili']
+export const STARTER_CROP_IDS: readonly CropId[] = ['pea', 'sprout', 'carrot']
 
 export interface Pickup extends Vec {
   uid: number
@@ -606,6 +616,28 @@ export interface Pickup extends Vec {
   t: number
   /** True once inside pickup range; flies to the player. */
   magnet: boolean
+  /** Set when type is `seed`. */
+  crop?: CropId
+}
+
+export interface Plot extends Vec {
+  uid: number
+  row: number
+  col: number
+  crop: CropId | null
+  /** 0.25 just sown … 1 ripe at wave end. */
+  growth: number
+  sway: number
+}
+
+export interface Farm {
+  plots: Plot[]
+  seeds: Record<CropId, number>
+  selected: CropId
+  unlocked: CropId[]
+  fertilizer: number
+  pesticide: number
+  lastHarvest: { materials: number; xp: number }
 }
 
 export interface Tree extends Vec {
@@ -646,6 +678,7 @@ export interface World {
   pickups: Pickup[]
   trees: Tree[]
   markers: SpawnMarker[]
+  farm: Farm
   camera: Camera
   /** Set when a boss is alive for the HUD. */
   boss: Enemy | null
@@ -662,8 +695,10 @@ export type RunPhase =
   | 'error'
   | 'title'
   | 'charselect'
+  | 'plant'
   | 'wave'
   | 'levelup'
+  | 'farmshop'
   | 'shop'
   | 'paused'
   | 'stats'
@@ -688,6 +723,8 @@ export interface HudSnapshot {
   /** Count of nightmare-form enemies currently alive; drives the HUD mud meter. */
   nightmaresAlive: number
   fps: number
+  seeds: Record<CropId, number>
+  rowLabel: string
 }
 
 export interface ShopOffer {
@@ -750,6 +787,70 @@ export interface ShopHandlers {
   next(): void
 }
 
+export type FarmOfferKind = 'seed' | 'fertilizer' | 'pesticide'
+
+export interface FarmOffer {
+  uid: number
+  kind: FarmOfferKind
+  id: string
+  crop?: CropId
+  count: number
+  price: number
+  locked: boolean
+  name: string
+  flavor: string
+  lines: string[]
+  affordable: boolean
+}
+
+export interface FarmShopView {
+  wave: number
+  nextWave: number
+  materials: number
+  offers: FarmOffer[]
+  rerollPrice: number
+  seeds: Record<CropId, number>
+  fertilizer: number
+  pesticide: number
+  unlocked: CropId[]
+}
+
+export interface FarmShopHandlers {
+  buy(offerUid: number): void
+  toggleLock(offerUid: number): void
+  reroll(): void
+  next(): void
+}
+
+export interface PlantView {
+  first: boolean
+  wave: number
+  nextWave: number
+  seeds: Record<CropId, number>
+  selected: CropId
+  unlocked: CropId[]
+  plots: { crop: CropId | null; row: number; col: number }[]
+  rowNames: string[]
+  counts: Record<CropId, number>
+  planted: number
+  capacity: number
+  harvestMats: number
+  harvestXp: number
+  lastHarvest: { materials: number; xp: number }
+  fertilizer: number
+  pesticide: number
+  threatLabel: string
+  threatBlurb: string
+  comesUp: string
+}
+
+export interface PlantHandlers {
+  select(crop: CropId): void
+  togglePlot(index: number): void
+  clear(): void
+  sow(): void
+}
+
 /** Implemented by src/ui/index.ts. The Run drives it, never the reverse. */
 export interface UiApi {
   /** Show exactly one full-screen overlay; null hides all overlays (wave in progress). */
@@ -761,6 +862,8 @@ export interface UiApi {
   /** The gate screen. Each card has a model toggle; onPick receives the chosen model. */
   renderCharSelect(characters: CharacterDef[], onPick: (id: string, model: ModelDir) => void): void
   renderLevelUp(options: LevelUpOption[], remaining: number, onPick: (id: string) => void): void
+  renderPlant(view: PlantView, handlers: PlantHandlers): void
+  renderFarmShop(view: FarmShopView, handlers: FarmShopHandlers): void
   renderShop(view: ShopView, handlers: ShopHandlers): void
   renderPause(
     view: ShopView,
