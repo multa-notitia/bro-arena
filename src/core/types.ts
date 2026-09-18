@@ -7,7 +7,7 @@
 
 export type StatKey =
   | 'maxHp'
-  | 'hpRegen' // hp per 5s tick, Brotato style
+  | 'hpRegen' // heals 1 hp on a tick whose period shrinks with the stat
   | 'lifeSteal' // percent (0-100) chance to heal 1 on hit
   | 'damage' // percent, global
   | 'meleeDamage' // flat, scaled per weapon
@@ -105,11 +105,44 @@ export interface Palette {
   shade: string
   /** Ink outline color. */
   ink: string
-  /** Accent (clothes, spots, glow). */
+  /** Accent (leaves, stem, clothes, spots). */
   accent: string
   /** Eye color. */
   eye: string
+  /** Nightmare-mud coating wash; defaults to a dark umber when omitted. */
+  mud?: string
+  /** Nightmare eye glow; defaults to a sick yellow-green when omitted. */
+  glow?: string
 }
+
+/**
+ * Every creature in the plot is a vegetable. The species picks the silhouette
+ * (root shape, leaves, limbs), the palette picks the wash.
+ */
+export type Species =
+  | 'potato'
+  | 'carrot'
+  | 'chili'
+  | 'turnip'
+  | 'pumpkin'
+  | 'radish'
+  | 'eggplant'
+  | 'onion'
+  | 'pea'
+  | 'sprout'
+  | 'garlic'
+  | 'cabbage'
+  | 'beet'
+  | 'marrow'
+  | 'corn'
+  | 'broccoli'
+
+/**
+ * Two forms for every vegetable. `normal` is the clean watercolour version.
+ * `nightmare` is the same vegetable dragged through the mud: dark dripping
+ * coating, glowing eyes, wide screaming mouth, far more dangerous.
+ */
+export type Form = 'normal' | 'nightmare'
 
 export type WeaponPaint =
   | 'fist'
@@ -140,18 +173,8 @@ export type ProjectilePaint =
   | 'spore'
   | 'orb'
 
-export type EnemyPaint =
-  | 'blob'
-  | 'sprout'
-  | 'runner'
-  | 'crab'
-  | 'wisp'
-  | 'brute'
-  | 'spitter'
-  | 'hive'
-  | 'charger'
-  | 'mother'
-  | 'lord'
+/** Enemy silhouettes are vegetable species. */
+export type EnemyPaint = Species
 
 export type ItemPaint =
   | 'heart'
@@ -259,7 +282,7 @@ export interface WeaponDef {
   /** Fraction of the player stat added to base damage. e.g. { meleeDamage: 1 } */
   scaling: Partial<Record<StatKey, number>>
   effects?: StatusEffect[]
-  /** Set text shown when 2+ of this class are held (Brotato weapon class bonus). */
+  /** Set text shown when 2+ of this class are held (weapon class bonus). */
   classBonus?: string
 }
 
@@ -299,9 +322,20 @@ export type CharacterSpecial =
   | 'thornsHalf'
   | 'lowRange'
 
+export interface FormVariant {
+  /** Display name of this form, e.g. "Mud Spud". */
+  name: string
+  flavor: string
+  /** Extra stats layered on top of the character's base stats. */
+  stats: Partial<Stats>
+  /** Human readable perk lines shown on the select card for this form. */
+  perks: string[]
+}
+
 export interface CharacterDef {
   id: string
   name: string
+  species: Species
   flavor: string
   stats: Partial<Stats>
   startingWeapons: { id: WeaponId; tier: Tier }[]
@@ -311,6 +345,8 @@ export interface CharacterDef {
   special?: CharacterSpecial
   /** Extra weapon slots; base is 6. */
   weaponSlots?: number
+  /** The nightmare-mud version of this character, selectable on the gate screen. */
+  nightmare: FormVariant
 }
 
 export type EnemyKind =
@@ -346,6 +382,16 @@ export type EnemyBehavior =
 export interface EnemyDef {
   kind: EnemyKind
   name: string
+  species: Species
+  /** Name used when this enemy is in nightmare form, e.g. "Mud Pea". */
+  nightmareName: string
+  /** Form this enemy always spawns in; basics may still be promoted by the wave. */
+  form: Form
+  /**
+   * Seconds between screams when in nightmare form. A scream is a telegraphed
+   * pause with a wide mouth, then a burst (speed surge / minion call / pulse).
+   */
+  screamInterval?: number
   rank: 'basic' | 'elite' | 'boss'
   hp: number
   speed: number
@@ -373,6 +419,8 @@ export interface WaveDef {
   /** Seconds into the wave at which a horde bursts in. */
   hordes: number[]
   trees: number
+  /** 0..1 chance that a basic spawn comes up in nightmare-mud form. */
+  nightmareChance: number
 }
 
 export interface LevelUpOption {
@@ -411,6 +459,14 @@ export interface AnimState {
   kick: Vec
   /** True while moving this frame. */
   moving: boolean
+  /** 0..1 mouth openness; idle chatter is small, screams go to 1. */
+  mouth: number
+  /** 0..1 progress of a scream animation, -1 when not screaming. */
+  scream: number
+  /** 0..1 walk cycle phase for legs and arm swing. */
+  gait: number
+  /** 0..1 blink progress, -1 eyes open. */
+  blink: number
 }
 
 export interface WeaponInstance {
@@ -438,6 +494,7 @@ export interface Player extends Vec {
   /** Computed final stats. */
   stats: Stats
   character: CharacterDef
+  form: Form
   weapons: WeaponInstance[]
   items: string[]
   materials: number
@@ -456,12 +513,24 @@ export interface Player extends Vec {
   materialsCollected: number
 }
 
-export type EnemyState = 'spawning' | 'idle' | 'chase' | 'windup' | 'charging' | 'shooting' | 'recover' | 'dying'
+export type EnemyState =
+  | 'spawning'
+  | 'idle'
+  | 'chase'
+  | 'windup'
+  | 'charging'
+  | 'shooting'
+  | 'recover'
+  | 'screaming'
+  | 'dying'
 
 export interface Enemy extends Vec {
   uid: number
   kind: EnemyKind
   def: EnemyDef
+  form: Form
+  /** Seconds until the next scream while in nightmare form. */
+  screamCooldown: number
   vx: number
   vy: number
   r: number
@@ -596,6 +665,9 @@ export interface HudSnapshot {
   boss: { name: string; hp: number; maxHp: number } | null
   weapons: { id: WeaponId; name: string; tier: Tier; paint: WeaponPaint; cooldownFrac: number }[]
   characterName: string
+  form: Form
+  /** Count of nightmare-form enemies currently alive; drives the HUD mud meter. */
+  nightmaresAlive: number
   fps: number
 }
 
@@ -634,6 +706,8 @@ export interface ShopView {
 
 export interface RunSummary {
   characterName: string
+  species: Species
+  form: Form
   wave: number
   wavesTotal: number
   won: boolean
@@ -664,7 +738,8 @@ export interface UiApi {
   setErrorCopy(text: string): void
   setHudVisible(visible: boolean): void
   renderHud(snap: HudSnapshot): void
-  renderCharSelect(characters: CharacterDef[], onPick: (id: string) => void): void
+  /** The gate screen. Each card has a form toggle; onPick receives the chosen form. */
+  renderCharSelect(characters: CharacterDef[], onPick: (id: string, form: Form) => void): void
   renderLevelUp(options: LevelUpOption[], remaining: number, onPick: (id: string) => void): void
   renderShop(view: ShopView, handlers: ShopHandlers): void
   renderPause(view: ShopView, handlers: { resume(): void; quit(): void; toggleMute(): void; muted: boolean }): void
@@ -730,9 +805,15 @@ export interface RenderApi {
   /** Draws the whole world including fx, paper, vignette. */
   draw(ctx: CanvasRenderingContext2D, world: World, dt: number): void
   /** Paint a small icon for UI use. Returns a data URL, cached by key. */
-  icon(kind: 'weapon' | 'item' | 'enemy' | 'character', paint: string, palette?: Palette, size?: number): string
-  /** Paint an idle character portrait; used on the select screen. */
-  portrait(character: CharacterDef, size: number): string
+  icon(
+    kind: 'weapon' | 'item' | 'enemy' | 'character',
+    paint: string,
+    palette?: Palette,
+    size?: number,
+    form?: Form,
+  ): string
+  /** Paint an idle character portrait in the given form; used on the gate screen. */
+  portrait(character: CharacterDef, size: number, form?: Form): string
 }
 
 // ---------------------------------------------------------------------------
@@ -772,8 +853,12 @@ export type SfxName =
   | 'spawn'
   | 'bossRoar'
   | 'treeBreak'
+  | 'scream'
+  | 'screamBig'
+  | 'mudSquelch'
+  | 'mudRise'
 
-export type MusicMood = 'title' | 'wave' | 'boss' | 'shop' | 'none'
+export type MusicMood = 'title' | 'wave' | 'nightmare' | 'boss' | 'shop' | 'none'
 
 /** Implemented by src/audio/index.ts. */
 export interface AudioApi {

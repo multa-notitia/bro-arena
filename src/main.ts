@@ -19,7 +19,7 @@ function hardFail(message: string): never {
 }
 
 if (!canvas || !uiRoot || !stick || !knob) {
-  hardFail('The paddock is missing its markup. Reload, or check that the build is intact.')
+  hardFail('The Plot is missing its markup. Reload, or check that the build is intact.')
 }
 
 const ctx = canvas.getContext('2d', { alpha: false })
