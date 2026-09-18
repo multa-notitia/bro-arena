@@ -46,7 +46,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'fist',
     name: 'Fist',
     class: 'melee',
-    flavor: 'A potato with knuckles. Range measured in grudges.',
+    flavor: 'Hands. They were already there.',
     paint: 'fist',
     behavior: { type: 'thrust', reach: 16 },
     tiers: {
@@ -62,7 +62,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'knife',
     name: 'Knife',
     class: 'melee',
-    flavor: 'Kitchen issue. Still waiting on the tomato.',
+    flavor: 'For cutting roots. Used on everything else.',
     paint: 'knife',
     behavior: { type: 'thrust', reach: 22 },
     tiers: {
@@ -78,7 +78,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'stick',
     name: 'Stick',
     class: 'melee',
-    flavor: 'Picked it up. Did not put it down. Philosophy.',
+    flavor: 'Picked it up. Did not put it down.',
     paint: 'stick',
     behavior: { type: 'sweep', arc: 1.85 },
     tiers: {
@@ -94,7 +94,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'sword',
     name: 'Sword',
     class: 'melee',
-    flavor: 'Too fancy for a tuber. Using it anyway.',
+    flavor: 'Too fine for the Plot. Using it anyway.',
     paint: 'sword',
     behavior: { type: 'sweep', arc: 2.15 },
     tiers: {
@@ -110,7 +110,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'spear',
     name: 'Spear',
     class: 'melee',
-    flavor: 'A stick that made better choices.',
+    flavor: 'A stick that learned to wait.',
     paint: 'spear',
     behavior: { type: 'thrust', reach: 42 },
     tiers: {
@@ -126,7 +126,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'hammer',
     name: 'Hammer',
     class: 'melee',
-    flavor: 'If it still moves, the argument is unfinished.',
+    flavor: 'If it still moves, the work is unfinished.',
     paint: 'hammer',
     behavior: { type: 'sweep', arc: 1.55 },
     tiers: {
@@ -142,7 +142,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'scythe',
     name: 'Scythe',
     class: 'melee',
-    flavor: 'Harvests everything. Has opinions about wheat.',
+    flavor: 'Harvests everything. The rows do not complain.',
     paint: 'scythe',
     behavior: { type: 'sweep', arc: TAU * 0.46 },
     tiers: {
@@ -158,7 +158,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'pistol',
     name: 'Pistol',
     class: 'ranged',
-    flavor: 'Six shots of diplomacy. Reload not included in the speech.',
+    flavor: 'Six shots. The garden hears all of them.',
     paint: 'pistol',
     behavior: { type: 'shoot', projectile: bullet() },
     tiers: {
@@ -174,7 +174,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'smg',
     name: 'SMG',
     class: 'ranged',
-    flavor: 'Three opinions, rapidly.',
+    flavor: 'Three shots. No pause between.',
     paint: 'smg',
     behavior: {
       type: 'shoot',
@@ -195,7 +195,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'shotgun',
     name: 'Shotgun',
     class: 'ranged',
-    flavor: 'A polite cone of no.',
+    flavor: 'A cone of no.',
     paint: 'shotgun',
     behavior: {
       type: 'shoot',
@@ -216,7 +216,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'slingshot',
     name: 'Slingshot',
     class: 'ranged',
-    flavor: 'Childhood toy. Adulthood problem.',
+    flavor: "A child's tool. A grown row's problem.",
     paint: 'slingshot',
     behavior: {
       type: 'shoot',
@@ -243,7 +243,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'crossbow',
     name: 'Crossbow',
     class: 'ranged',
-    flavor: 'Loads slow. Arrives committed.',
+    flavor: 'Loads slow. Arrives decided.',
     paint: 'crossbow',
     behavior: {
       type: 'shoot',
@@ -269,7 +269,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'wand',
     name: 'Wand',
     class: 'elemental',
-    flavor: 'A stick that went to night school.',
+    flavor: 'A stick that learned fire.',
     paint: 'wand',
     behavior: {
       type: 'shoot',
@@ -296,7 +296,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'torch',
     name: 'Torch',
     class: 'elemental',
-    flavor: 'Personal weather: unpleasant.',
+    flavor: 'Light you can stand in.',
     paint: 'torch',
     behavior: { type: 'aura', radius: 88, tick: 0.4 },
     tiers: {
@@ -313,7 +313,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'flint',
     name: 'Flint',
     class: 'elemental',
-    flavor: 'Sparks first. Questions later. Questions also on fire.',
+    flavor: 'Sparks first. The rest follows, burning.',
     paint: 'flint',
     behavior: {
       type: 'shoot',
@@ -340,7 +340,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'lightning',
     name: 'Lightning',
     class: 'elemental',
-    flavor: 'Sky mail. Very rude postage.',
+    flavor: 'The sky answering a question nobody asked.',
     paint: 'lightning',
     behavior: { type: 'chain', jumps: 3, jumpRange: 168 },
     tiers: {

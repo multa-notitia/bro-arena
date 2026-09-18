@@ -3,6 +3,10 @@ import type { EnemyDef, EnemyKind, WaveDef } from '../core/types.ts'
 
 type Pool = { kind: EnemyKind; weight: number }[]
 
+const NIGHTMARE_CHANCE = [
+  0, 0, 0.05, 0.08, 0.1, 0.14, 0.17, 0.2, 0.24, 0.2, 0.28, 0.32, 0.36, 0.4, 0.45, 0.5, 0.55, 0.6, 0.66, 0.6,
+] as const
+
 function w(
   index: number,
   pool: Pool,
@@ -28,6 +32,7 @@ function w(
     elites,
     hordes,
     trees,
+    nightmareChance: NIGHTMARE_CHANCE[index - 1] ?? 0,
   }
   if (extras.boss) wave.boss = extras.boss
   return wave

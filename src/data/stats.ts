@@ -4,6 +4,7 @@ import {
   STAT_KEYS,
   STAT_LABELS,
   type CharacterDef,
+  type Form,
   type StatKey,
   type Stats,
   type Tier,
@@ -66,15 +67,29 @@ export function addStats(into: Stats, add: Partial<Stats>, mult = 1): Stats {
   return into
 }
 
+export function applyForm(stats: Partial<Stats>, character: CharacterDef, form: Form): Partial<Stats> {
+  const merged: Partial<Stats> = { ...stats }
+  if (form === 'nightmare') {
+    for (const key of STAT_KEYS) {
+      const extra = character.nightmare.stats[key]
+      if (extra === undefined) continue
+      merged[key] = (merged[key] ?? 0) + extra
+    }
+  }
+  if (merged.lifeSteal !== undefined) merged.lifeSteal = Math.max(0, merged.lifeSteal)
+  return merged
+}
+
 export function computeStats(
   character: CharacterDef,
   itemIds: string[],
   levelBonus: Partial<Stats>,
   weapons: { id: WeaponId; tier: Tier }[],
+  form: Form = 'normal',
 ): Stats {
   const stats = emptyStats()
   addStats(stats, BASE_STATS)
-  addStats(stats, character.stats)
+  addStats(stats, applyForm(character.stats, character, form))
   for (const id of itemIds) {
     const item = ITEMS[id]
     if (item) addStats(stats, item.stats)
