@@ -1,1 +1,1 @@
-PLACEHOLDER_DO_NOT_USE
+SEE_FILE_/tmp/mcp-args-creatures_ts.json
