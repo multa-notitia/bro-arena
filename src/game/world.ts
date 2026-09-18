@@ -10,6 +10,7 @@ import type {
   WaveDef,
   World,
 } from '../core/types.ts'
+import { createFarm } from './farm.ts'
 import { createPlayer } from './player.ts'
 
 export const ARENA_W = 1700
@@ -46,6 +47,7 @@ export function createWorld(
     pickups: [],
     trees: [],
     markers: [],
+    farm: createFarm(),
     camera: { x: player.x, y: player.y, w: viewW, h: viewH, shake: 0, zoom: 1 },
     boss: null,
     paused: false,

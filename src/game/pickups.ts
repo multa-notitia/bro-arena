@@ -1,7 +1,9 @@
 import { clamp, dist2, uid } from '../core/math.ts'
-import type { EnemyDef, Pickup, PickupType, Tree, World } from '../core/types.ts'
+import type { CropId, Enemy, EnemyDef, Pickup, PickupType, Tree, World } from '../core/types.ts'
+import { CROPS, cropByEnemy } from '../data/crops.ts'
 import { ITEM_LIST } from '../data/items.ts'
 import { harvestPayout, materialDropValue, tierOdds } from '../data/economy.ts'
+import { addSeed, harvestFarm, seedDropChance } from './farm.ts'
 import { addXp, countSpecial, extraState, healPlayer, recomputeStats } from './player.ts'
 import type { SimCtx } from './world.ts'
 
@@ -54,10 +56,28 @@ export function spawnChest(world: World, x: number, y: number, ctx: SimCtx, magn
   return spawnPickup(world, 'chest', x, y, 1, ctx, magnet)
 }
 
-export function dropFromEnemy(world: World, x: number, y: number, materials: number, elite: boolean, ctx: SimCtx, magnet = false): void {
+export function spawnSeed(
+  world: World,
+  x: number,
+  y: number,
+  crop: CropId,
+  ctx: SimCtx,
+  magnet = false,
+): Pickup {
+  const p = spawnPickup(world, 'seed', x, y, 1, ctx, magnet)
+  p.crop = crop
+  return p
+}
+
+export function dropFromEnemy(world: World, x: number, y: number, materials: number, elite: boolean, ctx: SimCtx, magnet = false, enemy?: Enemy): void {
   const n = Math.max(1, materials)
   spawnMaterial(world, x, y, n, ctx, magnet)
   if (elite) spawnChest(world, x + ctx.rng.range(-8, 8), y + ctx.rng.range(-8, 8), ctx, magnet)
+  if (!enemy) return
+  const crop = cropByEnemy(enemy.kind)
+  if (!crop) return
+  if (!ctx.rng.chance(seedDropChance(enemy.kind, elite || enemy.boss, world.player.stats.luck))) return
+  spawnSeed(world, x + ctx.rng.range(-10, 10), y + ctx.rng.range(-8, 8), crop, ctx, magnet)
 }
 
 export function magnetAll(world: World): void {
@@ -153,6 +173,14 @@ function collectPickup(world: World, pickup: Pickup, ctx: SimCtx): void {
   } else if (pickup.type === 'chest') {
     ctx.audio.play('chest')
     grantChestItem(world, ctx)
+  } else if (pickup.type === 'seed') {
+    const crop = pickup.crop
+    if (crop) {
+      addSeed(world.farm, crop, 1)
+      ctx.ui.toast(crop ? CROPS[crop].seedName : 'Seed')
+    }
+    ctx.audio.play('pickup')
+    ctx.render.fx.sparkle(pickup.x, pickup.y, '#c4a050')
   }
 
   if (healStacks > 0) healPlayer(world, healStacks, ctx)
@@ -209,6 +237,14 @@ export function payoutHarvest(world: World, ctx: SimCtx): void {
     addXp(world.player, pay, ctx)
     ctx.ui.toast(`Harvest +${pay}`)
     ctx.render.fx.sparkle(world.player.x, world.player.y, '#6aaf4a')
+  }
+  const cropPay = harvestFarm(world, world.player.stats.harvesting)
+  if (cropPay.materials > 0 || cropPay.xp > 0) {
+    world.player.materials += cropPay.materials
+    world.player.materialsCollected += cropPay.materials
+    addXp(world.player, cropPay.xp, ctx)
+    ctx.ui.toast(`The row paid ${cropPay.materials} scrap, ${cropPay.xp} growth.`)
+    ctx.render.fx.sparkle(world.player.x, world.player.y - 12, '#c4a050')
   }
   const fruits = countSpecial(world.player, 'fruitOnWaveEnd')
   for (let i = 0; i < fruits; i++) {

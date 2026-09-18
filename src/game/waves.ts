@@ -1,15 +1,16 @@
 import { dist, uid } from '../core/math.ts'
 import type { EnemyKind, SpawnMarker, Tree, World } from '../core/types.ts'
+import { CROPS } from '../data/crops.ts'
 import { waveDef } from '../data/waves.ts'
 import { ENEMIES } from '../data/enemies.ts'
 import { beginDeath, MAX_ENEMIES, resetEnemyRuntime, spawnEnemy } from './enemies.ts'
+import { farmSpawnBatch, farmSpawnInterval, plantedPlots, tickFarm } from './farm.ts'
 import { magnetAll, payoutHarvest } from './pickups.ts'
 import { resetWeaponRuntime } from './weapons.ts'
 import { resetForWave } from './world.ts'
 import type { SimCtx } from './world.ts'
 
 const MARKER_LIFE = 1
-const MIN_SPAWN_DIST = 260
 
 interface Director {
   spawnAcc: number
@@ -58,18 +59,22 @@ function clampRange(v: number, a: number, b: number): number {
   return Math.max(a, Math.min(b, v))
 }
 
-function placeMarker(world: World, kind: EnemyKind, ctx: SimCtx, elite = false, life = MARKER_LIFE): void {
+function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LIFE): void {
   if (world.enemies.length + world.markers.length >= MAX_ENEMIES) return
-  const pos = randomAway(world, ctx, MIN_SPAWN_DIST)
-  const marker: SpawnMarker = { kind, x: pos.x, y: pos.y, t: 0, life }
+  const sown = plantedPlots(world.farm)
+  const plot = sown.length > 0 ? ctx.rng.pick(sown) : ctx.rng.pick(world.farm.plots)
+  const crop = plot.crop
+  const kind: EnemyKind = crop ? CROPS[crop].enemy : 'blob'
+  const jitter = 22
+  const marker: SpawnMarker = {
+    kind,
+    x: plot.x + ctx.rng.range(-jitter, jitter),
+    y: plot.y + ctx.rng.range(-10, 16),
+    t: 0,
+    life,
+  }
   world.markers.push(marker)
   if (elite) eliteMarkers.add(marker)
-}
-
-function pickKind(world: World, ctx: SimCtx): EnemyKind {
-  const pool = world.waveDef.pool
-  if (pool.length === 0) return 'blob'
-  return ctx.rng.weighted(pool).kind
 }
 
 function placeTrees(world: World, ctx: SimCtx): void {
@@ -77,10 +82,14 @@ function placeTrees(world: World, ctx: SimCtx): void {
   for (let i = 0; i < n; i++) {
     let pos = randomAway(world, ctx, 180, 80)
     let guard = 0
-    while (guard < 10 && world.trees.some((t) => dist(t.x, t.y, pos.x, pos.y) < 90)) {
+    const blocked = (): boolean =>
+      world.trees.some((t) => dist(t.x, t.y, pos.x, pos.y) < 90) ||
+      world.farm.plots.some((p) => dist(p.x, p.y, pos.x, pos.y) < 78)
+    while (guard < 12 && blocked()) {
       pos = randomAway(world, ctx, 180, 80)
       guard += 1
     }
+    if (world.farm.plots.some((p) => dist(p.x, p.y, pos.x, pos.y) < 70)) continue
     const hp = 16 + world.wave * 4
     const tree: Tree = {
       uid: uid(),
@@ -119,8 +128,11 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
   const d = director
   const def = world.waveDef
   world.waveTime += dt
+  tickFarm(world, dt)
   const timeUp = world.waveTime >= def.duration
   world.waveLeft = Math.max(0, def.duration - world.waveTime)
+  const interval = farmSpawnInterval(def.spawnInterval, world.farm)
+  const batch = farmSpawnBatch(def.batch, world.farm)
 
   const markers: SpawnMarker[] = []
   for (const m of world.markers) {
@@ -137,9 +149,9 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
 
   if (!timeUp) {
     d.spawnAcc += dt
-    while (d.spawnAcc >= def.spawnInterval && world.enemies.length + world.markers.length < MAX_ENEMIES) {
-      d.spawnAcc -= Math.max(0.08, def.spawnInterval)
-      for (let i = 0; i < def.batch; i++) placeMarker(world, pickKind(world, ctx), ctx)
+    while (d.spawnAcc >= interval && world.enemies.length + world.markers.length < MAX_ENEMIES) {
+      d.spawnAcc -= Math.max(0.08, interval)
+      for (let i = 0; i < batch; i++) spawnFromBed(world, ctx)
     }
 
     for (let i = 0; i < def.hordes.length; i++) {
@@ -148,7 +160,7 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
       if (world.waveTime >= t) {
         d.hordeFired[i] = true
         const n = ctx.rng.int(10, 18)
-        for (let k = 0; k < n; k++) placeMarker(world, pickKind(world, ctx), ctx, false, 0.7)
+        for (let k = 0; k < n; k++) spawnFromBed(world, ctx, false, 0.7)
         ctx.ui.banner('Horde', 'The row emptied at once.', 1400)
       }
     }
@@ -157,13 +169,26 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
       const t = d.eliteTimes[d.elitesSpawned]
       if (t === undefined || world.waveTime < t) break
       d.elitesSpawned += 1
-      placeMarker(world, pickKind(world, ctx), ctx, true, 1.15)
+      spawnFromBed(world, ctx, true, 1.15)
       ctx.ui.banner('Elite', 'The row grew something bigger.', 1400)
     }
 
     if (def.boss && !d.bossSpawned && world.waveTime >= 3) {
       d.bossSpawned = true
-      const pos = randomAway(world, ctx, 320, 70)
+      const sown = plantedPlots(world.farm)
+      let pos = randomAway(world, ctx, 320, 70)
+      if (sown.length > 0) {
+        let best = sown[0]
+        let bestD = -1
+        for (const p of sown) {
+          const d2 = dist(p.x, p.y, world.player.x, world.player.y)
+          if (d2 > bestD) {
+            bestD = d2
+            best = p
+          }
+        }
+        if (best) pos = { x: best.x, y: best.y - 28 }
+      }
       const boss = spawnEnemy(world, def.boss, pos.x, pos.y, ctx)
       if (boss) {
         world.boss = boss

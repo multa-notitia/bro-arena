@@ -1,8 +1,11 @@
 import type { HudSnapshot, ItemPaint, RunSummary, World } from '../core/types.ts'
+import { CROP_IDS } from '../core/types.ts'
+import { CROPS } from '../data/crops.ts'
 import { ITEMS } from '../data/items.ts'
 import { WEAPONS, weaponCooldown } from '../data/weapons.ts'
 import { WAVE_COUNT } from '../data/waves.ts'
 import { nightmaresAlive } from './enemies.ts'
+import { cropCounts, plantedCount } from './farm.ts'
 
 export function hudSnapshot(world: World, fps: number): HudSnapshot {
   const p = world.player
@@ -42,7 +45,23 @@ export function hudSnapshot(world: World, fps: number): HudSnapshot {
     model: p.model,
     nightmaresAlive: nightmaresAlive(world),
     fps,
+    seeds: { ...world.farm.seeds },
+    rowLabel: rowLabel(world),
   }
+}
+
+function rowLabel(world: World): string {
+  const n = plantedCount(world.farm)
+  if (n === 0) return 'Fallow'
+  const counts = cropCounts(world.farm)
+  const bits: string[] = []
+  for (const id of CROP_IDS) {
+    if (counts[id] > 0) {
+      const name = CROPS[id].name
+      bits.push(`${counts[id]} ${counts[id] === 1 ? name.replace(/s$/, '') : name}`)
+    }
+  }
+  return bits.join(' · ')
 }
 
 export function runSummary(
