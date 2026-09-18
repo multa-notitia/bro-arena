@@ -1,0 +1,24 @@
+
+export function paintCreatureBody(
+  ctx: CanvasRenderingContext2D,
+  species: Species,
+  pal: Palette,
+  r: number,
+  form: Form,
+  model: ModelDir = 'a',
+  stain = false,
+): void {
+  const nm = form === 'nightmare'
+  const used = nm ? nightmarePal(pal) : pal
+  const seed = seedOf(species + paletteKey(pal) + form + model + lookKey())
+  // Language C stain columns are corruption — enemies only. Players stay clean.
+  if (!nm && stain) langBloom(ctx, r, pal.body, seed)
+  paintSpeciesSilhouette(ctx, species, used, r, seed, nm, nm ? 'b' : model)
+  if (nm) {
+    paintNightmareB(ctx, r, pal, seed, species)
+    ctx.save()
+    ctx.globalAlpha = 0.45
+    paintSpeciesMarks(ctx, species, used, r, seed)
+    ctx.restore()
+  }
+}
