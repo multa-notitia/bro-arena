@@ -1,6 +1,7 @@
 import { TAU, clamp } from '../core/math.ts'
 import type {
   CharacterDef,
+  CropId,
   Form,
   ItemPaint,
   ModelDir,
@@ -19,7 +20,10 @@ import {
   resolveSpecies,
   SPECIES_PALETTES,
 } from './creatures.ts'
-import { lookKey } from './look.ts'
+import { paintSeedIcon } from './crops.ts'
+import { lookKey, proceduralModel, usesBoardArt, usesPaintedArt } from './look.ts'
+import { paintConceptAPortrait } from './conceptA.ts'
+import { paintBoardPortrait } from './board.ts'
 import {
   granulate,
   inkStroke,
@@ -287,7 +291,11 @@ function paintProjectile(ctx: CanvasRenderingContext2D, paint: ProjectilePaint):
   }
 }
 
-function paintPickup(ctx: CanvasRenderingContext2D, type: PickupType): void {
+function paintPickup(ctx: CanvasRenderingContext2D, type: PickupType, crop?: CropId): void {
+  if (type === 'seed') {
+    paintSeedIcon(ctx, crop ?? 'pea')
+    return
+  }
   if (type === 'material' || type === 'materialBig') {
     const s = type === 'materialBig' ? 1.45 : 1
     wash(ctx, 0, 2, 9 * s, 12 * s, '#3d8a40', { seed: 3, shade: '#1e4a22', n: 8, wobble: 0.2 })
@@ -576,9 +584,10 @@ export function projectileSprite(cache: SpriteCache, paint: ProjectilePaint, q =
   })
 }
 
-export function pickupSprite(cache: SpriteCache, type: PickupType, q = 1): HTMLCanvasElement {
-  return scaledSprite(cache, `pick:${type}`, PICK_ART, q, (ctx) => {
-    paintPickup(ctx, type)
+export function pickupSprite(cache: SpriteCache, type: PickupType, q = 1, crop?: CropId): HTMLCanvasElement {
+  const cropKey = type === 'seed' ? crop ?? 'pea' : ''
+  return scaledSprite(cache, `pick:${type}:${cropKey}`, PICK_ART, q, (ctx) => {
+    paintPickup(ctx, type, crop)
   })
 }
 
@@ -711,7 +720,11 @@ export function iconDataUrl(
     ctx.scale(sc, sc)
     if (kind === 'weapon' && isWeaponPaint(paint)) paintWeapon(ctx, paint, 0)
     else if (kind === 'item' && isItemPaint(paint)) paintItem(ctx, paint, 48)
-    else paintIdleCreature(ctx, species, pal, 20, form, model, stain)
+    else if (usesPaintedArt(species, model) && paintConceptAPortrait(ctx, w)) {
+      /* old chili sheet */
+    } else if (usesBoardArt(species, model) && paintBoardPortrait(ctx, w)) {
+      /* wet-soil radish */
+    } else paintIdleCreature(ctx, species, pal, 20, form, proceduralModel(model), stain)
   })
   const url = canvas.toDataURL('image/png')
   urlCache.set(key, url)
@@ -737,7 +750,9 @@ export function portraitDataUrl(
     ctx.beginPath()
     ctx.arc(0, 0, w * 0.46, 0, TAU)
     ctx.fill()
-    paintIdleCreature(ctx, species, character.palette, w * 0.24, form, model)
+    if (usesPaintedArt(species, model) && paintConceptAPortrait(ctx, w)) return
+    if (usesBoardArt(species, model) && paintBoardPortrait(ctx, w)) return
+    paintIdleCreature(ctx, species, character.palette, w * 0.24, form, proceduralModel(model))
   })
   const url = canvas.toDataURL('image/png')
   urlCache.set(key, url)
