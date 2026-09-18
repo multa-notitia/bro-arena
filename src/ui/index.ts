@@ -1,11 +1,13 @@
 import { clamp, formatClock } from '../core/math.ts'
-import { TIER_NAMES } from '../core/types.ts'
+import { MODEL_DIRS, TIER_NAMES } from '../core/types.ts'
 import type {
   CharacterDef,
   Form,
   HudSnapshot,
   ItemPaint,
   LevelUpOption,
+  ModelDir,
+  PaintStyle,
   RenderApi,
   RunPhase,
   RunSummary,
@@ -14,6 +16,7 @@ import type {
   UiApi,
   WeaponPaint,
 } from '../core/types.ts'
+import { MODEL_LABELS, PAINT_STYLE_LABELS, PAINT_STYLES, lookKey } from '../render/look.ts'
 
 const OVERLAYS: readonly Exclude<RunPhase, 'wave'>[] = [
   'boot',
@@ -135,11 +138,15 @@ const SKELETON = `
     <h1 class="title-mark">BRO</h1>
     <p class="tag">Everything in the garden has a face. Most of them are screaming.</p>
     <p class="lede">
-      The rain came, the mud came up, and the vegetables that went under came back wrong. Stay clean. Or don't.
+      The rain came, the mud came up, and the vegetables that went under came back wrong. You stay clean. They don't.
     </p>
     <div class="actions">
       <button id="btn-play" class="btn primary" type="button">Go out into the Plot</button>
       <button id="btn-title-mute" class="btn ghost" type="button" aria-pressed="false">Quiet the garden</button>
+    </div>
+    <div class="paint-settings" role="group" aria-label="Painting style">
+      <p class="paint-kicker">Painting language</p>
+      <div id="title-paint" class="paint-row"></div>
     </div>
     <ul class="howto">
       <li>WASD or arrows to move. P holds still. 1–4 pick. M quiets.</li>
@@ -152,7 +159,7 @@ const SKELETON = `
   <div class="sheet sheet-wide">
     <p class="kicker">THE GATE</p>
     <h1>Pick a vegetable</h1>
-    <p class="lede">Eight ways to end up in the soil. Arrows and Enter, or tap. Each one has a clean form and a Mud form — flip the card.</p>
+    <p class="lede">Two ways into the Plot. Spud or Carrot. Flip the card for Wash, Sketch, or Stain — same vegetable, different face. You stay clean. Mud is for them.</p>
     <div id="char-grid" class="char-grid"></div>
   </div>
 </div>
@@ -204,6 +211,10 @@ const SKELETON = `
     <p class="kicker">HELD</p>
     <h1>Holding still.</h1>
     <p class="lede">The Mud is patient. The numbers below are still yours.</p>
+    <div class="paint-settings" role="group" aria-label="Painting style">
+      <p class="paint-kicker">Painting language</p>
+      <div id="pause-paint" class="paint-row"></div>
+    </div>
     <div class="actions">
       <button id="btn-resume" class="btn primary" type="button">Keep going</button>
       <button id="btn-quit" class="btn ghost" type="button">Walk off</button>
@@ -265,14 +276,13 @@ interface WeaponSlotEls {
 
 interface CharCardView {
   ch: CharacterDef
-  form: Form
+  model: ModelDir
   root: HTMLElement
   img: HTMLImageElement
   nameEl: HTMLElement
   flavorEl: HTMLElement
   perksEl: HTMLElement
-  cleanBtn: HTMLButtonElement
-  mudBtn: HTMLButtonElement
+  modelBtns: HTMLButtonElement[]
 }
 
 interface HudCache {
@@ -332,6 +342,8 @@ export function createUi(
   const errorRetry = must<HTMLButtonElement>('#error-retry')
   const btnPlay = must<HTMLButtonElement>('#btn-play')
   const btnTitleMute = must<HTMLButtonElement>('#btn-title-mute')
+  const titlePaint = must<HTMLDivElement>('#title-paint')
+  const pausePaint = must<HTMLDivElement>('#pause-paint')
   const charGrid = must<HTMLDivElement>('#char-grid')
   const levelCards = must<HTMLDivElement>('#levelup-cards')
   const levelRemain = must<HTMLElement>('#levelup-remain')
@@ -399,11 +411,11 @@ export function createUi(
     return url
   }
 
-  function portraitOf(character: CharacterDef, form: Form = 'normal'): string {
-    const key = `${character.id}:${form}`
+  function portraitOf(character: CharacterDef, model: ModelDir = 'b'): string {
+    const key = `${character.id}:${model}:${lookKey()}`
     let url = portraitCache.get(key)
     if (url === undefined) {
-      url = art.portrait(character, 160, form)
+      url = art.portrait(character, 160, 'normal', model)
       portraitCache.set(key, url)
     }
     return url
@@ -478,16 +490,27 @@ export function createUi(
   let bannerHideTimer = 0
   let mutedUi = false
 
-  let titleHandlers: { play(): void; toggleMute(): void } | null = null
+  let titleHandlers: {
+    play(): void
+    toggleMute(): void
+    paintStyle: PaintStyle
+    setPaintStyle(style: PaintStyle): void
+  } | null = null
   let pauseRequest: (() => void) | null = null
-  let pauseHandlers: { resume(): void; quit(): void; toggleMute(): void } | null = null
+  let pauseHandlers: {
+    resume(): void
+    quit(): void
+    toggleMute(): void
+    paintStyle: PaintStyle
+    setPaintStyle(style: PaintStyle): void
+  } | null = null
   let shopHandlers: ShopHandlers | null = null
   let overHandlers: { retry(): void; title(): void } | null = null
   let winHandlers: { again(): void; title(): void } | null = null
 
   let charCards: CharCardView[] = []
   let charIndex = 0
-  let charPick: ((id: string, form: Form) => void) | null = null
+  let charPick: ((id: string, model: ModelDir) => void) | null = null
   let levelIds: string[] = []
   let levelPick: ((id: string) => void) | null = null
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -546,38 +569,61 @@ export function createUi(
     })
   }
 
+  function fillPaintRow(host: HTMLElement, current: PaintStyle, onPick: (s: PaintStyle) => void): void {
+    host.replaceChildren()
+    for (const style of PAINT_STYLES) {
+      const meta = PAINT_STYLE_LABELS[style]
+      const btn = h('button', { className: `paint-seg${style === current ? ' is-on' : ''}` })
+      btn.type = 'button'
+      btn.setAttribute('aria-pressed', String(style === current))
+      btn.append(h('span', { className: 'paint-letter', text: meta.kicker }))
+      btn.append(h('span', { className: 'paint-name', text: meta.name }))
+      btn.title = meta.blurb
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation()
+        if (style === current) return
+        portraitCache.clear()
+        onPick(style)
+      })
+      host.append(btn)
+    }
+  }
+
   function fillPerks(host: HTMLElement, lines: string[]): void {
     host.replaceChildren()
     for (const line of lines) host.append(h('li', { text: line }))
   }
 
   function applyCardForm(view: CharCardView): void {
-    const mud = view.form === 'nightmare'
-    const variant = mud ? view.ch.nightmare : null
-    const name = variant ? variant.name : view.ch.name
-    view.root.classList.toggle('is-mud', mud)
-    view.root.style.setProperty('--glow', view.ch.palette.glow ?? '#d9ff5c')
-    view.img.src = portraitOf(view.ch, view.form)
-    view.img.alt = name
-    view.nameEl.textContent = name
-    view.flavorEl.textContent = variant ? variant.flavor : view.ch.flavor
-    fillPerks(view.perksEl, variant ? variant.perks : view.ch.perks)
-    view.cleanBtn.classList.toggle('is-on', !mud)
-    view.mudBtn.classList.toggle('is-on', mud)
-    view.cleanBtn.setAttribute('aria-pressed', String(!mud))
-    view.mudBtn.setAttribute('aria-pressed', String(mud))
+    const meta = MODEL_LABELS[view.model]
+    view.root.classList.remove('is-mud', 'model-a', 'model-b', 'model-c')
+    view.root.classList.add(`model-${view.model}`)
+    view.img.src = portraitOf(view.ch, view.model)
+    view.img.alt = `${view.ch.name} · ${meta.name}`
+    view.nameEl.textContent = view.ch.name
+    view.flavorEl.textContent = view.ch.flavor
+    fillPerks(view.perksEl, view.ch.perks)
+    view.modelBtns.forEach((btn, i) => {
+      const dir = MODEL_DIRS[i]
+      const on = dir === view.model
+      btn.classList.toggle('is-on', on)
+      btn.setAttribute('aria-pressed', String(on))
+    })
   }
 
-  function flipChar(index: number): void {
+  function cycleCharModel(index: number, step: 1 | -1): void {
     const view = charCards[index]
     if (!view) return
-    view.form = view.form === 'nightmare' ? 'normal' : 'nightmare'
+    const i = MODEL_DIRS.indexOf(view.model)
+    const next = MODEL_DIRS[(i + step + MODEL_DIRS.length) % MODEL_DIRS.length]
+    if (!next) return
+    view.model = next
     applyCardForm(view)
   }
 
-  function setCharForm(view: CharCardView, form: Form): void {
-    if (view.form === form) return
-    view.form = form
+  function setCharModel(view: CharCardView, model: ModelDir): void {
+    if (view.model === model) return
+    view.model = model
     applyCardForm(view)
   }
 
@@ -730,14 +776,14 @@ export function createUi(
             if (i >= 0) charIndex = i
           }
         }
-        flipChar(charIndex)
+        cycleCharModel(charIndex, e.code === 'ArrowLeft' ? -1 : 1)
         highlightChar()
         return
       }
       if (e.code === 'Enter') {
         e.preventDefault()
         const view = charCards[charIndex]
-        if (view && charPick) charPick(view.ch.id, view.form)
+        if (view && charPick) charPick(view.ch.id, view.model)
       }
     }
   })
@@ -799,7 +845,6 @@ export function createUi(
       }
       if (snap.form !== hudCache.form) {
         hudCache.form = snap.form
-        document.body.classList.toggle('form-nightmare', snap.form === 'nightmare')
       }
       if (snap.nightmaresAlive !== hudCache.nightmaresAlive) {
         hudCache.nightmaresAlive = snap.nightmaresAlive
@@ -871,60 +916,56 @@ export function createUi(
       }
     },
 
-    renderCharSelect(characters: CharacterDef[], onPick: (id: string, form: Form) => void): void {
+    renderCharSelect(characters: CharacterDef[], onPick: (id: string, model: ModelDir) => void): void {
       charPick = onPick
       charIndex = 0
       charCards = []
       charGrid.replaceChildren()
+      portraitCache.clear()
       for (const ch of characters) {
         const card = h('div', { className: 'char-card' })
         card.tabIndex = 0
         card.dataset.id = ch.id
-        const portrait = img(portraitOf(ch, 'normal'), ch.name, 160, 160)
+        const portrait = img(portraitOf(ch, 'b'), ch.name, 160, 160)
         const nameEl = h('h2', { text: ch.name })
         const flavorEl = h('p', { className: 'char-flavor', text: ch.flavor })
         const perksEl = h('ul', { className: 'perk-list' })
         fillPerks(perksEl, ch.perks)
-        const toggle = h('div', { className: 'form-toggle' })
+        const toggle = h('div', { className: 'form-toggle model-toggle' })
         toggle.setAttribute('role', 'group')
-        toggle.setAttribute('aria-label', 'Form')
-        const cleanBtn = h('button', { className: 'form-seg is-on', text: 'Clean' })
-        cleanBtn.type = 'button'
-        cleanBtn.setAttribute('aria-pressed', 'true')
-        const mudBtn = h('button', { className: 'form-seg', text: 'Mud' })
-        mudBtn.type = 'button'
-        mudBtn.setAttribute('aria-pressed', 'false')
-        toggle.append(cleanBtn, mudBtn)
+        toggle.setAttribute('aria-label', 'Model')
+        const modelBtns: HTMLButtonElement[] = []
         const view: CharCardView = {
           ch,
-          form: 'normal',
+          model: 'b',
           root: card,
           img: portrait,
           nameEl,
           flavorEl,
           perksEl,
-          cleanBtn,
-          mudBtn,
+          modelBtns,
+        }
+        for (const dir of MODEL_DIRS) {
+          const btn = h('button', { className: 'form-seg', text: MODEL_LABELS[dir].name })
+          btn.type = 'button'
+          btn.setAttribute('aria-pressed', 'false')
+          btn.title = MODEL_LABELS[dir].blurb
+          btn.addEventListener('click', (ev) => {
+            ev.stopPropagation()
+            charIndex = charCards.indexOf(view)
+            setCharModel(view, dir)
+            highlightChar()
+          })
+          toggle.append(btn)
+          modelBtns.push(btn)
         }
         applyCardForm(view)
-        cleanBtn.addEventListener('click', (ev) => {
-          ev.stopPropagation()
-          charIndex = charCards.indexOf(view)
-          setCharForm(view, 'normal')
-          highlightChar()
-        })
-        mudBtn.addEventListener('click', (ev) => {
-          ev.stopPropagation()
-          charIndex = charCards.indexOf(view)
-          setCharForm(view, 'nightmare')
-          highlightChar()
-        })
         toggle.addEventListener('click', (ev) => ev.stopPropagation())
         card.addEventListener('click', (ev) => {
-          if (ev.target instanceof HTMLElement && ev.target.closest('.form-toggle')) return
+          if (ev.target instanceof HTMLElement && ev.target.closest('.char-card')) return
           charIndex = charCards.indexOf(view)
           highlightChar()
-          onPick(ch.id, view.form)
+          onPick(ch.id, view.model)
         })
         card.append(portrait, nameEl, flavorEl, perksEl, toggle)
         charGrid.append(card)
@@ -1043,11 +1084,19 @@ export function createUi(
 
     renderPause(
       view: ShopView,
-      handlers: { resume(): void; quit(): void; toggleMute(): void; muted: boolean },
+      handlers: {
+        resume(): void
+        quit(): void
+        toggleMute(): void
+        muted: boolean
+        paintStyle: PaintStyle
+        setPaintStyle(style: PaintStyle): void
+      },
     ): void {
       pauseHandlers = handlers
       applyStats(view)
       setMutedUi(handlers.muted)
+      fillPaintRow(pausePaint, handlers.paintStyle, handlers.setPaintStyle)
     },
 
     renderGameOver(summary: RunSummary, handlers: { retry(): void; title(): void }): void {
@@ -1062,7 +1111,7 @@ export function createUi(
 
     renderVictory(summary: RunSummary, handlers: { again(): void; title(): void }): void {
       winHandlers = handlers
-      winHeading.textContent = summary.form === 'nightmare' ? 'Still yours.' : 'Still clean.'
+      winHeading.textContent = 'Still clean.'
       winLede.textContent = `${summary.characterName} walked out of the Plot. 20 waves. The Mud will remember.`
       fillHero(winHero, summary)
       winSummary.replaceChildren(...summaryRows(summary))
@@ -1120,9 +1169,16 @@ export function createUi(
       if (stick) stick.hidden = !visible
     },
 
-    onTitle(handlers: { play(): void; toggleMute(): void; muted: boolean }): void {
+    onTitle(handlers: {
+      play(): void
+      toggleMute(): void
+      muted: boolean
+      paintStyle: PaintStyle
+      setPaintStyle(style: PaintStyle): void
+    }): void {
       titleHandlers = handlers
       setMutedUi(handlers.muted)
+      fillPaintRow(titlePaint, handlers.paintStyle, handlers.setPaintStyle)
     },
 
     onPauseRequest(handler: () => void): void {
