@@ -1,0 +1,138 @@
+{
+  "sourceBoard": "public/concept-a/mud-concept-a-wet-soil.png",
+  "sourceSheet": "public/concept-a/concept-a-board-anim-sheet.png",
+  "canvas": {
+    "w": 119,
+    "h": 227
+  },
+  "lid": "#bf4e4c",
+  "frames": {
+    "portrait": {
+      "file": "radish-portrait.png",
+      "w": 149,
+      "h": 346,
+      "eyes": [
+        {
+          "cx": 0.8523,
+          "cy": 0.4176,
+          "rx": 0.0268,
+          "ry": 0.013
+        }
+      ],
+      "lid": "#bf4e4c"
+    },
+    "idle-0": {
+      "file": "radish-idle-0.png",
+      "w": 119,
+      "h": 227,
+      "eyes": [],
+      "lid": "#ba4947"
+    },
+    "blink": {
+      "file": "radish-blink.png",
+      "w": 119,
+      "h": 227,
+      "eyes": [],
+      "lid": "#bd4b4a"
+    },
+    "walk-0": {
+      "file": "radish-walk-0.png",
+      "w": 119,
+      "h": 227,
+      "eyes": [],
+      "lid": "#ba4948"
+    },
+    "walk-1": {
+      "file": "radish-walk-1.png",
+      "w": 119,
+      "h": 227,
+      "eyes": [],
+      "lid": "#b94948"
+    },
+    "walk-2": {
+      "file": "radish-walk-2.png",
+      "w": 119,
+      "h": 227,
+      "eyes": [],
+      "lid": "#b64946"
+    },
+    "idle-1": {
+      "file": "radish-idle-1.png",
+      "w": 119,
+      "h": 227,
+      "eyes": [],
+      "lid": "#ba4948"
+    }
+  },
+  "idleCycle": [
+    "idle-0",
+    "idle-1"
+  ],
+  "walkCycle": [
+    "walk-0",
+    "walk-1",
+    "walk-2"
+  ],
+  "blink": "blink",
+  "portrait": "portrait",
+  "hit": "idle-0",
+  "rig": {
+    "w": 149,
+    "h": 346,
+    "eyeL": {
+      "cx": 0.339,
+      "cy": 0.368,
+      "rx": 0.052,
+      "ry": 0.028
+    },
+    "eyeR": {
+      "cx": 0.631,
+      "cy": 0.37,
+      "rx": 0.052,
+      "ry": 0.028
+    },
+    "mouth": {
+      "cx": 0.483,
+      "cy": 0.458,
+      "rw": 0.09,
+      "rh": 0.022
+    },
+    "browL": {
+      "x0": 0.28,
+      "y0": 0.318,
+      "x1": 0.4,
+      "y1": 0.348
+    },
+    "browR": {
+      "x0": 0.7,
+      "y0": 0.318,
+      "x1": 0.58,
+      "y1": 0.348
+    },
+    "shL": {
+      "cx": 0.34,
+      "cy": 0.54
+    },
+    "shR": {
+      "cx": 0.66,
+      "cy": 0.54
+    },
+    "hipL": {
+      "cx": 0.42,
+      "cy": 0.835
+    },
+    "hipR": {
+      "cx": 0.58,
+      "cy": 0.835
+    },
+    "ground": 0.995,
+    "body": "#d07080",
+    "limb": "#b54b58",
+    "fist": "#c45a62",
+    "foot": "#6a3a28",
+    "ink": "#2a1814",
+    "sclera": "#f3eee4",
+    "lid": "#bf4e4c"
+  },
+  "body": "radish-body.png"
+}
