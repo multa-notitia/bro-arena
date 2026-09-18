@@ -56,9 +56,7 @@ function screamIntervalOf(def: Enemy['def'], ctx: SimCtx): number {
 }
 
 function nightmareChance(world: World): number {
-  const base = world.waveDef.nightmareChance ?? 0
-  const bonus = world.player.form === 'nightmare' ? 0.15 : 0
-  return clamp(base + bonus, 0, 0.9)
+  return clamp(world.waveDef.nightmareChance ?? 0, 0, 0.9)
 }
 
 export function spawnEnemy(
@@ -95,7 +93,7 @@ export function spawnEnemy(
     speed *= 1.15
   }
   const interval = screamIntervalOf(def, ctx)
-  const screamCooldown = form === 'nightmare' ? ctx.rng.range(1.5, 4) : interval
+  const screamCooldown = form === 'nightmare' ? ctx.rng.range(0.7, 2.1) : interval
   const pos = clampToArena(world, x, y, r)
   const enemy: Enemy = {
     uid: uid(),
