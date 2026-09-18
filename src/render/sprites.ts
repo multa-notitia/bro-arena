@@ -315,7 +315,7 @@ function paintPickup(ctx: CanvasRenderingContext2D, type: PickupType): void {
     inkStroke(ctx, 0, 2, 10.5, 9.5, '#2c1010', { seed: 4, width: 1.2, n: 8 })
     return
   }
-  wash(ctx, 0, 2, 14, 10, '#b08958', { seed, shade: '#6a4a28', n: 6, wobble: 0.08 })
+  wash(ctx, 0, 2, 14, 10, '#b08958', { seed: 5, shade: '#6a4a28', n: 6, wobble: 0.08 })
   ctx.strokeStyle = '#2c1c10'
   ctx.lineWidth = 1.2
   ctx.strokeRect(-10, -5, 20, 14)
