@@ -19,39 +19,3 @@ import {
   rgba,
   wobbleBlob,
 } from './watercolor.ts'
-
-interface BodyCache {
-  canvas(
-    key: string,
-    w: number,
-    h: number,
-    paint: (ctx: CanvasRenderingContext2D, w: number, h: number) => void,
-  ): HTMLCanvasElement
-}
-
-export const MUD_DEFAULT = '#33241a'
-export const GLOW_DEFAULT = '#d9ff5c'
-export const BODY_R = 30
-
-export const SPECIES_LIST: readonly Species[] = [
-  'potato',
-  'carrot',
-  'chili',
-  'turnip',
-  'pumpkin',
-  'radish',
-  'eggplant',
-  'onion',
-  'pea',
-  'sprout',
-  'garlic',
-  'cabbage',
-  'beet',
-  'marrow',
-  'corn',
-  'broccoli',
-]
-
-export function isSpecies(s: string): s is Species {
-  return (SPECIES_LIST as readonly string[]).includes(s)
-}
