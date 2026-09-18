@@ -7,7 +7,7 @@ import { nightmaresAlive } from './enemies.ts'
 export function hudSnapshot(world: World, fps: number): HudSnapshot {
   const p = world.player
   const boss = world.boss
-  const displayName = p.form === 'nightmare' ? p.character.nightmare.name : p.character.name
+  const displayName = p.character.name
   return {
     hp: Math.max(0, p.hp),
     maxHp: p.stats.maxHp,
@@ -39,6 +39,7 @@ export function hudSnapshot(world: World, fps: number): HudSnapshot {
     }),
     characterName: displayName,
     form: p.form,
+    model: p.model,
     nightmaresAlive: nightmaresAlive(world),
     fps,
   }
@@ -57,11 +58,12 @@ export function runSummary(
     if (!def) continue
     items.push({ name: def.name, tier: def.tier, paint: def.paint as ItemPaint, count })
   }
-  const displayName = p.form === 'nightmare' ? p.character.nightmare.name : p.character.name
+  const displayName = p.character.name
   return {
     characterName: displayName,
     species: p.character.species,
     form: p.form,
+    model: p.model,
     wave: world.wave,
     wavesTotal: WAVE_COUNT,
     won: opts.won,

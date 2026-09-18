@@ -4,6 +4,7 @@ import type {
   CharacterDef,
   Form,
   ItemSpecial,
+  ModelDir,
   Player,
   Stats,
   Tier,
@@ -157,9 +158,10 @@ export function extraState(player: Player): PlayerExtra {
   return extra
 }
 
-export function createPlayer(character: CharacterDef, form: Form = 'normal'): Player {
+export function createPlayer(character: CharacterDef, model: ModelDir = 'b'): Player {
   const weapons = character.startingWeapons.map((w, i) => makeWeapon(w.id, w.tier, i))
   const items: string[] = []
+  const form: Form = 'normal'
   const stats = computeStats(
     character,
     items,
@@ -177,6 +179,7 @@ export function createPlayer(character: CharacterDef, form: Form = 'normal'): Pl
     stats,
     character,
     form,
+    model,
     weapons,
     items,
     materials: character.special === 'startRich' ? START_RICH : 0,
@@ -240,10 +243,6 @@ export function addXp(player: Player, amount: number, ctx: SimCtx): void {
     ctx.audio.play('levelUp')
     ctx.render.fx.text(player.x, player.y - 36, 'GROWTH', player.character.palette.accent)
     ctx.render.fx.sparkle(player.x, player.y, player.character.palette.accent)
-    if (player.form === 'nightmare') {
-      startPlayerScream(player)
-      ctx.audio.play('scream', { gain: 0.35 })
-    }
   }
 }
 

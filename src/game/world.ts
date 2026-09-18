@@ -2,7 +2,7 @@ import { clamp, damp, Rng } from '../core/math.ts'
 import type {
   AudioApi,
   CharacterDef,
-  Form,
+  ModelDir,
   RenderApi,
   Tree,
   UiApi,
@@ -29,9 +29,9 @@ export function createWorld(
   wdef: WaveDef,
   viewW: number,
   viewH: number,
-  form: Form = 'normal',
+  model: ModelDir = 'b',
 ): World {
-  const player = createPlayer(character, form)
+  const player = createPlayer(character, model)
   return {
     time: 0,
     waveTime: 0,

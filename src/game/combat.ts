@@ -1,6 +1,6 @@
 import { dist2 } from '../core/math.ts'
 import type { Enemy, StatusEffect, World } from '../core/types.ts'
-import { extraState, countSpecial, healPlayer, startPlayerScream } from './player.ts'
+import { extraState, countSpecial, healPlayer } from './player.ts'
 import { spawnMaterial } from './pickups.ts'
 import type { SimCtx } from './world.ts'
 
@@ -149,12 +149,7 @@ export function damagePlayer(
   ctx.render.fx.damageNumber(player.x, player.y - 20, taken)
 
   const extra = extraState(player)
-  if (player.form === 'nightmare' && taken >= 3) {
-    startPlayerScream(player)
-    ctx.audio.play('scream', { gain: 0.35 })
-  } else {
-    extra.flinchT = 0.3
-  }
+  extra.flinchT = 0.3
 
   if (sourceEnemy) {
     const away = unit(player.x - sourceEnemy.x, player.y - sourceEnemy.y)

@@ -110,7 +110,7 @@ export function beginWave(world: World, ctx: SimCtx, index: number): void {
     if (w.cooldown > 10) w.cooldown = 0.15
   }
   ctx.audio.play('waveStart')
-  ctx.audio.setMusic(world.player.form === 'nightmare' ? 'nightmare' : 'wave')
+  ctx.audio.setMusic('wave')
   ctx.ui.banner(`Wave ${index}`, wdef.boss ? 'The soil is moving.' : undefined, 2200)
 }
 

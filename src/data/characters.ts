@@ -19,7 +19,7 @@ export const CHARACTERS: CharacterDef[] = [
     id: 'well-rounded',
     name: 'Spud',
     species: 'potato',
-    flavor: 'A potato. Two eyes, two arms, one plan: keep walking.',
+    flavor: 'A potato. Two eyes, two arms, one plan: keep walking. Always clean.',
     stats: {},
     startingWeapons: [{ id: 'pistol', tier: 1 }],
     palette: veg('#c9a962', '#8f6e36', '#6b8f71', '#d9ff5c', '#3a2a14', '#1a1208', '#2e2016'),
@@ -63,7 +63,7 @@ export const CHARACTERS: CharacterDef[] = [
     id: 'ranger',
     name: 'Carrot',
     species: 'carrot',
-    flavor: 'Long. Pointed. Would rather be far away.',
+    flavor: 'Long. Pointed. Would rather be far away. Always clean.',
     stats: { range: 45, rangedDamage: 3, armor: -2, speed: 8 },
     startingWeapons: [{ id: 'slingshot', tier: 1 }],
     palette: veg('#e6792b', '#b3541c', '#4f8a3c', '#ffd23d', '#4a2410', '#1c1008', '#3b2a1c'),
@@ -200,6 +200,11 @@ export const CHARACTERS: CharacterDef[] = [
 ]
 
 const BY_ID = new Map(CHARACTERS.map((c) => [c.id, c]))
+
+/** This slice: Spud and Carrot only. Everyone else stays in the pack, hidden. */
+export const GATE_IDS: readonly string[] = ['well-rounded', 'ranger']
+
+export const GATE_CHARACTERS: CharacterDef[] = CHARACTERS.filter((c) => GATE_IDS.includes(c.id))
 
 export function characterById(id: string): CharacterDef {
   const found = BY_ID.get(id)
