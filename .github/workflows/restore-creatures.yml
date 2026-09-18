@@ -2,7 +2,7 @@ name: restore-creatures
 on:
   push:
     paths:
-      - 'tmp/restore-gz/**'
+      - 'tmp/restore-creatures/**'
       - '.github/workflows/restore-creatures.yml'
 permissions:
   contents: write
@@ -12,17 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Restore creatures.ts from gzip parts
+      - name: Restore creatures.ts from b64 parts
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import base64, gzip, hashlib, pathlib, sys
-          parts = sorted(pathlib.Path('tmp/restore-gz').glob('part-*.b64'))
-          if len(parts) < 4:
-              print('waiting for gzip parts', len(parts))
+          import base64, hashlib, pathlib, sys
+          parts = sorted(pathlib.Path('tmp/restore-creatures').glob('part-*.b64'))
+          if len(parts) < 20:
+              print('waiting for b64 parts', len(parts))
               sys.exit(0)
-          b64 = ''.join(p.read_text().strip() for p in parts)
-          data = gzip.decompress(base64.b64decode(b64))
+          data = b''.join(base64.b64decode(p.read_text().strip()) for p in parts)
           sha = hashlib.sha1(f'blob {len(data)}\0'.encode() + data).hexdigest()
           assert sha == 'ca04288ac26b90db899a0270245aaa1df9d78326', sha
           assert len(data) == 73415, len(data)
@@ -37,8 +36,8 @@ jobs:
           git config user.name 'cursor-agent'
           git config user.email 'cursor-agent@users.noreply.github.com'
           git add src/render/creatures.ts
-          git rm -rf tmp/restore-gz || true
           git rm -rf tmp/restore-creatures || true
+          git rm -rf tmp/restore-gz || true
           git rm -f .github/workflows/restore-creatures.yml
           git commit -m 'Restore full creature painter (silhouettes, models, nightmare B construction).'
           git push
