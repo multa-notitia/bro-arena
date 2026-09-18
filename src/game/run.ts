@@ -2,15 +2,16 @@ import { Rng } from '../core/math.ts'
 import type {
   AudioApi,
   CharacterDef,
-  Form,
   InputApi,
   LevelUpOption,
+  ModelDir,
+  PaintStyle,
   RenderApi,
   RunPhase,
   UiApi,
   World,
 } from '../core/types.ts'
-import { CHARACTERS, characterById } from '../data/characters.ts'
+import { GATE_CHARACTERS, characterById } from '../data/characters.ts'
 import { rollLevelUps } from '../data/levelups.ts'
 import { WAVE_COUNT, waveDef } from '../data/waves.ts'
 import { peekKillSource, takeKillSource } from './combat.ts'
@@ -33,6 +34,7 @@ import { hudSnapshot, runSummary } from './snapshots.ts'
 import { updateWeapons } from './weapons.ts'
 import { beginWave, settleWave, updateDirector } from './waves.ts'
 import { createWorld, syncViewport, updateCamera, updateTrees, type SimCtx } from './world.ts'
+import { getLastModel, getPaintStyle, setLastModel, setPaintStyle } from '../render/look.ts'
 
 export interface RunDeps {
   canvas: HTMLCanvasElement
@@ -61,7 +63,7 @@ export class Run {
   private settleT = 0
   private transitioning = false
   private chosen: CharacterDef | null = null
-  private chosenForm: Form = 'normal'
+  private chosenModel: ModelDir = 'b'
   private levelOptions: LevelUpOption[] = []
   private musicT = 0
 
@@ -88,6 +90,8 @@ export class Run {
       play: () => this.playFromTitle(),
       toggleMute: () => this.toggleMute(),
       muted: audio.muted,
+      paintStyle: getPaintStyle(),
+      setPaintStyle: (s: PaintStyle) => this.changePaintStyle(s),
     })
   }
 
@@ -155,6 +159,8 @@ export class Run {
         play: () => this.playFromTitle(),
         toggleMute: () => this.toggleMute(),
         muted: audio.muted,
+        paintStyle: getPaintStyle(),
+        setPaintStyle: (s: PaintStyle) => this.changePaintStyle(s),
       })
     } else if (this._phase === 'paused' && this.world) {
       this.renderPause()
@@ -184,22 +190,25 @@ export class Run {
       play: () => this.playFromTitle(),
       toggleMute: () => this.toggleMute(),
       muted: audio.muted,
+      paintStyle: getPaintStyle(),
+      setPaintStyle: (s: PaintStyle) => this.changePaintStyle(s),
     })
   }
 
   private enterCharSelect(): void {
     this._phase = 'charselect'
     this.deps.ui.showScreen('charselect')
-    this.deps.ui.renderCharSelect(CHARACTERS, (id, form) => this.pickCharacter(id, form))
+    this.deps.ui.renderCharSelect(GATE_CHARACTERS, (id, model) => this.pickCharacter(id, model))
   }
 
-  private pickCharacter(id: string, form: Form = 'normal'): void {
+  private pickCharacter(id: string, model: ModelDir = getLastModel()): void {
     const { audio, canvas } = this.deps
     audio.unlock()
     audio.play('uiClick')
     const ch = characterById(id)
     this.chosen = ch
-    this.chosenForm = form
+    this.chosenModel = model
+    setLastModel(model)
     this.rng = new Rng()
     this.killedBy = null
     this.dying = false
@@ -211,7 +220,7 @@ export class Run {
       waveDef(1),
       canvas.clientWidth || canvas.width,
       canvas.clientHeight || canvas.height,
-      form,
+      model,
     )
     beginWave(this.world, this.sim(), 1)
     this.enterWaveView()
@@ -236,7 +245,7 @@ export class Run {
       this.deps.audio.setMusic('boss')
       return
     }
-    if (world.player.form === 'nightmare' || nightmaresAlive(world) >= 5) {
+    if (nightmaresAlive(world) >= 5) {
       this.deps.audio.setMusic('nightmare')
       return
     }
@@ -418,6 +427,8 @@ export class Run {
       },
       toggleMute: () => this.toggleMute(),
       muted: this.deps.audio.muted,
+      paintStyle: getPaintStyle(),
+      setPaintStyle: (s: PaintStyle) => this.changePaintStyle(s),
     })
   }
 
@@ -458,6 +469,24 @@ export class Run {
     })
   }
 
+  private changePaintStyle(style: PaintStyle): void {
+    setPaintStyle(style)
+    this.deps.audio.play('uiClick')
+    if (this._phase === 'title') {
+      this.deps.ui.onTitle({
+        play: () => this.playFromTitle(),
+        toggleMute: () => this.toggleMute(),
+        muted: this.deps.audio.muted,
+        paintStyle: getPaintStyle(),
+        setPaintStyle: (s: PaintStyle) => this.changePaintStyle(s),
+      })
+    } else if (this._phase === 'paused') {
+      this.renderPause()
+    } else if (this._phase === 'charselect') {
+      this.enterCharSelect()
+    }
+  }
+
   private retry(): void {
     if (!this.chosen) {
       this.enterCharSelect()
@@ -465,6 +494,6 @@ export class Run {
     }
     this.deps.audio.unlock()
     this.deps.audio.play('uiClick')
-    this.pickCharacter(this.chosen.id, this.chosenForm)
+    this.pickCharacter(this.chosen.id, this.chosenModel)
   }
 }
