@@ -121,3 +121,10 @@ export const SPECIES_PALETTES: Record<Species, Palette> = {
   corn: { body: '#e8c44a', shade: '#b08a22', ink: '#2c240c', accent: '#5a8a3a', eye: '#1a1408', mud: '#33241a', glow: '#ffe66a' },
   broccoli: { body: '#4a8a3a', shade: '#2c5a24', ink: '#142010', accent: '#8fbf6a', eye: '#0c1408', mud: '#33241a', glow: '#9dff8a' },
 }
+
+export function sizeBucket(r: number): number {
+  if (r >= 42) return 48
+  if (r >= 28) return 36
+  if (r >= 18) return 30
+  return 24
+}
