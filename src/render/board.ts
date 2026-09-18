@@ -46,16 +46,16 @@ interface Rig {
 const atlas = atlasJson as { rig: Rig }
 const rig = atlas.rig
 
-const images = new Map\u003cstring, HTMLImageElement\u003e()
+const images = new Map<string, HTMLImageElement>()
 let ready = false
-let loadPromise: Promise\u003cvoid\u003e | null = null
+let loadPromise: Promise<void> | null = null
 
-function loadImage(url: string): Promise\u003cHTMLImageElement\u003e {
-  return new Promise((resolve, reject) =\u003e {
+function loadImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
     const img = new Image()
     img.decoding = 'async'
-    img.onload = () =\u003e resolve(img)
-    img.onerror = () =\u003e reject(new Error(`Board radish sprite failed: ${url}`))
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error(`Board radish sprite failed: ${url}`))
     img.src = url
   })
 }
@@ -64,21 +64,21 @@ export function isBoardReady(): boolean {
   return ready
 }
 
-export function preloadBoard(): Promise\u003cvoid\u003e {
+export function preloadBoard(): Promise<void> {
   if (ready) return Promise.resolve()
   if (loadPromise) return loadPromise
-  const urls: Record\u003cstring, string\u003e = {
+  const urls: Record<string, string> = {
     portrait: radishPortrait,
     body: radishBody,
     'walk-0': radishWalk0,
     'walk-1': radishWalk1,
     'walk-2': radishWalk2,
   }
-  loadPromise = Promise.all(Object.entries(urls).map(([k, url]) =\u003e loadImage(url).then((img) =\u003e images.set(k, img))))
-    .then(() =\u003e {
+  loadPromise = Promise.all(Object.entries(urls).map(([k, url]) => loadImage(url).then((img) => images.set(k, img))))
+    .then(() => {
       ready = true
     })
-    .catch((err) =\u003e {
+    .catch((err) => {
       loadPromise = null
       throw err
     })
@@ -161,8 +161,8 @@ function wrap01(v: number): number {
 /** 0 = wind-up, 1 = full extension. Holds the stab so a 0.18s swing still reads. */
 function attackWeight(t: number): number {
   const u = clamp(t, 0, 1)
-  if (u \u003c 0.16) return u / 0.16
-  if (u \u003c 0.58) return 1
+  if (u < 0.16) return u / 0.16
+  if (u < 0.58) return 1
   return 1 - (u - 0.58) / 0.42
 }
 
@@ -182,9 +182,9 @@ function footLocal(
     return { x: hipX, y: ground, plant: 1, toe: 0 }
   }
   const p = wrap01(phase)
-  if (p \u003c 0.55) {
+  if (p < 0.55) {
     const u = p / 0.55
-    const plant = u \u003c 0.82 ? 1 : lerp(1, 0.2, (u - 0.82) / 0.18)
+    const plant = u < 0.82 ? 1 : lerp(1, 0.2, (u - 0.82) / 0.18)
     return {
       x: hipX + lerp(stride, -stride, u),
       y: ground,
@@ -237,8 +237,8 @@ function twoBone(
 }
 
 function attackFor(side: -1 | 1, weapons: readonly BoardWeapon[]): BoardWeapon | null {
-  const slot = side \u003c 0 ? 1 : 0
-  return weapons.find((it) =\u003e it.slot === slot \u0026\u0026 it.swingT \u003e= 0) ?? null
+  const slot = side < 0 ? 1 : 0
+  return weapons.find((it) => it.slot === slot && it.swingT >= 0) ?? null
 }
 
 function localAim(worldAngle: number, facing: 1 | -1): number {
@@ -247,7 +247,7 @@ function localAim(worldAngle: number, facing: 1 | -1): number {
 
 function hangAngle(side: -1 | 1, t: number): number {
   const sway = Math.sin(t * 2.25 + side) * 0.06
-  return (side \u003c 0 ? Math.PI * 0.78 : Math.PI * 0.22) + sway
+  return (side < 0 ? Math.PI * 0.78 : Math.PI * 0.22) + sway
 }
 
 function armTarget(
@@ -263,10 +263,10 @@ function armTarget(
   const hang = hangAngle(side, anim.t)
   let ang = hang
   let reach = len
-  let bend = side \u003c 0 ? 0.32 : -0.32
+  let bend = side < 0 ? 0.32 : -0.32
   let attacking = false
 
-  if (atk \u0026\u0026 atk.swingT \u003e= 0) {
+  if (atk && atk.swingT >= 0) {
     attacking = true
     const t = clamp(atk.swingT, 0, 1)
     const w = attackWeight(t)
@@ -292,12 +292,12 @@ function armTarget(
       reach = len * (1 + w * 0.2)
     }
   } else {
-    const held = weapons.find((it) =\u003e it.slot === (side \u003c 0 ? 1 : 0))
+    const held = weapons.find((it) => it.slot === (side < 0 ? 1 : 0))
     if (anim.moving) {
       const swing = Math.sin(anim.gait * TAU) * -side
       ang = hang + swing * 0.55
       reach = len * (0.96 + Math.abs(swing) * 0.04)
-      bend = (side \u003c 0 ? 0.55 : -0.55) - swing * 0.22
+      bend = (side < 0 ? 0.55 : -0.55) - swing * 0.22
     }
     if (held) {
       const aim = localAim(held.angle, facing)
@@ -310,7 +310,7 @@ function armTarget(
   let y = sh.y + Math.sin(ang) * reach
   if (!attacking) {
     y = Math.max(y, chinY)
-    if (side \u003c 0) x = Math.min(x, sh.x - 2.2)
+    if (side < 0) x = Math.min(x, sh.x - 2.2)
     else x = Math.max(x, sh.x + 2.2)
   }
   return { x, y, bend }
@@ -340,8 +340,8 @@ export function poseBoardRadish(opts: BoardDrawOpts): BoardPose {
 
   const fL = footLocal(hipL.x, ground, gait, stride, lift, moving)
   const fR = footLocal(hipR.x, ground, gait + 0.5, stride, lift, moving)
-  const kneeBendL = moving ? (fL.plant \u003e 0.5 ? 0.55 : 1.05) : 0.42
-  const kneeBendR = moving ? (fR.plant \u003e 0.5 ? 0.55 : 1.05) : 0.42
+  const kneeBendL = moving ? (fL.plant > 0.5 ? 0.55 : 1.05) : 0.42
+  const kneeBendR = moving ? (fR.plant > 0.5 ? 0.55 : 1.05) : 0.42
   const footL = {
     ...twoBone(hipL.x, hipL.y, fL.x, fL.y, thigh, shin, kneeBendL),
     plant: fL.plant,
@@ -356,8 +356,8 @@ export function poseBoardRadish(opts: BoardDrawOpts): BoardPose {
   const left = twoBone(shL.x, shL.y, lT.x, lT.y, upper, lower, lT.bend)
   const right = twoBone(shR.x, shR.y, rT.x, rT.y, upper, lower, rT.bend)
 
-  const atk = opts.weapons.find((w) =\u003e w.swingT \u003e= 0)
-  const lean = atk \u0026\u0026 atk.swingT \u003e= 0 ? Math.cos(localAim(atk.angle, opts.facing)) * attackWeight(atk.swingT) * 0.14 : 0
+  const atk = opts.weapons.find((w) => w.swingT >= 0)
+  const lean = atk && atk.swingT >= 0 ? Math.cos(localAim(atk.angle, opts.facing)) * attackWeight(atk.swingT) * 0.14 : 0
 
   return {
     ...box,
@@ -466,7 +466,7 @@ function coverAndPaintFace(
   blink: number,
   mouth: number,
 ): void {
-  const paintEye = (mark: Mark, lx: number, tilt: number) =\u003e {
+  const paintEye = (mark: Mark, lx: number, tilt: number) => {
     const cx = nx(mark, box)
     const cy = ny(mark, box) + bob
     const rx = (mark.rx ?? 0.05) * box.w
@@ -497,8 +497,8 @@ function coverAndPaintFace(
     ctx.fill()
     ctx.restore()
 
-    const lid = blink \u003c 0 ? 1 : 1 - Math.sin(clamp(blink, 0, 1) * Math.PI)
-    if (lid \u003c 0.94) {
+    const lid = blink < 0 ? 1 : 1 - Math.sin(clamp(blink, 0, 1) * Math.PI)
+    if (lid < 0.94) {
       ctx.save()
       ctx.beginPath()
       ctx.ellipse(cx, cy, rx * 1.04, ry * 1.08, tilt, 0, TAU)
@@ -524,9 +524,8 @@ function coverAndPaintFace(
   ctx.save()
   ctx.strokeStyle = rig.ink
   ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
   ctx.lineWidth = Math.max(1.6, box.w * 0.022)
-  const brow = (b: { x0: number; y0: number; x1: number; y1: number }) =\u003e {
+  const brow = (b: { x0: number; y0: number; x1: number; y1: number }) => {
     ctx.beginPath()
     ctx.moveTo(box.ox + b.x0 * box.w, box.oy + b.y0 * box.h + bob)
     ctx.lineTo(box.ox + b.x1 * box.w, box.oy + b.y1 * box.h + bob)
@@ -547,7 +546,7 @@ function coverAndPaintFace(
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
   const open = clamp(mouth, 0, 1)
-  if (open \u003c 0.08) {
+  if (open < 0.08) {
     ctx.lineWidth = 1.7
     ctx.beginPath()
     ctx.moveTo(mx - mw, my + mw * 0.14)
@@ -595,14 +594,14 @@ export function drawBoardRadish(ctx: CanvasRenderingContext2D, opts: BoardDrawOp
   right: BoardHand
 } | null {
   const img = images.get('body')
-  if (!img || img.width \u003c 2) return null
+  if (!img || img.width < 2) return null
   const pose = poseBoardRadish(opts)
   const { w, h, ox, oy, bob } = pose
   const squash = clamp(opts.squash, 0.9, 1.12)
   const teeter = opts.anim.moving ? 0 : Math.sin(opts.anim.t * 2.3) * 0.028
   const lookX = clamp(opts.lookX * opts.facing, -1, 1)
   const lookY = clamp(opts.lookY * 0.55, -1, 1)
-  const idleTalk = !opts.anim.moving \u0026\u0026 Math.sin(opts.anim.t * 1.15) \u003e 0.35 ? (Math.sin(opts.anim.t * 11) * 0.5 + 0.5) * 0.22 : 0
+  const idleTalk = !opts.anim.moving && Math.sin(opts.anim.t * 1.15) > 0.35 ? (Math.sin(opts.anim.t * 11) * 0.5 + 0.5) * 0.22 : 0
   const mouth = clamp(Math.max(opts.mouth, idleTalk), 0, 1)
 
   ctx.save()
@@ -613,7 +612,7 @@ export function drawBoardRadish(ctx: CanvasRenderingContext2D, opts: BoardDrawOp
   ctx.imageSmoothingEnabled = true
   ctx.imageSmoothingQuality = 'high'
 
-  const backL = pose.footL.x \u003c pose.footR.x
+  const backL = pose.footL.x < pose.footR.x
   const legs = backL
     ? ([
         [pose.hipL, pose.footL],
@@ -639,7 +638,7 @@ export function drawBoardRadish(ctx: CanvasRenderingContext2D, opts: BoardDrawOp
 
   coverAndPaintFace(ctx, pose, bob, lookX, lookY, opts.blink, mouth)
 
-  const arms = pose.left.x \u003c pose.right.x
+  const arms = pose.left.x < pose.right.x
     ? ([
         [pose.shL, pose.left],
         [pose.shR, pose.right],
@@ -665,7 +664,7 @@ export function drawBoardRadish(ctx: CanvasRenderingContext2D, opts: BoardDrawOp
 
 export function paintBoardPortrait(ctx: CanvasRenderingContext2D, size: number): boolean {
   const img = images.get('portrait')
-  if (!img || img.width \u003c 2) return false
+  if (!img || img.width < 2) return false
   ctx.save()
   ctx.beginPath()
   ctx.arc(0, 0, size * 0.46, 0, TAU)
