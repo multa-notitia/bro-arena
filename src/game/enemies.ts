@@ -10,6 +10,7 @@ import { ENEMIES } from '../data/enemies.ts'
 import { enemyDamageAtWave, enemyHpAtWave } from '../data/waves.ts'
 import { damagePlayer, dealDamageToEnemy } from './combat.ts'
 import { dropFromEnemy, enemyMaterialValue } from './pickups.ts'
+import { farmHpMult, farmNightmareBonus } from './farm.ts'
 import { createAnim, tickFaceAnim } from './player.ts'
 import { spawnProjectile } from './projectiles.ts'
 import { clampToArena } from './world.ts'
@@ -56,7 +57,7 @@ function screamIntervalOf(def: Enemy['def'], ctx: SimCtx): number {
 }
 
 function nightmareChance(world: World): number {
-  return clamp(world.waveDef.nightmareChance ?? 0, 0, 0.9)
+  return clamp((world.waveDef.nightmareChance ?? 0) + farmNightmareBonus(world.farm), 0, 0.92)
 }
 
 export function spawnEnemy(
@@ -83,6 +84,7 @@ export function spawnEnemy(
     damage *= 2
     r *= 1.6
   }
+  hp = Math.max(1, Math.round(hp * farmHpMult(world.farm)))
   let form: Form = def.rank === 'basic' && def.form !== 'nightmare' ? 'normal' : 'nightmare'
   if (def.rank === 'basic' && form === 'normal' && ctx.rng.chance(nightmareChance(world))) {
     form = 'nightmare'
@@ -168,7 +170,7 @@ export function beginDeath(world: World, enemy: Enemy, ctx: SimCtx, magnet = fal
   }
   const matsRaw = enemyMaterialValue(world, enemy.def, ctx)
   const mats = enemy.form === 'nightmare' ? Math.max(1, Math.round(matsRaw * 1.5)) : matsRaw
-  dropFromEnemy(world, enemy.x, enemy.y, mats, enemy.elite && !enemy.boss, ctx, magnet)
+  dropFromEnemy(world, enemy.x, enemy.y, mats, enemy.elite && !enemy.boss, ctx, magnet, enemy)
   ctx.render.fx.splat(enemy.x, enemy.y, enemy.def.palette.body, enemy.r * 1.6, enemy.boss ? 18 : 8)
   ctx.render.fx.puff(enemy.x, enemy.y, enemy.def.palette.shade, enemy.r)
   if (enemy.form === 'nightmare') ctx.audio.play('mudSquelch')
