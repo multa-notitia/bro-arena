@@ -1,7 +1,8 @@
-import { Rng } from '../core/math.ts'
+import { damp, Rng } from '../core/math.ts'
 import type {
   AudioApi,
   CharacterDef,
+  CropId,
   InputApi,
   LevelUpOption,
   ModelDir,
@@ -30,11 +31,23 @@ import {
   toggleLock,
   type ShopSession,
 } from './shop.ts'
+import {
+  buyFarmOffer,
+  buildFarmShopView,
+  emptyFarmSession,
+  generateFarmOffers,
+  rerollFarmOffers,
+  toggleFarmLock,
+  type FarmShopSession,
+} from './farmshop.ts'
 import { hudSnapshot, runSummary } from './snapshots.ts'
 import { updateWeapons } from './weapons.ts'
 import { beginWave, settleWave, updateDirector } from './waves.ts'
+import { clearPlots, plantView, selectCrop, syncFarmUnlocks, togglePlot } from './farm.ts'
 import { createWorld, syncViewport, updateCamera, updateTrees, type SimCtx } from './world.ts'
-import { getLastModel, getPaintStyle, setLastModel, setPaintStyle } from '../render/look.ts'
+import { defaultModelForSpecies, getLastModel, getPaintStyle, modelsForSpecies, setLastModel, setPaintStyle } from '../render/look.ts'
+import { isConceptAReady, preloadConceptA } from '../render/conceptA.ts'
+import { isBoardReady, preloadBoard } from '../render/board.ts'
 
 export interface RunDeps {
   canvas: HTMLCanvasElement
@@ -53,6 +66,7 @@ export class Run {
   private lastNow = 0
   private bootT = 0
   private shop: ShopSession = emptySession()
+  private farmShop: FarmShopSession = emptyFarmSession()
   private killedBy: string | null = null
   private deathTimer = 0
   private dying = false
@@ -66,6 +80,7 @@ export class Run {
   private chosenModel: ModelDir = 'b'
   private levelOptions: LevelUpOption[] = []
   private musicT = 0
+  private plantFirst = true
 
   constructor(deps: RunDeps) {
     this.deps = deps
@@ -85,6 +100,12 @@ export class Run {
     ui.setJoystickVisible(false)
     ui.setBootCopy('Wetting the paper…')
     ui.showScreen('boot')
+    void preloadConceptA().catch(() => {
+      /* painted chili falls back to Wash if the sheet fails to load */
+    })
+    void preloadBoard().catch(() => {
+      /* board radish falls back to Wash if the cut frames fail to load */
+    })
     ui.onPauseRequest(() => this.requestPause())
     ui.onTitle({
       play: () => this.playFromTitle(),
@@ -114,7 +135,8 @@ export class Run {
     if (this._phase === 'boot') {
       this.bootT += dt
       if (this.bootT > 0.2) this.deps.ui.setBootCopy('The soil is settling.')
-      if (this.bootT > 0.45) this.enterTitle()
+      if (this.bootT > 0.45 && isConceptAReady() && isBoardReady()) this.enterTitle()
+      else if (this.bootT > 1.8) this.enterTitle()
       return
     }
 
@@ -123,6 +145,10 @@ export class Run {
       syncViewport(world, this.deps.canvas)
       if (this._phase === 'wave' && !world.paused && !this.transitioning) {
         this.tickWave(world, dt)
+      } else if (this._phase === 'plant' || this._phase === 'farmshop') {
+        for (const plot of world.farm.plots) plot.sway += dt
+        world.camera.x = damp(world.camera.x, 0, 5, dt)
+        world.camera.y = damp(world.camera.y, 0, 5, dt)
       }
       this.deps.render.draw(this.deps.ctx, world, dt)
       if (this._phase === 'wave' || this._phase === 'paused') {
@@ -181,6 +207,7 @@ export class Run {
     this.settling = false
     this.transitioning = false
     this.shop = emptySession()
+    this.farmShop = emptyFarmSession()
     this._phase = 'title'
     ui.setHudVisible(false)
     ui.setJoystickVisible(false)
@@ -207,13 +234,15 @@ export class Run {
     audio.play('uiClick')
     const ch = characterById(id)
     this.chosen = ch
-    this.chosenModel = model
+    const allowed = modelsForSpecies(ch.species)
+    this.chosenModel = allowed.includes(model) ? model : defaultModelForSpecies(ch.species)
     setLastModel(model)
     this.rng = new Rng()
     this.killedBy = null
     this.dying = false
     this.settling = false
     this.shop = emptySession()
+    this.farmShop = emptyFarmSession()
     this.deps.render.fx.clear()
     this.world = createWorld(
       ch,
@@ -222,8 +251,97 @@ export class Run {
       canvas.clientHeight || canvas.height,
       model,
     )
-    beginWave(this.world, this.sim(), 1)
-    this.enterWaveView()
+    this.enterPlant(true)
+  }
+
+  private enterPlant(first: boolean): void {
+    if (!this.world) return
+    this.plantFirst = first
+    this._phase = 'plant'
+    this.world.paused = true
+    const nextWave = first ? Math.max(1, this.world.wave) : this.world.wave + 1
+    syncFarmUnlocks(this.world.farm, nextWave, this.world.player.stats.luck)
+    this.deps.ui.setHudVisible(false)
+    this.deps.ui.setJoystickVisible(false)
+    this.deps.ui.showScreen('plant')
+    this.deps.audio.setMusic('shop')
+    this.renderPlant()
+  }
+
+  private renderPlant(): void {
+    if (!this.world) return
+    const world = this.world
+    this.deps.ui.renderPlant(plantView(world, this.plantFirst), {
+      select: (crop: CropId) => {
+        selectCrop(world.farm, crop)
+        this.deps.audio.play('uiHover')
+        this.renderPlant()
+      },
+      togglePlot: (index: number) => {
+        if (togglePlot(world.farm, index)) this.deps.audio.play('uiClick')
+        else this.deps.audio.play('uiHover')
+        this.renderPlant()
+      },
+      clear: () => {
+        clearPlots(world.farm)
+        this.deps.audio.play('uiClick')
+        this.renderPlant()
+      },
+      sow: () => this.sowAndGo(),
+    })
+  }
+
+  private sowAndGo(): void {
+    if (!this.world || this.transitioning) return
+    this.deps.audio.play('uiClick')
+    if (this.plantFirst) {
+      this.transitioning = true
+      this.deps.ui.showScreen(null)
+      this.deps.ui.setHudVisible(false)
+      this.deps.render.fx.transition('inkWipe', () => {
+        if (!this.world) return
+        beginWave(this.world, this.sim(), 1)
+        this.enterWaveView()
+        this.transitioning = false
+      })
+      return
+    }
+    this.enterShop()
+  }
+
+  private enterFarmShop(): void {
+    if (!this.world) return
+    this._phase = 'farmshop'
+    this.world.paused = true
+    syncFarmUnlocks(this.world.farm, this.world.wave + 1, this.world.player.stats.luck)
+    this.deps.ui.setHudVisible(false)
+    this.deps.ui.setJoystickVisible(false)
+    this.deps.ui.showScreen('farmshop')
+    this.deps.audio.setMusic('shop')
+    const locked = this.farmShop.offers.filter((o) => o.locked)
+    this.farmShop.rerolls = 0
+    this.farmShop.offers = generateFarmOffers(this.world, this.sim(), locked)
+    this.renderFarmShop()
+  }
+
+  private renderFarmShop(): void {
+    if (!this.world) return
+    const world = this.world
+    this.deps.ui.renderFarmShop(buildFarmShopView(world, this.farmShop), {
+      buy: (offerUid) => {
+        buyFarmOffer(world, this.sim(), this.farmShop, offerUid)
+        this.renderFarmShop()
+      },
+      toggleLock: (offerUid) => {
+        toggleFarmLock(this.sim(), this.farmShop, offerUid)
+        this.renderFarmShop()
+      },
+      reroll: () => {
+        rerollFarmOffers(world, this.sim(), this.farmShop)
+        this.renderFarmShop()
+      },
+      next: () => this.enterPlant(false),
+    })
   }
 
   private enterWaveView(): void {
@@ -317,7 +435,7 @@ export class Run {
     if (!this.world) return
     if (this.world.player.pendingLevelUps > 0) this.enterLevelUp()
     else if (this.world.wave >= WAVE_COUNT) this.enterVictory()
-    else this.enterShop()
+    else this.enterFarmShop()
   }
 
   private enterLevelUp(): void {
@@ -347,7 +465,7 @@ export class Run {
     this.world.player.pendingLevelUps = Math.max(0, this.world.player.pendingLevelUps - 1)
     if (this.world.player.pendingLevelUps > 0) this.showLevelCards()
     else if (this.world.wave >= WAVE_COUNT) this.enterVictory()
-    else this.enterShop()
+    else this.enterFarmShop()
   }
 
   private enterShop(): void {
