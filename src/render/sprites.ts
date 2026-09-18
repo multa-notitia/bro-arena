@@ -1,28 +1,33 @@
-import { TAU, clamp, lerp } from '../core/math.ts'
+import { TAU, clamp } from '../core/math.ts'
 import type {
   CharacterDef,
-  EnemyPaint,
+  Form,
   ItemPaint,
   Palette,
   PickupType,
   ProjectilePaint,
+  Species,
   WeaponPaint,
 } from '../core/types.ts'
 import {
-  darken,
+  BODY_R,
+  creatureSprite,
+  isSpecies,
+  paintIdleCreature,
+  paletteKey as creaturePaletteKey,
+  resolveSpecies,
+  SPECIES_PALETTES,
+} from './creatures.ts'
+import {
   granulate,
   inkStroke,
   makeCanvas,
-  mixColor,
-  n01,
   rgba,
   splat,
   wash,
-  wobbleBlob,
 } from './watercolor.ts'
 
 const BODY_ART = 112
-const BODY_R = 30
 const WEAPON_ART = 88
 const PROJ_ART = 40
 const PICK_ART = 48
@@ -53,35 +58,11 @@ export function createSpriteCache(): SpriteCache {
 }
 
 export function paletteKey(p: Palette): string {
-  return `${p.body}|${p.shade}|${p.ink}|${p.accent}|${p.eye}`
+  return creaturePaletteKey(p)
 }
 
-export const POTATO_PALETTE: Palette = {
-  body: '#e2c48a',
-  shade: '#b08a52',
-  ink: '#2c2014',
-  accent: '#c45c48',
-  eye: '#1a120c',
-}
-
-export const ENEMY_PALETTES: Record<EnemyPaint, Palette> = {
-  blob: { body: '#8aa67a', shade: '#5c754f', ink: '#2a3024', accent: '#d4e3a6', eye: '#1a1a14' },
-  sprout: { body: '#6b9a5a', shade: '#3f6a36', ink: '#24301c', accent: '#c3dd6a', eye: '#1c2414' },
-  runner: { body: '#c47a4a', shade: '#8a4c2c', ink: '#2e1c14', accent: '#e8b06a', eye: '#1a120c' },
-  crab: { body: '#c45c48', shade: '#8a3028', ink: '#2c1410', accent: '#e8a090', eye: '#1a100c' },
-  wisp: { body: '#8aa8c8', shade: '#4a6588', ink: '#1c2430', accent: '#d0e8f8', eye: '#e8f0ff' },
-  brute: { body: '#6a5a68', shade: '#3e343c', ink: '#1a1418', accent: '#b09078', eye: '#1c1410' },
-  spitter: { body: '#a8b45a', shade: '#6a742e', ink: '#24280c', accent: '#e8f090', eye: '#1a1c0c' },
-  hive: { body: '#c8a050', shade: '#8a6a28', ink: '#2c220c', accent: '#f0d878', eye: '#1a1408' },
-  charger: { body: '#a84840', shade: '#6c2420', ink: '#200c0c', accent: '#e07860', eye: '#140808' },
-  mother: { body: '#8a4868', shade: '#5a2840', ink: '#1c0c14', accent: '#e878a0', eye: '#f0d0d8' },
-  lord: { body: '#3a3038', shade: '#1c181c', ink: '#080608', accent: '#d4b060', eye: '#f0e0a8' },
-}
-
-export function faceBucket(angle: number): number {
-  const n = 8
-  return ((Math.round(angle / (TAU / n)) % n) + n) % n
-}
+export const POTATO_PALETTE: Palette = SPECIES_PALETTES.potato
+export const ENEMY_PALETTES: Record<Species, Palette> = SPECIES_PALETTES
 
 function seedOf(s: string): number {
   let h = 2166136261
@@ -95,470 +76,6 @@ function seedOf(s: string): number {
 export function qualityBucket(zoom: number, dpr: number): number {
   const b = Math.ceil(Math.max(0.5, zoom) * Math.max(1, dpr) * 2) / 2
   return clamp(Math.max(2, b), 2, 3)
-}
-
-function richInk(pal: Palette): string {
-  return mixColor(pal.ink, '#0c0a08', 0.48)
-}
-
-function inkW(r: number): number {
-  return Math.max(3.1, r * 0.17)
-}
-
-function punchBody(pal: Palette, mix = 0.2): Palette {
-  return {
-    body: mixColor(pal.body, pal.shade, mix),
-    shade: darken(pal.shade, 0.18 + mix * 0.2),
-    ink: richInk(pal),
-    accent: mixColor(pal.accent, '#f2e08a', 0.1),
-    eye: pal.eye,
-  }
-}
-
-function outline(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  rx: number,
-  ry: number,
-  pal: Palette,
-  seed: number,
-  extra?: { n?: number; wobble?: number; rotation?: number; close?: number },
-): void {
-  inkStroke(ctx, cx, cy, rx, ry, pal.ink, {
-    seed,
-    width: inkW(Math.min(rx, ry)),
-    alpha: 0.92,
-    n: extra?.n ?? 11,
-    wobble: extra?.wobble,
-    rotation: extra?.rotation,
-    close: extra?.close,
-  })
-}
-
-function paintTeeth(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  dir: number,
-  count: number,
-  s: number,
-): void {
-  ctx.save()
-  ctx.fillStyle = '#f2ead8'
-  ctx.strokeStyle = '#1a120c'
-  ctx.lineWidth = 0.7
-  for (let i = 0; i < count; i++) {
-    const ox = x + (i - (count - 1) * 0.5) * s * 0.7
-    ctx.beginPath()
-    ctx.moveTo(ox - s * 0.22, y)
-    ctx.lineTo(ox, y + dir * s)
-    ctx.lineTo(ox + s * 0.22, y)
-    ctx.closePath()
-    ctx.fill()
-    ctx.stroke()
-  }
-  ctx.restore()
-}
-
-function paintClaw(ctx: CanvasRenderingContext2D, x: number, y: number, ang: number, len: number, pal: Palette): void {
-  ctx.save()
-  ctx.translate(x, y)
-  ctx.rotate(ang)
-  ctx.strokeStyle = pal.ink
-  ctx.lineCap = 'round'
-  ctx.lineWidth = Math.max(1.4, len * 0.18)
-  ctx.beginPath()
-  ctx.moveTo(0, 0)
-  ctx.quadraticCurveTo(len * 0.4, -len * 0.15, len, 0)
-  ctx.stroke()
-  ctx.strokeStyle = pal.accent
-  ctx.lineWidth = Math.max(0.8, len * 0.1)
-  ctx.stroke()
-  ctx.restore()
-}
-
-function paintEyes(
-  ctx: CanvasRenderingContext2D,
-  pal: Palette,
-  x0: number,
-  x1: number,
-  y: number,
-  r: number,
-  lookX: number,
-  lookY: number,
-): void {
-  const lx = clamp(lookX, -1, 1) * r * 0.28
-  const ly = clamp(lookY, -1, 1) * r * 0.22
-  for (const ex of [x0, x1]) {
-    ctx.fillStyle = '#f4efe4'
-    ctx.beginPath()
-    ctx.ellipse(ex, y, r * 0.42, r * 0.48, 0, 0, TAU)
-    ctx.fill()
-    ctx.fillStyle = pal.eye
-    ctx.beginPath()
-    ctx.ellipse(ex + lx, y + ly, r * 0.2, r * 0.22, 0, 0, TAU)
-    ctx.fill()
-    ctx.fillStyle = 'rgba(255,255,255,0.9)'
-    ctx.beginPath()
-    ctx.arc(ex + lx - r * 0.09, y + ly - r * 0.1, r * 0.09, 0, TAU)
-    ctx.fill()
-    ctx.strokeStyle = pal.ink
-    ctx.lineWidth = Math.max(0.9, r * 0.12)
-    ctx.beginPath()
-    ctx.ellipse(ex, y, r * 0.42, r * 0.48, 0, 0, TAU)
-    ctx.stroke()
-  }
-}
-
-function paintCrown(ctx: CanvasRenderingContext2D, pal: Palette, y: number, spread: number, seed: number): void {
-  ctx.save()
-  ctx.fillStyle = darken(pal.ink, 0.1)
-  ctx.beginPath()
-  ctx.moveTo(-spread, y)
-  const spikes = 5
-  for (let i = 0; i <= spikes; i++) {
-    const t = i / spikes
-    const x = lerp(-spread, spread, t)
-    const peak = i % 2 === 0 ? y - 7 - n01(i, seed) * 6 : y - 3
-    ctx.lineTo(x, peak)
-  }
-  ctx.lineTo(spread, y + 3)
-  ctx.closePath()
-  ctx.globalAlpha = 0.92
-  ctx.fill()
-  inkStroke(ctx, 0, y - 4, spread * 0.7, 6, pal.ink, { seed, width: 1.4, n: 7, wobble: 0.2 })
-  ctx.restore()
-}
-
-function paintPotatoBody(ctx: CanvasRenderingContext2D, pal: Palette, r: number, seed: number): void {
-  const warm: Palette = {
-    body: mixColor(pal.body, '#e0a24a', 0.24),
-    shade: mixColor(pal.shade, '#8a4a22', 0.22),
-    ink: pal.ink,
-    accent: pal.accent,
-    eye: pal.eye,
-  }
-  wash(ctx, 0, 0, r * 1.05, r * 0.92, warm.body, { seed, shade: warm.shade, n: 10, wobble: 0.18 })
-  granulate(ctx, -r * 1.2, -r * 1.2, r * 2.4, r * 2.4, warm.shade, { seed: seed + 2, density: 80, alpha: 0.16 })
-  for (let i = 0; i < 5; i++) {
-    const a = n01(i, seed + 4) * TAU
-    const d = r * (0.15 + n01(i, seed + 5) * 0.45)
-    ctx.globalAlpha = 0.5
-    ctx.fillStyle = warm.shade
-    ctx.beginPath()
-    ctx.ellipse(Math.cos(a) * d, Math.sin(a) * d * 0.85, r * 0.09, r * 0.07, a, 0, TAU)
-    ctx.fill()
-  }
-  ctx.globalAlpha = 1
-  ctx.fillStyle = pal.accent
-  ctx.globalAlpha = 0.7
-  ctx.fill(wobbleBlob(r * 0.55, -r * 0.55, r * 0.16, r * 0.2, seed + 9, { n: 6, wobble: 0.3 }))
-  ctx.globalAlpha = 1
-  outline(ctx, 0, 0, r * 1.08, r * 0.95, pal, seed + 1, { n: 12, wobble: 0.1 })
-  splat(ctx, 0, r * 0.2, warm.shade, r * 0.7, { seed: seed + 6, count: 4 })
-}
-
-export function paintPlayerOn(
-  ctx: CanvasRenderingContext2D,
-  pal: Palette,
-  r: number,
-  lookX: number,
-  lookY: number,
-  legPhase: number,
-  moving: boolean,
-): void {
-  const seed = seedOf(paletteKey(pal))
-  const skin = punchBody(pal, 0.18)
-  paintPotatoBody(ctx, skin, r, seed)
-  paintEyes(ctx, skin, -r * 0.3, r * 0.32, -r * 0.14, r * 0.36, lookX, lookY)
-  const swing = moving ? Math.sin(legPhase) * 0.55 : 0
-  ctx.save()
-  ctx.fillStyle = skin.shade
-  ctx.strokeStyle = skin.ink
-  ctx.lineWidth = 1.6
-  for (const [sx, ph] of [
-    [-r * 0.28, swing],
-    [r * 0.3, -swing],
-  ] as const) {
-    ctx.save()
-    ctx.translate(sx, r * 0.72)
-    ctx.rotate(ph)
-    ctx.beginPath()
-    ctx.ellipse(0, r * 0.18, r * 0.13, r * 0.28, 0.1, 0, TAU)
-    ctx.fill()
-    ctx.stroke()
-    ctx.restore()
-  }
-  ctx.restore()
-}
-
-function paintBlob(ctx: CanvasRenderingContext2D, pal: Palette, r: number, seed: number): void {
-  pal = {
-    ...pal,
-    body: mixColor(pal.body, '#b08a3a', 0.18),
-    shade: mixColor(pal.shade, '#4a3018', 0.14),
-  }
-  wash(ctx, 0, 2, r * 1.15, r * 0.95, pal.body, { seed, shade: pal.shade, n: 8, wobble: 0.28 })
-  granulate(ctx, -r * 1.3, -r * 1.2, r * 2.6, r * 2.4, pal.ink, { seed, density: 50, alpha: 0.1 })
-  for (let i = 0; i < 4; i++) {
-    const a = n01(i, seed + 20) * TAU
-    const d = r * (0.2 + n01(i, seed + 21) * 0.4)
-    ctx.globalAlpha = 0.85
-    ctx.fillStyle = pal.accent
-    ctx.beginPath()
-    ctx.ellipse(Math.cos(a) * d, 2 + Math.sin(a) * d * 0.7, r * 0.12, r * 0.09, a, 0, TAU)
-    ctx.fill()
-  }
-  ctx.globalAlpha = 1
-  paintEyes(ctx, pal, -r * 0.32, r * 0.28, -r * 0.05, r * 0.3, 0.2, 0.15)
-  paintTeeth(ctx, 0, r * 0.28, 1, 3, r * 0.16)
-  outline(ctx, 0, 2, r * 1.18, r * 0.98, pal, seed, { n: 10, wobble: 0.22 })
-}
-
-function paintSprout(ctx: CanvasRenderingContext2D, pal: Palette, r: number, seed: number): void {
-  pal = {
-    ...pal,
-    body: mixColor(pal.body, '#c4b050', 0.16),
-    shade: mixColor(pal.shade, '#3a4a18', 0.1),
-  }
-  wash(ctx, 0, r * 0.15, r * 0.85, r * 1.05, pal.body, { seed, shade: pal.shade, n: 9, wobble: 0.2 })
-  ctx.save()
-  ctx.translate(0, -r * 0.85)
-  ctx.rotate(-0.3)
-  wash(ctx, 0, 0, r * 0.55, r * 0.28, pal.accent, { seed: seed + 2, shade: pal.shade, n: 7, wobble: 0.25 })
-  inkStroke(ctx, 0, 0, r * 0.58, r * 0.3, pal.ink, { seed: seed + 2, width: inkW(r * 0.4), n: 8 })
-  ctx.restore()
-  ctx.strokeStyle = pal.ink
-  ctx.lineWidth = 2
-  ctx.beginPath()
-  ctx.moveTo(0, -r * 0.7)
-  ctx.quadraticCurveTo(4, -r * 0.4, 0, -r * 0.1)
-  ctx.stroke()
-  paintEyes(ctx, pal, -r * 0.22, r * 0.24, r * 0.05, r * 0.22, 0.1, 0.2)
-  outline(ctx, 0, r * 0.15, r * 0.88, r * 1.08, pal, seed, { n: 10 })
-}
-
-function paintRunner(ctx: CanvasRenderingContext2D, pal: Palette, r: number, seed: number): void {
-  wash(ctx, 0, 0, r * 1.35, r * 0.62, pal.body, { seed, shade: pal.shade, n: 9, wobble: 0.18, rotation: -0.1 })
-  for (const sx of [-r * 0.7, -r * 0.2, r * 0.35, r * 0.85]) {
-    ctx.save()
-    ctx.translate(sx, r * 0.45)
-    ctx.rotate(0.4 * Math.sign(sx) + 0.2)
-    wash(ctx, 0, 0, r * 0.12, r * 0.42, pal.shade, { seed: seed + 3, n: 6, wobble: 0.2, passes: 2 })
-    ctx.restore()
-  }
-  paintEyes(ctx, pal, r * 0.35, r * 0.75, -r * 0.12, r * 0.24, 0.6, 0)
-  paintClaw(ctx, r * 1.15, r * 0.05, -0.15, r * 0.55, pal)
-  paintClaw(ctx, r * 1.05, r * 0.28, 0.25, r * 0.45, pal)
-  outline(ctx, 0, 0, r * 1.38, r * 0.65, pal, seed, { n: 11, rotation: -0.1 })
-}
-
-function paintCrab(ctx: CanvasRenderingContext2D, pal: Palette, r: number, seed: number): void {
-  wash(ctx, 0, 4, r * 1.25, r * 0.7, pal.body, { seed, shade: pal.shade, n: 8, wobble: 0.16 })
-  for (const side of [-1, 1]) {
-    ctx.save()
-    ctx.translate(side * r * 0.95, -r * 0.05)
-    ctx.rotate(side * -0.6)
-    wash(ctx, 0, 0, r * 0.38, r * 0.22, pal.accent, { seed: seed + side + 4, shade: pal.shade, n: 6, wobble: 0.2 })
-    inkStroke(ctx, 0, 0, r * 0.4, r * 0.24, pal.ink, { seed, width: inkW(r * 0.3), n: 7 })
-    ctx.restore()
-    ctx.strokeStyle = pal.ink
-    ctx.lineWidth = 1.4
-    ctx.beginPath()
-    ctx.moveTo(side * r * 0.2, -r * 0.35)
-    ctx.lineTo(side * r * 0.18, -r * 0.75)
-    ctx.stroke()
-    ctx.fillStyle = pal.eye
-    ctx.beginPath()
-    ctx.arc(side * r * 0.18, -r * 0.82, r * 0.1, 0, TAU)
-    ctx.fill()
-  }
-  for (let i = 0; i < 6; i++) {
-    const s = i < 3 ? -1 : 1
-    const k = i % 3
-    ctx.strokeStyle = pal.ink
-    ctx.lineWidth = 1.3
-    ctx.beginPath()
-    ctx.moveTo(s * r * 0.4, r * 0.25)
-    ctx.quadraticCurveTo(s * (r * 0.7 + k * 4), r * 0.55, s * r * (0.9 + k * 0.12), r * 0.7)
-    ctx.stroke()
-  }
-  outline(ctx, 0, 4, r * 1.28, r * 0.74, pal, seed, { n: 10 })
-}
-
-function paintWisp(ctx: CanvasRenderingContext2D, pal: Palette, r: number, seed: number): void {
-  ctx.globalAlpha = 0.35
-  wash(ctx, 0, r * 0.4, r * 0.55, r * 0.9, pal.shade, { seed, n: 8, wobble: 0.35, passes: 3 })
-  ctx.globalAlpha = 1
-  wash(ctx, 0, -r * 0.1, r * 0.72, r * 0.95, pal.body, { seed: seed + 2, shade: pal.accent, n: 8, wobble: 0.3 })
-  granulate(ctx, -r, -r, r * 2, r * 2, pal.accent, { seed, density: 40, alpha: 0.16 })
-  paintEyes(ctx, pal, -r * 0.2, r * 0.22, -r * 0.25, r * 0.26, 0, -0.2)
-  outline(ctx, 0, -r * 0.1, r * 0.75, r * 0.98, pal, seed, { n: 9, close: 0.78 })
-}
-
-function paintBrute(ctx: CanvasRenderingContext2D, pal: Palette, r: number, seed: number): void {
-  wash(ctx, 0, r * 0.15, r * 1.2, r * 1.05, pal.body, { seed, shade: pal.shade, n: 8, wobble: 0.12 })
-  wash(ctx, 0, -r * 0.55, r * 0.7, r * 0.55, pal.shade, { seed: seed + 2, n: 7, wobble: 0.14 })
-  ctx.fillStyle = pal.ink
-  ctx.globalAlpha = 0.5
-  ctx.fillRect(-r * 0.55, -r * 0.72, r * 1.1, r * 0.16)
-  ctx.globalAlpha = 1
-  paintEyes(ctx, pal, -r * 0.28, r * 0.26, -r * 0.48, r * 0.24, 0.15, 0.4)
-  paintTeeth(ctx, 0, -r * 0.28, 1, 4, r * 0.14)
-  outline(ctx, 0, r * 0.15, r * 1.22, r * 1.08, pal, seed, { n: 10 })
-  splat(ctx, 0, r * 0.5, pal.accent, r * 0.6, { seed, count: 3 })
-}
-
-function paintSpitter(ctx: CanvasRenderingContext2D, pal: Palette, r: number, seed: number): void {
-  wash(ctx, 0, 4, r * 0.95, r * 0.95, pal.body, { seed, shade: pal.shade, n: 9, wobble: 0.2 })
-  wash(ctx, r * 0.7, 2, r * 0.45, r * 0.32, pal.accent, { seed: seed + 3, shade: pal.shade, n: 6, wobble: 0.22 })
-  ctx.fillStyle = pal.ink
-  ctx.beginPath()
-  ctx.ellipse(r * 0.95, 2, r * 0.16, r * 0.12, 0, 0, TAU)
-  ctx.fill()
-  paintEyes(ctx, pal, -r * 0.15, r * 0.25, -r * 0.2, r * 0.26, 0.7, 0)
-  paintTeeth(ctx, r * 0.85, r * 0.12, 1, 3, r * 0.12)
-  outline(ctx, 0, 4, r * 0.98, r * 0.98, pal, seed, { n: 10 })
-  splat(ctx, r * 0.9, 8, pal.accent, r * 0.45, { seed, count: 4 })
-}
-
-function paintHive(ctx: CanvasRenderingContext2D, pal: Palette, r: number, seed: number): void {
-  wash(ctx, 0, 6, r * 1.15, r * 0.95, pal.body, { seed, shade: pal.shade, n: 7, wobble: 0.14 })
-  for (let i = 0; i < 5; i++) {
-    const a = -0.8 + i * 0.4
-    const d = r * (0.15 + (i % 3) * 0.22)
-    ctx.fillStyle = rgba(pal.ink, 0.35)
-    ctx.beginPath()
-    ctx.ellipse(Math.cos(a) * d, Math.sin(a) * d * 0.6 - r * 0.1, r * 0.16, r * 0.14, 0, 0, TAU)
-    ctx.fill()
-    ctx.strokeStyle = pal.ink
-    ctx.lineWidth = 1
-    ctx.stroke()
-  }
-  granulate(ctx, -r, -r, r * 2, r * 2, pal.accent, { seed, density: 40, alpha: 0.12 })
-  paintEyes(ctx, pal, -r * 0.22, r * 0.26, -r * 0.18, r * 0.2, 0.15, 0.2)
-  outline(ctx, 0, 6, r * 1.18, r * 0.98, pal, seed, { n: 9 })
-}
-
-function paintCharger(ctx: CanvasRenderingContext2D, pal: Palette, r: number, seed: number): void {
-  wash(ctx, -r * 0.1, 4, r * 1.15, r * 0.75, pal.body, { seed, shade: pal.shade, n: 8, wobble: 0.15, rotation: -0.25 })
-  ctx.save()
-  ctx.translate(r * 0.85, -r * 0.15)
-  ctx.rotate(-0.4)
-  wash(ctx, 0, 0, r * 0.45, r * 0.18, pal.shade, { seed: seed + 2, n: 6, wobble: 0.12, passes: 2 })
-  inkStroke(ctx, 0, 0, r * 0.46, r * 0.2, pal.ink, { seed, width: inkW(r * 0.35), n: 6 })
-  ctx.restore()
-  ctx.fillStyle = pal.ink
-  ctx.beginPath()
-  ctx.moveTo(-r * 0.2, -r * 0.55)
-  ctx.lineTo(-r * 0.05, -r * 1.05)
-  ctx.lineTo(r * 0.15, -r * 0.5)
-  ctx.fill()
-  paintEyes(ctx, pal, r * 0.15, r * 0.5, -r * 0.15, r * 0.18, 0.8, 0.1)
-  outline(ctx, -r * 0.1, 4, r * 1.18, r * 0.78, pal, seed, { n: 10, rotation: -0.25 })
-}
-
-function paintMother(ctx: CanvasRenderingContext2D, pal: Palette, r: number, seed: number): void {
-  wash(ctx, 0, 6, r * 1.35, r * 1.15, pal.body, { seed, shade: pal.shade, n: 11, wobble: 0.22, passes: 5 })
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * TAU + 0.3
-    wash(ctx, Math.cos(a) * r * 0.95, Math.sin(a) * r * 0.7, r * 0.28, r * 0.42, pal.shade, {
-      seed: seed + i,
-      n: 6,
-      wobble: 0.3,
-      passes: 2,
-    })
-  }
-  const eyes: [number, number, number][] = [
-    [-r * 0.35, -r * 0.15, 0.32],
-    [r * 0.3, -r * 0.25, 0.28],
-    [0, r * 0.15, 0.22],
-    [r * 0.55, r * 0.2, 0.18],
-    [-r * 0.55, r * 0.25, 0.16],
-  ]
-  for (const [ex, ey, er] of eyes) {
-    paintEyes(ctx, pal, ex, ex + r * 0.02, ey, r * er, 0.1, 0.1)
-  }
-  granulate(ctx, -r * 1.5, -r * 1.4, r * 3, r * 2.8, pal.accent, { seed, density: 90, alpha: 0.1 })
-  outline(ctx, 0, 6, r * 1.38, r * 1.18, pal, seed, { n: 13, wobble: 0.18 })
-  splat(ctx, 0, r * 0.4, pal.accent, r, { seed, count: 8 })
-}
-
-function paintLord(ctx: CanvasRenderingContext2D, pal: Palette, r: number, seed: number): void {
-  wash(ctx, 0, r * 0.35, r * 1.15, r * 0.85, pal.shade, { seed, shade: darken(pal.body, 0.2), n: 8, wobble: 0.12 })
-  wash(ctx, 0, -r * 0.35, r * 0.85, r * 0.95, pal.body, { seed: seed + 2, shade: pal.shade, n: 9, wobble: 0.14 })
-  ctx.save()
-  ctx.translate(0, -r * 1.05)
-  paintCrown(ctx, pal, 0, r * 0.7, seed)
-  ctx.fillStyle = pal.accent
-  ctx.beginPath()
-  ctx.arc(0, -2, 4, 0, TAU)
-  ctx.fill()
-  ctx.restore()
-  paintEyes(ctx, pal, -r * 0.28, r * 0.3, -r * 0.45, r * 0.24, 0, 0.35)
-  ctx.strokeStyle = pal.accent
-  ctx.globalAlpha = 0.7
-  ctx.lineWidth = 1.4
-  ctx.beginPath()
-  ctx.moveTo(-r * 0.35, -r * 0.08)
-  ctx.quadraticCurveTo(0, r * 0.05, r * 0.35, -r * 0.08)
-  ctx.stroke()
-  ctx.globalAlpha = 1
-  outline(ctx, 0, r * 0.2, r * 1.18, r * 1.2, pal, seed, { n: 12 })
-  splat(ctx, 0, r * 0.6, pal.accent, r * 0.7, { seed, count: 5 })
-}
-
-function paintEnemyBody(
-  ctx: CanvasRenderingContext2D,
-  paint: EnemyPaint,
-  pal: Palette,
-  r: number,
-  elite: boolean,
-): void {
-  const seed = seedOf(paint + paletteKey(pal))
-  pal = punchBody(pal, 0.34)
-  switch (paint) {
-    case 'blob':
-      paintBlob(ctx, pal, r, seed)
-      break
-    case 'sprout':
-      paintSprout(ctx, pal, r, seed)
-      break
-    case 'runner':
-      paintRunner(ctx, pal, r, seed)
-      break
-    case 'crab':
-      paintCrab(ctx, pal, r, seed)
-      break
-    case 'wisp':
-      paintWisp(ctx, pal, r, seed)
-      break
-    case 'brute':
-      paintBrute(ctx, pal, r, seed)
-      break
-    case 'spitter':
-      paintSpitter(ctx, pal, r, seed)
-      break
-    case 'hive':
-      paintHive(ctx, pal, r, seed)
-      break
-    case 'charger':
-      paintCharger(ctx, pal, r, seed)
-      break
-    case 'mother':
-      paintMother(ctx, pal, r, seed)
-      break
-    case 'lord':
-      paintLord(ctx, pal, r, seed)
-      break
-    default: {
-      const _never: never = paint
-      void _never
-      paintBlob(ctx, pal, r, seed)
-    }
-  }
-  if (elite) paintCrown(ctx, pal, -r * 1.05, r * 0.55, seed + 99)
 }
 
 function wood(ctx: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number, rot: number, seed: number): void {
@@ -819,17 +336,6 @@ function paintTree(ctx: CanvasRenderingContext2D): void {
   splat(ctx, 8, 4, '#4a6a30', 16, { seed: 16, count: 5 })
 }
 
-function paintMarker(ctx: CanvasRenderingContext2D): void {
-  ctx.strokeStyle = rgba('#c4453c', 0.85)
-  ctx.lineWidth = 3
-  ctx.setLineDash([5, 4])
-  ctx.beginPath()
-  ctx.ellipse(0, 0, 22, 14, 0, 0, TAU)
-  ctx.stroke()
-  ctx.setLineDash([])
-  wash(ctx, 0, 0, 16, 10, '#c4453c', { seed: 21, shade: '#8a2420', n: 8, wobble: 0.25, passes: 3, alpha: 0.7 })
-  inkStroke(ctx, 0, 0, 22, 14, '#6a1810', { seed: 21, width: 1.6, n: 9, wobble: 0.18 })
-}
 
 function paintItem(ctx: CanvasRenderingContext2D, paint: ItemPaint, size: number): void {
   const s = size / 48
@@ -1031,39 +537,26 @@ function scaledSprite(
   })
 }
 
+
 export function playerSprite(
   cache: SpriteCache,
   pal: Palette,
-  facingAngle: number,
-  moving: boolean,
-  t: number,
+  species: Species,
+  form: Form,
   q = 1,
 ): HTMLCanvasElement {
-  const face = faceBucket(facingAngle)
-  const leg = moving ? Math.floor(t * 8) % 4 : 0
-  const key = `player:${paletteKey(pal)}:f${face}:l${leg}`
-  return scaledSprite(cache, key, BODY_ART, q, (ctx) => {
-    ctx.translate(0, 4)
-    const lookX = Math.cos(facingAngle)
-    const lookY = Math.sin(facingAngle)
-    paintPlayerOn(ctx, pal, BODY_R, lookX, lookY, (leg / 4) * TAU, moving)
-  })
+  return creatureSprite(cache, species, pal, form, BODY_R, q)
 }
 
 export function enemySprite(
   cache: SpriteCache,
-  paint: EnemyPaint,
+  species: Species,
   pal: Palette,
-  elite: boolean,
-  boss: boolean,
+  form: Form,
+  artR: number,
   q = 1,
 ): HTMLCanvasElement {
-  const art = boss ? 160 : elite ? 112 : BODY_ART
-  const key = `enemy:${paint}:${paletteKey(pal)}:${elite ? 1 : 0}:${boss ? 1 : 0}`
-  return scaledSprite(cache, key, art, q, (ctx) => {
-    const r = boss ? 48 : elite ? 34 : BODY_R
-    paintEnemyBody(ctx, paint, pal, r, elite)
-  })
+  return creatureSprite(cache, species, pal, form, artR, q)
 }
 
 export function weaponSprite(cache: SpriteCache, paint: WeaponPaint, frame = 0, q = 1): HTMLCanvasElement {
@@ -1091,9 +584,39 @@ export function treeSprite(cache: SpriteCache, q = 1): HTMLCanvasElement {
   })
 }
 
-export function markerSprite(cache: SpriteCache, q = 1): HTMLCanvasElement {
-  return scaledSprite(cache, 'marker', MARK_ART, q, (ctx) => {
-    paintMarker(ctx)
+function paintMarkerNormal(ctx: CanvasRenderingContext2D): void {
+  ctx.strokeStyle = rgba('#c4453c', 0.85)
+  ctx.lineWidth = 3
+  ctx.setLineDash([5, 4])
+  ctx.beginPath()
+  ctx.ellipse(0, 0, 22, 14, 0, 0, TAU)
+  ctx.stroke()
+  ctx.setLineDash([])
+  wash(ctx, 0, 0, 16, 10, '#c4453c', { seed: 21, shade: '#8a2420', n: 8, wobble: 0.25, passes: 3, alpha: 0.7 })
+  inkStroke(ctx, 0, 0, 22, 14, '#6a1810', { seed: 21, width: 1.6, n: 9, wobble: 0.18 })
+}
+
+function paintMarkerNightmare(ctx: CanvasRenderingContext2D): void {
+  wash(ctx, 0, 0, 20, 14, '#33241a', { seed: 22, shade: '#1a120c', n: 8, wobble: 0.22, passes: 3, alpha: 0.85 })
+  ctx.strokeStyle = rgba('#1a120c', 0.9)
+  ctx.lineWidth = 3.2
+  ctx.beginPath()
+  ctx.ellipse(0, 0, 24, 16, 0, 0, TAU)
+  ctx.stroke()
+  ctx.save()
+  ctx.globalCompositeOperation = 'lighter'
+  ctx.globalAlpha = 0.75
+  ctx.fillStyle = '#d9ff5c'
+  ctx.beginPath()
+  ctx.ellipse(0, 0, 8, 5, 0, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
+export function markerSprite(cache: SpriteCache, form: Form = 'normal', q = 1): HTMLCanvasElement {
+  return scaledSprite(cache, `marker:${form}`, MARK_ART, q, (ctx) => {
+    if (form === 'nightmare') paintMarkerNightmare(ctx)
+    else paintMarkerNormal(ctx)
   })
 }
 
@@ -1127,20 +650,6 @@ const WEAPON_PAINTS: readonly WeaponPaint[] = [
   'lightning',
 ]
 
-const ENEMY_PAINTS: readonly EnemyPaint[] = [
-  'blob',
-  'sprout',
-  'runner',
-  'crab',
-  'wisp',
-  'brute',
-  'spitter',
-  'hive',
-  'charger',
-  'mother',
-  'lord',
-]
-
 const ITEM_PAINTS: readonly ItemPaint[] = [
   'heart',
   'leaf',
@@ -1171,9 +680,6 @@ const ITEM_PAINTS: readonly ItemPaint[] = [
 function isWeaponPaint(s: string): s is WeaponPaint {
   return (WEAPON_PAINTS as readonly string[]).includes(s)
 }
-function isEnemyPaint(s: string): s is EnemyPaint {
-  return (ENEMY_PAINTS as readonly string[]).includes(s)
-}
 function isItemPaint(s: string): s is ItemPaint {
   return (ITEM_PAINTS as readonly string[]).includes(s)
 }
@@ -1185,10 +691,12 @@ export function iconDataUrl(
   palette: Palette | undefined,
   size: number,
   dpr: number,
+  form: Form = 'normal',
 ): string {
   const px = Math.max(16, Math.round(size * clamp(dpr, 1, 2)))
-  const pal = palette ?? (kind === 'enemy' && isEnemyPaint(paint) ? ENEMY_PALETTES[paint] : POTATO_PALETTE)
-  const key = `icon:${kind}:${paint}:${paletteKey(pal)}:${px}`
+  const species = resolveSpecies(paint, isSpecies(paint) ? paint : undefined, paint)
+  const pal = palette ?? (kind === 'enemy' || kind === 'character' ? SPECIES_PALETTES[species] : POTATO_PALETTE)
+  const key = `icon:${kind}:${paint}:${paletteKey(pal)}:${form}:${px}`
   const hit = urlCache.get(key)
   if (hit) return hit
   const canvas = cache.canvas(`raw:${key}`, px, px, (ctx, w, h) => {
@@ -1197,27 +705,33 @@ export function iconDataUrl(
     ctx.scale(sc, sc)
     if (kind === 'weapon' && isWeaponPaint(paint)) paintWeapon(ctx, paint, 0)
     else if (kind === 'item' && isItemPaint(paint)) paintItem(ctx, paint, 48)
-    else if (kind === 'enemy' && isEnemyPaint(paint)) paintEnemyBody(ctx, paint, pal, 22, false)
-    else paintPlayerOn(ctx, pal, 22, 0.2, 0.15, 0, false)
+    else paintIdleCreature(ctx, species, pal, 20, form)
   })
   const url = canvas.toDataURL('image/png')
   urlCache.set(key, url)
   return url
 }
 
-export function portraitDataUrl(cache: SpriteCache, character: CharacterDef, size: number, dpr: number): string {
+export function portraitDataUrl(
+  cache: SpriteCache,
+  character: CharacterDef,
+  size: number,
+  dpr: number,
+  form: Form = 'normal',
+): string {
   const px = Math.max(32, Math.round(size * clamp(dpr, 1, 2)))
-  const key = `port:${character.id}:${paletteKey(character.palette)}:${px}`
+  const species = resolveSpecies(character.species ?? 'potato', character.species, character.id)
+  const key = `port:${character.id}:${form}:${paletteKey(character.palette)}:${px}`
   const hit = urlCache.get(key)
   if (hit) return hit
-  const spr = playerSprite(cache, character.palette, 0.35, false, 0, Math.max(2, clamp(dpr, 1, 2)))
-  const { canvas, ctx } = makeCanvas(px, px)
-  if (ctx) {
-    ctx.fillStyle = rgba('#efe6d0', 0.0)
-    ctx.clearRect(0, 0, px, px)
-    const pad = px * 0.08
-    ctx.drawImage(spr, pad, pad, px - pad * 2, px - pad * 2)
-  }
+  const canvas = cache.canvas(`raw:${key}`, px, px, (ctx, w, h) => {
+    ctx.translate(w / 2, h / 2)
+    ctx.fillStyle = rgba('#efe6d0', 0.95)
+    ctx.beginPath()
+    ctx.arc(0, 0, w * 0.46, 0, TAU)
+    ctx.fill()
+    paintIdleCreature(ctx, species, character.palette, w * 0.28, form)
+  })
   const url = canvas.toDataURL('image/png')
   urlCache.set(key, url)
   return url
