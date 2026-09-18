@@ -1,11 +1,12 @@
 import { TAU, clamp, hashNoise, lerp } from '../core/math.ts'
+import { getPaintStyle, lookKey } from './look.ts'
+import { paperColor } from './paintLang.ts'
 import {
   granulate,
   inkStroke,
   makeCanvas,
   mixColor,
   n01,
-  PAPER_CREAM,
   wash,
   wobbleBlob,
 } from './watercolor.ts'
@@ -18,6 +19,17 @@ const paddockTiles: HTMLCanvasElement[] = []
 let sharedBase: HTMLCanvasElement | null = null
 let outsideTile: HTMLCanvasElement | null = null
 const borderCache = new Map<string, HTMLCanvasElement>()
+let cachedLook = ''
+
+function invalidateIfLookChanged(): void {
+  const k = lookKey()
+  if (k === cachedLook) return
+  cachedLook = k
+  sharedBase = null
+  paddockTiles.length = 0
+  outsideTile = null
+  borderCache.clear()
+}
 
 function tilePx(q: number): number {
   return Math.round(GROUND_TILE * (q >= 2 ? 1.25 : 1))
@@ -31,6 +43,9 @@ function fibre(
   count: number,
   alpha: number,
 ): void {
+  const style = getPaintStyle()
+  const dark = style === 'b' ? '#4a4842' : style === 'c' ? '#6a4a32' : '#6b5340'
+  const light = style === 'b' ? '#b0aaa0' : style === 'c' ? '#d4b090' : '#c4b090'
   ctx.save()
   ctx.lineCap = 'round'
   for (let i = 0; i < count; i++) {
@@ -39,7 +54,7 @@ function fibre(
     const len = 16 + n01(i, seed + 2) * 64
     const ang = (n01(i, seed + 3) - 0.5) * 0.55
     ctx.globalAlpha = alpha * (0.45 + n01(i, seed + 4) * 0.55)
-    ctx.strokeStyle = n01(i, seed + 5) > 0.55 ? '#6b5340' : '#c4b090'
+    ctx.strokeStyle = n01(i, seed + 5) > 0.55 ? dark : light
     ctx.lineWidth = 0.4 + n01(i, seed + 6) * 1.15
     ctx.beginPath()
     ctx.moveTo(x0, y0)
@@ -90,6 +105,15 @@ function wrappedOffsets(x: number, y: number, w: number, h: number, pad: number)
 }
 
 function washColor(i: number, seed: number): string {
+  const style = getPaintStyle()
+  if (style === 'b') {
+    const cool = ['#a8a494', '#9a9688', '#b2aea0', '#8e8a80', '#b8b2a4', '#9c988c'] as const
+    return cool[Math.floor(n01(i, seed + 1) * cool.length) % cool.length] ?? '#a8a494'
+  }
+  if (style === 'c') {
+    const stain = ['#d2a070', '#c48a62', '#e0b888', '#c4a06a', '#d8b07a', '#b87a58'] as const
+    return stain[Math.floor(n01(i, seed + 1) * stain.length) % stain.length] ?? '#d2a070'
+  }
   if (i % 4 === 0) return n01(i, seed) > 0.5 ? '#9a9a68' : '#8e9460'
   const warm = ['#d2b484', '#c8a878', '#d8c49a', '#c4a06a', '#b89a72', '#cbb892'] as const
   return warm[Math.floor(n01(i, seed + 1) * warm.length) % warm.length] ?? '#c8a878'
@@ -147,14 +171,20 @@ function stainWrap(
 }
 
 function paintSharedBase(ctx: CanvasRenderingContext2D, w: number, h: number): void {
-  ctx.fillStyle = mixColor(PAPER_CREAM, '#d8c89a', 0.16)
+  const style = getPaintStyle()
+  const paper = paperColor()
+  if (style === 'b') ctx.fillStyle = mixColor(paper, '#9aa094', 0.22)
+  else if (style === 'c') ctx.fillStyle = mixColor(paper, '#e8c49a', 0.18)
+  else ctx.fillStyle = mixColor(paper, '#d8c89a', 0.16)
   ctx.fillRect(0, 0, w, h)
-  paintGrain(ctx, w, h, 20, 34)
-  fibre(ctx, w, h, 28, 90, 0.07)
-  granulate(ctx, 0, 0, w, h, '#6b5340', { seed: 30, density: 520, alpha: 0.11 })
-  granulate(ctx, 0, 0, w, h, '#c8b48a', { seed: 31, density: 180, alpha: 0.12 })
+  paintGrain(ctx, w, h, 20, style === 'b' ? 42 : 34)
+  fibre(ctx, w, h, 28, style === 'b' ? 120 : 90, style === 'b' ? 0.1 : 0.07)
+  const speckle = style === 'b' ? '#4a4840' : style === 'c' ? '#6b4e32' : '#6b5340'
+  const dust = style === 'b' ? '#b8b4a8' : '#c8b48a'
+  granulate(ctx, 0, 0, w, h, speckle, { seed: 30, density: style === 'b' ? 640 : 520, alpha: style === 'b' ? 0.16 : 0.11 })
+  granulate(ctx, 0, 0, w, h, dust, { seed: 31, density: 180, alpha: 0.12 })
 
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < (style === 'c' ? 12 : 8); i++) {
     stainWrap(
       ctx,
       w,
@@ -165,7 +195,7 @@ function paintSharedBase(ctx: CanvasRenderingContext2D, w: number, h: number): v
       24 + n01(i, 43) * 32,
       washColor(i, 44),
       50 + i,
-      0.055,
+      style === 'c' ? 0.1 : style === 'b' ? 0.07 : 0.055,
     )
   }
   for (let i = 0; i < 4; i++) {
@@ -177,15 +207,15 @@ function paintSharedBase(ctx: CanvasRenderingContext2D, w: number, h: number): v
       n01(i, 81) * h,
       22 + n01(i, 82) * 26,
       14 + n01(i, 83) * 18,
-      '#6a5a38',
+      style === 'b' ? '#5a564c' : '#6a5a38',
       90 + i,
-      0.05,
+      style === 'b' ? 0.07 : 0.05,
     )
   }
 
   ctx.save()
   ctx.lineCap = 'round'
-  ctx.strokeStyle = '#2e3a18'
+  ctx.strokeStyle = style === 'b' ? '#2a2c24' : '#2e3a18'
   for (let i = 0; i < 36; i++) {
     const x = n01(i, 100) * w
     const y = n01(i, 101) * h
@@ -217,7 +247,7 @@ function paintSharedBase(ctx: CanvasRenderingContext2D, w: number, h: number): v
       const pt = pts[p]
       if (!pt) continue
       ctx.globalAlpha = 0.5
-      ctx.fillStyle = '#7a7468'
+      ctx.fillStyle = style === 'b' ? '#6a6860' : '#7a7468'
       ctx.fill(wobbleBlob(pt[0], pt[1], pr, pr * 0.72, 130 + i, { n: 6, wobble: 0.32 }))
       ctx.globalAlpha = 0.78
       ctx.fillStyle = '#241e16'
@@ -230,6 +260,7 @@ function paintSharedBase(ctx: CanvasRenderingContext2D, w: number, h: number): v
 }
 
 function getSharedBase(px: number): HTMLCanvasElement {
+  invalidateIfLookChanged()
   if (sharedBase && sharedBase.width === px) return sharedBase
   const { canvas, ctx } = makeCanvas(px, px)
   if (ctx) paintSharedBase(ctx, px, px)
@@ -255,11 +286,12 @@ function paintPaddockTile(ctx: CanvasRenderingContext2D, w: number, h: number, v
 }
 
 function paintOutsideTile(ctx: CanvasRenderingContext2D, w: number, h: number): void {
-  ctx.fillStyle = '#b39e78'
+  const style = getPaintStyle()
+  ctx.fillStyle = style === 'b' ? '#9a9488' : style === 'c' ? '#c4a882' : '#b39e78'
   ctx.fillRect(0, 0, w, h)
   paintGrain(ctx, w, h, 8, 26)
   fibre(ctx, w, h, 10, 50, 0.08)
-  granulate(ctx, 0, 0, w, h, '#4a3c2c', { seed: 9, density: 340, alpha: 0.14 })
+  granulate(ctx, 0, 0, w, h, style === 'b' ? '#3a3832' : '#4a3c2c', { seed: 9, density: 340, alpha: 0.14 })
   for (let i = 0; i < 6; i++) {
     stainWrap(
       ctx,
@@ -269,7 +301,7 @@ function paintOutsideTile(ctx: CanvasRenderingContext2D, w: number, h: number): 
       n01(i, 12) * h,
       80 + n01(i, 13) * 90,
       55 + n01(i, 14) * 70,
-      '#6e5c40',
+      style === 'b' ? '#5a564c' : '#6e5c40',
       15 + i,
       0.34,
     )
@@ -277,6 +309,7 @@ function paintOutsideTile(ctx: CanvasRenderingContext2D, w: number, h: number): 
 }
 
 function paddockTile(variant: number, q: number): HTMLCanvasElement {
+  invalidateIfLookChanged()
   const px = tilePx(q)
   const key = variant
   const hit = paddockTiles[key]
@@ -288,6 +321,7 @@ function paddockTile(variant: number, q: number): HTMLCanvasElement {
 }
 
 function getOutside(q: number): HTMLCanvasElement {
+  invalidateIfLookChanged()
   const px = tilePx(q)
   if (outsideTile && outsideTile.width === px) return outsideTile
   const { canvas, ctx } = makeCanvas(px, px)
@@ -419,7 +453,8 @@ function paintBorderOverlay(ctx: CanvasRenderingContext2D, aw: number, ah: numbe
 }
 
 function borderOverlay(aw: number, ah: number): HTMLCanvasElement {
-  const key = `${aw}x${ah}`
+  invalidateIfLookChanged()
+  const key = `${lookKey()}:${aw}x${ah}`
   const hit = borderCache.get(key)
   if (hit) return hit
   const w = aw * 2 + BORDER_PAD * 2
@@ -461,6 +496,7 @@ export function drawPaddock(
   q: number,
 ): void {
   const outside = getOutside(q)
+  invalidateIfLookChanged()
   tileFill(ctx, viewL, viewT, viewW, viewH, () => outside)
 
   ctx.save()
