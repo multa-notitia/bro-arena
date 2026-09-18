@@ -925,6 +925,143 @@ body.form-nightmare .mud-meter {
   background: rgba(255, 252, 245, 0.35);
 }
 
+.model-toggle {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.paint-settings {
+  margin: 18px auto 0;
+  max-width: 420px;
+  text-align: left;
+}
+
+.paint-kicker {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.paint-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.paint-seg {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 2px solid var(--line);
+  border-radius: 18px 8px 16px 10px / 10px 16px 8px 18px;
+  background: rgba(255, 252, 245, 0.45);
+  cursor: pointer;
+  color: var(--ink-soft);
+  text-align: left;
+}
+
+.paint-seg.is-on {
+  background: rgba(243, 234, 216, 0.95);
+  color: var(--ink);
+  box-shadow: 3px 4px 0 rgba(42, 33, 24, 0.12);
+}
+
+.paint-letter {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.paint-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+body.paint-a {
+  --paper: #f3ead8;
+  --paper-deep: #e6d3b0;
+  --paper-wash: #efe2c6;
+}
+
+body.paint-b {
+  --paper: #d2cec4;
+  --paper-deep: #bebab0;
+  --paper-wash: #c8c4ba;
+  --ink: #1a1916;
+  --ink-soft: #4a4640;
+  --ink-faint: #6a6660;
+  --line: #2a2824;
+}
+
+body.paint-c {
+  --paper: #f7e4c8;
+  --paper-deep: #ebc9a0;
+  --paper-wash: #f3d9b4;
+}
+
+body.paint-a .overlay.cover {
+  background-color: #efe2c6;
+}
+
+body.paint-b .overlay.cover {
+  background-color: #c8c4ba;
+  background-image:
+    linear-gradient(180deg, rgba(36, 38, 36, 0.12), transparent 52%),
+    var(--paper-noise);
+  background-size: auto, var(--paper-noise-size);
+}
+
+body.paint-c .overlay.cover {
+  background-color: #f3d9b4;
+  background-image:
+    radial-gradient(ellipse at 18% 82%, rgba(110, 48, 32, 0.16), transparent 44%),
+    radial-gradient(ellipse at 84% 22%, rgba(150, 72, 42, 0.12), transparent 40%),
+    var(--paper-noise);
+  background-size: auto, auto, var(--paper-noise-size);
+}
+
+body.paint-a .title-drips {
+  opacity: 0.72;
+}
+
+body.paint-b .title-vignette {
+  background:
+    radial-gradient(ellipse at 50% 118%, rgba(18, 20, 20, 0.5), transparent 58%),
+    radial-gradient(ellipse at 12% 0%, rgba(22, 24, 24, 0.22), transparent 42%),
+    radial-gradient(ellipse at 88% 8%, rgba(20, 22, 22, 0.2), transparent 40%);
+}
+
+body.paint-b .title-drips {
+  background-image:
+    linear-gradient(180deg, rgba(22, 22, 20, 0.4) 0 18%, transparent 42%),
+    linear-gradient(180deg, rgba(28, 28, 26, 0.28) 0 12%, transparent 36%),
+    linear-gradient(180deg, rgba(18, 18, 16, 0.34) 0 22%, transparent 48%),
+    linear-gradient(180deg, rgba(24, 24, 22, 0.22) 0 10%, transparent 28%);
+  opacity: 0.78;
+}
+
+body.paint-c .title-drips {
+  background-image:
+    linear-gradient(180deg, rgba(120, 48, 32, 0.32) 0 22%, transparent 52%),
+    linear-gradient(180deg, rgba(160, 80, 40, 0.22) 0 16%, transparent 44%),
+    linear-gradient(180deg, rgba(90, 36, 24, 0.28) 0 26%, transparent 56%),
+    linear-gradient(180deg, rgba(140, 64, 36, 0.18) 0 12%, transparent 34%);
+  opacity: 0.7;
+}
+
+body.paint-b .sheet {
+  background-color: #d2cec4;
+}
+
+body.paint-c .sheet {
+  background-color: #f7e4c8;
+}
+
 .form-seg {
   border: 0;
   background: transparent;
@@ -1371,7 +1508,10 @@ body.form-nightmare .mud-meter {
   }
 
   .char-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .char-card img {
