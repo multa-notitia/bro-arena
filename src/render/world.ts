@@ -3,6 +3,7 @@ import type {
   Enemy,
   Form,
   FxApi,
+  ModelDir,
   Pickup,
   Player,
   Projectile,
@@ -29,6 +30,8 @@ import {
   speciesRig,
   SPECIES_PALETTES,
 } from './creatures.ts'
+import { getPaintStyle } from './look.ts'
+import { paperColor } from './paintLang.ts'
 import { drawPaddock } from './ground.ts'
 import {
   markerSprite,
@@ -41,7 +44,6 @@ import {
 } from './sprites.ts'
 import {
   n01,
-  PAPER_CREAM,
   rgba,
   vignette,
 } from './watercolor.ts'
@@ -231,12 +233,17 @@ function drawEmbers(ctx: CanvasRenderingContext2D, x: number, y: number, r: numb
   ctx.restore()
 }
 
+function foeModel(form: Form): ModelDir {
+  return form === 'nightmare' ? 'b' : getPaintStyle()
+}
+
 function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, cache: SpriteCache, time: number): void {
   const species = resolveSpecies(e.def.paint, e.def.species, e.kind)
   const form: Form = e.form ?? e.def.form ?? 'normal'
+  const model = foeModel(form)
   const pal = e.def.palette ?? SPECIES_PALETTES[species]
   const artR = sizeBucket(e.r)
-  const spr = creatureSprite(cache, species, pal, form, artR, qScale)
+  const spr = creatureSprite(cache, species, pal, form, artR, qScale, model, true)
   const spawn = clamp(e.anim.spawnT, 0, 1)
   const dying = e.anim.deathT >= 0
   const death = dying ? clamp(e.anim.deathT, 0, 1) : 0
@@ -292,6 +299,7 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, cache: SpriteCache, 
     lookY: e.aim.y !== 0 ? Math.sign(e.aim.y) * 0.2 : 0.1,
     t: e.anim.t,
     uid: e.uid,
+    model,
   })
   ctx.restore()
   if (e.anim.hitFlash > 0.02) {
@@ -543,9 +551,10 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const p = world.player
   const pal = p.character.palette
   const species = resolveSpecies(p.character.species ?? 'potato', p.character.species, p.character.id)
-  const form: Form = p.form ?? 'normal'
+  const form: Form = 'normal'
+  const model: ModelDir = p.model ?? 'b'
   const artR = sizeBucket(p.r)
-  const spr = creatureSprite(cache, species, pal, form, artR, qScale)
+  const spr = creatureSprite(cache, species, pal, form, artR, qScale, model)
   const x = p.x + p.anim.kick.x
   const y = p.y + p.anim.kick.y + p.anim.bob
   const scream = resolveScream(p.anim, undefined, undefined)
@@ -559,7 +568,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const bodyRot = clamp(p.vx / 220, -0.28, 0.28) + clamp(Math.hypot(p.vx, p.vy) / 400, 0, 0.08) * Math.sign(p.vx || p.anim.facing)
   const sx = sc * squash * ss.sx
   const sy = sc * ss.sy / squash
-  const rig = speciesRig(species, artR)
+  const rig = speciesRig(species, artR, model)
   const has0 = p.weapons.some((w) => w && w.slot === 0)
   const has1 = p.weapons.some((w) => w && w.slot === 1)
   const localL = has1 ? handLocal(rig, gait, -1, facing) : undefined
@@ -623,6 +632,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     holdL: localL,
     holdR: localR,
     uid: 1,
+    model,
   })
   ctx.restore()
   if (p.anim.hitFlash > 0.02) {
@@ -652,7 +662,7 @@ export function drawWorld(
   const zoom = cam.zoom > 0 ? cam.zoom : 1
   qScale = qualityBucket(zoom, view.dpr)
   ctx.save()
-  ctx.fillStyle = PAPER_CREAM
+  ctx.fillStyle = paperColor()
   ctx.fillRect(0, 0, cssW, cssH)
 
   const shake = cam.shake
