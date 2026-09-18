@@ -3,6 +3,7 @@ import type {
   CharacterDef,
   Form,
   ItemPaint,
+  ModelDir,
   Palette,
   PickupType,
   ProjectilePaint,
@@ -18,6 +19,7 @@ import {
   resolveSpecies,
   SPECIES_PALETTES,
 } from './creatures.ts'
+import { lookKey } from './look.ts'
 import {
   granulate,
   inkStroke,
@@ -313,7 +315,7 @@ function paintPickup(ctx: CanvasRenderingContext2D, type: PickupType): void {
     inkStroke(ctx, 0, 2, 10.5, 9.5, '#2c1010', { seed: 4, width: 1.2, n: 8 })
     return
   }
-  wash(ctx, 0, 2, 14, 10, '#b08958', { seed: 5, shade: '#6a4a28', n: 6, wobble: 0.08 })
+  wash(ctx, 0, 2, 14, 10, '#b08958', { seed, shade: '#6a4a28', n: 6, wobble: 0.08 })
   ctx.strokeStyle = '#2c1c10'
   ctx.lineWidth = 1.2
   ctx.strokeRect(-10, -5, 20, 14)
@@ -544,8 +546,9 @@ export function playerSprite(
   species: Species,
   form: Form,
   q = 1,
+  model: ModelDir = 'a',
 ): HTMLCanvasElement {
-  return creatureSprite(cache, species, pal, form, BODY_R, q)
+  return creatureSprite(cache, species, pal, form, BODY_R, q, model)
 }
 
 export function enemySprite(
@@ -555,8 +558,9 @@ export function enemySprite(
   form: Form,
   artR: number,
   q = 1,
+  model: ModelDir = 'a',
 ): HTMLCanvasElement {
-  return creatureSprite(cache, species, pal, form, artR, q)
+  return creatureSprite(cache, species, pal, form, artR, q, model, true)
 }
 
 export function weaponSprite(cache: SpriteCache, paint: WeaponPaint, frame = 0, q = 1): HTMLCanvasElement {
@@ -692,11 +696,13 @@ export function iconDataUrl(
   size: number,
   dpr: number,
   form: Form = 'normal',
+  model: ModelDir = 'a',
 ): string {
   const px = Math.max(16, Math.round(size * clamp(dpr, 1, 2)))
   const species = resolveSpecies(paint, isSpecies(paint) ? paint : undefined, paint)
   const pal = palette ?? (kind === 'enemy' || kind === 'character' ? SPECIES_PALETTES[species] : POTATO_PALETTE)
-  const key = `icon:${kind}:${paint}:${paletteKey(pal)}:${form}:${px}`
+  const stain = kind === 'enemy'
+  const key = `icon:${kind}:${paint}:${paletteKey(pal)}:${form}:${model}:${stain ? 'stain' : 'clean'}:${lookKey()}:${px}`
   const hit = urlCache.get(key)
   if (hit) return hit
   const canvas = cache.canvas(`raw:${key}`, px, px, (ctx, w, h) => {
@@ -705,7 +711,7 @@ export function iconDataUrl(
     ctx.scale(sc, sc)
     if (kind === 'weapon' && isWeaponPaint(paint)) paintWeapon(ctx, paint, 0)
     else if (kind === 'item' && isItemPaint(paint)) paintItem(ctx, paint, 48)
-    else paintIdleCreature(ctx, species, pal, 20, form)
+    else paintIdleCreature(ctx, species, pal, 20, form, model, stain)
   })
   const url = canvas.toDataURL('image/png')
   urlCache.set(key, url)
@@ -718,10 +724,11 @@ export function portraitDataUrl(
   size: number,
   dpr: number,
   form: Form = 'normal',
+  model: ModelDir = 'b',
 ): string {
   const px = Math.max(32, Math.round(size * clamp(dpr, 1, 2)))
   const species = resolveSpecies(character.species ?? 'potato', character.species, character.id)
-  const key = `port:${character.id}:${form}:${paletteKey(character.palette)}:${px}`
+  const key = `port:${character.id}:${form}:${model}:${lookKey()}:${paletteKey(character.palette)}:${px}`
   const hit = urlCache.get(key)
   if (hit) return hit
   const canvas = cache.canvas(`raw:${key}`, px, px, (ctx, w, h) => {
@@ -730,7 +737,7 @@ export function portraitDataUrl(
     ctx.beginPath()
     ctx.arc(0, 0, w * 0.46, 0, TAU)
     ctx.fill()
-    paintIdleCreature(ctx, species, character.palette, w * 0.28, form)
+    paintIdleCreature(ctx, species, character.palette, w * 0.24, form, model)
   })
   const url = canvas.toDataURL('image/png')
   urlCache.set(key, url)
