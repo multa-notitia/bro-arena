@@ -3,7 +3,7 @@ import type { NoiseBuffers } from './sfx.ts'
 
 type LiveMood = Exclude<MusicMood, 'none'>
 
-const LIVE: readonly LiveMood[] = ['title', 'wave', 'boss', 'shop']
+const LIVE: readonly LiveMood[] = ['title', 'wave', 'nightmare', 'boss', 'shop']
 
 const TITLE_PENTA = [220, 261.63, 293.66, 329.63, 392, 440]
 const TITLE_MELODY = [
@@ -173,6 +173,7 @@ export function createMusic(): MusicEngine {
   function bpmFor(m: LiveMood): number {
     if (m === 'title') return 80
     if (m === 'wave') return waveBpm
+    if (m === 'nightmare') return 110
     if (m === 'boss') return 138
     return 88
   }
@@ -238,6 +239,61 @@ export function createMusic(): MusicEngine {
     }
   }
 
+  function reverseSwell(ctx: AudioContext, dest: AudioNode, buffer: AudioBuffer, t: number): void {
+    const dur = 1.05
+    const src = ctx.createBufferSource()
+    src.buffer = buffer
+    src.loop = true
+    const lp = ctx.createBiquadFilter()
+    lp.type = 'lowpass'
+    lp.Q.value = 4
+    lp.frequency.setValueAtTime(90, t)
+    lp.frequency.exponentialRampToValueAtTime(240, t + dur)
+    const g = ctx.createGain()
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.exponentialRampToValueAtTime(0.07, t + dur * 0.92)
+    g.gain.setValueAtTime(0.0001, t + dur)
+    src.connect(lp)
+    lp.connect(g)
+    g.connect(dest)
+    const osc = ctx.createOscillator()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(49, t)
+    osc.frequency.exponentialRampToValueAtTime(62, t + dur)
+    const og = ctx.createGain()
+    og.gain.setValueAtTime(0.0001, t)
+    og.gain.exponentialRampToValueAtTime(0.045, t + dur * 0.9)
+    og.gain.setValueAtTime(0.0001, t + dur)
+    osc.connect(og)
+    og.connect(dest)
+    src.start(t)
+    src.stop(t + dur + 0.02)
+    osc.start(t)
+    osc.stop(t + dur + 0.02)
+  }
+
+  function scheduleNightmare(t: number, s: number): void {
+    if (!ctx || !gains || !noise) return
+    const dest = gains.nightmare
+    const pos = s % 16
+    if (pos === 0) kick(ctx, dest, t, 0.16)
+    if (pos === 8) hat(ctx, dest, noise.white, t, 0.022, 0.04)
+    if (pos === 0 || pos === 8) {
+      const f = pos === 0 ? 55 : 65.41
+      bass(ctx, dest, f, t, 0.14, 'triangle', 0.32)
+      bass(ctx, dest, f * 1.018, t, 0.09, 'sawtooth', 0.3)
+    }
+    if (pos === 10 && s % 32 === 10) {
+      pluck(ctx, dest, 233.08, t, 0.04, 0.42)
+      pluck(ctx, dest, 220, t + 0.03, 0.03, 0.36)
+    }
+    if (pos === 6 && s % 64 === 6) {
+      pluck(ctx, dest, 311.13, t, 0.032, 0.3)
+      pluck(ctx, dest, 369.99, t, 0.022, 0.26)
+    }
+    if (pos === 0 && s % 64 === 0) reverseSwell(ctx, dest, noise.brown, t)
+  }
+
   function scheduleShop(t: number, s: number): void {
     if (!ctx || !gains) return
     const dest = gains.shop
@@ -251,6 +307,7 @@ export function createMusic(): MusicEngine {
   function scheduleStep(t: number, s: number, m: LiveMood): void {
     if (m === 'title') scheduleTitle(t, s)
     else if (m === 'wave') scheduleWave(t, s)
+    else if (m === 'nightmare') scheduleNightmare(t, s)
     else if (m === 'boss') scheduleBoss(t, s)
     else scheduleShop(t, s)
   }
@@ -270,7 +327,7 @@ export function createMusic(): MusicEngine {
     const live = mood
     const horizon = now + 0.2
     while (nextTime < horizon) {
-      const human = live === 'wave' || live === 'boss' ? (Math.random() - 0.5) * 0.008 : 0
+      const human = live === 'wave' || live === 'nightmare' || live === 'boss' ? (Math.random() - 0.5) * 0.008 : 0
       scheduleStep(nextTime + human, step, live)
       nextTime += 60 / bpmFor(live) / 4
       step++
@@ -309,17 +366,20 @@ export function createMusic(): MusicEngine {
       noise = buffers
       const gTitle = audioCtx.createGain()
       const gWave = audioCtx.createGain()
+      const gNight = audioCtx.createGain()
       const gBoss = audioCtx.createGain()
       const gShop = audioCtx.createGain()
       gTitle.gain.value = 0
       gWave.gain.value = 0
+      gNight.gain.value = 0
       gBoss.gain.value = 0
       gShop.gain.value = 0
       gTitle.connect(dest)
       gWave.connect(dest)
+      gNight.connect(dest)
       gBoss.connect(dest)
       gShop.connect(dest)
-      gains = { title: gTitle, wave: gWave, boss: gBoss, shop: gShop }
+      gains = { title: gTitle, wave: gWave, nightmare: gNight, boss: gBoss, shop: gShop }
       const dist = makeDistortion(audioCtx, 12)
       const lp = audioCtx.createBiquadFilter()
       lp.type = 'lowpass'

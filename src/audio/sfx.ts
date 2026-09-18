@@ -790,6 +790,204 @@ function sBossRoar(ctx: AudioContext, dest: AudioNode, _n: NoiseBuffers, t0: num
   return dur
 }
 
+function makeShaper(ctx: AudioContext, amount: number): WaveShaperNode {
+  const n = 128
+  const curve = new Float32Array(n)
+  for (let i = 0; i < n; i++) {
+    const x = (i * 2) / n - 1
+    curve[i] = ((1 + amount) * x) / (1 + amount * Math.abs(x))
+  }
+  const sh = ctx.createWaveShaper()
+  sh.curve = curve
+  return sh
+}
+
+/** Vegetable vowel: saw through two sweeping formant bandpasses, vibrato, rise-then-crack. */
+function screamFormant(
+  ctx: AudioContext,
+  dest: AudioNode,
+  t0: number,
+  pitch: number,
+  vol: number,
+  dur: number,
+  freq0: number,
+  freqPeak: number,
+  freqEnd: number,
+  dual: boolean,
+): void {
+  const p = pitch * (0.92 + Math.random() * 0.16)
+  const mix = ctx.createGain()
+  const sh = makeShaper(ctx, 5)
+  const env = ctx.createGain()
+  const peak = Math.max(0.0001, vol)
+  env.gain.setValueAtTime(0.0001, t0)
+  env.gain.exponentialRampToValueAtTime(peak, t0 + 0.035)
+  env.gain.setValueAtTime(peak * 0.8, t0 + dur * 0.5)
+  env.gain.exponentialRampToValueAtTime(0.0001, t0 + dur)
+  mix.connect(sh)
+  sh.connect(env)
+  env.connect(dest)
+
+  const bp1 = ctx.createBiquadFilter()
+  bp1.type = 'bandpass'
+  bp1.Q.value = 5.5
+  bp1.frequency.setValueAtTime(600 * p, t0)
+  bp1.frequency.exponentialRampToValueAtTime(1200 * p, t0 + dur)
+  const bp2 = ctx.createBiquadFilter()
+  bp2.type = 'bandpass'
+  bp2.Q.value = 6.5
+  bp2.frequency.setValueAtTime(1800 * p, t0)
+  bp2.frequency.exponentialRampToValueAtTime(2600 * p, t0 + dur)
+  const g1 = ctx.createGain()
+  g1.gain.value = 0.65
+  const g2 = ctx.createGain()
+  g2.gain.value = 0.5
+  bp1.connect(g1)
+  bp2.connect(g2)
+  g1.connect(mix)
+  g2.connect(mix)
+
+  const lfo = ctx.createOscillator()
+  lfo.type = 'sine'
+  lfo.frequency.setValueAtTime(16, t0)
+  lfo.frequency.linearRampToValueAtTime(26, t0 + dur)
+  const lfoG = ctx.createGain()
+  lfoG.gain.setValueAtTime(7 * p, t0)
+  lfoG.gain.linearRampToValueAtTime(20 * p, t0 + dur * 0.45)
+  lfo.connect(lfoG)
+
+  const ratios = dual ? [1, 1.03] : [1]
+  const riseAt = t0 + dur * 0.42
+  for (const ratio of ratios) {
+    const osc = ctx.createOscillator()
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(freq0 * p * ratio, t0)
+    osc.frequency.exponentialRampToValueAtTime(freqPeak * p * ratio, riseAt)
+    osc.frequency.exponentialRampToValueAtTime(freqEnd * p * ratio, t0 + dur)
+    lfoG.connect(osc.frequency)
+    osc.connect(bp1)
+    osc.connect(bp2)
+    osc.start(t0)
+    osc.stop(t0 + dur + 0.02)
+  }
+  lfo.start(t0)
+  lfo.stop(t0 + dur + 0.02)
+}
+
+function sScream(ctx: AudioContext, dest: AudioNode, _n: NoiseBuffers, t0: number, pitch: number, vol: number): number {
+  const dur = 0.5
+  screamFormant(ctx, dest, t0, pitch, 0.2 * vol, dur, 280, 490, 120, false)
+  return dur
+}
+
+function sScreamBig(ctx: AudioContext, dest: AudioNode, noise: NoiseBuffers, t0: number, pitch: number, vol: number): number {
+  const dur = 1.1
+  screamFormant(ctx, dest, t0, pitch * 0.72, 0.22 * vol, dur, 170, 310, 70, true)
+  tone(ctx, dest, t0, {
+    type: 'sine',
+    freq: 72 * pitch,
+    freqEnd: 32 * pitch,
+    dur,
+    gain: 0.2 * vol,
+    attack: 0.05,
+  })
+  burst(ctx, dest, noise.white, t0 + 0.04, {
+    dur: dur - 0.08,
+    gain: 0.1 * vol,
+    attack: 0.03,
+    filter: 'bandpass',
+    filterFreq: 1600 * pitch,
+    filterFreqEnd: 700 * pitch,
+    filterQ: 2.2,
+  })
+  return dur
+}
+
+function sMudSquelch(ctx: AudioContext, dest: AudioNode, noise: NoiseBuffers, t0: number, pitch: number, vol: number): number {
+  const dur = 0.35
+  burst(ctx, dest, noise.brown, t0, {
+    dur: 0.22,
+    gain: 0.38 * vol,
+    attack: 0.008,
+    filter: 'lowpass',
+    filterFreq: 420 * pitch,
+    filterFreqEnd: 70 * pitch,
+    filterQ: 7,
+  })
+  burst(ctx, dest, noise.white, t0, {
+    dur: 0.14,
+    gain: 0.16 * vol,
+    attack: 0.004,
+    filter: 'lowpass',
+    filterFreq: 280 * pitch,
+    filterFreqEnd: 90 * pitch,
+    filterQ: 2,
+  })
+  tone(ctx, dest, t0 + 0.07, {
+    type: 'sine',
+    freq: 540 * pitch,
+    freqEnd: 170 * pitch,
+    dur: 0.07,
+    gain: 0.12 * vol,
+    attack: 0.004,
+  })
+  tone(ctx, dest, t0 + 0.16, {
+    type: 'sine',
+    freq: 390 * pitch,
+    freqEnd: 120 * pitch,
+    dur: 0.06,
+    gain: 0.09 * vol,
+    attack: 0.003,
+  })
+  tone(ctx, dest, t0 + 0.24, {
+    type: 'sine',
+    freq: 620 * pitch,
+    freqEnd: 200 * pitch,
+    dur: 0.05,
+    gain: 0.07 * vol,
+    attack: 0.003,
+  })
+  return dur
+}
+
+function sMudRise(ctx: AudioContext, dest: AudioNode, noise: NoiseBuffers, t0: number, pitch: number, vol: number): number {
+  burst(ctx, dest, noise.brown, t0, {
+    dur: 0.6,
+    gain: 0.32 * vol,
+    attack: 0.18,
+    filter: 'lowpass',
+    filterFreq: 70 * pitch,
+    filterFreqEnd: 340 * pitch,
+    filterQ: 6,
+  })
+  tone(ctx, dest, t0, {
+    type: 'sine',
+    freq: 42 * pitch,
+    freqEnd: 88 * pitch,
+    dur: 0.6,
+    gain: 0.18 * vol,
+    attack: 0.22,
+  })
+  burst(ctx, dest, noise.white, t0 + 0.5, {
+    dur: 0.12,
+    gain: 0.22 * vol,
+    attack: 0.004,
+    filter: 'bandpass',
+    filterFreq: 500 * pitch,
+    filterFreqEnd: 140 * pitch,
+    filterQ: 3,
+  })
+  tone(ctx, dest, t0 + 0.52, {
+    type: 'sine',
+    freq: 280 * pitch,
+    freqEnd: 90 * pitch,
+    dur: 0.1,
+    gain: 0.14 * vol,
+    attack: 0.004,
+  })
+  return 0.62
+}
+
 function sTreeBreak(ctx: AudioContext, dest: AudioNode, noise: NoiseBuffers, t0: number, pitch: number, vol: number): number {
   burst(ctx, dest, noise.white, t0, {
     dur: 0.06,
@@ -851,6 +1049,10 @@ const SYNTHS: Record<SfxName, Synth> = {
   spawn: sSpawn,
   bossRoar: sBossRoar,
   treeBreak: sTreeBreak,
+  scream: sScream,
+  screamBig: sScreamBig,
+  mudSquelch: sMudSquelch,
+  mudRise: sMudRise,
 }
 
 export function playSfx(
