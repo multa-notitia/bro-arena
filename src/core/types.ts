@@ -139,10 +139,25 @@ export type Species =
 
 /**
  * Two forms for every vegetable. `normal` is the clean watercolour version.
- * `nightmare` is the same vegetable dragged through the mud: dark dripping
- * coating, glowing eyes, wide screaming mouth, far more dangerous.
+ * `nightmare` is enemies only: Direction B scream, unique faces, glow in cracks.
+ * Players never use mud forms.
  */
 export type Form = 'normal' | 'nightmare'
+
+/**
+ * Global painting language, switched in Settings.
+ * A wet-soil watercolor, B nightmare-ink sketch, C ink-stain blooms.
+ */
+export type PaintStyle = 'a' | 'b' | 'c'
+
+/**
+ * Player model variant of the same vegetable.
+ * A current wash, B Direction B sketch face/body, C Direction C stain-cute.
+ */
+export type ModelDir = 'a' | 'b' | 'c'
+
+export const PAINT_STYLES: readonly PaintStyle[] = ['a', 'b', 'c']
+export const MODEL_DIRS: readonly ModelDir[] = ['a', 'b', 'c']
 
 export type WeaponPaint =
   | 'fist'
@@ -345,7 +360,7 @@ export interface CharacterDef {
   special?: CharacterSpecial
   /** Extra weapon slots; base is 6. */
   weaponSlots?: number
-  /** The nightmare-mud version of this character, selectable on the gate screen. */
+  /** Kept for data, never applied to the player. Mud is enemies only. */
   nightmare: FormVariant
 }
 
@@ -494,7 +509,10 @@ export interface Player extends Vec {
   /** Computed final stats. */
   stats: Stats
   character: CharacterDef
+  /** Players are always `normal`. Kept so snapshots and HUD stay typed. */
   form: Form
+  /** Face/body construction for this run (A wash / B sketch / C stain). */
+  model: ModelDir
   weapons: WeaponInstance[]
   items: string[]
   materials: number
@@ -666,6 +684,7 @@ export interface HudSnapshot {
   weapons: { id: WeaponId; name: string; tier: Tier; paint: WeaponPaint; cooldownFrac: number }[]
   characterName: string
   form: Form
+  model: ModelDir
   /** Count of nightmare-form enemies currently alive; drives the HUD mud meter. */
   nightmaresAlive: number
   fps: number
@@ -708,6 +727,7 @@ export interface RunSummary {
   characterName: string
   species: Species
   form: Form
+  model: ModelDir
   wave: number
   wavesTotal: number
   won: boolean
@@ -738,11 +758,21 @@ export interface UiApi {
   setErrorCopy(text: string): void
   setHudVisible(visible: boolean): void
   renderHud(snap: HudSnapshot): void
-  /** The gate screen. Each card has a form toggle; onPick receives the chosen form. */
-  renderCharSelect(characters: CharacterDef[], onPick: (id: string, form: Form) => void): void
+  /** The gate screen. Each card has a model toggle; onPick receives the chosen model. */
+  renderCharSelect(characters: CharacterDef[], onPick: (id: string, model: ModelDir) => void): void
   renderLevelUp(options: LevelUpOption[], remaining: number, onPick: (id: string) => void): void
   renderShop(view: ShopView, handlers: ShopHandlers): void
-  renderPause(view: ShopView, handlers: { resume(): void; quit(): void; toggleMute(): void; muted: boolean }): void
+  renderPause(
+    view: ShopView,
+    handlers: {
+      resume(): void
+      quit(): void
+      toggleMute(): void
+      muted: boolean
+      paintStyle: PaintStyle
+      setPaintStyle(style: PaintStyle): void
+    },
+  ): void
   renderGameOver(summary: RunSummary, handlers: { retry(): void; title(): void }): void
   renderVictory(summary: RunSummary, handlers: { again(): void; title(): void }): void
   /** Transient banner in the HUD layer ("Wave 4", "Boss incoming"). */
@@ -750,7 +780,13 @@ export interface UiApi {
   toast(text: string): void
   setJoystickVisible(visible: boolean): void
   /** Called by main to bind title buttons. */
-  onTitle(handlers: { play(): void; toggleMute(): void; muted: boolean }): void
+  onTitle(handlers: {
+    play(): void
+    toggleMute(): void
+    muted: boolean
+    paintStyle: PaintStyle
+    setPaintStyle(style: PaintStyle): void
+  }): void
   onPauseRequest(handler: () => void): void
 }
 
@@ -811,9 +847,10 @@ export interface RenderApi {
     palette?: Palette,
     size?: number,
     form?: Form,
+    model?: ModelDir,
   ): string
-  /** Paint an idle character portrait in the given form; used on the gate screen. */
-  portrait(character: CharacterDef, size: number, form?: Form): string
+  /** Paint an idle character portrait; used on the gate screen. */
+  portrait(character: CharacterDef, size: number, form?: Form, model?: ModelDir): string
 }
 
 // ---------------------------------------------------------------------------
