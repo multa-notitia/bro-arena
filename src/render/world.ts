@@ -30,8 +30,11 @@ import {
   speciesRig,
   SPECIES_PALETTES,
 } from './creatures.ts'
-import { getPaintStyle } from './look.ts'
+import { getPaintStyle, proceduralModel, usesBoardArt, usesPaintedArt } from './look.ts'
+import { drawPaintedChili } from './conceptA.ts'
+import { drawBoardRadish, drawBoardShadow, poseBoardRadish, boardHeld } from './board.ts'
 import { paperColor } from './paintLang.ts'
+import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { drawPaddock } from './ground.ts'
 import {
   markerSprite,
@@ -185,7 +188,7 @@ function drawTree(ctx: CanvasRenderingContext2D, t: Tree, cache: SpriteCache): v
 }
 
 function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache, time: number): void {
-  const spr = pickupSprite(cache, p.type, qScale)
+  const spr = pickupSprite(cache, p.type, qScale, p.crop)
   const bob = Math.sin(p.t * 3.2 + time) * 3
   const pr = p.type === 'chest' ? 12 : p.type === 'materialBig' ? 10 : 8
   drawShadow(ctx, p.x, p.y + bob + 4, pr, 0.28)
@@ -453,7 +456,7 @@ function drawPlayerWeapons(
   world: World,
   cache: SpriteCache,
   behind: boolean,
-  held?: Record<number, { x: number; y: number }>,
+  held?: Record<number, { x: number; y: number; rot?: number }>,
 ): void {
   const player = world.player
   const frame = Math.floor(world.time * 8) % 4
@@ -471,7 +474,7 @@ function drawPlayerWeapons(
     const isBack = heldPos ? heldPos.y < player.y + player.anim.bob : off.y < 0
     if (isBack !== behind) continue
     const pose = heldPos
-      ? { x: heldPos.x, y: heldPos.y, rot: w.angle, smear: undefined as { a0: number; a1: number; r: number } | undefined }
+      ? { x: heldPos.x, y: heldPos.y, rot: heldPos.rot ?? w.angle, smear: undefined as { a0: number; a1: number; r: number } | undefined }
       : weaponAngleAndPos(player, w.slot, w.angle, w.swingT, behavior)
     if (!heldPos && pose.smear && w.swingT >= 0) {
       ctx.save()
@@ -484,10 +487,26 @@ function drawPlayerWeapons(
       ctx.stroke()
       ctx.restore()
     }
+    if (heldPos && w.swingT >= 0) {
+      const t = clamp(w.swingT, 0, 1)
+      const pulse = Math.sin(t * Math.PI)
+      ctx.save()
+      ctx.globalAlpha = 0.3 * pulse
+      ctx.strokeStyle = '#c4b090'
+      ctx.lineWidth = 6
+      ctx.lineCap = 'round'
+      const len = 18 + pulse * 20
+      ctx.beginPath()
+      ctx.moveTo(heldPos.x, heldPos.y)
+      ctx.lineTo(heldPos.x + Math.cos(pose.rot) * len, heldPos.y + Math.sin(pose.rot) * len)
+      ctx.stroke()
+      ctx.restore()
+    }
     const spr = weaponSprite(cache, look.paint, look.paint === 'torch' || look.paint === 'wand' ? frame : 0, qScale)
     ctx.save()
     ctx.translate(pose.x, pose.y)
     ctx.rotate(pose.rot)
+    if (heldPos) ctx.translate(10, 0)
     blit(ctx, spr, 0.7)
     ctx.restore()
     if (behavior.type === 'shoot' && w.swingT >= 0 && w.swingT < 0.18) {
@@ -553,10 +572,14 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const species = resolveSpecies(p.character.species ?? 'potato', p.character.species, p.character.id)
   const form: Form = 'normal'
   const model: ModelDir = p.model ?? 'b'
+  const painted = usesPaintedArt(species, model)
+  const board = usesBoardArt(species, model)
+  const imageHero = painted || board
   const artR = sizeBucket(p.r)
-  const spr = creatureSprite(cache, species, pal, form, artR, qScale, model)
+  const procModel = proceduralModel(model)
+  const spr = imageHero ? null : creatureSprite(cache, species, pal, form, artR, qScale, procModel)
   const x = p.x + p.anim.kick.x
-  const y = p.y + p.anim.kick.y + p.anim.bob
+  const y = board ? p.y + p.anim.kick.y : p.y + p.anim.kick.y + p.anim.bob
   const scream = resolveScream(p.anim, undefined, undefined)
   const ss = screamScale(scream)
   const mouth = resolveMouth(p.anim, form, scream)
@@ -565,15 +588,18 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const facing = p.anim.facing ?? 1
   const squash = clamp(p.anim.squash || 1, 0.45, 1.8)
   const sc = p.r / artR
-  const bodyRot = clamp(p.vx / 220, -0.28, 0.28) + clamp(Math.hypot(p.vx, p.vy) / 400, 0, 0.08) * Math.sign(p.vx || p.anim.facing)
-  const sx = sc * squash * ss.sx
-  const sy = sc * ss.sy / squash
-  const rig = speciesRig(species, artR, model)
+  const bodyRot = imageHero
+    ? clamp(p.vx / 280, -0.12, 0.12)
+    : clamp(p.vx / 220, -0.28, 0.28) + clamp(Math.hypot(p.vx, p.vy) / 400, 0, 0.08) * Math.sign(p.vx || p.anim.facing)
+  const squashAmt = imageHero ? lerp(1, squash, 0.28) : squash
+  const sx = sc * squashAmt * ss.sx
+  const sy = (sc * ss.sy) / squashAmt
+  const rig = speciesRig(species, artR, procModel)
   const has0 = p.weapons.some((w) => w && w.slot === 0)
   const has1 = p.weapons.some((w) => w && w.slot === 1)
-  const localL = has1 ? handLocal(rig, gait, -1, facing) : undefined
-  const localR = has0 ? handLocal(rig, gait, 1, facing) : undefined
-  const held: Record<number, { x: number; y: number }> = {}
+  const localL = !imageHero && has1 ? handLocal(rig, gait, -1, facing) : undefined
+  const localR = !imageHero && has0 ? handLocal(rig, gait, 1, facing) : undefined
+  const held: Record<number, { x: number; y: number; rot?: number }> = {}
   const c = Math.cos(bodyRot)
   const s = Math.sin(bodyRot)
   if (localR) {
@@ -583,14 +609,51 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     held[1] = { x: x + localL.x * sx * c - localL.y * sy * s, y: y + localL.x * sx * s + localL.y * sy * c }
   }
 
+  let alpha = 1
+  if (p.invuln > 0) alpha = Math.sin(p.anim.t * 24) > 0 ? 1 : 0.32
+
+  if (board) {
+    const aimW = p.weapons.find((w) => w.swingT >= 0) ?? p.weapons[0]
+    const lookAng = aimW ? aimW.angle : p.facingAngle
+    const boardOpts = {
+      x,
+      y,
+      r: p.r,
+      facing,
+      squash: squashAmt,
+      alpha,
+      anim: p.anim,
+      lookX: Math.cos(lookAng),
+      lookY: Math.sin(lookAng),
+      mouth,
+      blink,
+      weapons: p.weapons.map((w) => ({
+        slot: w.slot,
+        angle: w.angle,
+        swingT: w.swingT,
+        kind: weaponLook(w.id).behavior.type,
+      })),
+    }
+    const pose = poseBoardRadish(boardOpts)
+    const hands = boardHeld(x, y, facing, pose)
+    held[0] = hands.right
+    held[1] = hands.left
+    drawBoardShadow(ctx, boardOpts, pose)
+    drawPlayerWeapons(ctx, world, cache, true, held)
+    drawBoardRadish(ctx, boardOpts)
+    drawPlayerWeapons(ctx, world, cache, false, held)
+    drawOrbitWeapons(ctx, world, cache)
+    const arena = typeof document !== 'undefined' ? document.getElementById('arena') : null
+    if (arena) arena.dataset.swing = String(p.weapons[0]?.swingT ?? -1)
+    return
+  }
+
   drawShadow(ctx, x, p.y, p.r, p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.14 : 0.42)
   drawPlayerWeapons(ctx, world, cache, true, held)
   ctx.save()
   ctx.translate(x, y)
   ctx.rotate(bodyRot)
-  ctx.scale(squash * ss.sx, ss.sy / squash)
-  let alpha = 1
-  if (p.invuln > 0) alpha = Math.sin(p.anim.t * 24) > 0 ? 1 : 0.32
+  ctx.scale(squashAmt * ss.sx, ss.sy / squashAmt)
   if (form === 'normal') {
     ctx.save()
     ctx.globalAlpha = 0.2 * alpha
@@ -610,31 +673,47 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     ctx.restore()
   }
   ctx.globalAlpha = alpha
-  ctx.save()
-  ctx.scale(facing, 1)
-  blit(ctx, spr, sc)
-  ctx.restore()
-  ctx.save()
-  ctx.scale(sc, sc)
-  paintLiveFeatures(ctx, {
-    species,
-    pal,
-    r: artR,
-    form,
-    mouth,
-    blink,
-    gait,
-    scream,
-    facing,
-    lookX: Math.cos(p.facingAngle),
-    lookY: Math.sin(p.facingAngle) * 0.3,
-    t: p.anim.t,
-    holdL: localL,
-    holdR: localR,
-    uid: 1,
-    model,
-  })
-  ctx.restore()
+  if (painted) {
+    ctx.save()
+    ctx.scale(1 / (squashAmt * ss.sx), 1 / (ss.sy / squashAmt))
+    drawPaintedChili(ctx, {
+      x: 0,
+      y: 0,
+      r: p.r,
+      facing,
+      squash: squashAmt,
+      alpha,
+      blink,
+      anim: p.anim,
+    })
+    ctx.restore()
+  } else if (spr) {
+    ctx.save()
+    ctx.scale(facing, 1)
+    blit(ctx, spr, sc)
+    ctx.restore()
+    ctx.save()
+    ctx.scale(sc, sc)
+    paintLiveFeatures(ctx, {
+      species,
+      pal,
+      r: artR,
+      form,
+      mouth,
+      blink,
+      gait,
+      scream,
+      facing,
+      lookX: Math.cos(p.facingAngle),
+      lookY: Math.sin(p.facingAngle) * 0.3,
+      t: p.anim.t,
+      holdL: localL,
+      holdR: localR,
+      uid: 1,
+      model: procModel,
+    })
+    ctx.restore()
+  }
   if (p.anim.hitFlash > 0.02) {
     ctx.globalAlpha = p.anim.hitFlash * 0.7 * alpha
     ctx.fillStyle = '#fff6e8'
@@ -679,6 +758,8 @@ export function drawWorld(
   const aw = world.arenaHalfW
   const ah = world.arenaHalfH
   drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale))
+  drawFarmRows(ctx, world.farm.plots)
+  drawFarmBeds(ctx, world.farm.plots)
   fx.drawFloor(ctx)
 
   cmdN = 0
@@ -699,6 +780,10 @@ export function drawWorld(
     if (e) pushCmd(e.y, 3, 3, i)
   }
   pushCmd(world.player.y, 4, 4, 0)
+  for (let i = 0; i < world.farm.plots.length; i++) {
+    const plot = world.farm.plots[i]
+    if (plot?.crop) pushCmd(plot.y, 2, 5, i)
+  }
 
   const list = cmds.slice(0, cmdN)
   list.sort((a, b) => a.y - b.y || a.z - b.z)
@@ -722,6 +807,9 @@ export function drawWorld(
     } else if (c.kind === 4 && !playerDrawn) {
       playerDrawn = true
       drawPlayer(ctx, world, cache)
+    } else if (c.kind === 5) {
+      const plot = world.farm.plots[c.idx]
+      if (plot) drawFarmPlant(ctx, plot)
     }
   }
 
