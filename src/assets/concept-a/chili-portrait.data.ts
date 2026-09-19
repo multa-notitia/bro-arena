@@ -11,10 +11,5 @@ import hex8 from './chili-portrait.hex.08.ts'
 import hex9 from './chili-portrait.hex.09.ts'
 import hex10 from './chili-portrait.hex.10.ts'
 import hex11 from './chili-portrait.hex.11.ts'
-import hex12 from './chili-portrait.hex.12.ts'
-import hex13 from './chili-portrait.hex.13.ts'
-import hex14 from './chili-portrait.hex.14.ts'
-import hex15 from './chili-portrait.hex.15.ts'
-import hex16 from './chili-portrait.hex.16.ts'
 
-export default pngHexToDataUrl([hex0, hex1, hex2, hex3, hex4, hex5, hex6, hex7, hex8, hex9, hex10, hex11, hex12, hex13, hex14, hex15, hex16].join(''))
+export default pngHexToDataUrl([hex0, hex1, hex2, hex3, hex4, hex5, hex6, hex7, hex8, hex9, hex10, hex11].join(''))
