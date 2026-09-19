@@ -46,7 +46,7 @@ Playable test of the locked look, not the full roster. Former versions stay sele
 - **Matching enemies:** Pea, Sprout, and a carrot-like charger. Fully animated — leaf teeter, walk, blink, mouths; nightmare scream.
 - **The farm is the battleground.** Three garden rows (North, Middle, South) sit on the paddock — four beds each. Between waves you sow. Matching monsters crawl **out of those beds**, not from the arena walls. Peas, Sprouts, and Carrots start unlocked; Garlic, Pumpkin, and Chili show up in the shed as waves (and luck) go on. Seeds you plant are spent. They do not return at harvest. Restock from monster seed drops and the farming shed. Fertilizer fattens harvest for one wave. Pesticide slows the row. Too greedy and they overwhelm you; too timid and you under-scale later. North and south are farther. Middle comes up in your face.
 
-Concept sources live in `public/concept-a/`. Cut frames live in `src/assets/concept-a/` (chili) and `src/assets/concept-a/board/` (radish). Recut with `python3 scripts/cut_concept_a_chili.py` or `python3 scripts/cut_concept_a_radish.py` (needs Pillow and NumPy).
+Concept sources live in `public/concept-a/`. Cut frames live in `src/assets/concept-a/` (chili) and `src/assets/concept-a/board/` (radish), as PNG plus hex dumps the GitHub clone can load. Recut with `python3 scripts/cut_concept_a_chili.py` or `python3 scripts/cut_concept_a_radish.py` (needs Pillow and NumPy), then `python3 scripts/encode_png_hex.py`.
 
 ## What is in the game
 
