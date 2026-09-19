@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 
 scripts/chili-cut-debug/
+scripts/__pycache__/
+agent-tools/
