@@ -378,6 +378,7 @@ body.form-nightmare .mud-meter {
 .seed-count {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
+  font-size: 14px;
   color: var(--ink-soft);
 }
 
@@ -1219,6 +1220,16 @@ body.form-nightmare .mud-meter {
   padding: 8px 4px;
 }
 
+.model-toggle-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.model-toggle-5 .form-seg {
+  font-size: 11px;
+  padding: 8px 2px;
+  letter-spacing: 0;
+}
+
 .paint-settings {
   margin: 18px auto 0;
   max-width: 420px;
@@ -1885,6 +1896,10 @@ body.paint-c .sheet {
 
   .model-toggle-4 {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .model-toggle-5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
