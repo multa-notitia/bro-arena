@@ -122,6 +122,7 @@ export function spawnEnemy(
     anim: createAnim(0),
     elite,
     boss,
+    sliced: false,
     phaseIndex: 0,
     aim: { x: 1, y: 0 },
     children: 0,
@@ -171,8 +172,18 @@ export function beginDeath(world: World, enemy: Enemy, ctx: SimCtx, magnet = fal
   const matsRaw = enemyMaterialValue(world, enemy.def, ctx)
   const mats = enemy.form === 'nightmare' ? Math.max(1, Math.round(matsRaw * 1.5)) : matsRaw
   dropFromEnemy(world, enemy.x, enemy.y, mats, enemy.elite && !enemy.boss, ctx, magnet, enemy)
-  ctx.render.fx.splat(enemy.x, enemy.y, enemy.def.palette.body, enemy.r * 1.6, enemy.boss ? 18 : 8)
-  ctx.render.fx.puff(enemy.x, enemy.y, enemy.def.palette.shade, enemy.r)
+  if (enemy.sliced) {
+    ctx.render.fx.chunks(
+      enemy.x,
+      enemy.y,
+      { body: enemy.def.palette.body, shade: enemy.def.palette.shade, accent: enemy.def.palette.accent },
+      enemy.r * 1.35,
+      true,
+    )
+  } else {
+    ctx.render.fx.splat(enemy.x, enemy.y, enemy.def.palette.body, enemy.r * 1.6, enemy.boss ? 18 : 8)
+    ctx.render.fx.puff(enemy.x, enemy.y, enemy.def.palette.shade, enemy.r)
+  }
   if (enemy.form === 'nightmare') ctx.audio.play('mudSquelch')
   if (enemy.boss) {
     ctx.render.fx.shockwave(enemy.x, enemy.y, 140, enemy.def.palette.accent)
