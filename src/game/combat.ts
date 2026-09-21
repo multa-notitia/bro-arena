@@ -16,6 +16,8 @@ export interface HurtOpts {
   explode?: boolean
   thorns?: boolean
   burnTick?: boolean
+  /** Knife hack. Non-lethal chips; a kill marks the enemy sliced. */
+  slice?: boolean
 }
 
 function unit(dx: number, dy: number): { x: number; y: number } {
@@ -62,7 +64,19 @@ export function dealDamageToEnemy(
     enemy.knock.x += kx * kb * 8
     enemy.knock.y += ky * kb * 8
     ctx.render.fx.hitSpark(enemy.x, enemy.y, Math.atan2(ky, kx), opts.color ?? enemy.def.palette.accent)
-    ctx.render.fx.splat(enemy.x, enemy.y, enemy.def.palette.body, Math.min(18, 6 + dmg * 0.4), crit ? 7 : 4)
+    if (opts.slice) {
+      if (enemy.hp > 0) {
+        ctx.render.fx.chunks(
+          enemy.x,
+          enemy.y,
+          { body: enemy.def.palette.body, shade: enemy.def.palette.shade, accent: enemy.def.palette.accent },
+          enemy.r * 0.85,
+          false,
+        )
+      }
+    } else {
+      ctx.render.fx.splat(enemy.x, enemy.y, enemy.def.palette.body, Math.min(18, 6 + dmg * 0.4), crit ? 7 : 4)
+    }
   }
 
   const numOpts = opts.burnTick ? { burn: true } : crit ? { crit: true } : undefined
@@ -90,6 +104,7 @@ export function dealDamageToEnemy(
   const killed = enemy.hp <= 0
   if (killed) {
     enemy.hp = 0
+    if (opts.slice) enemy.sliced = true
     if (opts.explode !== false && !opts.thorns && !opts.burnTick) {
       const stacks = countSpecial(world.player, 'explodeOnKill')
       if (stacks > 0) {
