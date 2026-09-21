@@ -8,6 +8,7 @@ import type {
   World,
 } from '../core/types.ts'
 import { WEAPONS, weaponCooldown, weaponDamage, weaponRange } from '../data/weapons.ts'
+import { boardKnifeSlash } from '../render/look.ts'
 import { dealDamageToEnemy } from './combat.ts'
 import { hitTree, nearestTree } from './pickups.ts'
 import { spawnProjectile } from './projectiles.ts'
@@ -15,12 +16,30 @@ import { accentColor } from './world.ts'
 import type { SimCtx } from './world.ts'
 
 const SWING_TIME = 0.18
+const KNIFE_SLASH_TIME = 0.32
+const SLASH_HIT = 0.4
 const ORBIT_LOCK = 0.25
 
 const orbitLock = new Map<string, number>()
 
+interface ArmedSlash {
+  range: number
+  arc: number
+  dmg: number
+  angle: number
+  critChance: number
+  critMult: number
+  knockback: number
+  lifeSteal: number
+  effects: StatusEffect[]
+  color: string
+}
+
+const armedSlash = new Map<number, ArmedSlash>()
+
 export function resetWeaponRuntime(): void {
   orbitLock.clear()
+  armedSlash.clear()
 }
 
 export function nearestEnemy(world: World, x: number, y: number, range: number): Enemy | null {
@@ -54,10 +73,23 @@ function startSwing(w: WeaponInstance): void {
   w.swingT = 0
 }
 
-function tickSwing(w: WeaponInstance, dt: number): void {
-  if (w.swingT < 0) return
-  w.swingT += dt / SWING_TIME
-  if (w.swingT >= 1) w.swingT = -1
+function swingDuration(world: World, id: WeaponInstance['id']): number {
+  const player = world.player
+  if (boardKnifeSlash(player.character.species, player.model, id)) return KNIFE_SLASH_TIME
+  return SWING_TIME
+}
+
+/** Returns true when a delayed slash should connect. */
+function tickSwing(w: WeaponInstance, dt: number, dur: number): boolean {
+  if (w.swingT < 0) return false
+  const prev = w.swingT
+  w.swingT += dt / dur
+  let crossed = prev < SLASH_HIT && w.swingT >= SLASH_HIT
+  if (w.swingT >= 1) {
+    if (prev < SLASH_HIT) crossed = true
+    w.swingT = -1
+  }
+  return crossed
 }
 
 function weaponHurtOpts(def: WeaponDef, w: WeaponInstance) {
@@ -153,6 +185,66 @@ function doThrust(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, 
       hitTree(world, tree, dmg, ctx)
     }
   }
+}
+
+function resolveKnifeSlash(world: World, w: WeaponInstance, ctx: SimCtx): void {
+  const armed = armedSlash.get(w.uid)
+  armedSlash.delete(w.uid)
+  if (!armed) return
+  const player = world.player
+  const half = armed.arc / 2
+  const color = armed.color || accentColor(world)
+  ctx.render.fx.slash(player.x, player.y, armed.angle, armed.arc, armed.range, color)
+  const opts = {
+    critChance: armed.critChance,
+    critMult: armed.critMult,
+    knockback: armed.knockback,
+    lifeSteal: armed.lifeSteal,
+    effects: armed.effects,
+    color,
+    slice: true,
+  }
+  for (const e of world.enemies) {
+    if (e.state === 'dying' || e.state === 'spawning') continue
+    const d = dist(player.x, player.y, e.x, e.y)
+    if (d > armed.range + e.r) continue
+    const ang = Math.atan2(e.y - player.y, e.x - player.x)
+    if (Math.abs(wrapAngle(ang - armed.angle)) > half) continue
+    dealDamageToEnemy(world, e, armed.dmg, ctx, {
+      ...opts,
+      dirX: e.x - player.x,
+      dirY: e.y - player.y,
+    })
+  }
+  for (const tree of world.trees) {
+    if (tree.hp <= 0) continue
+    const d = dist(player.x, player.y, tree.x, tree.y)
+    if (d > armed.range + tree.r) continue
+    const ang = Math.atan2(tree.y - player.y, tree.x - player.x)
+    if (Math.abs(wrapAngle(ang - armed.angle)) > half) continue
+    hitTree(world, tree, armed.dmg, ctx)
+  }
+}
+
+function doKnifeSlash(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, range: number): void {
+  const player = world.player
+  const dmg = weaponDamage(def, w.tier, player.stats)
+  const base = weaponHurtOpts(def, w)
+  const arc = 2.25
+  armedSlash.set(w.uid, {
+    range,
+    arc,
+    dmg,
+    angle: w.angle,
+    critChance: base.critChance ?? 0,
+    critMult: base.critMult ?? 2,
+    knockback: base.knockback ?? 0,
+    lifeSteal: base.lifeSteal ?? 0,
+    effects: base.effects ?? [],
+    color: accentColor(world),
+  })
+  ctx.audio.play('swing')
+  startSwing(w)
 }
 
 function doSweep(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, range: number): void {
@@ -316,7 +408,8 @@ export function updateWeapons(world: World, dt: number, ctx: SimCtx): void {
   for (const w of player.weapons) {
     const def = WEAPONS[w.id]
     if (!def) continue
-    tickSwing(w, dt)
+    const crossed = tickSwing(w, dt, swingDuration(world, w.id))
+    if (crossed) resolveKnifeSlash(world, w, ctx)
     const range = weaponRange(def, w.tier, player.stats)
     const cd = weaponCooldown(def, w.tier, player.stats)
     const b = def.behavior
@@ -366,7 +459,8 @@ export function updateWeapons(world: World, dt: number, ctx: SimCtx): void {
       const enemy = nearestEnemy(world, player.x, player.y, range)
       const tree = enemy ? null : nearestTree(world, player.x, player.y, range)
       if (!enemy && !tree) continue
-      doThrust(world, w, def, ctx, range)
+      if (boardKnifeSlash(player.character.species, player.model, w.id)) doKnifeSlash(world, w, def, ctx, range)
+      else doThrust(world, w, def, ctx, range)
       w.cooldown = cd
       continue
     }
