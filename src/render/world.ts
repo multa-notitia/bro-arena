@@ -30,9 +30,9 @@ import {
   speciesRig,
   SPECIES_PALETTES,
 } from './creatures.ts'
-import { getPaintStyle, proceduralModel, usesBoardArt, usesPaintedArt } from './look.ts'
+import { boardKnifeSlash, getPaintStyle, proceduralModel, usesBoardArt, usesPaintedArt } from './look.ts'
 import { drawPaintedChili } from './conceptA.ts'
-import { drawBoardRadish, drawBoardShadow, poseBoardRadish, boardHeld } from './board.ts'
+import { drawBoard, drawBoardShadow, poseBoard, boardHeld, type BoardHero } from './board.ts'
 import { paperColor } from './paintLang.ts'
 import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { drawPaddock } from './ground.ts'
@@ -241,6 +241,7 @@ function foeModel(form: Form): ModelDir {
 }
 
 function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, cache: SpriteCache, time: number): void {
+  if (e.sliced) return
   const species = resolveSpecies(e.def.paint, e.def.species, e.kind)
   const form: Form = e.form ?? e.def.form ?? 'normal'
   const model = foeModel(form)
@@ -471,7 +472,8 @@ function drawPlayerWeapons(
     }
     const heldPos = w.slot === 0 || w.slot === 1 ? held?.[w.slot] : undefined
     const off = slotOffset(w.slot, player.r)
-    const isBack = heldPos ? heldPos.y < player.y + player.anim.bob : off.y < 0
+    // A live swing stays in front of the body so the blade is not hidden by the pepper.
+    const isBack = w.swingT >= 0 ? false : heldPos ? heldPos.y < player.y + player.anim.bob : off.y < 0
     if (isBack !== behind) continue
     const pose = heldPos
       ? { x: heldPos.x, y: heldPos.y, rot: heldPos.rot ?? w.angle, smear: undefined as { a0: number; a1: number; r: number } | undefined }
@@ -627,20 +629,26 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
       lookY: Math.sin(lookAng),
       mouth,
       blink,
-      weapons: p.weapons.map((w) => ({
-        slot: w.slot,
-        angle: w.angle,
-        swingT: w.swingT,
-        kind: weaponLook(w.id).behavior.type,
-      })),
+      weapons: p.weapons.map((w) => {
+        const slash = boardKnifeSlash(species, model, w.id)
+        return {
+          slot: w.slot,
+          angle: w.angle,
+          swingT: w.swingT,
+          kind: slash ? 'sweep' : weaponLook(w.id).behavior.type,
+          arc: slash ? 2.25 : undefined,
+          snap: slash,
+        }
+      }),
     }
-    const pose = poseBoardRadish(boardOpts)
+    const hero: BoardHero = species === 'chili' ? 'chili' : 'radish'
+    const pose = poseBoard(hero, boardOpts)
     const hands = boardHeld(x, y, facing, pose)
     held[0] = hands.right
     held[1] = hands.left
     drawBoardShadow(ctx, boardOpts, pose)
     drawPlayerWeapons(ctx, world, cache, true, held)
-    drawBoardRadish(ctx, boardOpts)
+    drawBoard(ctx, boardOpts, hero)
     drawPlayerWeapons(ctx, world, cache, false, held)
     drawOrbitWeapons(ctx, world, cache)
     const arena = typeof document !== 'undefined' ? document.getElementById('arena') : null
