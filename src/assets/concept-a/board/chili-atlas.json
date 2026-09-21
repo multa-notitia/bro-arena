@@ -1,0 +1,68 @@
+{
+  "sourceIdle": "public/concept-a/concept-a-chili-boardmatch-idle.png",
+  "sourceSheet": "public/concept-a/concept-a-chili-boardmatch-sheet.png",
+  "portrait": "chili-portrait.png",
+  "body": "chili-body.png",
+  "rig": {
+    "w": 216,
+    "h": 796,
+    "eyeL": {
+      "cx": 0.2824,
+      "cy": 0.3719,
+      "rx": 0.0741,
+      "ry": 0.0251
+    },
+    "eyeR": {
+      "cx": 0.6968,
+      "cy": 0.3719,
+      "rx": 0.0718,
+      "ry": 0.0251
+    },
+    "mouth": {
+      "cx": 0.4838,
+      "cy": 0.4397,
+      "rw": 0.1458,
+      "rh": 0.0138
+    },
+    "browL": {
+      "x0": 0.3,
+      "y0": 0.33190000000000003,
+      "x1": 0.44,
+      "y1": 0.3519
+    },
+    "browR": {
+      "x0": 0.7,
+      "y0": 0.33190000000000003,
+      "x1": 0.56,
+      "y1": 0.3519
+    },
+    "shL": {
+      "cx": 0.08,
+      "cy": 0.54
+    },
+    "shR": {
+      "cx": 0.9,
+      "cy": 0.54
+    },
+    "hipL": {
+      "cx": 0.3902,
+      "cy": 0.75
+    },
+    "hipR": {
+      "cx": 0.6839,
+      "cy": 0.75
+    },
+    "ground": 0.995,
+    "hasBrows": false,
+    "eyeFill": "#f7f1e8",
+    "body": "#d44532",
+    "limb": "#6a4630",
+    "fist": "#5c3c28",
+    "foot": "#5a3a26",
+    "ink": "#2a1814",
+    "sclera": "#f7f1e8",
+    "lid": "#c43a2c",
+    "heightMul": 3.97,
+    "strideMul": 0.72
+  }
+}
