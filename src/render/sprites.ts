@@ -722,7 +722,7 @@ export function iconDataUrl(
     else if (kind === 'item' && isItemPaint(paint)) paintItem(ctx, paint, 48)
     else if (usesPaintedArt(species, model) && paintConceptAPortrait(ctx, w)) {
       /* old chili sheet */
-    } else if (usesBoardArt(species, model) && paintBoardPortrait(ctx, w)) {
+    } else if (usesBoardArt(species, model) && paintBoardPortrait(ctx, w, species === 'chili' ? 'chili' : 'radish')) {
       /* wet-soil radish */
     } else paintIdleCreature(ctx, species, pal, 20, form, proceduralModel(model), stain)
   })
@@ -751,7 +751,7 @@ export function portraitDataUrl(
     ctx.arc(0, 0, w * 0.46, 0, TAU)
     ctx.fill()
     if (usesPaintedArt(species, model) && paintConceptAPortrait(ctx, w)) return
-    if (usesBoardArt(species, model) && paintBoardPortrait(ctx, w)) return
+    if (usesBoardArt(species, model) && paintBoardPortrait(ctx, w, species === 'chili' ? 'chili' : 'radish')) return
     paintIdleCreature(ctx, species, character.palette, w * 0.24, form, proceduralModel(model))
   })
   const url = canvas.toDataURL('image/png')
