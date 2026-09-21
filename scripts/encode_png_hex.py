@@ -24,6 +24,8 @@ FRAMES = [
     ("src/assets/concept-a/board/radish-walk-0.png", "../../pngHex.ts"),
     ("src/assets/concept-a/board/radish-walk-1.png", "../../pngHex.ts"),
     ("src/assets/concept-a/board/radish-walk-2.png", "../../pngHex.ts"),
+    ("src/assets/concept-a/board/chili-portrait.png", "../../pngHex.ts"),
+    ("src/assets/concept-a/board/chili-body.png", "../../pngHex.ts"),
     ("src/assets/concept-a/chili-idle-smile.png", "../pngHex.ts"),
     ("src/assets/concept-a/chili-idle-teeter.png", "../pngHex.ts"),
     ("src/assets/concept-a/chili-idle-smirk.png", "../pngHex.ts"),
