@@ -1,16 +1,20 @@
 /**
- * Direction A wet-soil board radish. Torso is the cut painting; limbs, face,
- * and contact shadow are live so the vegetable can walk, look, and hold a knife.
- * Does not replace Wash/Sketch/Stain or the Painted chili sheet.
+ * Direction A wet-soil board paintings. Torso is the cut; limbs, face, and
+ * contact shadow are live so the vegetable can walk, look, and hold a weapon.
+ * Radish keeps dark eyes and V brows. Chili uses the pepper cut: white eyes,
+ * no brows, brown sticks. Does not replace Wash/Sketch/Stain or Painted chili.
  */
 import { TAU, clamp, ease, lerp, wrapAngle } from '../core/math.ts'
 import type { AnimState } from '../core/types.ts'
-import atlasJson from '../assets/concept-a/board/radish-atlas.json' with { type: 'json' }
+import radishAtlasJson from '../assets/concept-a/board/radish-atlas.json' with { type: 'json' }
+import chiliAtlasJson from '../assets/concept-a/board/chili-atlas.json' with { type: 'json' }
 import radishPortrait from '../assets/concept-a/board/radish-portrait.data.ts'
 import radishBody from '../assets/concept-a/board/radish-body.data.ts'
 import radishWalk0 from '../assets/concept-a/board/radish-walk-0.data.ts'
 import radishWalk1 from '../assets/concept-a/board/radish-walk-1.data.ts'
 import radishWalk2 from '../assets/concept-a/board/radish-walk-2.data.ts'
+import chiliPortrait from '../assets/concept-a/board/chili-portrait.data.ts'
+import chiliBody from '../assets/concept-a/board/chili-body.data.ts'
 
 interface Mark {
   cx: number
@@ -41,10 +45,49 @@ interface Rig {
   ink: string
   sclera: string
   lid: string
+  hasBrows?: boolean
+  eyeFill?: string
+  heightMul?: number
+  strideMul?: number
 }
 
-const atlas = atlasJson as { rig: Rig }
-const rig = atlas.rig
+export type BoardHero = 'radish' | 'chili'
+
+interface BoardKit {
+  hero: BoardHero
+  rig: Rig
+  urls: Record<string, string>
+}
+
+const radishKit: BoardKit = {
+  hero: 'radish',
+  rig: (radishAtlasJson as { rig: Rig }).rig,
+  urls: {
+    portrait: radishPortrait,
+    body: radishBody,
+    'walk-0': radishWalk0,
+    'walk-1': radishWalk1,
+    'walk-2': radishWalk2,
+  },
+}
+
+const chiliKit: BoardKit = {
+  hero: 'chili',
+  rig: (chiliAtlasJson as { rig: Rig }).rig,
+  urls: {
+    portrait: chiliPortrait,
+    body: chiliBody,
+  },
+}
+
+const kits: Record<BoardHero, BoardKit> = {
+  radish: radishKit,
+  chili: chiliKit,
+}
+
+function kitOf(hero: BoardHero): BoardKit {
+  return kits[hero]
+}
 
 const images = new Map<string, HTMLImageElement>()
 let ready = false
@@ -55,7 +98,7 @@ function loadImage(url: string): Promise<HTMLImageElement> {
     const img = new Image()
     img.decoding = 'async'
     img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error(`Board radish sprite failed: ${url}`))
+    img.onerror = () => reject(new Error(`Board sprite failed: ${url.slice(0, 48)}`))
     img.src = url
   })
 }
@@ -67,14 +110,15 @@ export function isBoardReady(): boolean {
 export function preloadBoard(): Promise<void> {
   if (ready) return Promise.resolve()
   if (loadPromise) return loadPromise
-  const urls: Record<string, string> = {
-    portrait: radishPortrait,
-    body: radishBody,
-    'walk-0': radishWalk0,
-    'walk-1': radishWalk1,
-    'walk-2': radishWalk2,
+  const jobs: Promise<void>[] = []
+  for (const kit of Object.values(kits)) {
+    for (const [name, url] of Object.entries(kit.urls)) {
+      jobs.push(loadImage(url).then((img) => {
+        images.set(`${kit.hero}:${name}`, img)
+      }))
+    }
   }
-  loadPromise = Promise.all(Object.entries(urls).map(([k, url]) => loadImage(url).then((img) => images.set(k, img))))
+  loadPromise = Promise.all(jobs)
     .then(() => {
       ready = true
     })
@@ -90,6 +134,10 @@ export interface BoardWeapon {
   angle: number
   swingT: number
   kind: string
+  /** Sweep width in radians. Chili knife passes a wide hack. */
+  arc?: number
+  /** Short windup, fast arc, follow-through. Radish thrusts leave this off. */
+  snap?: boolean
 }
 
 export interface BoardHand {
@@ -140,8 +188,8 @@ export interface BoardPose {
   footR: Joint
 }
 
-function layout(r: number): { w: number; h: number; ox: number; oy: number } {
-  const h = r * 3.48
+function layout(r: number, rig: Rig): { w: number; h: number; ox: number; oy: number } {
+  const h = r * (rig.heightMul ?? 3.48)
   const w = h * (rig.w / rig.h)
   return { w, h, ox: -w / 2, oy: -h * 0.58 }
 }
@@ -156,6 +204,21 @@ function ny(mark: Mark, box: { h: number; oy: number }): number {
 
 function wrap01(v: number): number {
   return v - Math.floor(v)
+}
+
+/** Cartoon hack: hold the cock, snap through the arc, ease the follow-through. */
+function sweepProgress(t: number): number {
+  const u = clamp(t, 0, 1)
+  if (u < 0.18) return lerp(0, 0.04, u / 0.18)
+  if (u < 0.58) return lerp(0.04, 0.86, ease.outCubic((u - 0.18) / 0.4))
+  return lerp(0.86, 1, ease.outCubic((u - 0.58) / 0.42))
+}
+
+function sweepWeight(t: number): number {
+  const u = clamp(t, 0, 1)
+  if (u < 0.18) return 0.22
+  if (u < 0.58) return lerp(0.3, 1, ease.outCubic((u - 0.18) / 0.4))
+  return lerp(1, 0.45, (u - 0.58) / 0.42)
 }
 
 /** 0 = wind-up, 1 = full extension. Holds the stab so a 0.18s swing still reads. */
@@ -272,12 +335,14 @@ function armTarget(
     const w = attackWeight(t)
     const aim = localAim(atk.angle, facing)
     if (atk.kind === 'sweep') {
-      const arc = 2.05
-      const cocked = aim - side * 0.15 - arc * 0.55
-      const follow = aim - side * 0.15 + arc * 0.5
-      ang = lerp(cocked, follow, ease.outCubic(t))
-      reach = len * (1.05 + w * 0.22)
-      bend = lerp(side * 0.9, side * 0.15, w)
+      const arc = atk.arc ?? 2.05
+      const cocked = atk.snap ? aim - side * (arc * 0.42 + 1.45) : aim - side * 0.15 - arc * 0.55
+      const follow = atk.snap ? aim + side * arc * 0.42 : aim - side * 0.15 + arc * 0.5
+      const along = atk.snap ? sweepProgress(t) : ease.outCubic(t)
+      const reachW = atk.snap ? sweepWeight(t) : w
+      ang = lerp(cocked, follow, along)
+      reach = len * (atk.snap ? 0.86 + reachW * 0.55 : 1.05 + reachW * 0.22)
+      bend = lerp(side * (atk.snap ? 1.25 : 0.9), side * (atk.snap ? -0.05 : 0.12), along)
     } else if (atk.kind === 'thrust') {
       const cocked = hang + side * 0.12 - 0.4
       ang = lerp(cocked, aim, ease.outCubic(w))
@@ -316,22 +381,23 @@ function armTarget(
   return { x, y, bend }
 }
 
-export function poseBoardRadish(opts: BoardDrawOpts): BoardPose {
-  const box = layout(opts.r)
+export function poseBoard(hero: BoardHero, opts: BoardDrawOpts): BoardPose {
+  const rig = kitOf(hero).rig
+  const box = layout(opts.r, rig)
   const moving = opts.anim.moving
   const gait = opts.anim.gait
   const bob = moving
     ? (1 - Math.abs(Math.cos(gait * TAU))) * opts.r * 0.09
     : Math.sin(opts.anim.t * 2.15) * opts.r * 0.04
   const ground = box.oy + rig.ground * box.h
-  const stride = box.w * 0.42
+  const stride = box.w * (rig.strideMul ?? 0.42)
   const lift = box.h * 0.095
   const hipSway = moving ? Math.sin(gait * TAU) * box.w * 0.045 : 0
   const hipL = { x: nx(rig.hipL, box) + hipSway, y: ny(rig.hipL, box) + bob }
   const hipR = { x: nx(rig.hipR, box) + hipSway, y: ny(rig.hipR, box) + bob }
   const shL = { x: nx(rig.shL, box), y: ny(rig.shL, box) + bob }
   const shR = { x: nx(rig.shR, box), y: ny(rig.shR, box) + bob }
-  const armLen = opts.r * 0.78
+  const armLen = opts.r * 0.78 * ((rig.heightMul ?? 3.48) / 3.48)
   const upper = armLen * 0.48
   const lower = armLen * 0.52
   const legLen = Math.max(8, ground - hipL.y)
@@ -357,7 +423,8 @@ export function poseBoardRadish(opts: BoardDrawOpts): BoardPose {
   const right = twoBone(shR.x, shR.y, rT.x, rT.y, upper, lower, rT.bend)
 
   const atk = opts.weapons.find((w) => w.swingT >= 0)
-  const lean = atk && atk.swingT >= 0 ? Math.cos(localAim(atk.angle, opts.facing)) * attackWeight(atk.swingT) * 0.14 : 0
+  const weight = atk && atk.swingT >= 0 ? (atk.snap ? sweepWeight(atk.swingT) : attackWeight(atk.swingT)) : 0
+  const lean = atk && atk.swingT >= 0 ? Math.cos(localAim(atk.angle, opts.facing)) * weight * 0.14 : 0
 
   return {
     ...box,
@@ -373,6 +440,10 @@ export function poseBoardRadish(opts: BoardDrawOpts): BoardPose {
     footL,
     footR,
   }
+}
+
+export function poseBoardRadish(opts: BoardDrawOpts): BoardPose {
+  return poseBoard('radish', opts)
 }
 
 export function boardHeld(
@@ -431,6 +502,7 @@ function paintFoot(
   y: number,
   s: number,
   toe: number,
+  rig: Rig,
 ): void {
   ctx.save()
   ctx.translate(x, y)
@@ -445,7 +517,7 @@ function paintFoot(
   ctx.restore()
 }
 
-function paintFist(ctx: CanvasRenderingContext2D, x: number, y: number, s: number): void {
+function paintFist(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, rig: Rig): void {
   ctx.save()
   ctx.fillStyle = rig.fist
   ctx.strokeStyle = rig.ink
@@ -459,6 +531,7 @@ function paintFist(ctx: CanvasRenderingContext2D, x: number, y: number, s: numbe
 
 function coverAndPaintFace(
   ctx: CanvasRenderingContext2D,
+  kit: BoardKit,
   box: { w: number; h: number; ox: number; oy: number },
   bob: number,
   lookX: number,
@@ -466,6 +539,9 @@ function coverAndPaintFace(
   blink: number,
   mouth: number,
 ): void {
+  const rig = kit.rig
+  const whiteEye = rig.hasBrows === false
+  const sclera = rig.eyeFill ?? '#3a1418'
   const paintEye = (mark: Mark, lx: number, tilt: number) => {
     const cx = nx(mark, box)
     const cy = ny(mark, box) + bob
@@ -485,11 +561,12 @@ function coverAndPaintFace(
     ctx.beginPath()
     ctx.ellipse(cx, cy, rx, ry, tilt, 0, TAU)
     ctx.clip()
-    ctx.fillStyle = '#3a1418'
+    ctx.fillStyle = sclera
     ctx.fill()
+    const pupil = whiteEye ? 0.42 : 0.72
     ctx.fillStyle = rig.ink
     ctx.beginPath()
-    ctx.ellipse(ex, ey, rx * 0.72, ry * 0.78, tilt, 0, TAU)
+    ctx.ellipse(ex, ey, rx * pupil, ry * (whiteEye ? 0.5 : 0.78), tilt, 0, TAU)
     ctx.fill()
     ctx.fillStyle = 'rgba(255,255,255,0.55)'
     ctx.beginPath()
@@ -518,47 +595,50 @@ function coverAndPaintFace(
     ctx.stroke()
   }
 
-  paintEye(rig.eyeL, lookX, 0.18)
-  paintEye(rig.eyeR, lookX, -0.18)
+  paintEye(rig.eyeL, lookX, whiteEye ? 0.04 : 0.18)
+  paintEye(rig.eyeR, lookX, whiteEye ? -0.04 : -0.18)
 
-  ctx.save()
-  ctx.strokeStyle = rig.ink
-  ctx.lineCap = 'round'
-  ctx.lineWidth = Math.max(1.6, box.w * 0.022)
-  const brow = (b: { x0: number; y0: number; x1: number; y1: number }) => {
-    ctx.beginPath()
-    ctx.moveTo(box.ox + b.x0 * box.w, box.oy + b.y0 * box.h + bob)
-    ctx.lineTo(box.ox + b.x1 * box.w, box.oy + b.y1 * box.h + bob)
-    ctx.stroke()
+  if (rig.hasBrows !== false) {
+    ctx.save()
+    ctx.strokeStyle = rig.ink
+    ctx.lineCap = 'round'
+    ctx.lineWidth = Math.max(1.6, box.w * 0.022)
+    const brow = (b: { x0: number; y0: number; x1: number; y1: number }) => {
+      ctx.beginPath()
+      ctx.moveTo(box.ox + b.x0 * box.w, box.oy + b.y0 * box.h + bob)
+      ctx.lineTo(box.ox + b.x1 * box.w, box.oy + b.y1 * box.h + bob)
+      ctx.stroke()
+    }
+    brow(rig.browL)
+    brow(rig.browR)
+    ctx.restore()
   }
-  brow(rig.browL)
-  brow(rig.browR)
-  ctx.restore()
 
   const mx = nx(rig.mouth, box)
   const my = ny(rig.mouth, box) + bob
   const mw = (rig.mouth.rw ?? 0.09) * box.w
+  const bow = whiteEye ? Math.max(mw * 0.85, box.h * 0.028) : mw * 0.36
   ctx.fillStyle = rig.body
   ctx.beginPath()
-  ctx.ellipse(mx, my, mw * 1.15, mw * 0.62, 0, 0, TAU)
+  ctx.ellipse(mx, my, mw * (whiteEye ? 1.05 : 1.15), whiteEye ? bow * 0.85 : mw * 0.62, 0, 0, TAU)
   ctx.fill()
   ctx.strokeStyle = rig.ink
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
   const open = clamp(mouth, 0, 1)
   if (open < 0.08) {
-    ctx.lineWidth = 1.7
+    ctx.lineWidth = whiteEye ? Math.max(1.8, mw * 0.22) : 1.7
     ctx.beginPath()
-    ctx.moveTo(mx - mw, my + mw * 0.14)
-    ctx.quadraticCurveTo(mx, my - mw * 0.36, mx + mw, my + mw * 0.14)
+    ctx.moveTo(mx - mw, my + bow * 0.15)
+    ctx.quadraticCurveTo(mx, my - bow, mx + mw, my + bow * 0.15)
     ctx.stroke()
   } else {
-    const hh = mw * (0.14 + open * 0.5)
+    const hh = whiteEye ? bow * (0.35 + open * 0.9) : mw * (0.14 + open * 0.5)
     ctx.fillStyle = '#1a100c'
     ctx.lineWidth = 1.5
     ctx.beginPath()
     ctx.moveTo(mx - mw, my)
-    ctx.quadraticCurveTo(mx, my - mw * 0.22, mx + mw, my)
+    ctx.quadraticCurveTo(mx, my - bow * 0.35, mx + mw, my)
     ctx.quadraticCurveTo(mx, my + hh, mx - mw, my)
     ctx.fill()
     ctx.stroke()
@@ -589,13 +669,15 @@ export function drawBoardShadow(ctx: CanvasRenderingContext2D, opts: BoardDrawOp
   ctx.restore()
 }
 
-export function drawBoardRadish(ctx: CanvasRenderingContext2D, opts: BoardDrawOpts): {
+export function drawBoard(ctx: CanvasRenderingContext2D, opts: BoardDrawOpts, hero: BoardHero = 'radish'): {
   left: BoardHand
   right: BoardHand
 } | null {
-  const img = images.get('body')
+  const kit = kitOf(hero)
+  const rig = kit.rig
+  const img = images.get(`${hero}:body`)
   if (!img || img.width < 2) return null
-  const pose = poseBoardRadish(opts)
+  const pose = poseBoard(hero, opts)
   const { w, h, ox, oy, bob } = pose
   const squash = clamp(opts.squash, 0.9, 1.12)
   const teeter = opts.anim.moving ? 0 : Math.sin(opts.anim.t * 2.3) * 0.028
@@ -627,7 +709,7 @@ export function drawBoardRadish(ctx: CanvasRenderingContext2D, opts: BoardDrawOp
     strokeLimb(ctx, hip.x, hip.y, foot.midX, foot.midY, legW, rig.limb, rig.ink)
     strokeLimb(ctx, foot.midX, foot.midY, foot.x, foot.y, legW * 0.9, rig.limb, rig.ink)
     const toe = (1 - (foot.plant ?? 1)) * 0.45
-    paintFoot(ctx, foot.x, foot.y, opts.r * 0.1, toe)
+    paintFoot(ctx, foot.x, foot.y, opts.r * 0.1, toe, rig)
   }
 
   ctx.save()
@@ -636,7 +718,7 @@ export function drawBoardRadish(ctx: CanvasRenderingContext2D, opts: BoardDrawOp
   ctx.drawImage(img, ox, oy, w, h)
   ctx.restore()
 
-  coverAndPaintFace(ctx, pose, bob, lookX, lookY, opts.blink, mouth)
+  coverAndPaintFace(ctx, kit, pose, bob, lookX, lookY, opts.blink, mouth)
 
   const arms = pose.left.x < pose.right.x
     ? ([
@@ -651,7 +733,7 @@ export function drawBoardRadish(ctx: CanvasRenderingContext2D, opts: BoardDrawOp
   for (const [sh, hand] of arms) {
     strokeLimb(ctx, sh.x, sh.y, hand.midX, hand.midY, armW, rig.limb, rig.ink)
     strokeLimb(ctx, hand.midX, hand.midY, hand.x, hand.y, armW * 0.92, rig.limb, rig.ink)
-    paintFist(ctx, hand.x, hand.y, opts.r * 0.1)
+    paintFist(ctx, hand.x, hand.y, opts.r * 0.1, rig)
   }
 
   ctx.restore()
@@ -662,8 +744,15 @@ export function drawBoardRadish(ctx: CanvasRenderingContext2D, opts: BoardDrawOp
   }
 }
 
-export function paintBoardPortrait(ctx: CanvasRenderingContext2D, size: number): boolean {
-  const img = images.get('portrait')
+export function drawBoardRadish(ctx: CanvasRenderingContext2D, opts: BoardDrawOpts): {
+  left: BoardHand
+  right: BoardHand
+} | null {
+  return drawBoard(ctx, opts, 'radish')
+}
+
+export function paintBoardPortrait(ctx: CanvasRenderingContext2D, size: number, hero: BoardHero = 'radish'): boolean {
+  const img = images.get(`${hero}:portrait`)
   if (!img || img.width < 2) return false
   ctx.save()
   ctx.beginPath()
