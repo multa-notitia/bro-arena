@@ -378,7 +378,6 @@ body.form-nightmare .mud-meter {
 .seed-count {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
-  font-size: 14px;
   color: var(--ink-soft);
 }
 
