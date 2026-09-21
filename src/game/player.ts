@@ -159,7 +159,11 @@ export function extraState(player: Player): PlayerExtra {
 }
 
 export function createPlayer(character: CharacterDef, model: ModelDir = 'b'): Player {
-  const weapons = character.startingWeapons.map((w, i) => makeWeapon(w.id, w.tier, i))
+  const starters =
+    character.species === 'chili' && model === 'board'
+      ? [{ id: 'knife' as const, tier: 1 as const }, ...character.startingWeapons]
+      : character.startingWeapons
+  const weapons = starters.map((w, i) => makeWeapon(w.id, w.tier, i))
   const items: string[] = []
   const form: Form = 'normal'
   const stats = computeStats(
