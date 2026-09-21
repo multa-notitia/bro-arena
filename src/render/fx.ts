@@ -6,7 +6,7 @@ const MAX_PARTICLES = 600
 const MAX_STAINS = 80
 const STAIN_LIFE = 2.55
 
-type Kind = 'splat' | 'bloom' | 'spark' | 'slash' | 'thrust' | 'shock' | 'dmg' | 'text' | 'sparkle' | 'puff' | 'stain'
+type Kind = 'splat' | 'bloom' | 'spark' | 'slash' | 'thrust' | 'shock' | 'dmg' | 'text' | 'sparkle' | 'puff' | 'stain' | 'chunk'
 
 interface Particle {
   kind: Kind
@@ -28,6 +28,8 @@ interface Particle {
   heal: boolean
   dodge: boolean
   burn: boolean
+  spin: number
+  landed: boolean
 }
 
 interface WipeBlob {
@@ -69,6 +71,8 @@ function fresh(): Particle {
     heal: false,
     dodge: false,
     burn: false,
+    spin: 0,
+    landed: false,
   }
 }
 
@@ -85,6 +89,8 @@ function reset(p: Particle): void {
   p.heal = false
   p.dodge = false
   p.burn = false
+  p.spin = 0
+  p.landed = false
 }
 
 export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): void } {
@@ -94,6 +100,42 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
   let trans: Transition | null = null
   let flashColor = '#fff6e8'
   let flashA = 0
+
+  function addStain(x: number, y: number, color: string, size: number): void {
+    if (stains.length >= MAX_STAINS) {
+      let oi = 0
+      let ob = stains[0]?.id ?? 0
+      for (let i = 1; i < stains.length; i++) {
+        const id = stains[i]?.id ?? 0
+        if (id < ob) {
+          ob = id
+          oi = i
+        }
+      }
+      const slot = stains[oi] ?? fresh()
+      if (!stains[oi]) stains[oi] = slot
+      reset(slot)
+      slot.id = nextId++
+      slot.kind = 'stain'
+      slot.x = x
+      slot.y = y
+      slot.size = size
+      slot.color = color
+      slot.life = STAIN_LIFE
+      slot.maxLife = STAIN_LIFE
+      return
+    }
+    const s = fresh()
+    s.id = nextId++
+    s.kind = 'stain'
+    s.x = x
+    s.y = y
+    s.size = size
+    s.color = color
+    s.life = STAIN_LIFE
+    s.maxLife = STAIN_LIFE
+    stains.push(s)
+  }
 
   function alloc(): Particle {
     if (ps.length >= MAX_PARTICLES) {
@@ -308,6 +350,29 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.vx = (hashNoise(nextId, 27) - 0.5) * 12
       p.vy = -8 - hashNoise(nextId, 28) * 16
     },
+    chunks(x, y, colors, size, kill) {
+      const n = kill ? 7 : 4
+      const palette = [colors.body, colors.shade, colors.accent]
+      for (let i = 0; i < n; i++) {
+        const p = alloc()
+        p.kind = 'chunk'
+        const spread = n01(i + nextId, 31)
+        const a = -Math.PI * 0.95 + (i / Math.max(1, n - 1)) * Math.PI * 1.25 + (spread - 0.5) * 0.55
+        const spd = (kill ? 70 : 46) + n01(i, 32) * (kill ? 90 : 40)
+        p.x = x + Math.cos(a) * size * 0.12
+        p.y = y - size * 0.05
+        p.vx = Math.cos(a) * spd
+        p.vy = -Math.abs(Math.sin(a)) * spd * 0.85 - (kill ? 70 : 36)
+        p.size = size * (kill ? 0.46 : 0.3) * (0.7 + n01(i, 33) * 0.5)
+        p.color = palette[i % palette.length] ?? colors.body
+        p.life = (kill ? 0.9 : 0.48) + n01(i, 34) * 0.2
+        p.maxLife = p.life
+        p.rot = n01(i, 35) * TAU
+        p.spin = (n01(i, 36) - 0.5) * (kill ? 8 : 5)
+        p.landed = false
+        p.angle = a
+      }
+    },
     transition(kind, onMid, onDone) {
       const blobs: WipeBlob[] = []
       if (kind === 'inkWipe') {
@@ -346,6 +411,17 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
         if (p.kind === 'splat' || p.kind === 'puff') {
           p.vx *= 0.92
           p.vy *= 0.92
+        }
+        if (p.kind === 'chunk') {
+          p.vy += 640 * d
+          p.rot += p.spin * d
+          p.vx *= 0.992
+          if (!p.landed && p.vy > 20 && p.life < p.maxLife * 0.62) {
+            p.landed = true
+            p.vy *= -0.18
+            p.vx *= 0.3
+            addStain(p.x, p.y, p.color, Math.max(6, p.size * 0.85))
+          }
         }
         if (p.kind === 'dmg' || p.kind === 'text') {
           p.vy *= 0.96
@@ -455,6 +531,29 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
           ctx.beginPath()
           ctx.arc(p.x, p.y, r, 0, TAU)
           ctx.stroke()
+        } else if (p.kind === 'chunk') {
+          ctx.save()
+          ctx.translate(p.x, p.y)
+          ctx.rotate(p.rot)
+          ctx.globalAlpha = Math.min(1, fade) * (p.landed ? 0.85 : 1)
+          const s = p.size * (p.landed ? 0.92 : 1)
+          ctx.fillStyle = p.color
+          ctx.beginPath()
+          ctx.moveTo(-s * 0.15, s * 0.2)
+          ctx.quadraticCurveTo(-s * 0.95, -s * 0.05, -s * 0.2, -s * 0.9)
+          ctx.quadraticCurveTo(s * 0.45, -s * 0.35, s * 0.85, s * 0.05)
+          ctx.quadraticCurveTo(s * 0.15, s * 0.75, -s * 0.15, s * 0.2)
+          ctx.closePath()
+          ctx.fill()
+          ctx.strokeStyle = 'rgba(42, 24, 16, 0.55)'
+          ctx.lineWidth = 1.15
+          ctx.stroke()
+          ctx.globalAlpha = Math.min(1, fade) * 0.45
+          ctx.fillStyle = '#fff6e8'
+          ctx.beginPath()
+          ctx.ellipse(-s * 0.05, -s * 0.2, s * 0.22, s * 0.12, -0.4, 0, TAU)
+          ctx.fill()
+          ctx.restore()
         } else if (p.kind === 'puff') {
           const r = p.size * (0.6 + u * 0.9)
           ctx.globalAlpha = fade * 0.35
