@@ -153,7 +153,7 @@ export type PaintStyle = 'a' | 'b' | 'c'
 /**
  * Player model variant of the same vegetable.
  * A wash, B sketch, C stain-cute, plus `painted` (old chili sheet) and
- * `board` (exact Direction A wet-soil painting, currently the magenta radish).
+ * `board` (Direction A wet-soil painting: magenta radish, or the chili pepper).
  */
 export type ModelDir = 'a' | 'b' | 'c' | 'painted' | 'board'
 
@@ -570,6 +570,8 @@ export interface Enemy extends Vec {
   anim: AnimState
   elite: boolean
   boss: boolean
+  /** Killing slash hid the body. Watercolor chunks are the corpse. */
+  sliced: boolean
   phaseIndex: number
   /** Charge direction when charging. */
   aim: Vec
@@ -926,6 +928,14 @@ export interface FxApi {
   text(x: number, y: number, text: string, color: string): void
   sparkle(x: number, y: number, color: string): void
   puff(x: number, y: number, color: string, size: number): void
+  /** Watercolor wedges. `kill` tumbles a full slice; a nick is a few chips. */
+  chunks(
+    x: number,
+    y: number,
+    colors: { body: string; shade: string; accent: string },
+    size: number,
+    kill: boolean,
+  ): void
   /** Full-screen ink wipe; onMid fires when the screen is fully covered. */
   transition(kind: 'inkWipe' | 'fade', onMid?: () => void, onDone?: () => void): void
   flash(color: string, strength: number): void
