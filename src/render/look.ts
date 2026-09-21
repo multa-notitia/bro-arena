@@ -27,7 +27,7 @@ export const MODEL_LABELS: Record<ModelDir, { name: string; blurb: string }> = {
   b: { name: 'Sketch', blurb: 'Simple oval, ink face, stick arms.' },
   c: { name: 'Stain', blurb: 'Rounder, cuter, graphic fill.' },
   painted: { name: 'Painted', blurb: 'Earlier chili pepper sheet. Not the wet-soil lineup.' },
-  board: { name: 'Board', blurb: 'The wet-soil painting, used as the sprite.' },
+  board: { name: 'Board', blurb: 'Exact Direction A wet-soil painting. The magenta radish, used as the sprite.' },
 }
 
 const STYLE_KEY = 'bro.paintStyle'
@@ -44,14 +44,14 @@ function isModelDir(v: unknown): v is ModelDir {
 }
 
 export function modelsForSpecies(species: Species): readonly ModelDir[] {
-  if (species === 'chili') return ['a', 'b', 'c', BOARD_DIR, PAINTED_DIR]
+  if (species === 'chili') return ['a', 'b', 'c', PAINTED_DIR]
   if (species === 'radish') return ['a', 'b', 'c', BOARD_DIR]
   return MODEL_DIRS
 }
 
 export function defaultModelForSpecies(species: Species, fallback: ModelDir = DEFAULT_MODEL): ModelDir {
   if (species === 'radish') return BOARD_DIR
-  if (species === 'chili') return BOARD_DIR
+  if (species === 'chili') return PAINTED_DIR
   if (fallback === 'painted' || fallback === 'board') return DEFAULT_MODEL
   const allowed = modelsForSpecies(species)
   return allowed.includes(fallback) ? fallback : DEFAULT_MODEL
@@ -68,12 +68,7 @@ export function usesPaintedArt(species: Species, model: ModelDir | undefined): b
 }
 
 export function usesBoardArt(species: Species, model: ModelDir | undefined): boolean {
-  return model === 'board' && (species === 'radish' || species === 'chili')
-}
-
-/** Board chili's knife is a hack-and-slash. Radish keeps the thrust. */
-export function boardKnifeSlash(species: Species, model: ModelDir | undefined, weaponId: string): boolean {
-  return species === 'chili' && model === 'board' && weaponId === 'knife'
+  return model === 'board' && species === 'radish'
 }
 
 function readStored(key: string): string | null {
