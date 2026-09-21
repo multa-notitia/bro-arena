@@ -353,7 +353,7 @@ def pad_for_legs(im: Image.Image, frac: float = 0.12) -> Image.Image:
     pad = max(28, int(round(arr.shape[0] * frac)))
     out = np.zeros((arr.shape[0] + pad, arr.shape[1], 4), dtype=np.uint8)
     out[: arr.shape[0]] = arr
-    print("padded legs", pad, "px \u2192", out.shape[1], out.shape[0])
+    print("padded legs", pad, "px →", out.shape[1], out.shape[0])
     return Image.fromarray(out, "RGBA")
 
 
