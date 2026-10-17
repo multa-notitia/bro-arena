@@ -58,8 +58,17 @@ export const FEEL = {
     footEvery: 0.48,
   },
   shadow: {
-    alpha: 0.5,
-    scale: 1.28,
+    /** Peak alpha of the soft ground shadow. */
+    alpha: 0.35,
+    /** Width as a fraction of the sprite footprint. Stay under 0.8. */
+    footprint: 0.74,
+  },
+  garden: {
+    /**
+     * Beds and furrows were authored near 1:1 world px and dwarfed the
+     * figures. Plot spacing uses the same factor so beds stay on the strip.
+     */
+    scale: 0.52,
   },
   projectile: {
     trailPts: 10,

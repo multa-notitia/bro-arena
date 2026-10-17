@@ -2,6 +2,7 @@ import { dist, dist2, TAU, wrapAngle } from '../core/math.ts'
 import { addTrauma, FEEL } from '../feel.ts'
 import type {
   Enemy,
+  ProjectileDef,
   StatusEffect,
   Tree,
   WeaponDef,
@@ -10,7 +11,14 @@ import type {
 } from '../core/types.ts'
 import { WEAPONS, weaponCooldown, weaponDamage, weaponRange } from '../data/weapons.ts'
 import { boardKnifeSlash } from '../render/look.ts'
-import { clipHasEvent, resolveSheet, sheetKeysForPlayer } from '../render/sheets.ts'
+import {
+  actorClipDone,
+  clipHasEvent,
+  resolveSheet,
+  restartActorClip,
+  sheetKeysForPlayer,
+  takePlayerRelease,
+} from '../render/sheets.ts'
 import { dealDamageToEnemy } from './combat.ts'
 import { hitTree, nearestTree } from './pickups.ts'
 import { spawnProjectile } from './projectiles.ts'
@@ -71,8 +79,54 @@ function pointSegDist(px: number, py: number, ax: number, ay: number, bx: number
   return Math.hypot(px - qx, py - qy)
 }
 
-function startSwing(w: WeaponInstance): void {
+function startSwing(world: World, w: WeaponInstance): void {
   w.swingT = 0
+  const player = world.player
+  const sheet = resolveSheet(sheetKeysForPlayer(player.character.species, player.model))
+  if (sheet?.manifest.clips.attack) restartActorClip('player', 'attack')
+}
+
+interface PendingShot {
+  x: number
+  y: number
+  angle: number
+  damage: number
+  crit: boolean
+  def: ProjectileDef
+  effects: StatusEffect[]
+  knockback: number
+  weaponUid: number
+  sound: 'shotgun' | 'bolt' | 'shoot' | 'none'
+}
+
+const pendingShots: PendingShot[] = []
+
+function heroShotOnRelease(world: World): boolean {
+  const player = world.player
+  const sheet = resolveSheet(sheetKeysForPlayer(player.character.species, player.model))
+  return !!sheet && clipHasEvent(sheet, 'attack', 'release')
+}
+
+function emitPendingShots(world: World, ctx: SimCtx): void {
+  if (!pendingShots.length) return
+  const queued = pendingShots.splice(0, pendingShots.length)
+  for (const s of queued) {
+    spawnProjectile(world, {
+      x: s.x,
+      y: s.y,
+      angle: s.angle,
+      damage: s.damage,
+      crit: s.crit,
+      def: s.def,
+      owner: 'player',
+      effects: s.effects,
+      knockback: s.knockback,
+      weaponUid: s.weaponUid,
+    })
+    if (s.sound === 'shotgun') ctx.audio.play('shotgun')
+    else if (s.sound === 'bolt') ctx.audio.play('bolt')
+    else if (s.sound === 'shoot') ctx.audio.play('shoot')
+  }
 }
 
 function swingDuration(world: World, id: WeaponInstance['id']): number {
@@ -134,27 +188,35 @@ function fireShot(
   player.anim.kick.y -= Math.sin(angle) * 9
   addTrauma(world, FEEL.shake.weaponKick, -Math.cos(angle), -Math.sin(angle))
 
+  const sound: PendingShot['sound'] =
+    def.paint === 'shotgun' || count >= 4 ? 'shotgun' : def.paint === 'flint' || b.projectile.paint === 'bolt' ? 'bolt' : 'shoot'
+  const hold = heroShotOnRelease(world)
   for (let i = 0; i < count; i++) {
     const t = count === 1 ? 0 : (i / (count - 1) - 0.5) * 2
     const a = angle + t * (spread / 2)
     const crit = ctx.rng.chance((row.critChance + player.stats.critChance) / 100)
-    spawnProjectile(world, {
+    const shot: PendingShot = {
       x: mx,
       y: my,
       angle: a,
       damage: crit ? Math.round(dmg * row.critMult) : dmg,
       crit,
       def: b.projectile,
-      owner: 'player',
       effects: def.effects ?? [],
       knockback: row.knockback,
       weaponUid: w.uid,
-    })
+      sound: i === 0 ? sound : 'none',
+    }
+    if (hold) pendingShots.push(shot)
+    else {
+      spawnProjectile(world, { ...shot, owner: 'player' })
+      if (i === 0) {
+        if (sound === 'shotgun') ctx.audio.play('shotgun')
+        else if (sound === 'bolt') ctx.audio.play('bolt')
+        else ctx.audio.play('shoot')
+      }
+    }
   }
-
-  if (def.paint === 'shotgun' || count >= 4) ctx.audio.play('shotgun')
-  else if (def.paint === 'flint' || b.projectile.paint === 'bolt') ctx.audio.play('bolt')
-  else ctx.audio.play('shoot')
 }
 
 function doThrust(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, range: number): void {
@@ -176,7 +238,7 @@ function doThrust(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, 
   player.anim.kick.x += Math.cos(angle) * 14
   player.anim.kick.y += Math.sin(angle) * 14
   addTrauma(world, FEEL.shake.weaponKick * 0.85, Math.cos(angle), Math.sin(angle))
-  startSwing(w)
+  startSwing(world, w)
 
   for (const e of world.enemies) {
     if (e.state === 'dying' || e.state === 'spawning') continue
@@ -256,7 +318,7 @@ function doKnifeSlash(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimC
   player.anim.kick.x += Math.cos(w.angle) * 10
   player.anim.kick.y += Math.sin(w.angle) * 10
   addTrauma(world, FEEL.shake.weaponKick, Math.cos(w.angle), Math.sin(w.angle))
-  startSwing(w)
+  startSwing(world, w)
 }
 
 function doSweep(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, range: number): void {
@@ -271,7 +333,7 @@ function doSweep(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, r
   player.anim.kick.x += Math.cos(w.angle) * 8
   player.anim.kick.y += Math.sin(w.angle) * 8
   addTrauma(world, FEEL.shake.weaponKick * 0.7, Math.cos(w.angle), Math.sin(w.angle))
-  startSwing(w)
+  startSwing(world, w)
   const half = b.arc / 2
   for (const e of world.enemies) {
     if (e.state === 'dying' || e.state === 'spawning') continue
@@ -310,7 +372,7 @@ function doChain(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, r
   let current: Enemy | null = first
   const jumps = b.jumps
   ctx.audio.play('zap')
-  startSwing(w)
+  startSwing(world, w)
   for (let n = 0; n < jumps + 1 && current; n++) {
     hit.add(current.uid)
     ctx.render.fx.thrust(fromX, fromY, Math.atan2(current.y - fromY, current.x - fromX), dist(fromX, fromY, current.x, current.y), '#8ec8ff')
@@ -347,7 +409,7 @@ function doAura(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, dt
     const dmg = weaponDamage(def, w.tier, player.stats)
     const opts = weaponHurtOpts(def, w)
     opts.color = '#e07030'
-    startSwing(w)
+    startSwing(world, w)
     for (const e of world.enemies) {
       if (e.state === 'dying' || e.state === 'spawning') continue
       if (dist2(player.x, player.y, e.x, e.y) > (radius + e.r) * (radius + e.r)) continue
@@ -391,7 +453,7 @@ function doOrbit(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, d
         dirX: e.x - player.x,
         dirY: e.y - player.y,
       })
-      startSwing(w)
+      startSwing(world, w)
     }
     for (const tree of world.trees) {
       if (tree.hp <= 0) continue
@@ -400,7 +462,7 @@ function doOrbit(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, d
       if (dist2(bx, by, tree.x, tree.y) > (bladeR + tree.r) * (bladeR + tree.r)) continue
       orbitLock.set(key, ORBIT_LOCK)
       hitTree(world, tree, dmg, ctx)
-      startSwing(w)
+      startSwing(world, w)
     }
   }
 }
@@ -419,7 +481,14 @@ function aimWeapon(world: World, w: WeaponInstance, range: number, dt: number, m
 
 export function updateWeapons(world: World, dt: number, ctx: SimCtx): void {
   const player = world.player
-  if (player.hp <= 0) return
+  if (player.hp <= 0) {
+    pendingShots.length = 0
+    return
+  }
+  // The attack clip was stepped in updatePlayer. Release spawns the shot; a finished clip with a queued shot is the fallback.
+  if (takePlayerRelease() || (pendingShots.length > 0 && actorClipDone('player', 'attack'))) {
+    emitPendingShots(world, ctx)
+  }
   for (const w of player.weapons) {
     const def = WEAPONS[w.id]
     if (!def) continue
@@ -448,7 +517,7 @@ export function updateWeapons(world: World, dt: number, ctx: SimCtx): void {
         fireShot(world, w, def, ctx, w.angle)
         w.burstLeft -= 1
         w.burstTimer = b.burstDelay ?? 0.08
-        startSwing(w)
+        startSwing(world, w)
         if (w.burstLeft <= 0) w.cooldown = cd
       }
       continue
@@ -459,7 +528,7 @@ export function updateWeapons(world: World, dt: number, ctx: SimCtx): void {
       const enemy = nearestEnemy(world, player.x, player.y, range * 1.12)
       if (!enemy) continue
       fireShot(world, w, def, ctx, w.angle)
-      startSwing(w)
+      startSwing(world, w)
       const burst = b.burst ?? 1
       if (burst > 1) {
         w.burstLeft = burst - 1

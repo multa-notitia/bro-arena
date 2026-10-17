@@ -18,7 +18,15 @@ import { ITEMS } from '../data/items.ts'
 import { computeStats } from '../data/stats.ts'
 import { xpForLevel } from '../data/economy.ts'
 import type { SimCtx } from './world.ts'
-import { advanceActorSheet, resolveSheet, sheetKeysForPlayer } from '../render/sheets.ts'
+import {
+  actorClipActive,
+  advanceActorSheet,
+  consumeHurtKick,
+  notePlayerRelease,
+  resolveSheet,
+  restartActorClip,
+  sheetKeysForPlayer,
+} from '../render/sheets.ts'
 
 const START_RICH = 40
 const MOVE_ACCEL = 2100
@@ -282,14 +290,18 @@ function stepPlayerSheet(world: World, dt: number, ctx: SimCtx): void {
   const anim = player.anim
   const swinging = player.weapons.some((w) => w.swingT >= 0)
   const dead = anim.deathT >= 0 || player.hp <= 0
-  const hurt = !dead && anim.hitFlash > 0.25 && !!sheet.manifest.clips.hurt
+  const kicked = !dead && !!sheet.manifest.clips.hurt && consumeHurtKick('player')
+  if (kicked) restartActorClip('player', 'hurt')
+  const attacking = !!sheet.manifest.clips.attack && (swinging || actorClipActive('player', 'attack'))
+  // Play the authored hurt clip once per hit (cream flash, then the short recovery). Don't hold the last frame.
+  const hurt = kicked || (!dead && !!sheet.manifest.clips.hurt && actorClipActive('player', 'hurt'))
   const clip = dead
     ? sheet.manifest.clips.death
       ? 'death'
       : null
     : hurt
       ? 'hurt'
-      : swinging && sheet.manifest.clips.attack
+      : attacking
         ? 'attack'
         : anim.moving && sheet.manifest.clips.walk
           ? 'walk'
@@ -304,10 +316,16 @@ function stepPlayerSheet(world: World, dt: number, ctx: SimCtx): void {
       ctx.render.fx.muzzleFlash(player.x + Math.cos(ang) * 16, player.y + Math.sin(ang) * 10, ang)
     }
   }
-  if (hurt && swinging && sheet.manifest.clips.attack) {
-    flash(advanceActorSheet('player', sheet, 'attack', dt), 'attack')
+  if (hurt && attacking) {
+    const ev = advanceActorSheet('player', sheet, 'attack', dt)
+    flash(ev, 'attack')
+    if (ev.includes('release')) notePlayerRelease()
   }
-  if (clip) flash(advanceActorSheet('player', sheet, clip, dt), clip)
+  if (clip) {
+    const ev = advanceActorSheet('player', sheet, clip, dt)
+    flash(ev, clip)
+    if (clip === 'attack' && ev.includes('release')) notePlayerRelease()
+  }
   anim.bob = 0
   anim.squash = 1
 }

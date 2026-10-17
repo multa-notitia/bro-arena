@@ -38,6 +38,8 @@ import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { drawPaddock } from './ground.ts'
 import { paperColor } from './paintLang.ts'
 import {
+  actorClipActive,
+  actorFootprint,
   drawActorSheet,
   drawNamedClip,
   pickClip,
@@ -110,15 +112,50 @@ function blit(
   ctx.restore()
 }
 
-function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, alpha = 0.3): void {
+/** Soft contact shadow. `footprint` is the painted body width; the ellipse stays under 0.8× that. */
+function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, footprint: number, strength = 1): void {
+  const width = Math.max(6, footprint * FEEL.shadow.footprint)
+  const peak = FEEL.shadow.alpha * clamp(strength, 0, 1)
+  if (peak < 0.02) return
+  const radius = width * 0.5
   ctx.save()
-  ctx.translate(x, y + r * 0.62)
-  ctx.scale(1, 0.38)
-  ctx.globalAlpha = alpha * (FEEL.shadow.alpha / 0.3)
-  ctx.fillStyle = '#070604'
+  ctx.translate(x, y + 1)
+  ctx.scale(1, 0.42)
+  const g = ctx.createRadialGradient(0, 0, radius * 0.08, 0, 0, radius)
+  g.addColorStop(0, `rgba(58, 36, 22, ${peak.toFixed(3)})`)
+  g.addColorStop(0.62, `rgba(58, 36, 22, ${(peak * 0.4).toFixed(3)})`)
+  g.addColorStop(1, 'rgba(58, 36, 22, 0)')
+  ctx.fillStyle = g
   ctx.beginPath()
-  ctx.arc(0, 0, r * 1.18 * FEEL.shadow.scale, 0, TAU)
+  ctx.arc(0, 0, radius, 0, TAU)
   ctx.fill()
+  ctx.restore()
+}
+
+/** Faint warm pool so painted figures separate from the soil. */
+function drawReadHalo(ctx: CanvasRenderingContext2D, x: number, y: number, footprint: number, strength = 1): void {
+  const rx = Math.max(8, footprint * 1.15)
+  const peak = 0.28 * clamp(strength, 0, 1)
+  if (peak < 0.02) return
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.scale(1, 0.46)
+  const g = ctx.createRadialGradient(0, 0, rx * 0.2, 0, 0, rx)
+  g.addColorStop(0, `rgba(255, 228, 186, ${peak.toFixed(3)})`)
+  g.addColorStop(1, 'rgba(255, 228, 186, 0)')
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.arc(0, 0, rx, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
+/** About 12% darker and a little less saturated, warm. Actors are drawn after this. */
+function darkenGround(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
+  ctx.save()
+  ctx.globalCompositeOperation = 'multiply'
+  ctx.fillStyle = '#e0d8cc'
+  ctx.fillRect(x, y, w, h)
   ctx.restore()
 }
 
@@ -270,7 +307,7 @@ function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache
   const clip = PICKUP_CLIP[p.type]
   const pr = p.type === 'chest' ? 12 : p.type === 'materialBig' ? 10 : 8
   const bob = sheet ? Math.sin(p.t * 3.2 + time) * 1.2 : Math.sin(p.t * 3.2 + time) * 3
-  drawShadow(ctx, p.x, p.y + bob + 4, pr, 0.28)
+  drawShadow(ctx, p.x, p.y + bob + 2, pr * 1.6, 0.75)
   ctx.save()
   ctx.translate(p.x, p.y + bob)
   if (p.magnet) {
@@ -360,16 +397,21 @@ function drawEnemy(
     ox += (hashNoise(Math.floor(time * 48), e.uid) - 0.5) * mag * 2
     oy += (hashNoise(Math.floor(time * 48), e.uid + 9) - 0.5) * mag * 2
   }
-  drawShadow(ctx, ox, e.y, e.r, 0.55 * appear * (1 - death))
+  const foot = sheet ? actorFootprint(sheet, e.r) : e.r * 1.7
+  const shade = appear * (1 - death)
+  if (sheet) drawReadHalo(ctx, ox, e.y, foot, shade)
+  drawShadow(ctx, ox, sheet ? e.y : e.y + e.r * 0.45, foot, shade)
   ctx.save()
   ctx.translate(ox, oy)
   if (sheet) {
+    const playKey = `e:${e.uid}`
     const clip = pickClip(sheet, e.anim, {
       attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
+      hurt: actorClipActive(playKey, 'hurt'),
     })
     ctx.globalAlpha = appear * (1 - (sheet.manifest.clips.death ? 0 : death))
     if (clip) {
-      drawActorSheet(ctx, sheet, `e:${e.uid}`, clip, {
+      drawActorSheet(ctx, sheet, playKey, clip, {
         r: e.r,
         facing,
         alpha: 1,
@@ -735,12 +777,15 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
 
   if (sheet) {
     const swinging = p.weapons.some((w) => w.swingT >= 0)
-    drawShadow(ctx, x, p.y, p.r, p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.18 : 0.62)
+    const shade = p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.35 : 1
+    const foot = actorFootprint(sheet, p.r)
+    drawReadHalo(ctx, x, p.y, foot, shade)
+    drawShadow(ctx, x, p.y, foot, shade)
     drawPlayerWeapons(ctx, world, cache, true, held, true)
     ctx.save()
     ctx.translate(x, y)
     ctx.rotate(bodyRot)
-    const clip = pickClip(sheet, p.anim, { swinging })
+    const clip = pickClip(sheet, p.anim, { swinging, hurt: actorClipActive('player', 'hurt') })
     if (clip) {
       drawActorSheet(ctx, sheet, 'player', clip, { r: p.r, facing, alpha })
     }
@@ -792,7 +837,13 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     return
   }
 
-  drawShadow(ctx, x, p.y, p.r, p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.18 : 0.62)
+  drawShadow(
+    ctx,
+    x,
+    p.y + p.r * 0.45,
+    p.r * 1.7,
+    p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.35 : 1,
+  )
   drawPlayerWeapons(ctx, world, cache, true, held)
   ctx.save()
   ctx.translate(x, y)
@@ -903,9 +954,10 @@ export function drawWorld(
   const aw = world.arenaHalfW
   const ah = world.arenaHalfH
   drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale))
-  drawFarmRows(ctx, world.farm.plots, qScale >= 2)
+  drawFarmRows(ctx, world.farm.plots, qScale >= 2, world.waveTime)
   drawFarmBeds(ctx, world.farm.plots, qScale >= 2)
   fx.drawFloor(ctx)
+  darkenGround(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
 
   cmdN = 0
   for (let i = 0; i < world.trees.length; i++) {

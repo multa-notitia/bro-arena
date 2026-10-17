@@ -15,9 +15,11 @@ import { createAnim, tickFaceAnim } from './player.ts'
 import { spawnProjectile } from './projectiles.ts'
 import { addTrauma, FEEL, requestHitStop } from '../feel.ts'
 import {
+  actorClipActive,
   actorClipDone,
   advanceActorSheet,
   clipHasEvent,
+  consumeHurtKick,
   forgetActor,
   resolveSheet,
   restartActorClip,
@@ -582,7 +584,10 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   if (!sheet) return
   const dead = e.state === 'dying' || e.anim.deathT >= 0
   const attacking = e.state === 'windup' || e.state === 'charging' || e.state === 'shooting'
-  const hurt = !dead && e.anim.hitFlash > 0.25 && !!sheet.manifest.clips.hurt
+  const key = enemyKey(e)
+  const kicked = !dead && !!sheet.manifest.clips.hurt && consumeHurtKick(key)
+  if (kicked) restartActorClip(key, 'hurt')
+  const hurt = kicked || (!dead && !!sheet.manifest.clips.hurt && actorClipActive(key, 'hurt'))
   const clip = dead
     ? sheet.manifest.clips.death
       ? 'death'

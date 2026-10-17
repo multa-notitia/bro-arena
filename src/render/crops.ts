@@ -1,10 +1,41 @@
 import { TAU } from '../core/math.ts'
 import type { CropId, Plot } from '../core/types.ts'
 import { CROPS, GARDEN_ROW_COUNT, GARDEN_ROWS } from '../data/crops.ts'
+import { FEEL } from '../feel.ts'
 import { drawProp } from './sheets.ts'
 import { inkStroke, makeCanvas, wash } from './watercolor.ts'
 
-function furrow(ctx: CanvasRenderingContext2D, plots: readonly Plot[], row: number, hi: boolean): void {
+const FURROW_NATIVE_W = 613
+const FURROW_NATIVE_H = 146
+/** Bed draw width before the readability scale. The bitmap is much wider. */
+const BED_NATIVE_DRAW = 118
+
+function rowLabelAlpha(waveTime: number): number {
+  const hold = 1.3
+  const gone = 2.5
+  if (waveTime <= hold) return 0.7
+  if (waveTime >= gone) return 0
+  return 0.7 * (1 - (waveTime - hold) / (gone - hold))
+}
+
+function paintRowLabel(ctx: CanvasRenderingContext2D, label: string, alpha: number, y: number): void {
+  if (alpha < 0.03 || !label) return
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.font = '700 13px Palatino, Georgia, serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  const tw = ctx.measureText(label).width
+  ctx.fillStyle = 'rgba(243, 234, 216, 0.9)'
+  ctx.beginPath()
+  ctx.roundRect(-tw / 2 - 8, y - 9, tw + 16, 18, 6)
+  ctx.fill()
+  ctx.fillStyle = 'rgba(42, 33, 24, 0.9)'
+  ctx.fillText(label, 0, y)
+  ctx.restore()
+}
+
+function furrow(ctx: CanvasRenderingContext2D, plots: readonly Plot[], row: number, hi: boolean, labelAlpha: number): void {
   const inRow = plots.filter((p) => p.row === row)
   if (inRow.length === 0) return
   let minX = Infinity
@@ -18,20 +49,13 @@ function furrow(ctx: CanvasRenderingContext2D, plots: readonly Plot[], row: numb
   y /= inRow.length
   const midX = (minX + maxX) / 2
   const halfW = (maxX - minX) / 2 + 70
-  if (drawProp(ctx, 'prop-furrow', midX, y + 6, { hi })) {
-    const label = GARDEN_ROWS[row] ?? ''
+  const scale = FEEL.garden.scale
+  const furrowW = Math.round(FURROW_NATIVE_W * scale)
+  const furrowH = FURROW_NATIVE_H * (furrowW / FURROW_NATIVE_W)
+  if (drawProp(ctx, 'prop-furrow', midX, y + 6, { width: furrowW, hi })) {
     ctx.save()
-    ctx.translate(midX, y + 8)
-    ctx.font = '700 15px Palatino, Georgia, serif'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    const tw = ctx.measureText(label).width
-    ctx.fillStyle = 'rgba(243, 234, 216, 0.78)'
-    ctx.beginPath()
-    ctx.roundRect(-tw / 2 - 8, -52, tw + 16, 18, 6)
-    ctx.fill()
-    ctx.fillStyle = 'rgba(42, 33, 24, 0.82)'
-    ctx.fillText(label, 0, -43)
+    ctx.translate(midX - furrowW * 0.42, y + 6 - furrowH * 0.5 - 14)
+    paintRowLabel(ctx, GARDEN_ROWS[row] ?? '', labelAlpha, 0)
     ctx.restore()
     return
   }
@@ -53,26 +77,23 @@ function furrow(ctx: CanvasRenderingContext2D, plots: readonly Plot[], row: numb
   ctx.beginPath()
   ctx.ellipse(0, 0, halfW * 0.96, 19, 0, 0, TAU)
   ctx.stroke()
-  const label = GARDEN_ROWS[row] ?? ''
-  ctx.font = '700 15px Palatino, Georgia, serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  const tw = ctx.measureText(label).width
-  ctx.fillStyle = 'rgba(243, 234, 216, 0.78)'
-  ctx.beginPath()
-  ctx.roundRect(-tw / 2 - 8, -36, tw + 16, 18, 6)
-  ctx.fill()
-  ctx.fillStyle = 'rgba(42, 33, 24, 0.82)'
-  ctx.fillText(label, 0, -27)
+  paintRowLabel(ctx, GARDEN_ROWS[row] ?? '', labelAlpha, -36)
   ctx.restore()
 }
 
-export function drawFarmRows(ctx: CanvasRenderingContext2D, plots: readonly Plot[], hi = false): void {
-  for (let r = 0; r < GARDEN_ROW_COUNT; r++) furrow(ctx, plots, r, hi)
+export function drawFarmRows(
+  ctx: CanvasRenderingContext2D,
+  plots: readonly Plot[],
+  hi = false,
+  waveTime = 0,
+): void {
+  const labelAlpha = rowLabelAlpha(waveTime)
+  for (let r = 0; r < GARDEN_ROW_COUNT; r++) furrow(ctx, plots, r, hi, labelAlpha)
 }
 
 function bed(ctx: CanvasRenderingContext2D, plot: Plot, hi: boolean): void {
-  if (drawProp(ctx, 'prop-bed', plot.x, plot.y + 4, { width: 118, hi })) return
+  const bedW = Math.round(BED_NATIVE_DRAW * FEEL.garden.scale)
+  if (drawProp(ctx, 'prop-bed', plot.x, plot.y + 4, { width: bedW, hi })) return
   ctx.save()
   ctx.translate(plot.x, plot.y)
   ctx.fillStyle = 'rgba(42, 28, 16, 0.28)'

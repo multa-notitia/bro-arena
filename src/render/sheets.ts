@@ -367,11 +367,11 @@ export function chooseClip(
 export function pickClip(
   sheet: LoadedSheet,
   anim: AnimState,
-  opts: { swinging?: boolean; attacking?: boolean } = {},
+  opts: { swinging?: boolean; attacking?: boolean; hurt?: boolean } = {},
 ): string | null {
   return chooseClip(sheet, {
     dead: anim.deathT >= 0,
-    hurt: anim.hitFlash > 0.25,
+    hurt: opts.hurt ?? false,
     attacking: !!(opts.attacking || opts.swinging),
     moving: anim.moving,
   })
@@ -470,6 +470,44 @@ export function actorClipDone(playKey: string, clipName?: string): boolean {
   const slot = head.clips.get(name)
   if (!slot || slot.loop || slot.duration <= 0) return false
   return slot.elapsed + 0.01 >= slot.duration
+}
+
+/** True while a non-looping clip is still inside its authored frames. */
+export function actorClipActive(playKey: string, clipName: string): boolean {
+  const slot = heads.get(playKey)?.clips.get(clipName)
+  if (!slot || slot.loop || slot.duration <= 0) return false
+  return slot.elapsed + 0.5 < slot.duration
+}
+
+const hurtKicks = new Set<string>()
+
+/** A new hit should replay the short authored hurt clip, including its cream flash frame. */
+export function kickHurtClip(playKey: string): void {
+  hurtKicks.add(playKey)
+}
+
+export function consumeHurtKick(playKey: string): boolean {
+  return hurtKicks.delete(playKey)
+}
+
+let playerRelease = false
+
+export function notePlayerRelease(): void {
+  playerRelease = true
+}
+
+export function takePlayerRelease(): boolean {
+  const v = playerRelease
+  playerRelease = false
+  return v
+}
+
+/** World-px width of the painted body. Shadows stay inside this. */
+export function actorFootprint(sheet: LoadedSheet, r: number): number {
+  const fw = sheet.manifest.frameWidth
+  const fh = sheet.manifest.frameHeight
+  const fit = snapScale((r * 2.35) / Math.max(fw, fh))
+  return fw * fit * 0.62
 }
 
 /**
