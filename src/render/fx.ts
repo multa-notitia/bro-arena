@@ -1,6 +1,7 @@
 import { TAU, clamp, ease, hashNoise, lerp } from '../core/math.ts'
 import type { DamageNumberOpts, FxApi } from '../core/types.ts'
 import { FEEL, flashStrength } from '../feel.ts'
+import { drawInkClips, spawnInkClip, tickInkClips } from './sheets.ts'
 import { n01, parseRgb, wobbleBlob } from './watercolor.ts'
 
 const MAX_PARTICLES = 720
@@ -246,6 +247,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.maxLife = 0.42
     },
     hitSpark(x, y, angle, color) {
+      if (spawnInkClip('hitSpark', x, y, { angle, scale: 0.42, rotate: true })) return
       for (let i = 0; i < 6; i++) {
         const p = alloc()
         p.kind = 'spark'
@@ -352,6 +354,10 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.vy = -8 - hashNoise(nextId, 28) * 16
     },
     inkBurst(x, y, size) {
+      if (spawnInkClip('inkBurst', x, y + 2, { scale: Math.max(0.42, size / 78) })) {
+        addStain(x, y + 4, '#12100c', size * 0.55)
+        return
+      }
       api.splat(x, y, '#16120e', size * 1.05, 11)
       addStain(x, y + 3, '#12100c', size * 0.95)
       addStain(x + size * 0.22, y + 6, '#1c1814', size * 0.45)
@@ -381,6 +387,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       bloom.maxLife = 0.22
     },
     muzzleFlash(x, y, angle, color = '#f0d060') {
+      if (spawnInkClip('muzzle', x, y, { angle, scale: 0.36, rotate: true })) return
       const p = alloc()
       p.kind = 'bloom'
       p.x = x + Math.cos(angle) * 6
@@ -404,6 +411,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.maxLife = 0.16
     },
     dust(x, y, vx = 0, vy = 0) {
+      if (spawnInkClip('dust', x, y, { scale: 0.4 })) return
       for (let i = 0; i < 3; i++) {
         const p = alloc()
         p.kind = 'puff'
@@ -472,6 +480,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
     },
     update(dt) {
       const d = Math.min(0.05, Math.max(0, dt))
+      tickInkClips(d)
       for (let i = ps.length - 1; i >= 0; i--) {
         const p = ps[i]
         if (!p) continue
@@ -541,6 +550,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       ctx.restore()
     },
     drawWorld(ctx) {
+      drawInkClips(ctx)
       ctx.save()
       for (let i = 0; i < ps.length; i++) {
         const p = ps[i]

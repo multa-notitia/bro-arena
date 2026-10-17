@@ -10,6 +10,7 @@ import type {
 } from '../core/types.ts'
 import { WEAPONS, weaponCooldown, weaponDamage, weaponRange } from '../data/weapons.ts'
 import { boardKnifeSlash } from '../render/look.ts'
+import { clipHasEvent, resolveSheet, sheetKeysForPlayer } from '../render/sheets.ts'
 import { dealDamageToEnemy } from './combat.ts'
 import { hitTree, nearestTree } from './pickups.ts'
 import { spawnProjectile } from './projectiles.ts'
@@ -123,8 +124,12 @@ function fireShot(
   const muzzle = 18
   const mx = player.x + Math.cos(angle) * muzzle
   const my = player.y + Math.sin(angle) * muzzle
-  ctx.render.fx.hitSpark(mx, my, angle, color)
-  ctx.render.fx.muzzleFlash(mx, my, angle, color)
+  const heroSheet = resolveSheet(sheetKeysForPlayer(player.character.species, player.model))
+  const authoredFlash = !!heroSheet && clipHasEvent(heroSheet, 'attack', 'spawnFx')
+  if (!authoredFlash) {
+    ctx.render.fx.hitSpark(mx, my, angle, color)
+    ctx.render.fx.muzzleFlash(mx, my, angle, color)
+  }
   player.anim.kick.x -= Math.cos(angle) * 9
   player.anim.kick.y -= Math.sin(angle) * 9
   addTrauma(world, FEEL.shake.weaponKick, -Math.cos(angle), -Math.sin(angle))

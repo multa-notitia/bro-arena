@@ -143,7 +143,7 @@ export class Run {
       this.bootT += dt
       if (this.bootT > 0.2) this.deps.ui.setBootCopy('The soil is settling.')
       if (this.bootT > 0.45 && isConceptAReady() && isBoardReady() && isSpriteSheetsReady()) this.enterTitle()
-      else if (this.bootT > 1.8) this.enterTitle()
+      else if (this.bootT > 8) this.enterTitle()
       return
     }
 
@@ -396,8 +396,7 @@ export class Run {
 
     if (this.dying) {
       this.deathTimer -= dt
-      updatePlayer(world, simDt, { x: 0, y: 0 }, ctx)
-      world.player.anim.deathT = Math.min(1, (0.6 - this.deathTimer) / 0.45)
+      updatePlayer(world, dt, { x: 0, y: 0 }, ctx)
       updateEnemies(world, simDt, ctx)
       updateProjectiles(world, simDt, ctx)
       updatePickups(world, simDt, ctx)
@@ -436,7 +435,7 @@ export class Run {
 
     if (world.player.hp <= 0 && !this.dying) {
       this.dying = true
-      this.deathTimer = 0.6
+      this.deathTimer = 0.72
       world.slowMo = 0.22
       world.player.anim.deathT = 0
       this.killedBy = peekKillSource() ?? takeKillSource() ?? 'the soil'

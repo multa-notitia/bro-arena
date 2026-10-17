@@ -1,0 +1,105 @@
+{
+ "image": "fx-ink.webp",
+ "frameWidth": 128,
+ "frameHeight": 128,
+ "columns": 6,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.5
+ },
+ "clips": {
+  "muzzle": {
+   "loop": false,
+   "anchor": {
+    "x": 0.493,
+    "y": 0.52
+   },
+   "frames": [
+    { "i": 0, "ms": 30 },
+    { "i": 1, "ms": 35 },
+    { "i": 2, "ms": 35 },
+    { "i": 3, "ms": 40 },
+    { "i": 4, "ms": 40 },
+    { "i": 5, "ms": 45 }
+   ]
+  },
+  "hitSpark": {
+   "loop": false,
+   "anchor": {
+    "x": 0.496,
+    "y": 0.549
+   },
+   "frames": [
+    { "i": 6, "ms": 35 },
+    { "i": 7, "ms": 40 },
+    { "i": 8, "ms": 40 },
+    { "i": 9, "ms": 45 },
+    { "i": 10, "ms": 50 },
+    { "i": 11, "ms": 60 }
+   ]
+  },
+  "inkBurst": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.84
+   },
+   "frames": [
+    { "i": 12, "ms": 40 },
+    { "i": 13, "ms": 45 },
+    { "i": 14, "ms": 45 },
+    { "i": 15, "ms": 50 },
+    { "i": 16, "ms": 60 },
+    { "i": 17, "ms": 120 }
+   ]
+  },
+  "dust": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.817
+   },
+   "frames": [
+    { "i": 18, "ms": 45 },
+    { "i": 19, "ms": 50 },
+    { "i": 20, "ms": 55 },
+    { "i": 21, "ms": 60 },
+    { "i": 22, "ms": 70 },
+    { "i": 23, "ms": 90 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "VFX",
+  "source": "image16.jpg",
+  "cells": [
+   "muzzle0",
+   "muzzle1",
+   "muzzle2",
+   "muzzle3",
+   "muzzle4",
+   "muzzle5",
+   "hitSpark0",
+   "hitSpark1",
+   "hitSpark2",
+   "hitSpark3",
+   "hitSpark4",
+   "hitSpark5",
+   "inkBurst0",
+   "inkBurst1",
+   "inkBurst2",
+   "inkBurst3",
+   "inkBurst4",
+   "inkBurst5",
+   "dust0",
+   "dust1",
+   "dust2",
+   "dust3",
+   "dust4",
+   "dust5"
+  ],
+  "scaleFromSource": 0.659,
+  "note": "custom clip names (muzzle/hitSpark/inkBurst/dust): the stock parser only keeps idle/walk/hurt/attack/death, so a VFX player must read clips by name. Each clip carries its own anchor (centre for sparks, ground contact for ink/dust).",
+  "pngFallback": "fx-ink.png"
+ }
+}

@@ -1,6 +1,7 @@
 import { TAU, clamp, hashNoise, lerp } from '../core/math.ts'
 import { getPaintStyle, lookKey } from './look.ts'
 import { paperColor } from './paintLang.ts'
+import { gardenGround } from './sheets.ts'
 import {
   granulate,
   inkStroke,
@@ -471,7 +472,7 @@ function tileFill(
   y: number,
   w: number,
   h: number,
-  pick: (tx: number, ty: number) => HTMLCanvasElement,
+  pick: (tx: number, ty: number) => CanvasImageSource,
 ): void {
   const t0x = Math.floor(x / GROUND_TILE)
   const t0y = Math.floor(y / GROUND_TILE)
@@ -503,10 +504,15 @@ export function drawPaddock(
   ctx.beginPath()
   ctx.rect(-aw, -ah, aw * 2, ah * 2)
   ctx.clip()
-  tileFill(ctx, viewL, viewT, viewW, viewH, (tx, ty) => {
-    const v = Math.floor(hashNoise(tx + 3, (ty + 11) | 0) * 4) % 4
-    return paddockTile(v, q)
-  })
+  const garden = gardenGround(q >= 2)
+  if (garden) {
+    tileFill(ctx, viewL, viewT, viewW, viewH, () => garden)
+  } else {
+    tileFill(ctx, viewL, viewT, viewW, viewH, (tx, ty) => {
+      const v = Math.floor(hashNoise(tx + 3, (ty + 11) | 0) * 4) % 4
+      return paddockTile(v, q)
+    })
+  }
   ctx.restore()
 
   const overlay = borderOverlay(aw, ah)

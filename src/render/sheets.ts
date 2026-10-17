@@ -12,48 +12,21 @@
  *   player-<species>           e.g. player-chili
  *   enemy-<kind>-<form>        e.g. enemy-blob-nightmare
  *   enemy-<kind>               e.g. enemy-blob
+ *   fx-ink, pickups, prop-furrow, prop-bed, ground-garden
  *
  * The JSON is the animation. This player does not invent frame order, fps,
  * squash curves, or VFX sequences — it steps the clip data exactly.
  *
- *   {
- *     "image": "chili.webp",
- *     "frameWidth": 64,
- *     "frameHeight": 64,
- *     "columns": 8,
- *     "anchor": { "x": 0.5, "y": 0.88 },
- *     "clips": {
- *       "idle": {
- *         "loop": true,
- *         "frames": [
- *           { "i": 0, "ms": 140 },
- *           { "i": 1, "ms": 140, "scaleX": 1.04, "scaleY": 0.96, "ox": 0, "oy": -1 }
- *         ]
- *       },
- *       "walk": { "loop": true, "frames": [ { "i": 8, "ms": 80 }, { "i": 9, "ms": 80 } ] },
- *       "hurt": { "loop": false, "frames": [ { "i": 16, "ms": 60, "event": "hit" } ] },
- *       "attack": {
- *         "loop": false,
- *         "anchor": { "x": 0.45, "y": 0.88 },
- *         "frames": [
- *           { "i": 24, "ms": 50 },
- *           { "i": 25, "ms": 40, "event": "hit" },
- *           { "i": 26, "ms": 80, "events": ["spawnFx"] }
- *         ]
- *       },
- *       "death": { "loop": false, "frames": [ { "i": 32, "ms": 90 }, { "i": 33, "ms": 180 } ] }
- *     }
- *   }
+ * Frame `i` is a cell in row-major order using the JSON `columns`. Atlases are
+ * not assumed square and are not assumed to be 1024 wide: spitter, charger
+ * and the elite pea are 2048×1024.
  *
- * Frame `i` is a 0-based cell in the grid (left-to-right, top-to-bottom).
- * `col`/`row` also work. `ms` is that cell's duration. `event` / `events`
- * fire once when the playhead enters the cell (`hit`, `spawnFx`, …).
- * Add an id to SHEET_PRELOAD to fetch at boot instead of first draw.
+ * `event` / `events` fire once when the playhead enters the cell.
+ * Gameplay (shots, dashes, slams) reads those events from `advanceActorSheet`
+ * during the sim step. `drawActorSheet` only paints the frame the sim landed on.
  */
 import { clamp } from '../core/math.ts'
 import type { AnimState, EnemyKind, Form, ModelDir, Species } from '../core/types.ts'
-
-export type ClipName = 'idle' | 'walk' | 'hurt' | 'attack' | 'death'
 
 export interface SheetAnchor {
   x: number
@@ -80,36 +53,75 @@ export interface SheetManifest {
   image: string
   frameWidth: number
   frameHeight: number
-  columns?: number
+  /** Grid columns from the JSON. Cell i → col = i % columns, row = floor(i / columns). */
+  columns: number
   anchor: SheetAnchor
-  clips: Partial<Record<ClipName, SheetClip>>
+  clips: Record<string, SheetClip>
+  image2x?: string
+  pngFallback?: string
 }
 
 export interface LoadedSheet {
   id: string
   img: HTMLImageElement
+  img2x?: HTMLImageElement
   manifest: SheetManifest
   columns: number
 }
 
 const BASE = '/sprites'
-const CLIP_NAMES: ClipName[] = ['idle', 'walk', 'hurt', 'attack', 'death']
 
-/** Extra ids to fetch during boot. */
-export const SHEET_PRELOAD: string[] = []
+/** Actor sheets plus the fx, pickup and prop sheets the sim and the world draw. */
+export const SHEET_PRELOAD: string[] = [
+  'player-radish',
+  'player-potato',
+  'player-carrot',
+  'player-chili',
+  'enemy-blob',
+  'enemy-charger',
+  'enemy-spitter',
+  'enemy-eliteBlob',
+  'fx-ink',
+  'pickups',
+  'prop-furrow',
+  'prop-bed',
+]
 
 const cache = new Map<string, LoadedSheet>()
 const missing = new Set<string>()
 const inflight = new Map<string, Promise<LoadedSheet | null>>()
 
-interface Playhead {
-  clip: ClipName
+interface ClipHead {
   elapsed: number
   index: number
-  fired: boolean
+  duration: number
+  loop: boolean
 }
 
-const heads = new Map<string, Playhead>()
+interface ActorHead {
+  clip: string
+  clips: Map<string, ClipHead>
+}
+
+const heads = new Map<string, ActorHead>()
+const warned = new Set<string>()
+
+interface InkBurst {
+  clip: string
+  elapsed: number
+  duration: number
+  x: number
+  y: number
+  angle: number
+  scale: number
+  rotate: boolean
+}
+
+const inkBursts: InkBurst[] = []
+const INK_CAP = 48
+
+const ground: { lo: HTMLImageElement | null; hi: HTMLImageElement | null } = { lo: null, hi: null }
+
 let bootDone = false
 
 function num(v: unknown, fallback: number): number {
@@ -127,7 +139,7 @@ function parseEvents(frame: Record<string, unknown>): string[] {
   if (typeof frame.event === 'string' && frame.event) out.push(frame.event)
   const list = frame.events
   if (Array.isArray(list)) {
-    for (const e of list) if (typeof e === 'string' && e) out.push(e)
+    for (const e of list) if (typeof e === 'string' && e && !out.includes(e)) out.push(e)
   }
   return out
 }
@@ -185,16 +197,20 @@ function parseManifest(raw: unknown): SheetManifest | null {
   const o = raw as Record<string, unknown>
   if (typeof o.image !== 'string' || typeof o.frameWidth !== 'number' || typeof o.frameHeight !== 'number') return null
   if (o.frameWidth <= 0 || o.frameHeight <= 0) return null
-  const columns = typeof o.columns === 'number' && o.columns > 0 ? o.columns : 8
+  const columns = typeof o.columns === 'number' && o.columns > 0 ? Math.floor(o.columns) : 0
   const defaultMs = num(o.ms ?? o.durationMs, 100)
-  const clips: Partial<Record<ClipName, SheetClip>> = {}
   const src = o.clips && typeof o.clips === 'object' ? (o.clips as Record<string, unknown>) : null
   if (!src) return null
-  for (const name of CLIP_NAMES) {
-    const clip = parseClip(src[name], columns, defaultMs)
+  const clips: Record<string, SheetClip> = {}
+  const grid = columns > 0 ? columns : 8
+  for (const name of Object.keys(src)) {
+    const clip = parseClip(src[name], grid, defaultMs)
     if (clip) clips[name] = clip
   }
   if (!Object.keys(clips).length) return null
+  const meta = o.meta && typeof o.meta === 'object' ? (o.meta as Record<string, unknown>) : null
+  const image2x = meta && typeof meta.image2x === 'string' ? meta.image2x : undefined
+  const pngFallback = meta && typeof meta.pngFallback === 'string' ? meta.pngFallback : undefined
   return {
     image: o.image,
     frameWidth: o.frameWidth,
@@ -202,6 +218,8 @@ function parseManifest(raw: unknown): SheetManifest | null {
     columns,
     anchor: parseAnchor(o.anchor, { x: 0.5, y: 0.88 }),
     clips,
+    image2x,
+    pngFallback,
   }
 }
 
@@ -220,6 +238,24 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   })
 }
 
+async function loadImageWithFallback(file: string, fallback?: string): Promise<HTMLImageElement> {
+  try {
+    return await loadImage(imageUrl(file))
+  } catch (err) {
+    if (!fallback || fallback === file) throw err
+    return loadImage(imageUrl(fallback))
+  }
+}
+
+/**
+ * Columns come from the JSON. Only when a manifest omits them do we derive the
+ * count from the bitmap's real width — never from a 1024-wide or square guess.
+ */
+function columnsFor(manifest: SheetManifest, img: HTMLImageElement): number {
+  if (manifest.columns > 0) return manifest.columns
+  return Math.max(1, Math.floor(img.naturalWidth / manifest.frameWidth))
+}
+
 async function fetchSheet(id: string): Promise<LoadedSheet | null> {
   if (cache.has(id) || missing.has(id)) return cache.get(id) ?? null
   try {
@@ -233,9 +269,19 @@ async function fetchSheet(id: string): Promise<LoadedSheet | null> {
       missing.add(id)
       return null
     }
-    const img = await loadImage(imageUrl(manifest.image))
-    const columns = manifest.columns ?? Math.max(1, Math.floor(img.naturalWidth / manifest.frameWidth))
-    const loaded: LoadedSheet = { id, img, manifest, columns }
+    const img = await loadImageWithFallback(manifest.image, manifest.pngFallback)
+    let img2x: HTMLImageElement | undefined
+    if (manifest.image2x) {
+      const png2 = manifest.image2x.replace(/\.webp$/i, '.png')
+      try {
+        img2x = await loadImageWithFallback(manifest.image2x, png2 !== manifest.image2x ? png2 : undefined)
+      } catch {
+        img2x = undefined
+      }
+    }
+    const columns = columnsFor(manifest, img)
+    manifest.columns = columns
+    const loaded: LoadedSheet = { id, img, img2x, manifest, columns }
     cache.set(id, loaded)
     return loaded
   } catch {
@@ -255,6 +301,19 @@ function requestSheet(id: string): Promise<LoadedSheet | null> {
   return p
 }
 
+async function loadGround(): Promise<void> {
+  try {
+    ground.lo = await loadImageWithFallback('ground-garden.webp', 'ground-garden.png')
+  } catch {
+    ground.lo = null
+  }
+  try {
+    ground.hi = await loadImage(imageUrl('ground-garden@2x.png'))
+  } catch {
+    ground.hi = null
+  }
+}
+
 export function sheetKeysForPlayer(species: Species, model?: ModelDir): string[] {
   const keys: string[] = []
   if (model) keys.push(`player-${species}-${model}`)
@@ -263,7 +322,10 @@ export function sheetKeysForPlayer(species: Species, model?: ModelDir): string[]
 }
 
 export function sheetKeysForEnemy(kind: EnemyKind, form: Form): string[] {
-  return [`enemy-${kind}-${form}`, `enemy-${kind}`]
+  const keys = [`enemy-${kind}-${form}`, `enemy-${kind}`]
+  // Garlic (wisp) spits too. The worm sheet is the shooter; reuse it when no enemy-wisp file exists.
+  if (kind === 'wisp') keys.push('enemy-spitter')
+  return keys
 }
 
 export function resolveSheet(keys: readonly string[]): LoadedSheet | null {
@@ -277,95 +339,348 @@ export function resolveSheet(keys: readonly string[]): LoadedSheet | null {
   return null
 }
 
-export function pickClip(
+export function sheetById(id: string): LoadedSheet | null {
+  return resolveSheet([id])
+}
+
+/** Painted garden tile. `@2x` when the caller is on a dense viewport. */
+export function gardenGround(hi: boolean): HTMLImageElement | null {
+  if (hi && ground.hi) return ground.hi
+  return ground.lo
+}
+
+export function chooseClip(
   sheet: LoadedSheet,
-  anim: AnimState,
-  opts: { swinging?: boolean } = {},
-): ClipName | null {
+  opts: { dead?: boolean; hurt?: boolean; attacking?: boolean; moving?: boolean },
+): string | null {
   const clips = sheet.manifest.clips
-  const want: ClipName[] = []
-  if (anim.deathT >= 0) want.push('death')
-  if (anim.hitFlash > 0.35) want.push('hurt')
-  if (opts.swinging) want.push('attack')
-  if (anim.moving) want.push('walk')
+  const want: string[] = []
+  if (opts.dead) want.push('death')
+  if (opts.hurt) want.push('hurt')
+  if (opts.attacking) want.push('attack')
+  if (opts.moving) want.push('walk')
   want.push('idle', 'walk')
   for (const name of want) if (clips[name]) return name
   return null
+}
+
+export function pickClip(
+  sheet: LoadedSheet,
+  anim: AnimState,
+  opts: { swinging?: boolean; attacking?: boolean } = {},
+): string | null {
+  return chooseClip(sheet, {
+    dead: anim.deathT >= 0,
+    hurt: anim.hitFlash > 0.25,
+    attacking: !!(opts.attacking || opts.swinging),
+    moving: anim.moving,
+  })
 }
 
 function snapScale(s: number): number {
   return Math.max(0.25, Math.round(s * 2) / 2)
 }
 
-function sampleFrame(clip: SheetClip, elapsed: number): { index: number; frame: SheetFrame } {
+function clipDurationMs(clip: SheetClip): number {
+  let total = 0
+  for (const f of clip.frames) total += f.ms
+  return total
+}
+
+export function sheetClipSeconds(sheet: LoadedSheet, name: string): number {
+  const clip = sheet.manifest.clips[name]
+  if (!clip) return 0
+  return clipDurationMs(clip) / 1000
+}
+
+export function clipHasEvent(sheet: LoadedSheet, name: string, event: string): boolean {
+  const clip = sheet.manifest.clips[name]
+  if (!clip) return false
+  for (const f of clip.frames) if (f.events.includes(event)) return true
+  return false
+}
+
+interface Located {
+  index: number
+  start: number
+  frame: SheetFrame
+}
+
+function locate(clip: SheetClip, elapsed: number): Located {
   const frames = clip.frames
   const n = frames.length
-  if (n === 0) return { index: 0, frame: { i: 0, ms: 1, scaleX: 1, scaleY: 1, ox: 0, oy: 0, events: [] } }
-  let total = 0
-  for (const f of frames) total += f.ms
-  if (total <= 0) return { index: 0, frame: frames[0]! }
-  let t = clip.loop ? elapsed % total : Math.min(elapsed, total - 1)
+  const empty: SheetFrame = { i: 0, ms: 1, scaleX: 1, scaleY: 1, ox: 0, oy: 0, events: [] }
+  if (n === 0) return { index: 0, start: 0, frame: empty }
+  const dur = clipDurationMs(clip)
+  let local = elapsed
+  if (clip.loop && dur > 0) local = elapsed % dur
+  else if (local >= dur) local = Math.max(0, dur - 0.001)
+  let t = 0
   for (let i = 0; i < n; i++) {
     const f = frames[i]!
-    if (t < f.ms || i === n - 1) return { index: i, frame: f }
-    t -= f.ms
+    if (local < t + f.ms || i === n - 1) return { index: i, start: t, frame: f }
+    t += f.ms
   }
-  return { index: n - 1, frame: frames[n - 1]! }
+  const last = frames[n - 1]!
+  return { index: n - 1, start: dur - last.ms, frame: last }
 }
 
-export function resetSheetPlayback(): void {
-  heads.clear()
-}
-
-export function drawActorSheet(
-  ctx: CanvasRenderingContext2D,
-  sheet: LoadedSheet,
-  playKey: string,
-  clipName: ClipName,
-  dt: number,
-  opts: { r: number; facing: 1 | -1; alpha: number },
-): string[] {
-  const clip = sheet.manifest.clips[clipName]
-  if (!clip || !clip.frames.length) return []
-
+function actor(playKey: string): ActorHead {
   let head = heads.get(playKey)
-  if (!head || head.clip !== clipName) {
-    head = { clip: clipName, elapsed: 0, index: -1, fired: false }
+  if (!head) {
+    head = { clip: '', clips: new Map() }
     heads.set(playKey, head)
   }
-  head.elapsed += Math.max(0, dt) * 1000
-  const { index, frame } = sampleFrame(clip, head.elapsed)
-  const entered = index !== head.index
-  if (entered) {
-    head.index = index
-    head.fired = false
-  }
-  const events = entered && !head.fired ? frame.events : []
-  if (entered) head.fired = true
+  return head
+}
 
-  const { manifest, img, columns } = sheet
-  const fw = manifest.frameWidth
-  const fh = manifest.frameHeight
+function bindClip(head: ActorHead, name: string, clip: SheetClip): ClipHead {
+  let slot = head.clips.get(name)
+  if (!slot) {
+    slot = { elapsed: 0, index: -1, duration: clipDurationMs(clip), loop: clip.loop }
+    head.clips.set(name, slot)
+  }
+  slot.loop = clip.loop
+  slot.duration = clipDurationMs(clip)
+  head.clip = name
+  return slot
+}
+
+/** Start this clip over so its first frame (and its events) play again. */
+export function restartActorClip(playKey: string, clipName: string): void {
+  const head = actor(playKey)
+  head.clip = clipName
+  const slot = head.clips.get(clipName)
+  if (slot) {
+    slot.elapsed = 0
+    slot.index = -1
+  } else {
+    head.clips.set(clipName, { elapsed: 0, index: -1, duration: 0, loop: false })
+  }
+}
+
+export function forgetActor(playKey: string): void {
+  heads.delete(playKey)
+}
+
+export function actorClipDone(playKey: string, clipName?: string): boolean {
+  const head = heads.get(playKey)
+  if (!head) return false
+  const name = clipName || head.clip
+  const slot = head.clips.get(name)
+  if (!slot || slot.loop || slot.duration <= 0) return false
+  return slot.elapsed + 0.01 >= slot.duration
+}
+
+/**
+ * Step a clip by `dt` seconds and return every event whose frame was entered,
+ * including frames a long step skipped. Looping clips keep their phase when
+ * you come back to them; call `restartActorClip` to swing again from the top.
+ */
+export function advanceActorSheet(playKey: string, sheet: LoadedSheet, clipName: string, dt: number): string[] {
+  const clip = sheet.manifest.clips[clipName]
+  if (!clip || !clip.frames.length) return []
+  const slot = bindClip(actor(playKey), clipName, clip)
+  const dur = slot.duration
+  if (dur <= 0) return []
+  let left = Math.max(0, dt) * 1000
+  if (!slot.loop) left = Math.min(left, Math.max(0, dur - slot.elapsed))
+  const events: string[] = []
+  let guard = 0
+  while (left > 0.01 && guard++ < 48) {
+    const local = slot.loop ? slot.elapsed % dur : Math.min(slot.elapsed, dur - 0.001)
+    const at = locate(clip, local)
+    if (at.index !== slot.index) {
+      slot.index = at.index
+      if (at.frame.events.length) events.push(...at.frame.events)
+    }
+    const into = local - at.start
+    const remain = Math.max(0.01, at.frame.ms - into)
+    const step = Math.min(remain, left)
+    slot.elapsed += step
+    left -= step
+    if (slot.loop && slot.elapsed >= dur) {
+      slot.elapsed -= dur
+      slot.index = -1
+    }
+    if (step <= 0) break
+  }
+  return events
+}
+
+function paintFrame(
+  ctx: CanvasRenderingContext2D,
+  sheet: LoadedSheet,
+  clip: SheetClip,
+  frame: SheetFrame,
+  opts: { fit: number; facing: 1 | -1; alpha: number },
+): void {
+  const { img, columns } = sheet
+  const fw = sheet.manifest.frameWidth
+  const fh = sheet.manifest.frameHeight
   const col = frame.i % columns
   const row = Math.floor(frame.i / columns)
   const sx = col * fw
   const sy = row * fh
-  if (sx + fw > img.naturalWidth + 0.5 || sy + fh > img.naturalHeight + 0.5) return events
-
-  const anchor = clip.anchor ?? manifest.anchor
+  if (sx + fw > img.naturalWidth + 0.5 || sy + fh > img.naturalHeight + 0.5) {
+    const key = `${sheet.id}:${frame.i}`
+    if (!warned.has(key)) {
+      warned.add(key)
+      console.warn(
+        `sheet ${sheet.id} cell ${frame.i} is outside ${img.naturalWidth}×${img.naturalHeight} (columns ${columns})`,
+      )
+    }
+    return
+  }
+  const anchor = clip.anchor ?? sheet.manifest.anchor
   const ax = anchor.x * fw
   const ay = anchor.y * fh
-  const fit = snapScale((opts.r * 2.35) / Math.max(fw, fh))
-
   ctx.save()
   ctx.globalAlpha *= opts.alpha
   ctx.imageSmoothingEnabled = true
   ctx.imageSmoothingQuality = 'high'
   ctx.translate(frame.ox * opts.facing, frame.oy)
-  ctx.scale(opts.facing * fit * frame.scaleX, fit * frame.scaleY)
+  ctx.scale(opts.facing * opts.fit * frame.scaleX, opts.fit * frame.scaleY)
   ctx.drawImage(img, sx, sy, fw, fh, -ax, -ay, fw, fh)
   ctx.restore()
-  return events
+}
+
+/** Paint the frame `advanceActorSheet` has already stepped. Does not move the playhead. */
+export function drawActorSheet(
+  ctx: CanvasRenderingContext2D,
+  sheet: LoadedSheet,
+  playKey: string,
+  clipName: string,
+  opts: { r: number; facing: 1 | -1; alpha: number },
+): void {
+  const clip = sheet.manifest.clips[clipName]
+  if (!clip || !clip.frames.length) return
+  const slot = actor(playKey).clips.get(clipName)
+  const elapsed = slot?.elapsed ?? 0
+  const { frame } = locate(clip, elapsed)
+  const fw = sheet.manifest.frameWidth
+  const fh = sheet.manifest.frameHeight
+  const fit = snapScale((opts.r * 2.35) / Math.max(fw, fh))
+  paintFrame(ctx, sheet, clip, frame, { fit, facing: opts.facing, alpha: opts.alpha })
+}
+
+/**
+ * Step and paint a clip by name. Used for sheets whose clip names are not the
+ * actor set (pickups: coin, heart, chest, …). `scale` is world px per image px.
+ */
+export function drawNamedClip(
+  ctx: CanvasRenderingContext2D,
+  sheet: LoadedSheet,
+  playKey: string,
+  clipName: string,
+  dt: number,
+  opts: { scale: number; facing?: 1 | -1; alpha?: number },
+): boolean {
+  const clip = sheet.manifest.clips[clipName]
+  if (!clip) return false
+  advanceActorSheet(playKey, sheet, clipName, dt)
+  const slot = actor(playKey).clips.get(clipName)
+  const { frame } = locate(clip, slot?.elapsed ?? 0)
+  paintFrame(ctx, sheet, clip, frame, {
+    fit: opts.scale,
+    facing: opts.facing ?? 1,
+    alpha: opts.alpha ?? 1,
+  })
+  return true
+}
+
+/** Static prop. `width` is world px; height keeps the bitmap aspect. `@2x` when `hi`. */
+export function drawProp(
+  ctx: CanvasRenderingContext2D,
+  id: string,
+  x: number,
+  y: number,
+  opts?: { width?: number; hi?: boolean },
+): boolean {
+  const sheet = resolveSheet([id])
+  if (!sheet) return false
+  const img = opts?.hi && sheet.img2x ? sheet.img2x : sheet.img
+  const fw = sheet.manifest.frameWidth
+  const fh = sheet.manifest.frameHeight
+  const w = opts?.width ?? fw
+  const h = fh * (w / fw)
+  ctx.save()
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(img, x - w / 2, y - h / 2, w, h)
+  ctx.restore()
+  return true
+}
+
+export function spawnInkClip(
+  name: string,
+  x: number,
+  y: number,
+  opts?: { angle?: number; scale?: number; rotate?: boolean },
+): boolean {
+  const sheet = resolveSheet(['fx-ink'])
+  const clip = sheet?.manifest.clips[name]
+  if (!sheet || !clip) return false
+  if (inkBursts.length >= INK_CAP) inkBursts.shift()
+  inkBursts.push({
+    clip: name,
+    elapsed: 0,
+    duration: clipDurationMs(clip),
+    x,
+    y,
+    angle: opts?.angle ?? 0,
+    scale: opts?.scale ?? 0.36,
+    rotate: !!opts?.rotate,
+  })
+  return true
+}
+
+export function tickInkClips(dt: number): void {
+  const step = Math.max(0, dt) * 1000
+  for (let i = inkBursts.length - 1; i >= 0; i--) {
+    const b = inkBursts[i]
+    if (!b) continue
+    b.elapsed += step
+    if (b.elapsed >= b.duration) inkBursts.splice(i, 1)
+  }
+}
+
+export function drawInkClips(ctx: CanvasRenderingContext2D): void {
+  const sheet = cache.get('fx-ink')
+  if (!sheet || inkBursts.length === 0) return
+  for (const b of inkBursts) {
+    const clip = sheet.manifest.clips[b.clip]
+    if (!clip) continue
+    const { frame } = locate(clip, b.elapsed)
+    const fw = sheet.manifest.frameWidth
+    const fh = sheet.manifest.frameHeight
+    const col = frame.i % sheet.columns
+    const row = Math.floor(frame.i / sheet.columns)
+    const anchor = clip.anchor ?? sheet.manifest.anchor
+    ctx.save()
+    ctx.translate(b.x, b.y)
+    if (b.rotate) ctx.rotate(b.angle)
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    ctx.scale(b.scale, b.scale)
+    ctx.drawImage(
+      sheet.img,
+      col * fw,
+      row * fh,
+      fw,
+      fh,
+      -anchor.x * fw,
+      -anchor.y * fh,
+      fw,
+      fh,
+    )
+    ctx.restore()
+  }
+}
+
+export function resetSheetPlayback(): void {
+  heads.clear()
+  inkBursts.length = 0
 }
 
 export function isSpriteSheetsReady(): boolean {
@@ -375,11 +690,7 @@ export function isSpriteSheetsReady(): boolean {
 export function preloadSpriteSheets(): Promise<void> {
   if (bootDone) return Promise.resolve()
   const ids = [...new Set(SHEET_PRELOAD)]
-  if (ids.length === 0) {
-    bootDone = true
-    return Promise.resolve()
-  }
-  return Promise.all(ids.map((id) => requestSheet(id))).then(() => {
+  return Promise.all([loadGround(), ...ids.map((id) => requestSheet(id))]).then(() => {
     bootDone = true
   })
 }

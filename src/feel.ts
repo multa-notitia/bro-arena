@@ -8,10 +8,14 @@ const JUICE_KEY = 'bro.reducedJuice'
 
 export const FEEL = {
   camera: {
-    /** Smaller = closer. Was 780. */
+    /** Smaller = closer. Was 780, then 640. */
     worldWidth: 640,
-    zoomMin: 1.08,
-    zoomMax: 2.7,
+    /**
+     * Heroes are ~37–40 world px tall at the authored fit of 0.25.
+     * This zoom band keeps them 64–80 css px (37×1.73 ≈ 64, 40×2 = 80).
+     */
+    zoomMin: 1.73,
+    zoomMax: 2,
   },
   shake: {
     max: 22,

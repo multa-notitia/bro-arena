@@ -18,6 +18,7 @@ import { ITEMS } from '../data/items.ts'
 import { computeStats } from '../data/stats.ts'
 import { xpForLevel } from '../data/economy.ts'
 import type { SimCtx } from './world.ts'
+import { advanceActorSheet, resolveSheet, sheetKeysForPlayer } from '../render/sheets.ts'
 
 const START_RICH = 40
 const MOVE_ACCEL = 2100
@@ -274,6 +275,43 @@ export function countSpecial(player: Player, special: ItemSpecial): number {
   return n
 }
 
+function stepPlayerSheet(world: World, dt: number, ctx: SimCtx): void {
+  const player = world.player
+  const sheet = resolveSheet(sheetKeysForPlayer(player.character.species, player.model))
+  if (!sheet) return
+  const anim = player.anim
+  const swinging = player.weapons.some((w) => w.swingT >= 0)
+  const dead = anim.deathT >= 0 || player.hp <= 0
+  const hurt = !dead && anim.hitFlash > 0.25 && !!sheet.manifest.clips.hurt
+  const clip = dead
+    ? sheet.manifest.clips.death
+      ? 'death'
+      : null
+    : hurt
+      ? 'hurt'
+      : swinging && sheet.manifest.clips.attack
+        ? 'attack'
+        : anim.moving && sheet.manifest.clips.walk
+          ? 'walk'
+          : sheet.manifest.clips.idle
+            ? 'idle'
+            : null
+  const flash = (events: string[], from: string) => {
+    if (!events.includes('spawnFx')) return
+    if (from === 'death') ctx.render.fx.inkBurst(player.x, player.y, player.r * 1.6)
+    else {
+      const ang = player.facingAngle
+      ctx.render.fx.muzzleFlash(player.x + Math.cos(ang) * 16, player.y + Math.sin(ang) * 10, ang)
+    }
+  }
+  if (hurt && swinging && sheet.manifest.clips.attack) {
+    flash(advanceActorSheet('player', sheet, 'attack', dt), 'attack')
+  }
+  if (clip) flash(advanceActorSheet('player', sheet, clip, dt), clip)
+  anim.bob = 0
+  anim.squash = 1
+}
+
 export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): void {
   const player = world.player
   const anim = player.anim
@@ -288,13 +326,14 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
     player.vx = 0
     player.vy = 0
     anim.moving = false
-    anim.bob = Math.sin(anim.t * 2) * 0.4
+    anim.bob = 0
     anim.kick.x = damp(anim.kick.x, 0, 8, dt)
     anim.kick.y = damp(anim.kick.y, 0, 8, dt)
     if (anim.deathT < 0) anim.deathT = 0
     anim.deathT = Math.min(1, anim.deathT + dt / 0.55)
     anim.scream = -1
     anim.mouth = 0.2
+    stepPlayerSheet(world, dt, ctx)
     return
   }
 
@@ -381,6 +420,8 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
   }
 
   player.facingAngle = wrapAngle(player.facingAngle)
+
+  stepPlayerSheet(world, dt, ctx)
 
   const screaming = extra.screamLeft > 0
   tickFaceAnim(anim, dt, extra, {

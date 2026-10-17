@@ -1,0 +1,118 @@
+{
+ "image": "enemy-eliteBlob.webp",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "columns": 8,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.698
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 170 },
+    { "i": 1, "ms": 160 },
+    { "i": 2, "ms": 150 },
+    { "i": 3, "ms": 150 },
+    { "i": 4, "ms": 160 },
+    { "i": 5, "ms": 170 },
+    { "i": 6, "ms": 160 },
+    { "i": 7, "ms": 150 },
+    { "i": 8, "ms": 150 },
+    { "i": 9, "ms": 160 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 10, "ms": 120 },
+    { "i": 11, "ms": 120 },
+    { "i": 12, "ms": 120 },
+    { "i": 13, "ms": 120 },
+    { "i": 14, "ms": 120 },
+    { "i": 15, "ms": 120 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 16, "ms": 40, "ox": -2.5, "event": "hurt" },
+    { "i": 17, "ms": 60, "ox": -2.0 },
+    { "i": 18, "ms": 80, "ox": -1.0 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 19, "ms": 130 },
+    { "i": 20, "ms": 130 },
+    { "i": 21, "ms": 120 },
+    { "i": 22, "ms": 50, "ox": 1.6 },
+    { "i": 22, "ms": 50, "scaleX": 1.02, "ox": -1.4 },
+    { "i": 22, "ms": 50, "scaleX": 0.99, "ox": 1.3 },
+    { "i": 22, "ms": 50, "scaleX": 1.02, "ox": -1.6 },
+    { "i": 23, "ms": 45, "events": [ "hit", "spawnFx" ] },
+    { "i": 24, "ms": 80 },
+    { "i": 25, "ms": 100 },
+    { "i": 0, "ms": 80 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 26, "ms": 50, "ox": 2.0 },
+    { "i": 27, "ms": 50, "ox": -2.0 },
+    { "i": 28, "ms": 60, "ox": 1.0 },
+    { "i": 29, "ms": 50, "event": "spawnFx" },
+    { "i": 30, "ms": 80 },
+    { "i": 31, "ms": 80 },
+    { "i": 31, "ms": 70, "scaleX": 0.8, "scaleY": 0.8, "oy": 2.976 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Great Mud Pea (elite / boss, rigged)",
+  "source": "image14.jpg",
+  "cells": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "idle6",
+   "idle7",
+   "idle8",
+   "idle9",
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "attack7",
+   "attack8",
+   "attack9",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4",
+   "death5"
+  ],
+  "feetY": 238.08,
+  "gameRadius": 24,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-eliteBlob/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-eliteBlob.png"
+ }
+}

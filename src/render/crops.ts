@@ -1,9 +1,10 @@
 import { TAU } from '../core/math.ts'
 import type { CropId, Plot } from '../core/types.ts'
 import { CROPS, GARDEN_ROW_COUNT, GARDEN_ROWS } from '../data/crops.ts'
+import { drawProp } from './sheets.ts'
 import { inkStroke, makeCanvas, wash } from './watercolor.ts'
 
-function furrow(ctx: CanvasRenderingContext2D, plots: readonly Plot[], row: number): void {
+function furrow(ctx: CanvasRenderingContext2D, plots: readonly Plot[], row: number, hi: boolean): void {
   const inRow = plots.filter((p) => p.row === row)
   if (inRow.length === 0) return
   let minX = Infinity
@@ -17,6 +18,23 @@ function furrow(ctx: CanvasRenderingContext2D, plots: readonly Plot[], row: numb
   y /= inRow.length
   const midX = (minX + maxX) / 2
   const halfW = (maxX - minX) / 2 + 70
+  if (drawProp(ctx, 'prop-furrow', midX, y + 6, { hi })) {
+    const label = GARDEN_ROWS[row] ?? ''
+    ctx.save()
+    ctx.translate(midX, y + 8)
+    ctx.font = '700 15px Palatino, Georgia, serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    const tw = ctx.measureText(label).width
+    ctx.fillStyle = 'rgba(243, 234, 216, 0.78)'
+    ctx.beginPath()
+    ctx.roundRect(-tw / 2 - 8, -52, tw + 16, 18, 6)
+    ctx.fill()
+    ctx.fillStyle = 'rgba(42, 33, 24, 0.82)'
+    ctx.fillText(label, 0, -43)
+    ctx.restore()
+    return
+  }
   ctx.save()
   ctx.translate(midX, y + 8)
   ctx.fillStyle = 'rgba(48, 32, 16, 0.22)'
@@ -49,11 +67,12 @@ function furrow(ctx: CanvasRenderingContext2D, plots: readonly Plot[], row: numb
   ctx.restore()
 }
 
-export function drawFarmRows(ctx: CanvasRenderingContext2D, plots: readonly Plot[]): void {
-  for (let r = 0; r < GARDEN_ROW_COUNT; r++) furrow(ctx, plots, r)
+export function drawFarmRows(ctx: CanvasRenderingContext2D, plots: readonly Plot[], hi = false): void {
+  for (let r = 0; r < GARDEN_ROW_COUNT; r++) furrow(ctx, plots, r, hi)
 }
 
-function bed(ctx: CanvasRenderingContext2D, plot: Plot): void {
+function bed(ctx: CanvasRenderingContext2D, plot: Plot, hi: boolean): void {
+  if (drawProp(ctx, 'prop-bed', plot.x, plot.y + 4, { width: 118, hi })) return
   ctx.save()
   ctx.translate(plot.x, plot.y)
   ctx.fillStyle = 'rgba(42, 28, 16, 0.28)'
@@ -206,8 +225,8 @@ function foliage(ctx: CanvasRenderingContext2D, plot: Plot): void {
   ctx.restore()
 }
 
-export function drawFarmBeds(ctx: CanvasRenderingContext2D, plots: readonly Plot[]): void {
-  for (const p of plots) bed(ctx, p)
+export function drawFarmBeds(ctx: CanvasRenderingContext2D, plots: readonly Plot[], hi = false): void {
+  for (const p of plots) bed(ctx, p, hi)
 }
 
 export function drawFarmPlant(ctx: CanvasRenderingContext2D, plot: Plot): void {
