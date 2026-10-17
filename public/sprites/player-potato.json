@@ -63,8 +63,8 @@
   }
  },
  "meta": {
-  "title": "Spud hero (rigged v2, chunky painted parts)",
-  "source": "spud_src.png",
+  "title": "Spud hero (rigged, side view: 3/4 facing right, painted parts)",
+  "source": "spud_side_src.png",
   "cells": [
    "walk0",
    "walk1",

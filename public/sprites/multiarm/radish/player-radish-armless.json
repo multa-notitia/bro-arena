@@ -64,7 +64,7 @@
  },
  "meta": {
   "title": "Radish body + legs + leaves (multi-arm base, arms drawn at runtime)",
-  "source": "radish_src.png",
+  "source": "radish_side_src.png",
   "cells": [
    "walk0",
    "walk1",

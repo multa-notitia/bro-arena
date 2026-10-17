@@ -152,7 +152,7 @@
  ],
  "sproutScale": 0.8,
  "armTurnShare": 0.6,
- "handD": 9.0,
+ "handD": 8.0,
  "loadoutRules": {
   "woodPerSide": "minimise (cost 10 per extra wooden weapon on a side, 3 per vertically adjacent wooden pair, 1 per weapon that changes slot)"
  }

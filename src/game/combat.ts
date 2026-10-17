@@ -1,5 +1,6 @@
 import { dist2 } from '../core/math.ts'
-import type { Enemy, StatusEffect, World } from '../core/types.ts'
+import type { Enemy, StatusEffect, WeaponId, World } from '../core/types.ts'
+import { corpseClipFor } from '../data/enemies.ts'
 import { addTrauma, flashStrength, requestHitStop } from '../feel.ts'
 import { kickHurtClip } from '../render/sheets.ts'
 import { extraState, countSpecial, healPlayer } from './player.ts'
@@ -20,6 +21,8 @@ export interface HurtOpts {
   burnTick?: boolean
   /** Knife hack. Non-lethal chips; a kill marks the enemy sliced. */
   slice?: boolean
+  /** Killing weapon. Picks death, death_slice, or death_smash. */
+  weapon?: WeaponId
 }
 
 function unit(dx: number, dy: number): { x: number; y: number } {
@@ -109,6 +112,7 @@ export function dealDamageToEnemy(
   const killed = enemy.hp <= 0
   if (killed) {
     enemy.hp = 0
+    enemy.corpse = corpseClipFor(opts.weapon)
     if (opts.slice) enemy.sliced = true
     if (opts.explode !== false && !opts.thorns && !opts.burnTick) {
       const stacks = countSpecial(world.player, 'explodeOnKill')

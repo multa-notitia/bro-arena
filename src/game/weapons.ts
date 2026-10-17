@@ -164,6 +164,7 @@ function weaponHurtOpts(def: WeaponDef, w: WeaponInstance) {
     lifeSteal: row.lifeSteal ?? 0,
     effects: (def.effects ?? []) as StatusEffect[],
     color: undefined as string | undefined,
+    weapon: def.id,
   }
 }
 
@@ -642,4 +643,17 @@ export function updateWeapons(world: World, dt: number, ctx: SimCtx): void {
       w.cooldown = cd
     }
   }
+  if (armMode) faceTheAim(player, world)
+}
+
+/** Side-view heroes flip as one figure when the target is behind them. A few pixels of slack stops flicker. */
+function faceTheAim(player: World['player'], world: World): void {
+  const lead = player.weapons.find((w) => w.targetUid != null)
+  if (!lead || lead.targetUid == null) return
+  const enemy = world.enemies.find((e) => e.uid === lead.targetUid)
+  const tree = enemy ? null : world.trees.find((t) => t.uid === lead.targetUid)
+  const tx = enemy ? enemy.x : tree ? tree.x : null
+  if (tx == null) return
+  if (tx < player.x - 6) player.anim.facing = -1
+  else if (tx > player.x + 6) player.anim.facing = 1
 }

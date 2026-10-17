@@ -14,9 +14,9 @@
     "release": {
      "img": "fx_slash",
      "rule": "swingArc",
-     "z": "behindBody",
+     "z": "aboveArm",
      "params": {
-      "back": 36.0,
+      "back": 10.0,
       "radius": 0.92
      }
     }
@@ -36,9 +36,9 @@
     "release": {
      "img": "fx_slash",
      "rule": "swingArc",
-     "z": "behindBody",
+     "z": "aboveArm",
      "params": {
-      "back": 40.0,
+      "back": 16.0,
       "radius": 0.9
      }
     }

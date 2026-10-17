@@ -1,557 +1,365 @@
 {
  "image": "parts.png",
- "units": "1 part px = 1 body px (parts/v1/body.png px of the spud)",
+ "units": "1 part px = 1 body px (parts/cc/body.png px of the side-view spud)",
  "parts": {
-  "arm1_fore": {
+  "arm_bent2_fore": {
+   "rect": [
+    580,
+    0,
+    73,
+    88
+   ],
+   "points": {
+    "shoulder": [
+     27.74,
+     19.64
+    ],
+    "elbow": [
+     24.66,
+     58.32
+    ],
+    "wrist": [
+     47.28,
+     67.91
+    ]
+   },
+   "src": "side arm_bent2",
+   "dir0": 94.55,
+   "fore0": 22.98
+  },
+  "arm_bent2_upper": {
+   "rect": [
+    505,
+    0,
+    73,
+    88
+   ],
+   "points": {
+    "shoulder": [
+     27.74,
+     19.64
+    ],
+    "elbow": [
+     24.66,
+     58.32
+    ],
+    "wrist": [
+     47.28,
+     67.91
+    ]
+   },
+   "src": "side arm_bent2",
+   "dir0": 94.55,
+   "fore0": 22.98
+  },
+  "arm_dark_bent2_fore": {
    "rect": [
     253,
     0,
-    79,
-    101
+    63,
+    100
    ],
    "points": {
     "shoulder": [
-     45.33,
-     27.81
+     28.27,
+     20.48
     ],
     "elbow": [
-     34.19,
-     62.32
+     24.22,
+     48.2
     ],
     "wrist": [
-     56.98,
-     71.66
+     37.11,
+     76.32
     ]
    },
-   "src": "v1 arm1",
-   "dir0": 107.88,
-   "fore0": 22.28
+   "src": "side arm_dark_bent2",
+   "dir0": 98.31,
+   "fore0": 65.37
   },
-  "arm1_upper": {
+  "arm_dark_bent2_upper": {
    "rect": [
-    172,
+    188,
     0,
-    79,
-    101
+    63,
+    100
    ],
    "points": {
     "shoulder": [
-     45.33,
-     27.81
+     28.27,
+     20.48
     ],
     "elbow": [
-     34.19,
-     62.32
+     24.22,
+     48.2
     ],
     "wrist": [
-     56.98,
-     71.66
+     37.11,
+     76.32
     ]
    },
-   "src": "v1 arm1",
-   "dir0": 107.88,
-   "fore0": 22.28
-  },
-  "arm2_fore": {
-   "rect": [
-    416,
-    0,
-    80,
-    101
-   ],
-   "points": {
-    "shoulder": [
-     45.67,
-     27.81
-    ],
-    "elbow": [
-     34.77,
-     60.87
-    ],
-    "wrist": [
-     57.91,
-     71.43
-    ]
-   },
-   "src": "v1 arm2",
-   "dir0": 108.25,
-   "fore0": 24.52
-  },
-  "arm2_upper": {
-   "rect": [
-    334,
-    0,
-    80,
-    101
-   ],
-   "points": {
-    "shoulder": [
-     45.67,
-     27.81
-    ],
-    "elbow": [
-     34.77,
-     60.87
-    ],
-    "wrist": [
-     57.91,
-     71.43
-    ]
-   },
-   "src": "v1 arm2",
-   "dir0": 108.25,
-   "fore0": 24.52
-  },
-  "arm3_fore": {
-   "rect": [
-    86,
-    0,
-    84,
-    102
-   ],
-   "points": {
-    "shoulder": [
-     43.7,
-     27.93
-    ],
-    "elbow": [
-     34.77,
-     62.9
-    ],
-    "wrist": [
-     61.62,
-     72.3
-    ]
-   },
-   "src": "v1 arm3",
-   "dir0": 104.33,
-   "fore0": 19.28
-  },
-  "arm3_upper": {
-   "rect": [
-    0,
-    0,
-    84,
-    102
-   ],
-   "points": {
-    "shoulder": [
-     43.7,
-     27.93
-    ],
-    "elbow": [
-     34.77,
-     62.9
-    ],
-    "wrist": [
-     61.62,
-     72.3
-    ]
-   },
-   "src": "v1 arm3",
-   "dir0": 104.33,
-   "fore0": 19.28
-  },
-  "arm4_fore": {
-   "rect": [
-    780,
-    0,
-    77,
-    94
-   ],
-   "points": {
-    "shoulder": [
-     45.15,
-     26.82
-    ],
-    "elbow": [
-     33.61,
-     55.94
-    ],
-    "wrist": [
-     54.78,
-     65.74
-    ]
-   },
-   "src": "v1 arm4",
-   "dir0": 111.62,
-   "fore0": 24.84
-  },
-  "arm4_upper": {
-   "rect": [
-    701,
-    0,
-    77,
-    94
-   ],
-   "points": {
-    "shoulder": [
-     45.15,
-     26.82
-    ],
-    "elbow": [
-     33.61,
-     55.94
-    ],
-    "wrist": [
-     54.78,
-     65.74
-    ]
-   },
-   "src": "v1 arm4",
-   "dir0": 111.62,
-   "fore0": 24.84
-  },
-  "arm5_fore": {
-   "rect": [
-    937,
-    0,
-    76,
-    94
-   ],
-   "points": {
-    "shoulder": [
-     44.75,
-     26.77
-    ],
-    "elbow": [
-     33.03,
-     57.1
-    ],
-    "wrist": [
-     53.39,
-     65.16
-    ]
-   },
-   "src": "v1 arm5",
-   "dir0": 111.12,
-   "fore0": 21.6
-  },
-  "arm5_upper": {
-   "rect": [
-    859,
-    0,
-    76,
-    94
-   ],
-   "points": {
-    "shoulder": [
-     44.75,
-     26.77
-    ],
-    "elbow": [
-     33.03,
-     57.1
-    ],
-    "wrist": [
-     53.39,
-     65.16
-    ]
-   },
-   "src": "v1 arm5",
-   "dir0": 111.12,
-   "fore0": 21.6
+   "src": "side arm_dark_bent2",
+   "dir0": 98.31,
+   "fore0": 65.37
   },
   "bud": {
    "rect": [
-    160,
-    199,
-    30,
-    29
+    260,
+    234,
+    27,
+    23
    ],
    "points": {
     "center": [
-     14.6,
-     14.24
+     13.53,
+     13.64
     ]
    },
-   "src": "v1 bud"
+   "src": "side arm_straight top cap (shoulder joint)"
   },
   "club": {
    "rect": [
+    318,
     0,
-    104,
-    91,
-    93
+    108,
+    98
    ],
    "points": {
     "grip": [
-     19.28,
-     67.28
+     19.6,
+     77.24
     ],
     "head": [
-     74.0,
-     16.4
+     82.52,
+     24.44
     ]
    },
-   "src": "v1 club",
-   "axis": -48.0
+   "src": "side club",
+   "axis": -40.1
   },
   "fist": {
    "rect": [
-    661,
-    104,
-    40,
-    44
+    58,
+    234,
+    56,
+    52
    ],
    "points": {
     "grip": [
-     22.16,
-     19.89
+     27.38,
+     26.23
     ]
    },
-   "src": "v1 fist"
+   "src": "side fist"
   },
   "fist34": {
    "rect": [
-    744,
-    104,
-    76,
-    41
+    721,
+    0,
+    81,
+    80
    ],
    "points": {
     "wrist": [
-     12.92,
-     23.0
+     43.69,
+     44.59
     ],
     "grip": [
-     33.08,
-     21.11
+     48.95,
+     43.18
     ]
    },
-   "src": "v2 fist34_grip (stub cut)",
+   "src": "side fist_grip (painted handle dropped, turned handle -> +x)",
    "axis": 0.0,
    "note": "handle runs along +x through the curl; draw the weapon UNDER it"
   },
   "fist_dark": {
    "rect": [
-    703,
-    104,
-    39,
-    44
+    955,
+    0,
+    56,
+    54
    ],
    "points": {
     "grip": [
-     22.58,
-     19.68
+     27.23,
+     26.6
     ]
    },
-   "src": "v1 fist_dark (mirrored back)"
+   "src": "side fist_dark"
   },
   "fx_dust": {
    "rect": [
-    124,
-    199,
-    34,
-    33
+    222,
+    234,
+    36,
+    35
    ],
    "points": {
     "center": [
-     17.0,
-     16.5
+     18.0,
+     17.5
     ]
    },
-   "src": "v2 fx_dust"
+   "src": "frontal v2 fx_dust"
   },
   "fx_puff": {
    "rect": [
-    563,
+    116,
+    234,
     104,
-    96,
-    45
+    49
    ],
    "points": {
     "cloud": [
-     21.16,
-     22.39
+     22.95,
+     24.29
     ]
    },
-   "src": "v2 fx_puff (cloud + motion lines along +x)"
+   "src": "frontal v2 fx_puff"
   },
   "fx_smear": {
    "rect": [
-    498,
     0,
-    201,
-    96
+    0,
+    186,
+    232
    ],
    "points": {
     "bulge": [
-     198.0,
-     51.99
+     160.62,
+     145.97
     ]
    },
-   "src": "v2 fx_smear (mirrored: curve leads, trails behind)"
+   "src": "side smear (flipped + turned: convex +x, lead below)"
   },
   "fx_streak": {
    "rect": [
-    192,
-    199,
-    123,
-    19
+    289,
+    234,
+    135,
+    20
    ],
    "points": {
     "tip": [
-     119.0,
-     10.16
+     129.92,
+     10.92
     ],
     "tail": [
-     2.5,
-     9.29
+     2.55,
+     9.97
     ]
    },
-   "src": "v2 fx_streak"
+   "src": "frontal v2 fx_streak"
   },
   "knife": {
    "rect": [
-    389,
-    104,
-    74,
-    71
+    804,
+    0,
+    81,
+    77
    ],
    "points": {
     "grip": [
-     15.26,
-     49.19
+     16.5,
+     53.59
     ],
     "tip": [
-     68.69,
-     5.9
+     74.91,
+     6.26
     ]
    },
-   "src": "v1 knife",
+   "src": "frontal v1 knife",
    "axis": -42.0
   },
   "long_cut": {
    "rect": [
-    822,
-    104,
-    123,
-    36
+    655,
+    0,
+    30,
+    81
    ],
    "points": {
     "shoulder": [
-     10.8,
-     17.0
+     15.73,
+     9.92
     ],
     "wrist": [
-     69.65,
-     19.6
+     15.74,
+     72.4
     ]
    },
-   "src": "v2 arm_long_flat",
-   "dir0": 2.53
+   "src": "side arm_straight",
+   "dir0": 89.99
   },
   "long_dark_cut": {
    "rect": [
+    687,
     0,
-    199,
-    122,
-    36
+    32,
+    80
    ],
    "points": {
     "shoulder": [
-     10.25,
-     16.76
+     17.68,
+     9.92
     ],
     "wrist": [
-     68.0,
-     19.05
+     18.42,
+     71.52
     ]
    },
-   "src": "v2 arm_long_flat_dark",
-   "dir0": 2.27
+   "src": "side arm_dark_straight",
+   "dir0": 89.31
   },
   "palm": {
    "rect": [
-    465,
-    104,
-    48,
-    47
+    887,
+    0,
+    66,
+    66
    ],
    "points": {
     "grip": [
-     22.87,
-     23.34
+     30.68,
+     31.99
     ]
    },
-   "src": "v1 palm"
+   "src": "side palm"
   },
   "palm_dark": {
    "rect": [
-    515,
-    104,
-    46,
-    46
+    0,
+    234,
+    56,
+    54
    ],
    "points": {
     "grip": [
-     21.49,
-     23.55
+     27.23,
+     26.6
     ]
    },
-   "src": "v1 palm_dark (mirrored back)"
-  },
-  "sling_fist": {
-   "rect": [
-    164,
-    104,
-    108,
-    74
-   ],
-   "points": {
-    "grip": [
-     81.53,
-     38.46
-    ],
-    "fork": [
-     74.01,
-     5.12
-    ]
-   },
-   "src": "v2 sling_fist (mirrored)",
-   "axis": -96.21,
-   "note": "hand + stretched band + pebble painted together: hide the separate hand while shown"
-  },
-  "sling_fist_b": {
-   "rect": [
-    274,
-    104,
-    113,
-    72
-   ],
-   "points": {
-    "grip": [
-     83.71,
-     37.5
-    ],
-    "fork": [
-     71.59,
-     5.12
-    ]
-   },
-   "src": "v2 sling_fist_b (mirrored)",
-   "axis": -99.19,
-   "note": "hand + stretched band + pebble painted together: hide the separate hand while shown"
+   "src": "side fist_dark (no dark palm painted)"
   },
   "sling_relaxed": {
    "rect": [
-    93,
-    104,
-    69,
-    90
+    428,
+    0,
+    75,
+    98
    ],
    "points": {
     "grip": [
-     16.1,
-     65.92
+     17.42,
+     71.89
     ],
     "fork": [
-     46.65,
-     6.7
+     50.82,
+     7.14
     ]
    },
-   "src": "v1 sling_relaxed",
+   "src": "frontal v1 sling_relaxed",
    "axis": -63.0
   }
  }

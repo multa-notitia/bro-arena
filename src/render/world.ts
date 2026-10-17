@@ -404,7 +404,10 @@ function drawEnemy(
   const spawn = clamp(e.anim.spawnT, 0, 1)
   const dying = e.anim.deathT >= 0
   const death = dying ? clamp(e.anim.deathT, 0, 1) : 0
-  const appear = ease.outCubic(spawn)
+  // Authored emerge is the body. The shadow only arrives over the clip's second half.
+  const emerging = e.state === 'spawning' && !!sheet?.manifest.clips.emerge
+  const appear = emerging ? 1 : ease.outCubic(spawn)
+  const shadowIn = emerging ? (spawn <= 0.5 ? 0 : (spawn - 0.5) / 0.5) : appear
   const scream = resolveScream(e.anim, e.state, e.stateT)
   const ss = screamScale(scream)
   const mouth = resolveMouth(e.anim, form, scream)
@@ -419,7 +422,7 @@ function drawEnemy(
     oy += (hashNoise(Math.floor(time * 48), e.uid + 9) - 0.5) * mag * 2
   }
   const foot = sheet ? actorFootprint(sheet, e.r) : e.r * 1.7
-  const shade = appear * (1 - death)
+  const shade = shadowIn * (1 - death)
   if (sheet) drawReadHalo(ctx, ox, e.y, foot, shade)
   drawShadow(ctx, ox, sheet ? e.y : e.y + e.r * 0.45, foot, shade)
   ctx.save()
@@ -427,11 +430,20 @@ function drawEnemy(
   if (sheet) {
     const playKey = `e:${e.uid}`
     const dyingSheet = e.state === 'dying' || e.anim.deathT >= 0
-    const clip = pickClip(sheet, e.anim, {
-      attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
-      hurt: !dyingSheet && actorClipActive(playKey, 'hurt'),
-    })
-    ctx.globalAlpha = appear * (1 - (sheet.manifest.clips.death ? 0 : death))
+    const corpseName = e.corpse && sheet.manifest.clips[e.corpse] ? e.corpse : 'death'
+    const clip = dyingSheet
+      ? sheet.manifest.clips[corpseName]
+        ? corpseName
+        : null
+      : emerging
+        ? 'emerge'
+        : e.perform && sheet.manifest.clips[e.perform]
+          ? e.perform
+          : pickClip(sheet, e.anim, {
+              attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
+              hurt: actorClipActive(playKey, 'hurt'),
+            })
+    ctx.globalAlpha = appear * (1 - death)
     if (clip) {
       drawActorSheet(ctx, sheet, playKey, clip, {
         r: e.r,

@@ -382,6 +382,16 @@ export type EnemyKind =
   | 'eliteBrute'
   | 'mother'
   | 'lord'
+  | 'blob-light'
+  | 'blob-mud'
+  | 'charger-light'
+  | 'charger-mud'
+  | 'spitter-light'
+  | 'spitter-mud'
+  | 'beetle-light'
+  | 'beetle-mud'
+  | 'shroom-light'
+  | 'shroom-mud'
 
 export interface BossPhase {
   /** Phase active while hp fraction is above this value. */
@@ -572,6 +582,10 @@ export interface Enemy extends Vec {
   boss: boolean
   /** Killing slash hid the body. Watercolor chunks are the corpse. */
   sliced: boolean
+  /** Authored death clip chosen from the killing weapon. Holds, then fades. */
+  corpse?: string
+  /** Sheet clip that owns the body right now: taunt or scream. */
+  perform?: string
   phaseIndex: number
   /** Charge direction when charging. */
   aim: Vec

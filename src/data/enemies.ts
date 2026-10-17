@@ -1,4 +1,4 @@
-import type { EnemyDef, EnemyKind, Palette, ProjectileDef } from '../core/types.ts'
+import type { EnemyDef, EnemyKind, Palette, ProjectileDef, WeaponId } from '../core/types.ts'
 
 const SPIT: ProjectileDef = {
   speed: 230,
@@ -54,7 +54,8 @@ const carrot = veg('#e57a2c', '#b3541c', '#4f8a3c', '#ffd23d', '#4a2410', '#1c10
 const marrow = veg('#6f8f4a', '#3e5a2c', '#b9c98a', '#a4ff3d', '#0e160a', '#f4e8a8')
 const beet = veg('#7a1f3a', '#3d0f1f', '#e9c7d1', '#ff1f4b', '#06040c', '#f0e0a0')
 
-export const ENEMIES: Record<EnemyKind, EnemyDef> = {
+type VariantKind = Extract<EnemyKind, `${string}-light` | `${string}-mud`>
+const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
   blob: {
     kind: 'blob',
     name: 'Pea',
@@ -333,4 +334,98 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     hpScale: 0.06,
     damageScale: 0.04,
   },
+}
+
+/** Mud is the rarer, meaner twin: tougher, and 1.15–1.3× the light radius from the sheet. */
+function variant(base: EnemyDef, kind: EnemyKind, tone: 'light' | 'mud', radius: number, name?: string): EnemyDef {
+  const mud = tone === 'mud'
+  return {
+    ...base,
+    kind,
+    name: name ?? (mud ? `Mud ${base.name}` : base.name),
+    nightmareName: mud ? `Mud ${base.name}` : base.nightmareName,
+    form: 'normal',
+    radius,
+    hp: mud ? Math.max(base.hp + 1, Math.round(base.hp * 1.4)) : base.hp,
+    speed: mud ? Math.max(8, Math.round(base.speed * 0.9)) : base.speed,
+    damage: mud ? Math.max(base.damage, Math.round(base.damage * 1.25)) : base.damage,
+    knockbackResist: mud ? Math.min(0.8, base.knockbackResist + 0.1) : base.knockbackResist,
+  }
+}
+
+const BEETLE: EnemyDef = {
+  kind: 'beetle-light',
+  name: 'Beetle',
+  species: 'beet',
+  nightmareName: 'Mud Beetle',
+  form: 'normal',
+  screamInterval: 8,
+  rank: 'basic',
+  hp: 22,
+  speed: 62,
+  damage: 2,
+  radius: 17,
+  materials: 1,
+  behavior: { type: 'chase' },
+  palette: beet,
+  paint: 'beet',
+  knockbackResist: 0.2,
+  hpScale: 0.15,
+  damageScale: 0.07,
+}
+
+const SHROOM: EnemyDef = {
+  kind: 'shroom-light',
+  name: 'Toadstool',
+  species: 'sprout',
+  nightmareName: 'Rot Toadstool',
+  form: 'normal',
+  screamInterval: 9,
+  rank: 'basic',
+  hp: 14,
+  speed: 48,
+  damage: 2,
+  radius: 14,
+  materials: 1,
+  behavior: { type: 'shoot', range: 280, cooldown: 1.9, projectile: SPORE, keepDistance: 180 },
+  palette: sprout,
+  paint: 'sprout',
+  knockbackResist: 0.05,
+  hpScale: 0.14,
+  damageScale: 0.07,
+}
+
+export const ENEMIES: Record<EnemyKind, EnemyDef> = {
+  ...ENEMY_BASE,
+  'blob-light': variant(ENEMY_BASE.blob, 'blob-light', 'light', 14),
+  'blob-mud': variant(ENEMY_BASE.blob, 'blob-mud', 'mud', 17),
+  'charger-light': variant(ENEMY_BASE.charger, 'charger-light', 'light', 18),
+  'charger-mud': variant(ENEMY_BASE.charger, 'charger-mud', 'mud', 22),
+  'spitter-light': variant(ENEMY_BASE.spitter, 'spitter-light', 'light', 16),
+  'spitter-mud': variant(ENEMY_BASE.spitter, 'spitter-mud', 'mud', 19),
+  'beetle-light': BEETLE,
+  'beetle-mud': variant(BEETLE, 'beetle-mud', 'mud', 21, 'Mud Beetle'),
+  'shroom-light': SHROOM,
+  'shroom-mud': variant(SHROOM, 'shroom-mud', 'mud', 17, 'Rot Toadstool'),
+}
+
+const SLICE_WEAPONS = new Set<WeaponId>(['knife', 'sword', 'scythe'])
+const SMASH_WEAPONS = new Set<WeaponId>(['stick', 'hammer'])
+
+/** blades / knife / melee-slash → death_slice, club / hammer → death_smash, anything else → death. */
+export function corpseClipFor(weapon: WeaponId | undefined): 'death' | 'death_slice' | 'death_smash' {
+  if (!weapon) return 'death'
+  if (SLICE_WEAPONS.has(weapon)) return 'death_slice'
+  if (SMASH_WEAPONS.has(weapon)) return 'death_smash'
+  return 'death'
+}
+
+export function variantTone(kind: EnemyKind): 'light' | 'mud' | null {
+  if (kind.endsWith('-mud')) return 'mud'
+  if (kind.endsWith('-light')) return 'light'
+  return null
+}
+
+export function enemyFamily(kind: EnemyKind): string {
+  return kind.replace(/-(light|mud)$/, '')
 }

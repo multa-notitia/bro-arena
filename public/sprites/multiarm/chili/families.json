@@ -3,16 +3,16 @@
   "melee-swing": [
    {
     "ms": 60,
-    "raise": 48,
-    "elbow": 22,
-    "aim": -100,
+    "raise": 120,
+    "elbow": 20,
+    "aim": -150,
     "squash": 0.02
    },
    {
     "ms": 45,
-    "raise": -12,
-    "elbow": -24,
-    "aim": -4,
+    "raise": 40,
+    "elbow": -20,
+    "aim": 10,
     "thrust": 2,
     "show": [
      "release"
@@ -24,71 +24,32 @@
    },
    {
     "ms": 70,
-    "raise": -22,
-    "elbow": -14,
-    "aim": 32,
+    "raise": 0,
+    "elbow": -10,
+    "aim": 60,
     "thrust": 1,
     "squash": 0.025
    },
    {
     "ms": 80,
-    "raise": -6,
-    "elbow": -4,
-    "aim": -48
-   }
-  ],
-  "melee-stab": [
-   {
-    "ms": 60,
-    "raise": -6,
+    "raise": 10,
     "elbow": 30,
-    "aim": -46,
-    "thrust": -3,
-    "squash": 0.015
-   },
-   {
-    "ms": 45,
-    "raise": 26,
-    "aim": -6,
-    "straight": true,
-    "thrust": 4,
-    "show": [
-     "release"
-    ],
-    "ev": [
-     "release"
-    ],
-    "squash": -0.02
-   },
-   {
-    "ms": 70,
-    "raise": 20,
-    "aim": 2,
-    "straight": true,
-    "thrust": 2,
-    "squash": 0.02
-   },
-   {
-    "ms": 80,
-    "raise": 6,
-    "elbow": -6,
-    "aim": -30
+    "aim": -50
    }
   ],
   "ranged-recoil": [
    {
     "ms": 90,
-    "raise": 10,
+    "raise": 40,
     "elbow": 26,
     "aim": -98,
     "thrust": -4,
-    "alt": true,
     "squash": 0.01
    },
    {
     "ms": 45,
-    "raise": 16,
-    "elbow": -40,
+    "raise": 50,
+    "elbow": -30,
     "aim": -90,
     "thrust": 5,
     "show": [
@@ -100,32 +61,34 @@
    },
    {
     "ms": 70,
-    "raise": 26,
-    "elbow": -14,
+    "raise": 56,
+    "elbow": -10,
     "aim": -112,
     "thrust": 1,
     "squash": 0.015
    },
    {
     "ms": 80,
-    "raise": 8,
-    "elbow": -4,
+    "raise": 40,
+    "elbow": 0,
     "aim": -100
    }
   ],
   "melee-slash": [
    {
     "ms": 60,
-    "raise": 128,
-    "elbow": 14,
-    "aim": -142,
-    "squash": 0.03
+    "raised": true,
+    "rrot": 22,
+    "aim": 188,
+    "squash": 0.03,
+    "raise": 120,
+    "elbow": 20
    },
    {
     "ms": 45,
-    "raise": 52,
+    "raise": 62,
     "elbow": -18,
-    "aim": 18,
+    "aim": 22,
     "thrust": 3,
     "show": [
      "release"
@@ -137,9 +100,9 @@
    },
    {
     "ms": 70,
-    "raise": -8,
+    "raise": 10,
     "elbow": -10,
-    "aim": 78,
+    "aim": 70,
     "thrust": 1,
     "show": [
      "release"
@@ -148,9 +111,9 @@
    },
    {
     "ms": 80,
-    "raise": 6,
-    "elbow": 2,
-    "aim": -40
+    "raise": 10,
+    "elbow": 48,
+    "aim": -45
    }
   ]
  },
@@ -159,20 +122,17 @@
    "ms": 40,
    "scale": 0.12,
    "squash": 0.06,
-   "bud": 0.9,
    "dust": true
   },
   {
    "ms": 40,
    "scale": 0.5,
-   "squash": 0.05,
-   "bud": 1.15
+   "squash": 0.05
   },
   {
    "ms": 50,
    "scale": 1.15,
-   "squash": 0.03,
-   "bud": 0.7
+   "squash": 0.03
   },
   {
    "ms": 50,
@@ -190,10 +150,10 @@
   80,
   200
  ],
- "sproutScale": 0.8,
+ "sproutScale": 0.85,
  "armTurnShare": 0.6,
- "handD": 11.0,
+ "handD": 6.0,
  "loadoutRules": {
-  "woodPerSide": "minimise (cost 10 per extra wooden weapon on a side, 3 per vertically adjacent wooden pair, 1 per weapon that changes slot)"
+  "woodPerLayer": "minimise (cost 10 per extra wooden weapon on a layer, 3 per vertically adjacent wooden pair, 1 per weapon that changes slot)"
  }
 }

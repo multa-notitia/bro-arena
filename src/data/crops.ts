@@ -32,7 +32,7 @@ export const CROPS: Record<CropId, CropDef> = {
     name: 'Peas',
     seedName: 'Pea seed',
     flavor: 'Easy. They come up as Peas from that bed.',
-    enemy: 'blob',
+    enemy: 'blob-light',
     enemyName: 'Pea',
     materials: 2,
     xp: 3,
@@ -70,7 +70,7 @@ export const CROPS: Record<CropId, CropDef> = {
     name: 'Carrots',
     seedName: 'Carrot seed',
     flavor: 'Rich. They come up as Chargers.',
-    enemy: 'charger',
+    enemy: 'charger-light',
     enemyName: 'Carrot',
     materials: 5,
     xp: 8,
@@ -127,7 +127,7 @@ export const CROPS: Record<CropId, CropDef> = {
     name: 'Chilies',
     seedName: 'Chili seed',
     flavor: 'Hot. They spit from the bed.',
-    enemy: 'spitter',
+    enemy: 'spitter-light',
     enemyName: 'Chili',
     materials: 6,
     xp: 9,
@@ -157,12 +157,13 @@ export const CROP_LIST: readonly CropDef[] = [
 ]
 
 export function cropByEnemy(kind: EnemyKind): CropId | null {
-  if (kind === 'blob' || kind === 'eliteBlob') return 'pea'
-  if (kind === 'sprout') return 'sprout'
-  if (kind === 'charger') return 'carrot'
+  if (kind === 'blob' || kind === 'eliteBlob' || kind.startsWith('blob-')) return 'pea'
+  if (kind === 'sprout' || kind.startsWith('shroom-')) return 'sprout'
+  if (kind === 'charger' || kind.startsWith('charger-')) return 'carrot'
   if (kind === 'wisp') return 'garlic'
   if (kind === 'brute' || kind === 'eliteBrute') return 'pumpkin'
-  if (kind === 'spitter') return 'chili'
+  if (kind === 'spitter' || kind.startsWith('spitter-')) return 'chili'
+  if (kind.startsWith('beetle-')) return 'pumpkin'
   return null
 }
 

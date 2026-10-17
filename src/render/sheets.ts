@@ -81,6 +81,16 @@ export const SHEET_PRELOAD: string[] = [
   'enemy-charger',
   'enemy-spitter',
   'enemy-eliteBlob',
+  'enemy-blob-light',
+  'enemy-blob-mud',
+  'enemy-charger-light',
+  'enemy-charger-mud',
+  'enemy-spitter-light',
+  'enemy-spitter-mud',
+  'enemy-beetle-light',
+  'enemy-beetle-mud',
+  'enemy-shroom-light',
+  'enemy-shroom-mud',
   'fx-ink',
   'pickups',
   'prop-furrow',
@@ -474,6 +484,13 @@ export function restartActorClip(playKey: string, clipName: string): void {
 
 export function forgetActor(playKey: string): void {
   heads.delete(playKey)
+}
+
+/** 0 at the first cell, 1 when the clip has played out. */
+export function actorClipFraction(playKey: string, clipName: string): number {
+  const slot = heads.get(playKey)?.clips.get(clipName)
+  if (!slot || slot.duration <= 0) return 0
+  return Math.min(1, slot.elapsed / slot.duration)
 }
 
 export function actorClipDone(playKey: string, clipName?: string): boolean {

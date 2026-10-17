@@ -63,7 +63,7 @@
   }
  },
  "meta": {
-  "title": "Chili body + legs (multi-arm base, arms drawn at runtime)",
+  "title": "Chili body + legs, side view (multi-arm base, arms drawn at runtime)",
   "source": "chili_src.png",
   "cells": [
    "walk0",

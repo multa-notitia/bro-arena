@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
-"""Reference multi-arm compositor for the spud. Reads ONLY the exported files in this folder
+"""Reference multi-arm compositor for the spud (SIDE VIEW export; also renders the frontal exports unchanged). Reads ONLY the exported files in this folder
 (player-potato-armless.*, body_track.json, parts.*, sockets.json, weapons.json, families.json) and composes one
 frame in hero-cell px. It is the executable spec for README.md (used to render previews/multiarm_showcase.mp4);
 the game port should reproduce `arm_layers()` + `frame()` exactly.
+
+Side-view additions (both optional, so frontal exports render exactly as before):
+  * a family key with "weaponBehind": true draws the weapon of a FRONT slot behind the body (z = behindBodyZ - 0.6)
+    on that key (the over-the-shoulder club windup); the hand stays in front.
+  * frame(..., facing=-1) mirrors the whole composite about the anchor x (what the game does when the hero faces
+    left). Pass the target in screen/cell px as seen; it is mirrored into the unflipped frame for the aim maths.
 """
 import itertools
 import json
@@ -126,7 +132,7 @@ class MultiArm:
         ref = w["restAim"] if w else 0.0
         if key:
             base_raise = pose.get("raise", 0.0)
-            pose = {k: v for k, v in key.items() if k not in ("ms", "ev")}
+            pose = {k: v for k, v in key.items() if k not in ("ms", "ev", "weaponBehind")}
             pose["raise"] = pose.get("raise", 0.0) + 0.3 * base_raise
             ref = key.get("aim", ref)
         aim_c = (pose.get("aim", (w["restAim"] + pose.get("wrist", 0.0)) if w else 0.0))
@@ -192,7 +198,8 @@ class MultiArm:
                 wp = self.parts[w["img"]]
                 gw = wp["points"]["grip"]
                 Wm = T(*g) @ R(aim_c - wp["axis"]) @ S(k) @ T(-gw[0], -gw[1])
-                out += [(w["img"], Wm, z + 0.03), (hname, H, z + 0.06)]
+                zw = self.sock["behindBodyZ"] - 0.6 if (front and key and key.get("weaponBehind")) else z + 0.03
+                out += [(w["img"], Wm, zw), (hname, H, z + 0.06)]
             if key and "release" in (key.get("show") or []):
                 out += self.fx_layers(w, Wm, P, aim_c, k, z, front)
         else:
@@ -231,9 +238,13 @@ class MultiArm:
         return [(fx["img"], T(cx, cy) @ R(d) @ S(k) @ T(-an[0], -an[1]), zz)]
 
     # ------------------------------------------------------------------ one frame
-    def frame(self, clip, fi, arms, target=None, extra=(), margin=110):
+    def frame(self, clip, fi, arms, target=None, extra=(), margin=110, facing=1):
         """arms: list of dict(slot, weapon, t_attack, grow). target: hero-cell px. returns RGBA float canvas
-        (cell + 2*margin square) in hero-cell px offset by margin, plus the frame's tint."""
+        (cell + 2*margin square) in hero-cell px offset by margin, plus the frame's tint.
+        facing -1: mirror the whole composite about the anchor x (target is mirrored into the unflipped frame)."""
+        ax = self.sheet["anchor"]["x"] * self.cell
+        if facing < 0 and target is not None:
+            target = (2 * ax - target[0], target[1])
         tr = self.track["clips"][clip][fi]
         sm = self.sheet["clips"][clip]["frames"][fi]
         cols = self.sheet["columns"]
@@ -261,6 +272,20 @@ class MultiArm:
             wp = np.clip(wp, 0, 1)
             wp[..., :3] = np.minimum(wp[..., :3], wp[..., 3:4])
             acc = wp + acc * (1 - wp[..., 3:4])
+        if facing < 0:
+            Mf = (T(margin + ax, 0) @ FLIPX @ T(-(margin + ax), 0))[:2].astype(np.float32)
+            acc = cv2.warpAffine(acc, Mf, (N, N), flags=cv2.INTER_NEAREST, borderMode=cv2.BORDER_CONSTANT, borderValue=0)
         a = np.maximum(acc[..., 3:4], 1e-6)
         out = np.dstack([np.where(acc[..., 3:4] > 1e-4, acc[..., :3] / a, 0), acc[..., 3:4]])
         return np.clip(out, 0, 1), tr.get("tint")
+
+    @staticmethod
+    def facing_for(hero_x, target_x, current=1):
+        """the figure flips when the target is behind it (small dead zone so it doesn't flicker)."""
+        if target_x is None:
+            return current
+        if target_x < hero_x - 4:
+            return -1
+        if target_x > hero_x + 4:
+            return 1
+        return current

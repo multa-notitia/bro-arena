@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export the spud's multi-arm runtime data (figures/player-potato/multiarm/). See README.md for the format.
+"""SIDE VIEW (2026-10-17). Export the spud's multi-arm runtime data (figures/player-potato/multiarm/). See README.md for the format.
 
   python3 figures/player-potato/multiarm/export.py
 Writes: player-potato-armless.{json,png,webp}  body+legs sheet, SAME cells/clips/anchor as the hero sheet, no arms
@@ -20,7 +20,7 @@ sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIG = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(FIG, "src"))
-import spud as sp  # noqa: E402
+import side as sp  # noqa: E402
 import numpy as np  # noqa: E402
 from PIL import Image  # noqa: E402
 from scipy import ndimage as ndi  # noqa: E402
@@ -61,82 +61,84 @@ def cut_wrist(img, col):
     return rigkit.stroke_new_edges(out, img[..., 3], rigkit.ink_colour(img).tolist(), 1.6)
 
 
+V2 = os.path.join(FIG, "frontal_v2", "parts")
+V2K = 0.82 / sp.K          # frontal v2 body px -> side body px at the same on-screen size (K 0.82 vs 0.75)
+
+
+def v2load(tag, name):
+    return np.asarray(Image.open(os.path.join(V2, tag, name + ".png")).convert("RGBA")).astype(np.float32) / 255.0
+
+
+def turned(img, deg, k):
+    """painted px -> part px: rotate by deg, scale k (tight canvas). returns (rgba, M)."""
+    M = sp.R(deg) @ sp.S(k)
+    out, (x0, y0) = sp.bake(img, M, pad=2)
+    return out, sp.T(-x0, -y0) @ M
+
+
 def build_parts(lib):
-    P = {}   # name -> (rgba, points dict (part px), meta)
+    P = {}
 
     def add(name, rgba, pts, **meta):
         P[name] = (rgba, {k: pt(v) for k, v in pts.items()}, meta)
 
-    # native bent arms (v1), split at the elbow
-    for n, a in lib.arms.items():
-        k = sp.SC["arm"]
+    # native bent arms (side sheet), split at the painted elbow: near = arm_bent2 (light), far = arm_dark_bent2
+    for n in ("arm_bent2", "arm_dark_bent2"):
+        a = lib.arms[n]
         for half in ("upper", "fore"):
-            img, M = scaled(a[half], k)
+            img, M = scaled(a[half], sp.SC["arm"])
             pts = {"shoulder": sp.ap(M, a["shoulder"]), "elbow": sp.ap(M, a["elbow"]), "wrist": sp.ap(M, a["wrist"])}
-            add(f"{n}_{half}", img, pts, src="v1 " + n, dir0=r2(a["dir0"]), fore0=r2(a["fore0"]))
-    # long straight arms (v2): wrist-cut for holding, dark for behind-body sockets
-    for n, col in (("arm_long_flat", 127), ("arm_long_flat_dark", 124)):
+            add(f"{n}_{half}", img, pts, src="side " + n, dir0=r2(a["dir0"]), fore0=r2(a["fore0"]))
+    # straight arms for sprouted slots (painted without a hand, so no wrist cut): near light / far dark
+    for n, out in (("arm_straight", "long_cut"), ("arm_dark_straight", "long_dark_cut")):
         la = lib.long[n]
-        img0 = cut_wrist(la["img"], col)
-        A = la["img"][..., 3] > 0.5
-        ys = np.where(A[:, col])[0]
-        wrist = (col - 4.0, float(ys.mean()))
-        img, M = scaled(img0, sp.SC["long_arm"])
-        sh, wr = sp.ap(M, la["shoulder"]), sp.ap(M, wrist)
-        add(n.replace("arm_long_flat", "long") + "_cut", img, {"shoulder": sh, "wrist": wr}, src="v2 " + n,
+        img, M = scaled(la["img"], sp.SC["long_arm"])
+        sh, wr = sp.ap(M, la["shoulder"]), sp.ap(M, la["wrist"])
+        add(out, img, {"shoulder": sh, "wrist": wr}, src="side " + n,
             dir0=r2(math.degrees(math.atan2(wr[1] - sh[1], wr[0] - sh[0]))))
-    # hands
+    # fist on handle (handle stub dropped, already turned so the handle runs along +x)
     img, M = scaled(lib.fist34, sp.SC["fist34"])
-    add("fist34", img, {"wrist": sp.ap(M, sp.FIST34["wrist"]), "grip": sp.ap(M, sp.FIST34["grip"])}, src="v2 fist34_grip (stub cut)",
-        axis=0.0, note="handle runs along +x through the curl; draw the weapon UNDER it")
-    for n, g in (("fist", (48.0, 42.6)), ("fist_dark", (34.0, 42.1)), ("palm", (49.7, 50.8)), ("palm_dark", (51.6, 51.3))):
-        flip = n.endswith("_dark")         # the dark back hands were painted mirrored: un-mirror them here
-        img, M = scaled(sp.load("v1", n), sp.SC["hand"], flip=flip)
-        add(n, img, {"grip": sp.ap(M, g)}, src="v1 " + n + (" (mirrored back)" if flip else ""))
+    add("fist34", img, {"wrist": sp.ap(M, sp.FIST34["wrist"]), "grip": sp.ap(M, sp.FIST34["grip"])},
+        src="side fist_grip (painted handle dropped, turned handle -> +x)", axis=0.0,
+        note="handle runs along +x through the curl; draw the weapon UNDER it")
+    # camera-facing hands: painted upright (out = -90); pre-turned so the runtime's R(d_fore - 22) points them along
+    # the forearm. No dark palm on the sheet: palm_dark = the dark fist (a closed far hand reads fine behind the body)
+    for n, src, hp in (("fist", lib.fist, sp.FIST), ("fist_dark", lib.fist_dark, sp.FIST_DARK), ("palm", lib.palm, sp.PALM),
+                       ("palm_dark", lib.fist_dark, sp.FIST_DARK)):
+        img, M = turned(src, sp.RT_HAND_OUT - hp["out"], sp.SC["hand"])
+        add(n, img, {"grip": sp.ap(M, hp["grip"])}, src="side " + ("fist_dark (no dark palm painted)" if n == "palm_dark" else n))
     img, M = scaled(lib.bud, sp.SC["bud"])
-    add("bud", img, {"center": sp.ap(M, (35.0, 34.0))}, src="v1 bud")
-    # weapons
+    add("bud", img, {"center": sp.ap(M, lib.bud_c)}, src="side arm_straight top cap (shoulder joint)")
+    # weapons: the side sheet's spiked club; knife + slingshot borrowed from the frontal spud sheet (no hand painted in)
     img, M = scaled(lib.club, sp.SC["club"])
-    add("club", img, {"grip": sp.ap(M, sp.CLUB["grip"]), "head": sp.ap(M, (150.0, 30.0))}, src="v1 club",
-        axis=r2(sp.CLUB["axis"]))
-    img, M = scaled(sp.load("v1", "knife"), sp.SC["knife"])
-    kn = sp.load("v1", "knife")
-    add("knife", img, {"grip": sp.ap(M, (34.0, 121.0)), "tip": sp.ap(M, (kn.shape[1] - 8.0, 10.0))}, src="v1 knife", axis=-42.0)
-    img, M = scaled(sp.load("v1", "sling_relaxed"), sp.SC["sling"])
-    add("sling_relaxed", img, {"grip": sp.ap(M, (30.0, 136.0)), "fork": sp.ap(M, (95.0, 10.0))}, src="v1 sling_relaxed", axis=-63.0)
-    for n in ("sling_fist", "sling_fist_b"):
-        src = sp.load("v2", n)
-        H, W = src.shape[:2]
-        A = src[..., 3] > 0.5
-        ys, xs = np.where(A[:, :int(0.42 * W)])
-        grip = (float(xs.mean()), float(ys.mean()))
-        top = np.where(A[:12, :int(0.4 * W)])[1].mean()
-        bot = np.where(A[H - 12:, :int(0.4 * W)])[1].mean()
-        fork = (float(top), 6.0)
-        img, M = scaled(src, SC2["sling_fist"], flip=True)     # painted shooting LEFT -> mirror for a right-facing hero
-        g, f = sp.ap(M, grip), sp.ap(M, fork)
-        b = sp.ap(M, (float(bot), H - 6.0))
-        add(n, img, {"grip": g, "fork": f}, src=f"v2 {n} (mirrored)", axis=r2(math.degrees(math.atan2(f[1] - b[1], f[0] - b[0]))),
-            note="hand + stretched band + pebble painted together: hide the separate hand while shown")
-    # fx (v2), pink trail fringe faded
-    sm = sp.clean_fx(sp.load("v2", "fx_smear"), trail_fade=True)
-    bul = sp.smear_bulge(sm)
-    img, M = scaled(sm, SC2["fx_smear"], flip=True)
-    add("fx_smear", img, {"bulge": sp.ap(M, bul)}, src="v2 fx_smear (mirrored: curve leads, trails behind)")
-    st = sp.clean_fx(sp.load("v2", "fx_streak"), trail_fade=False)
+    add("club", img, {"grip": sp.ap(M, sp.CLUB["grip"]), "head": sp.ap(M, sp.CLUB["head"])}, src="side club", axis=r2(sp.CLUB["axis"]))
+    kn = v2load("v1", "knife")
+    img, M = scaled(kn, 0.39 * V2K)
+    add("knife", img, {"grip": sp.ap(M, (34.0, 121.0)), "tip": sp.ap(M, (kn.shape[1] - 8.0, 10.0))}, src="frontal v1 knife", axis=-42.0)
+    img, M = scaled(v2load("v1", "sling_relaxed"), 0.47 * V2K)
+    add("sling_relaxed", img, {"grip": sp.ap(M, (30.0, 136.0)), "fork": sp.ap(M, (95.0, 10.0))}, src="frontal v1 sling_relaxed", axis=-63.0)
+    # fx: the side sheet's smear in the swingArc convention; streak / puff / dust borrowed from the frontal v2 sheet
+    sm = sp.smear_img()
+    img, M = scaled(sm, sp.SC["fx_smear"])
+    add("fx_smear", img, {"bulge": sp.ap(M, sp.smear_bulge(sm))}, src="side smear (flipped + turned: convex +x, lead below)")
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("spud_fx", os.path.join(FIG, "frontal_v2", "src", "spud.py"))
+    fx = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fx)                     # only its pink-fringe clean_fx is used
+    st = fx.clean_fx(v2load("v2", "fx_streak"), trail_fade=False)
     A = st[..., 3] > 0.5
     ys, xs = np.where(A)
-    img, M = scaled(st, SC2["fx_streak"])
+    img, M = scaled(st, SC2["fx_streak"] * V2K)
     add("fx_streak", img, {"tip": sp.ap(M, (float(xs.max()), float(ys[xs > xs.max() - 6].mean()))),
-                           "tail": sp.ap(M, (float(xs.min()), float(ys[xs < xs.min() + 6].mean())))}, src="v2 fx_streak")
-    pf = sp.clean_fx(sp.load("v2", "fx_puff"))
+                           "tail": sp.ap(M, (float(xs.min()), float(ys[xs < xs.min() + 6].mean())))}, src="frontal v2 fx_streak")
+    pf = fx.clean_fx(v2load("v2", "fx_puff"))
     A = pf[..., 3] > 0.5
     ys, xs = np.where(A[:, : int(0.38 * pf.shape[1])])
-    img, M = scaled(pf, SC2["fx_puff"])
-    add("fx_puff", img, {"cloud": sp.ap(M, (float(xs.mean()), float(ys.mean())))}, src="v2 fx_puff (cloud + motion lines along +x)")
-    du = sp.clean_fx(sp.load("v2", "fx_dust"))
-    img, M = scaled(du, SC2["fx_dust"])
-    add("fx_dust", img, {"center": (img.shape[1] / 2, img.shape[0] / 2)}, src="v2 fx_dust")
+    img, M = scaled(pf, SC2["fx_puff"] * V2K)
+    add("fx_puff", img, {"cloud": sp.ap(M, (float(xs.mean()), float(ys.mean())))}, src="frontal v2 fx_puff")
+    du = fx.clean_fx(v2load("v2", "fx_dust"))
+    img, M = scaled(du, SC2["fx_dust"] * V2K)
+    add("fx_dust", img, {"center": (img.shape[1] / 2, img.shape[0] / 2)}, src="frontal v2 fx_dust")
     return P
 
 
@@ -159,52 +161,51 @@ def pack(P, out_png, out_json):
         x, y, w, h = rects[n]
         atlas[y:y + h, x:x + w] = img
     Image.fromarray((np.clip(atlas, 0, 1) * 255 + 0.5).astype(np.uint8), "RGBA").save(out_png)
-    js = {"image": os.path.basename(out_png), "units": "1 part px = 1 body px (parts/v1/body.png px of the spud)",
+    js = {"image": os.path.basename(out_png), "units": "1 part px = 1 body px (parts/cc/body.png px of the side-view spud)",
           "parts": {n: dict({"rect": list(rects[n]), "points": P[n][1]}, **P[n][2]) for n in sorted(P)}}
     json.dump(js, open(out_json, "w"), indent=1)
     return atlas.shape
 
 
 # ============================================================================ sockets / weapons / families
+# SIDE VIEW: every slot faces right (side +1, nothing mirrored per slot; the game mirrors the whole figure).
+# layer "front" = near side, drawn over the body (light arm + bud); "back" = far side, behind the body (dark arm).
+# Names keep the runtime's <up|mid|low><R|L> pattern: R = near/front, L = far/back.
 SLOTS = {
-    "midR": {"pos": [160, 116], "side": 1, "dir": 70.0, "z": 11.0, "native": True},
-    "midL": {"pos": [16, 116], "side": -1, "dir": 70.0, "z": 11.2, "native": True},
-    "upL": {"pos": [26, 50], "side": -1, "dir": -30.0, "z": 4.0, "native": False},
-    "upR": {"pos": [150, 50], "side": 1, "dir": -30.0, "z": 4.1, "native": False},
-    "lowL": {"pos": [32, 158], "side": -1, "dir": 40.0, "z": 3.6, "native": False},
-    "lowR": {"pos": [144, 158], "side": 1, "dir": 40.0, "z": 3.7, "native": False},
+    "midR": {"pos": [154, 158], "side": 1, "dir": 54.0, "z": 11.0, "native": True, "layer": "front"},
+    "midL": {"pos": [26, 126], "side": 1, "dir": 118.0, "z": 4.0, "native": True, "layer": "back"},
+    "upR": {"pos": [166, 124], "side": 1, "dir": -8.0, "z": 11.4, "native": False, "layer": "front"},
+    "upL": {"pos": [62, 26], "side": 1, "dir": -42.0, "z": 3.6, "native": False, "layer": "back"},
+    "lowR": {"pos": [140, 190], "side": 1, "dir": 34.0, "z": 11.6, "native": False, "layer": "front"},
+    "lowL": {"pos": [22, 168], "side": 1, "dir": 146.0, "z": 3.8, "native": False, "layer": "back"},
 }
-HIGH = {"upL": {"dir": -48.0}, "upR": {"dir": -48.0}, "midR": {"dir": 44.0}, "midL": {"dir": 44.0},
-        "lowL": {"pos": [25, 150], "dir": 12.0}, "lowR": {"pos": [151, 150], "dir": 12.0}}
-LAYOUTS = {"1": (["midR", "midL"], {}), "2": (["midR", "midL"], {}), "3": (["midR", "midL", "upL"], {}),
-           "4": (["midR", "midL", "upL", "upR"], {}), "5": (["midR", "midL", "upL", "upR", "lowL"], HIGH),
-           "6": (["midR", "midL", "upL", "upR", "lowL", "lowR"], HIGH)}
+LAYOUTS = {"1": (["midR", "midL"], {}), "2": (["midR", "midL"], {}), "3": (["midR", "midL", "upR"], {}),
+           "4": (["midR", "midL", "upR", "upL"], {}), "5": (["midR", "midL", "upR", "upL", "lowR"], {}),
+           "6": (["midR", "midL", "upR", "upL", "lowR", "lowL"], {})}
 
 WEAPONS = {
     "club": {"img": "club", "family": "melee-swing", "wood": True, "restAim": -62.0, "shotOffset": 0.0,
              "hand": {"front": "fist34", "back": "fist_dark"},
              "fx": {"release": {"img": "fx_smear", "rule": "swingArc", "z": "behindBody",
-                                "params": {"back": 45.0, "radius": 0.92}}}},
+                                "params": {"back": 40.0, "radius": 0.92}}}},
     "knife": {"img": "knife", "family": "melee-stab", "wood": False, "restAim": -40.0, "shotOffset": 0.0,
               "hand": {"front": "fist34", "back": "fist_dark"},
               "fx": {"release": {"img": "fx_streak", "rule": "alongAim", "anchor": "tip", "at": "tip",
                                  "params": {"ahead": 4.0, "side": -5.0}, "z": 14.0}}},
     "slingshot": {"img": "sling_relaxed", "family": "ranged-recoil", "wood": True, "restAim": -96.0, "shotOffset": 90.0,
                   "hand": {"front": "fist", "back": "fist_dark"},
-                  "alt": {"imgs": ["sling_fist", "sling_fist_b"], "pick": "slotIndex % 2", "hidesHand": True},
                   "fx": {"release": {"img": "fx_puff", "rule": "alongShot", "anchor": "cloud", "at": "fork",
                                      "params": {"ahead": 8.0, "side": 0.0}, "z": 14.0}}},
 }
 
 FAMILIES = {
-    # keys: ms, raise (deg, + lifts the arm), elbow (deg vs the painted bend, + bends more; bent arms only),
-    # aim (canonical weapon deg), thrust (body px along the forearm), alt (show weapon alt painting),
-    # straight (swap a bent arm for the long straight painting), show (fx), ev (events), squash (body)
+    # same keys as the hero's attack clip (rig.py ATTACK). weaponBehind: draw the weapon behind the body on that
+    # key (front slots only; the over-the-shoulder windup), optional, ignored by older compositors.
     "melee-swing": [
-        {"ms": 60, "raise": 48, "elbow": 22, "aim": -100, "squash": 0.02},
-        {"ms": 45, "raise": -12, "elbow": -24, "aim": -4, "thrust": 2, "show": ["release"], "ev": ["release"], "squash": -0.02},
-        {"ms": 70, "raise": -22, "elbow": -14, "aim": 32, "thrust": 1, "squash": 0.025},
-        {"ms": 80, "raise": -6, "elbow": -4, "aim": -48},
+        {"ms": 60, "raise": 100, "elbow": -40, "aim": -98, "squash": 0.02, "weaponBehind": True},
+        {"ms": 45, "raise": 36, "elbow": -62, "aim": 6, "thrust": 2, "show": ["release"], "ev": ["release"], "squash": -0.02},
+        {"ms": 70, "raise": 10, "elbow": -56, "aim": 26, "thrust": 1, "squash": 0.025},
+        {"ms": 80, "raise": 6, "elbow": -8, "aim": -40},
     ],
     "melee-stab": [
         {"ms": 60, "raise": -6, "elbow": 30, "aim": -46, "thrust": -3, "squash": 0.015},
@@ -213,7 +214,7 @@ FAMILIES = {
         {"ms": 80, "raise": 6, "elbow": -6, "aim": -30},
     ],
     "ranged-recoil": [
-        {"ms": 90, "raise": 10, "elbow": 26, "aim": -98, "thrust": -4, "alt": True, "squash": 0.01},
+        {"ms": 90, "raise": 10, "elbow": 26, "aim": -98, "thrust": -4, "squash": 0.01},
         {"ms": 45, "raise": 16, "elbow": -40, "aim": -90, "thrust": 5, "show": ["release"], "ev": ["release"]},
         {"ms": 70, "raise": 26, "elbow": -14, "aim": -112, "thrust": 1, "squash": 0.015},
         {"ms": 80, "raise": 8, "elbow": -4, "aim": -100},
@@ -238,11 +239,11 @@ def idle_arm(slot_i, ph):
 
 # ============================================================================ armless sheet + body track
 def armless_and_track(cfg):
-    arm_parts = [n for n in cfg["parts"] if n.startswith(("armR", "armL", "handR", "handL", "budR", "budL", "club", "smear"))]
+    arm_parts = [n for n in cfg["parts"] if n.startswith(("armR", "armL", "handR", "handL", "budR", "budL", "club", "smear"))]  # + clubB
     acfg = copy.deepcopy({k: v for k, v in cfg.items() if k != "_dir"})
     acfg["_dir"] = cfg["_dir"]
     acfg["id"] = "player-potato-armless"
-    acfg["title"] = "Spud body + legs (multi-arm base, arms drawn at runtime)"
+    acfg["title"] = "Spud body + legs, side view (multi-arm base, arms drawn at runtime)"
     for cname, cc in acfg["clips"].items():
         for f in cc["frames"]:
             if "painted" not in f:
@@ -253,7 +254,7 @@ def armless_and_track(cfg):
     PAD = rigkit.PAD
     K, D = sp.K, json.load(open(os.path.join(FIG, "src", "out", "geom.json")))["D"]
     C = sp.T(PAD - D[0], PAD - D[1]) @ sp.S(K)
-    track = {"units": "matrix maps body px (spud body.png px, the socket unit) -> hero cell px (192 cell, same cell "
+    track = {"units": "matrix maps body px (side spud parts/cc/body.png px, the socket unit) -> hero cell px (192 cell, same cell "
                       "as player-potato.json / player-potato-armless.json); then the game's usual cell -> world draw",
              "cell": R.C, "clips": {}}
     for cname, cc in cfg["clips"].items():
@@ -296,10 +297,17 @@ def main():
            "death": [[{"raise": -18.0, "elbow": 12.0}] * 6, [{"raise": 95.0, "elbow": -36.0, "wrist": -30.0}] * 6] + [[{}] * 6] * 5}
     track["secondary"] = sec
     json.dump(track, open(os.path.join(OUT, "body_track.json"), "w"), indent=1)
-    sockets = {"units": "body px (parts/v1/body.png px); dir/aim = screen deg, y down, 0 = right (facing), -90 = up; "
-                        "CANONICAL = as if on the right side: side -1 slots mirror about their own x",
+    sockets = {"units": "body px (parts/cc/body.png px of the side-view spud); dir/aim = screen deg, y down, 0 = right "
+                        "(facing), -90 = up",
+               "view": "side",
+               "mirror": "every slot is side +1 (facing right); nothing is mirrored per slot. When the target is behind "
+                         "the hero (or it walks left) the game mirrors the WHOLE composite (body cell + all arms) about "
+                         "the anchor x, exactly like it already does for sheets; aim maths stays in the unmirrored frame "
+                         "(mirror the target x about the anchor first). See compose_ref.MultiArm.frame(facing=-1).",
+               "layers": {"front": "near side: drawn over the body (z > behindBodyZ), light arm + bud",
+                          "back": "far side: behind the body (z < behindBodyZ), dark arm + dark hand"},
                "slots": SLOTS, "layouts": {n: {"slots": s, "override": o} for n, (s, o) in LAYOUTS.items()},
-               "arms": {"native": {"midR": "arm4", "midL": "arm5", "kind": "bent", "scale": 1.0},
+               "arms": {"native": {"midR": "arm_bent2", "midL": "arm_dark_bent2", "kind": "bent", "scale": 1.0},
                         "sprouted": {"front": "long_cut", "back": "long_dark_cut", "kind": "straight", "scale": SPROUT_SCALE}},
                "behindBodyZ": 10.0, "bud": {"part": "bud", "frontOnly": True}}
     json.dump(sockets, open(os.path.join(OUT, "sockets.json"), "w"), indent=1)
