@@ -18,7 +18,7 @@ export function spawnPickup(
   ctx: SimCtx,
   magnet = false,
 ): Pickup {
-  const pop = magnet ? 0 : ctx.rng.range(40, 110)
+  const pop = magnet ? 0 : ctx.rng.range(90, 210)
   const ang = ctx.rng.range(0, Math.PI * 2)
   const pickup: Pickup = {
     uid: uid(),

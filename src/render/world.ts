@@ -1,4 +1,5 @@
 import { TAU, clamp, dist, ease, hashNoise, lerp } from '../core/math.ts'
+import { cameraShakeOffset, FEEL } from '../feel.ts'
 import type {
   Enemy,
   Form,
@@ -33,9 +34,16 @@ import {
 import { boardKnifeSlash, getPaintStyle, proceduralModel, usesBoardArt, usesPaintedArt } from './look.ts'
 import { drawPaintedChili } from './conceptA.ts'
 import { drawBoard, drawBoardShadow, poseBoard, boardHeld, type BoardHero } from './board.ts'
-import { paperColor } from './paintLang.ts'
 import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { drawPaddock } from './ground.ts'
+import { paperColor } from './paintLang.ts'
+import {
+  drawActorSheet,
+  pickClip,
+  resolveSheet,
+  sheetKeysForEnemy,
+  sheetKeysForPlayer,
+} from './sheets.ts'
 import {
   markerSprite,
   pickupSprite,
@@ -104,11 +112,57 @@ function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, r: numb
   ctx.save()
   ctx.translate(x, y + r * 0.62)
   ctx.scale(1, 0.38)
-  ctx.globalAlpha = alpha
-  ctx.fillStyle = '#1c1610'
+  ctx.globalAlpha = alpha * (FEEL.shadow.alpha / 0.3)
+  ctx.fillStyle = '#070604'
   ctx.beginPath()
-  ctx.arc(0, 0, r * 1.18, 0, TAU)
+  ctx.arc(0, 0, r * 1.18 * FEEL.shadow.scale, 0, TAU)
   ctx.fill()
+  ctx.restore()
+}
+
+function applySheetEvents(fx: FxApi, x: number, y: number, events: readonly string[]): void {
+  for (const name of events) {
+    if (name === 'spawnFx') fx.sparkle(x, y, '#fff6e8')
+    else if (name === 'hit') fx.hitSpark(x, y, 0, '#fff6e8')
+  }
+}
+
+function drawOffscreen(
+  ctx: CanvasRenderingContext2D,
+  world: World,
+  cssW: number,
+  cssH: number,
+): void {
+  const cam = world.camera
+  const zoom = cam.zoom > 0 ? cam.zoom : 1
+  const margin = 22
+  ctx.save()
+  for (let i = 0; i < world.enemies.length; i++) {
+    const e = world.enemies[i]
+    if (!e || e.state === 'dying' || e.state === 'spawning') continue
+    const sx = (e.x - cam.x) * zoom + cssW * 0.5
+    const sy = (e.y - cam.y) * zoom + cssH * 0.5
+    if (sx >= -8 && sx <= cssW + 8 && sy >= -8 && sy <= cssH + 8) continue
+    const cx = clamp(sx, margin, cssW - margin)
+    const cy = clamp(sy, margin, cssH - margin)
+    const ang = Math.atan2(sy - cssH * 0.5, sx - cssW * 0.5)
+    ctx.save()
+    ctx.translate(cx, cy)
+    ctx.rotate(ang)
+    ctx.globalAlpha = e.boss ? 0.95 : 0.7
+    ctx.fillStyle = e.boss ? '#d4b060' : e.def.palette.accent
+    ctx.beginPath()
+    ctx.moveTo(10, 0)
+    ctx.lineTo(-7, 6)
+    ctx.lineTo(-4, 0)
+    ctx.lineTo(-7, -6)
+    ctx.closePath()
+    ctx.fill()
+    ctx.strokeStyle = '#0c0806'
+    ctx.lineWidth = 1.2
+    ctx.stroke()
+    ctx.restore()
+  }
   ctx.restore()
 }
 
@@ -148,9 +202,17 @@ function drawTrail(ctx: CanvasRenderingContext2D, p: Projectile): void {
     if (!a || !b) continue
     const u = i / pts.length
     const col =
-      p.def.trail === 'ember' ? '#e07038' : p.def.trail === 'spark' ? '#c8e8ff' : p.def.paint === 'spit' ? '#8aaa4a' : '#2a221c'
-    ctx.strokeStyle = rgba(col, 0.12 + u * 0.4)
-    ctx.lineWidth = p.r * (0.4 + u * 0.9)
+      p.def.trail === 'ember'
+        ? '#ff9040'
+        : p.def.trail === 'spark'
+          ? '#e8f6ff'
+          : p.def.paint === 'spit'
+            ? '#b8e05a'
+            : p.owner === 'player'
+              ? '#ffe28a'
+              : '#2a221c'
+    ctx.strokeStyle = rgba(col, 0.22 + u * 0.55)
+    ctx.lineWidth = p.r * (0.7 + u * 1.15)
     ctx.beginPath()
     ctx.moveTo(a.x, a.y)
     ctx.lineTo(b.x, b.y)
@@ -165,8 +227,21 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile, cache: Spr
   ctx.save()
   ctx.translate(p.x, p.y)
   ctx.rotate(p.angle)
-  const sc = (p.r * 2) / 14
-  blit(ctx, spr, sc, clamp(p.life / Math.max(0.05, p.maxLife), 0.35, 1))
+  const spd = Math.hypot(p.vx, p.vy)
+  const stretch = 1 + clamp(spd / 520, 0, FEEL.projectile.stretch)
+  ctx.scale(stretch, 1 / Math.sqrt(stretch))
+  const sc = (p.r * 2.4) / 14
+  if (p.owner === 'player') {
+    ctx.save()
+    ctx.globalCompositeOperation = 'lighter'
+    ctx.globalAlpha = 0.55
+    ctx.fillStyle = '#fff4c0'
+    ctx.beginPath()
+    ctx.ellipse(0, 0, p.r * 2.2, p.r * 1.1, 0, 0, TAU)
+    ctx.fill()
+    ctx.restore()
+  }
+  blit(ctx, spr, sc, clamp(p.life / Math.max(0.05, p.maxLife), 0.45, 1))
   ctx.restore()
 }
 
@@ -214,11 +289,17 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: SpawnMarker, cache: Sprite
   const form = markerForm(m.kind)
   const spr = markerSprite(cache, form, qScale)
   const u = m.life > 0 ? m.t / m.life : 1
-  const bloom = lerp(0.45, 1.15, ease.outCubic(clamp(u, 0, 1)))
-  const alpha = 0.25 + 0.65 * Math.sin(clamp(u, 0, 1) * Math.PI)
+  const bloom = lerp(0.55, 1.35, ease.outCubic(clamp(u, 0, 1)))
+  const pulse = 0.35 + 0.65 * Math.sin(clamp(u, 0, 1) * Math.PI)
   ctx.save()
   ctx.translate(m.x, m.y)
-  blit(ctx, spr, bloom, alpha)
+  ctx.globalAlpha = pulse * 0.55
+  ctx.strokeStyle = form === 'nightmare' ? '#d9ff5c' : '#c4a050'
+  ctx.lineWidth = 3
+  ctx.beginPath()
+  ctx.ellipse(0, 6, 18 + bloom * 10, 8 + bloom * 4, 0, 0, TAU)
+  ctx.stroke()
+  blit(ctx, spr, bloom, pulse)
   ctx.restore()
 }
 
@@ -240,14 +321,22 @@ function foeModel(form: Form): ModelDir {
   return form === 'nightmare' ? 'b' : getPaintStyle()
 }
 
-function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, cache: SpriteCache, time: number): void {
+function drawEnemy(
+  ctx: CanvasRenderingContext2D,
+  e: Enemy,
+  cache: SpriteCache,
+  time: number,
+  dt: number,
+  fx: FxApi,
+): void {
   if (e.sliced) return
   const species = resolveSpecies(e.def.paint, e.def.species, e.kind)
   const form: Form = e.form ?? e.def.form ?? 'normal'
   const model = foeModel(form)
   const pal = e.def.palette ?? SPECIES_PALETTES[species]
   const artR = sizeBucket(e.r)
-  const spr = creatureSprite(cache, species, pal, form, artR, qScale, model, true)
+  const sheet = resolveSheet(sheetKeysForEnemy(e.kind, form))
+  const spr = sheet ? null : creatureSprite(cache, species, pal, form, artR, qScale, model, true)
   const spawn = clamp(e.anim.spawnT, 0, 1)
   const dying = e.anim.deathT >= 0
   const death = dying ? clamp(e.anim.deathT, 0, 1) : 0
@@ -265,9 +354,27 @@ function drawEnemy(ctx: CanvasRenderingContext2D, e: Enemy, cache: SpriteCache, 
     ox += (hashNoise(Math.floor(time * 48), e.uid) - 0.5) * mag * 2
     oy += (hashNoise(Math.floor(time * 48), e.uid + 9) - 0.5) * mag * 2
   }
-  drawShadow(ctx, ox, e.y, e.r, 0.4 * appear * (1 - death))
+  drawShadow(ctx, ox, e.y, e.r, 0.55 * appear * (1 - death))
   ctx.save()
   ctx.translate(ox, oy)
+  if (sheet) {
+    const clip = pickClip(sheet, e.anim, { swinging: e.state === 'windup' || e.state === 'charging' })
+    ctx.globalAlpha = appear * (1 - (sheet.manifest.clips.death ? 0 : death))
+    if (clip) {
+      const ev = drawActorSheet(ctx, sheet, `e:${e.uid}`, clip, dt, {
+        r: e.r,
+        facing,
+        alpha: 1,
+      })
+      applySheetEvents(fx, ox, oy, ev)
+    }
+    ctx.restore()
+    if (e.burn > 0) drawEmbers(ctx, ox, oy, e.r, time, e.uid)
+    if (e.elite || e.boss) {
+      hpArc(ctx, ox, oy - e.r - 8, e.boss ? 22 : 14, e.maxHp > 0 ? e.hp / e.maxHp : 0, e.boss)
+    }
+    return
+  }
   if (dying) ctx.rotate((n01(e.uid, 2) - 0.5) * 0.5 * death)
   const bloom = lerp(1.7, 1, appear) * (1 + death * 0.75)
   const squash = clamp(e.anim.squash || 1, 0.45, 1.8)
@@ -480,9 +587,9 @@ function drawPlayerWeapons(
       : weaponAngleAndPos(player, w.slot, w.angle, w.swingT, behavior)
     if (!heldPos && pose.smear && w.swingT >= 0) {
       ctx.save()
-      ctx.globalAlpha = 0.22 * Math.sin(clamp(w.swingT, 0, 1) * Math.PI)
-      ctx.strokeStyle = '#c4b090'
-      ctx.lineWidth = 10
+      ctx.globalAlpha = 0.38 * Math.sin(clamp(w.swingT, 0, 1) * Math.PI)
+      ctx.strokeStyle = '#f0e0b0'
+      ctx.lineWidth = 14
       ctx.lineCap = 'round'
       ctx.beginPath()
       ctx.arc(player.x, player.y + player.anim.bob, pose.smear.r, pose.smear.a0, pose.smear.a1)
@@ -568,14 +675,15 @@ function drawOrbitWeapons(ctx: CanvasRenderingContext2D, world: World, cache: Sp
   }
 }
 
-function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCache): void {
+function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCache, dt: number, fx: FxApi): void {
   const p = world.player
   const pal = p.character.palette
   const species = resolveSpecies(p.character.species ?? 'potato', p.character.species, p.character.id)
   const form: Form = 'normal'
   const model: ModelDir = p.model ?? 'b'
-  const painted = usesPaintedArt(species, model)
-  const board = usesBoardArt(species, model)
+  const sheet = resolveSheet(sheetKeysForPlayer(species, model))
+  const painted = !sheet && usesPaintedArt(species, model)
+  const board = !sheet && usesBoardArt(species, model)
   const imageHero = painted || board
   const artR = sizeBucket(p.r)
   const procModel = proceduralModel(model)
@@ -591,8 +699,9 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const squash = clamp(p.anim.squash || 1, 0.45, 1.8)
   const sc = p.r / artR
   const bodyRot = imageHero
-    ? clamp(p.vx / 280, -0.12, 0.12)
-    : clamp(p.vx / 220, -0.28, 0.28) + clamp(Math.hypot(p.vx, p.vy) / 400, 0, 0.08) * Math.sign(p.vx || p.anim.facing)
+    ? clamp(p.vx / 220, -0.18, 0.18)
+    : clamp(p.vx / 180, -0.36, 0.36) * FEEL.motion.lean +
+      clamp(Math.hypot(p.vx, p.vy) / 400, 0, 0.1) * Math.sign(p.vx || p.anim.facing)
   const squashAmt = imageHero ? lerp(1, squash, 0.28) : squash
   const sx = sc * squashAmt * ss.sx
   const sy = (sc * ss.sy) / squashAmt
@@ -613,6 +722,24 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
 
   let alpha = 1
   if (p.invuln > 0) alpha = Math.sin(p.anim.t * 24) > 0 ? 1 : 0.32
+
+  if (sheet) {
+    const swinging = p.weapons.some((w) => w.swingT >= 0)
+    drawShadow(ctx, x, p.y, p.r, p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.18 : 0.62)
+    drawPlayerWeapons(ctx, world, cache, true, held)
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.rotate(bodyRot)
+    const clip = pickClip(sheet, p.anim, { swinging })
+    if (clip) {
+      const ev = drawActorSheet(ctx, sheet, 'player', clip, dt, { r: p.r, facing, alpha })
+      applySheetEvents(fx, x, y, ev)
+    }
+    ctx.restore()
+    drawPlayerWeapons(ctx, world, cache, false, held)
+    drawOrbitWeapons(ctx, world, cache)
+    return
+  }
 
   if (board) {
     const aimW = p.weapons.find((w) => w.swingT >= 0) ?? p.weapons[0]
@@ -656,7 +783,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     return
   }
 
-  drawShadow(ctx, x, p.y, p.r, p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.14 : 0.42)
+  drawShadow(ctx, x, p.y, p.r, p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.18 : 0.62)
   drawPlayerWeapons(ctx, world, cache, true, held)
   ctx.save()
   ctx.translate(x, y)
@@ -752,9 +879,10 @@ export function drawWorld(
   ctx.fillStyle = paperColor()
   ctx.fillRect(0, 0, cssW, cssH)
 
+  const shakeOff = cameraShakeOffset(world)
+  const sx = shakeOff.x
+  const sy = shakeOff.y
   const shake = cam.shake
-  const sx = Math.sin(world.time * 53.1) * shake
-  const sy = Math.cos(world.time * 47.7) * shake
 
   ctx.save()
   ctx.translate(cssW * 0.5, cssH * 0.5)
@@ -811,10 +939,10 @@ export function drawWorld(
       if (m) drawMarker(ctx, m, cache)
     } else if (c.kind === 3) {
       const e = world.enemies[c.idx]
-      if (e) drawEnemy(ctx, e, cache, world.time)
+      if (e) drawEnemy(ctx, e, cache, world.time, dt, fx)
     } else if (c.kind === 4 && !playerDrawn) {
       playerDrawn = true
-      drawPlayer(ctx, world, cache)
+      drawPlayer(ctx, world, cache, dt, fx)
     } else if (c.kind === 5) {
       const plot = world.farm.plots[c.idx]
       if (plot) drawFarmPlant(ctx, plot)
@@ -844,6 +972,7 @@ export function drawWorld(
   ctx.restore()
 
   fx.drawScreen(ctx, cssW, cssH)
+  drawOffscreen(ctx, world, cssW, cssH)
   vignette(ctx, cssW, cssH, 0.4)
   ctx.restore()
 }

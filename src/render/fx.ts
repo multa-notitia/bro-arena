@@ -1,10 +1,11 @@
 import { TAU, clamp, ease, hashNoise, lerp } from '../core/math.ts'
 import type { DamageNumberOpts, FxApi } from '../core/types.ts'
+import { FEEL, flashStrength } from '../feel.ts'
 import { n01, parseRgb, wobbleBlob } from './watercolor.ts'
 
-const MAX_PARTICLES = 600
-const MAX_STAINS = 80
-const STAIN_LIFE = 2.55
+const MAX_PARTICLES = 720
+const MAX_STAINS = 110
+const STAIN_LIFE = FEEL.kill.stainLife
 
 type Kind = 'splat' | 'bloom' | 'spark' | 'slash' | 'thrust' | 'shock' | 'dmg' | 'text' | 'sparkle' | 'puff' | 'stain' | 'chunk'
 
@@ -350,6 +351,75 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.vx = (hashNoise(nextId, 27) - 0.5) * 12
       p.vy = -8 - hashNoise(nextId, 28) * 16
     },
+    inkBurst(x, y, size) {
+      api.splat(x, y, '#16120e', size * 1.05, 11)
+      addStain(x, y + 3, '#12100c', size * 0.95)
+      addStain(x + size * 0.22, y + 6, '#1c1814', size * 0.45)
+      const n = 9
+      for (let i = 0; i < n; i++) {
+        const p = alloc()
+        p.kind = 'spark'
+        const a = n01(i + nextId, 51) * TAU
+        const spd = 90 + n01(i, 52) * 180
+        p.x = x
+        p.y = y
+        p.vx = Math.cos(a) * spd
+        p.vy = Math.sin(a) * spd
+        p.size = 4 + n01(i, 53) * 7
+        p.angle = a
+        p.color = i % 3 === 0 ? '#fff8e8' : '#f4ead0'
+        p.life = 0.16 + n01(i, 54) * 0.18
+        p.maxLife = p.life
+      }
+      const bloom = alloc()
+      bloom.kind = 'bloom'
+      bloom.x = x
+      bloom.y = y
+      bloom.size = size * 1.15
+      bloom.color = '#fff6e0'
+      bloom.life = 0.22
+      bloom.maxLife = 0.22
+    },
+    muzzleFlash(x, y, angle, color = '#f0d060') {
+      const p = alloc()
+      p.kind = 'bloom'
+      p.x = x + Math.cos(angle) * 6
+      p.y = y + Math.sin(angle) * 6
+      p.size = 16
+      p.color = color
+      p.life = 0.12
+      p.maxLife = 0.12
+      api.hitSpark(x, y, angle, '#fff6e8')
+    },
+    impact(x, y, angle, color) {
+      addStain(x, y + 2, color, 7)
+      api.hitSpark(x, y, angle, color)
+      const p = alloc()
+      p.kind = 'puff'
+      p.x = x
+      p.y = y
+      p.size = 7
+      p.color = '#fff4d8'
+      p.life = 0.16
+      p.maxLife = 0.16
+    },
+    dust(x, y, vx = 0, vy = 0) {
+      for (let i = 0; i < 3; i++) {
+        const p = alloc()
+        p.kind = 'puff'
+        p.x = x + (n01(i, 61) - 0.5) * 8
+        p.y = y
+        p.vx = vx * 0.4 + (n01(i, 62) - 0.5) * 18
+        p.vy = vy * 0.3 - 10 - n01(i, 63) * 14
+        p.size = 7 + n01(i, 64) * 6
+        p.color = '#6a5a48'
+        p.life = 0.28 + n01(i, 65) * 0.18
+        p.maxLife = p.life
+      }
+    },
+    footprint(x, y) {
+      addStain(x, y, '#2a241c', 5.5)
+    },
     chunks(x, y, colors, size, kill) {
       const n = kill ? 7 : 4
       const palette = [colors.body, colors.shade, colors.accent]
@@ -398,7 +468,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
     },
     flash(color, strength) {
       flashColor = color
-      flashA = clamp(Math.max(flashA, strength), 0, 1)
+      flashA = clamp(Math.max(flashA, flashStrength(strength)), 0, 1)
     },
     update(dt) {
       const d = Math.min(0.05, Math.max(0, dt))

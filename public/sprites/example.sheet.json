@@ -1,0 +1,44 @@
+{
+  "image": "example.webp",
+  "frameWidth": 64,
+  "frameHeight": 64,
+  "columns": 8,
+  "anchor": { "x": 0.5, "y": 0.88 },
+  "clips": {
+    "idle": {
+      "loop": true,
+      "frames": [
+        { "i": 0, "ms": 160 },
+        { "i": 1, "ms": 160, "scaleX": 1.03, "scaleY": 0.97 }
+      ]
+    },
+    "walk": {
+      "loop": true,
+      "frames": [
+        { "i": 8, "ms": 80 },
+        { "i": 9, "ms": 80, "oy": -1 },
+        { "i": 10, "ms": 80 },
+        { "i": 11, "ms": 80, "oy": -1 }
+      ]
+    },
+    "hurt": {
+      "loop": false,
+      "frames": [{ "i": 16, "ms": 80, "event": "hit" }]
+    },
+    "attack": {
+      "loop": false,
+      "frames": [
+        { "i": 24, "ms": 50 },
+        { "i": 25, "ms": 40, "event": "hit" },
+        { "i": 26, "ms": 90, "events": ["spawnFx"] }
+      ]
+    },
+    "death": {
+      "loop": false,
+      "frames": [
+        { "i": 32, "ms": 80 },
+        { "i": 33, "ms": 160 }
+      ]
+    }
+  }
+}

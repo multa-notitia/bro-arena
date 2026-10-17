@@ -77,6 +77,7 @@ const SKELETON = `
         <div class="bar-block">
           <span class="bar-label">HP</span>
           <div class="bar hp-bar" role="meter" aria-label="Health">
+            <div id="hud-hp-delay" class="bar-fill bar-delay"></div>
             <div id="hud-hp-fill" class="bar-fill"></div>
           </div>
           <span id="hud-hp-text" class="bar-num">0 / 0</span>
@@ -84,6 +85,7 @@ const SKELETON = `
         <div class="bar-block">
           <span class="bar-label">Lv <span id="hud-level">1</span></span>
           <div class="bar xp-bar" role="meter" aria-label="Experience">
+            <div id="hud-xp-delay" class="bar-fill bar-delay"></div>
             <div id="hud-xp-fill" class="bar-fill"></div>
           </div>
           <span id="hud-xp-text" class="bar-num"></span>
@@ -159,6 +161,7 @@ const SKELETON = `
     <div class="paint-settings" role="group" aria-label="Painting style">
       <p class="paint-kicker">Painting language</p>
       <div id="title-paint" class="paint-row"></div>
+      <button id="btn-title-juice" class="btn ghost juice-btn" type="button" aria-pressed="false">Ease the shake</button>
     </div>
     <ul class="howto">
       <li>WASD or arrows to move. P holds still. 1–4 pick. M quiets.</li>
@@ -289,6 +292,7 @@ const SKELETON = `
     <div class="paint-settings" role="group" aria-label="Painting style">
       <p class="paint-kicker">Painting language</p>
       <div id="pause-paint" class="paint-row"></div>
+      <button id="btn-pause-juice" class="btn ghost juice-btn" type="button" aria-pressed="false">Ease the shake</button>
     </div>
     <div class="actions">
       <button id="btn-resume" class="btn primary" type="button">Keep going</button>
@@ -394,8 +398,10 @@ export function createUi(
 
   const hud = must<HTMLDivElement>('#hud')
   const hpFill = must<HTMLDivElement>('#hud-hp-fill')
+  const hpDelayEl = must<HTMLDivElement>('#hud-hp-delay')
   const hpText = must<HTMLElement>('#hud-hp-text')
   const xpFill = must<HTMLDivElement>('#hud-xp-fill')
+  const xpDelayEl = must<HTMLDivElement>('#hud-xp-delay')
   const xpText = must<HTMLElement>('#hud-xp-text')
   const levelEl = must<HTMLElement>('#hud-level')
   const waveEl = must<HTMLElement>('#hud-wave')
@@ -422,6 +428,7 @@ export function createUi(
   const errorRetry = must<HTMLButtonElement>('#error-retry')
   const btnPlay = must<HTMLButtonElement>('#btn-play')
   const btnTitleMute = must<HTMLButtonElement>('#btn-title-mute')
+  const btnTitleJuice = must<HTMLButtonElement>('#btn-title-juice')
   const titlePaint = must<HTMLDivElement>('#title-paint')
   const pausePaint = must<HTMLDivElement>('#pause-paint')
   const charGrid = must<HTMLDivElement>('#char-grid')
@@ -441,6 +448,7 @@ export function createUi(
   const btnResume = must<HTMLButtonElement>('#btn-resume')
   const btnQuit = must<HTMLButtonElement>('#btn-quit')
   const btnPauseMute = must<HTMLButtonElement>('#btn-pause-mute')
+  const btnPauseJuice = must<HTMLButtonElement>('#btn-pause-juice')
   const overLede = must<HTMLElement>('#over-lede')
   const overHero = must<HTMLDivElement>('#over-hero')
   const overSummary = must<HTMLUListElement>('#over-summary')
@@ -592,12 +600,17 @@ export function createUi(
   let bannerTimer = 0
   let bannerHideTimer = 0
   let mutedUi = false
+  let juiceUi = false
+  let hpDelayFrac = 1
+  let xpDelayFrac = 0
 
   let titleHandlers: {
     play(): void
     toggleMute(): void
     paintStyle: PaintStyle
     setPaintStyle(style: PaintStyle): void
+    reducedJuice: boolean
+    setReducedJuice(v: boolean): void
   } | null = null
   let pauseRequest: (() => void) | null = null
   let pauseHandlers: {
@@ -606,6 +619,8 @@ export function createUi(
     toggleMute(): void
     paintStyle: PaintStyle
     setPaintStyle(style: PaintStyle): void
+    reducedJuice: boolean
+    setReducedJuice(v: boolean): void
   } | null = null
   let shopHandlers: ShopHandlers | null = null
   let plantHandlers: PlantHandlers | null = null
@@ -620,6 +635,21 @@ export function createUi(
   let levelIds: string[] = []
   let levelPick: ((id: string) => void) | null = null
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+  function juiceLabel(reduced: boolean): string {
+    return reduced ? 'Full punch' : 'Ease the shake'
+  }
+
+  function setJuiceUi(reduced: boolean): void {
+    juiceUi = reduced
+    const label = juiceLabel(reduced)
+    btnTitleJuice.textContent = label
+    btnPauseJuice.textContent = label
+    btnTitleJuice.classList.toggle('is-muted', reduced)
+    btnPauseJuice.classList.toggle('is-muted', reduced)
+    btnTitleJuice.setAttribute('aria-pressed', String(reduced))
+    btnPauseJuice.setAttribute('aria-pressed', String(reduced))
+  }
 
   function setMutedUi(muted: boolean): void {
     mutedUi = muted
@@ -826,6 +856,14 @@ export function createUi(
     if (mutedUi === before) setMutedUi(!before)
   })
 
+  btnTitleJuice.addEventListener('click', () => {
+    titleHandlers?.setReducedJuice(!juiceUi)
+  })
+
+  btnPauseJuice.addEventListener('click', () => {
+    pauseHandlers?.setReducedJuice(!juiceUi)
+  })
+
   shopReroll.addEventListener('click', () => {
     shopHandlers?.reroll()
   })
@@ -955,27 +993,36 @@ export function createUi(
     },
 
     renderHud(snap: HudSnapshot): void {
+      const hpFrac = snap.maxHp > 0 ? clamp(snap.hp / snap.maxHp, 0, 1) : 0
+      if (hpFrac < hpDelayFrac) hpDelayFrac += (hpFrac - hpDelayFrac) * 0.08
+      else hpDelayFrac = hpFrac
+      hpDelayEl.style.transform = `scaleX(${hpDelayFrac})`
       if (snap.hp !== hudCache.hp || snap.maxHp !== hudCache.maxHp) {
         hudCache.hp = snap.hp
         hudCache.maxHp = snap.maxHp
-        const frac = snap.maxHp > 0 ? clamp(snap.hp / snap.maxHp, 0, 1) : 0
-        hpFill.style.transform = `scaleX(${frac})`
+        hpFill.style.transform = `scaleX(${hpFrac})`
         hpText.textContent = `${Math.max(0, Math.round(snap.hp))} / ${Math.round(snap.maxHp)}`
       }
       if (snap.level !== hudCache.level) {
         hudCache.level = snap.level
         levelEl.textContent = String(snap.level)
       }
+      const xpFrac = snap.xpNext > 0 ? clamp(snap.xp / snap.xpNext, 0, 1) : 1
+      if (xpFrac < xpDelayFrac) xpDelayFrac += (xpFrac - xpDelayFrac) * 0.1
+      else xpDelayFrac = xpFrac
+      xpDelayEl.style.transform = `scaleX(${xpDelayFrac})`
       if (snap.xp !== hudCache.xp || snap.xpNext !== hudCache.xpNext) {
         hudCache.xp = snap.xp
         hudCache.xpNext = snap.xpNext
-        const frac = snap.xpNext > 0 ? clamp(snap.xp / snap.xpNext, 0, 1) : 1
-        xpFill.style.transform = `scaleX(${frac})`
+        xpFill.style.transform = `scaleX(${xpFrac})`
         xpText.textContent = `${Math.round(snap.xp)}/${Math.round(snap.xpNext)}`
       }
       if (snap.materials !== hudCache.materials) {
         hudCache.materials = snap.materials
         materialsEl.textContent = String(snap.materials)
+        materialsEl.classList.remove('is-pop')
+        void materialsEl.offsetWidth
+        materialsEl.classList.add('is-pop')
       }
       if (snap.wave !== hudCache.wave || snap.waveTotal !== hudCache.waveTotal) {
         hudCache.wave = snap.wave
@@ -1421,11 +1468,14 @@ export function createUi(
         muted: boolean
         paintStyle: PaintStyle
         setPaintStyle(style: PaintStyle): void
+        reducedJuice: boolean
+        setReducedJuice(v: boolean): void
       },
     ): void {
       pauseHandlers = handlers
       applyStats(view)
       setMutedUi(handlers.muted)
+      setJuiceUi(handlers.reducedJuice)
       fillPaintRow(pausePaint, handlers.paintStyle, handlers.setPaintStyle)
     },
 
@@ -1505,9 +1555,12 @@ export function createUi(
       muted: boolean
       paintStyle: PaintStyle
       setPaintStyle(style: PaintStyle): void
+      reducedJuice: boolean
+      setReducedJuice(v: boolean): void
     }): void {
       titleHandlers = handlers
       setMutedUi(handlers.muted)
+      setJuiceUi(handlers.reducedJuice)
       fillPaintRow(titlePaint, handlers.paintStyle, handlers.setPaintStyle)
     },
 

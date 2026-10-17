@@ -1,4 +1,5 @@
 import { clamp, damp, ease, uid, wrapAngle } from '../core/math.ts'
+import { FEEL } from '../feel.ts'
 import type {
   AnimState,
   CharacterDef,
@@ -30,6 +31,8 @@ export interface PlayerExtra {
   blinkWait: number
   screamLeft: number
   flinchT: number
+  wasMoving: boolean
+  footAcc: number
 }
 
 const bonusByPlayer = new WeakMap<Player, Partial<Stats>>()
@@ -152,7 +155,7 @@ export function getLevelBonus(player: Player): Partial<Stats> {
 export function extraState(player: Player): PlayerExtra {
   let extra = extraByPlayer.get(player)
   if (!extra) {
-    extra = { squashT: 1, matHeal: 0, blinkWait: 4, screamLeft: 0, flinchT: 0 }
+    extra = { squashT: 1, matHeal: 0, blinkWait: 4, screamLeft: 0, flinchT: 0, wasMoving: false, footAcc: 0 }
     extraByPlayer.set(player, extra)
   }
   return extra
@@ -201,7 +204,15 @@ export function createPlayer(character: CharacterDef, model: ModelDir = 'b'): Pl
     materialsCollected: 0,
   }
   bonusByPlayer.set(player, {})
-  extraByPlayer.set(player, { squashT: 1, matHeal: 0, blinkWait: 4, screamLeft: 0, flinchT: 0 })
+  extraByPlayer.set(player, {
+    squashT: 1,
+    matHeal: 0,
+    blinkWait: 4,
+    screamLeft: 0,
+    flinchT: 0,
+    wasMoving: false,
+    footAcc: 0,
+  })
   return player
 }
 
@@ -247,6 +258,8 @@ export function addXp(player: Player, amount: number, ctx: SimCtx): void {
     ctx.audio.play('levelUp')
     ctx.render.fx.text(player.x, player.y - 36, 'GROWTH', player.character.palette.accent)
     ctx.render.fx.sparkle(player.x, player.y, player.character.palette.accent)
+    ctx.render.fx.shockwave(player.x, player.y, 90, player.character.palette.accent)
+    ctx.render.fx.inkBloom(player.x, player.y, player.character.palette.accent, 42)
   }
 }
 
@@ -320,18 +333,40 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
     anim.bob = Math.sin(anim.t * 2.3) * 1.4
   }
 
+  if (anim.moving && !extra.wasMoving) {
+    extra.squashT = 0
+    ctx.render.fx.dust(player.x, player.y + player.r * 0.55, -player.vx * 0.12, -player.vy * 0.08)
+  } else if (!anim.moving && extra.wasMoving) {
+    extra.squashT = 0
+    ctx.render.fx.dust(player.x, player.y + player.r * 0.5, player.vx * 0.08, -8)
+  }
+  extra.wasMoving = anim.moving
+
   if (Math.abs(player.vx) > 10) {
     const next: 1 | -1 = player.vx >= 0 ? 1 : -1
     if (next !== anim.facing) {
       anim.facing = next
       extra.squashT = 0
+      ctx.render.fx.dust(player.x, player.y + player.r * 0.5, -player.vx * 0.1, 0)
     }
   }
 
+  if (anim.moving && spd > FEEL.motion.dustSpeed) {
+    extra.footAcc += dt
+    if (extra.footAcc >= FEEL.motion.footEvery) {
+      extra.footAcc = 0
+      const side = anim.gait > 0.5 ? 1 : -1
+      ctx.render.fx.footprint(player.x + side * 5 * anim.facing, player.y + player.r * 0.55)
+    }
+  } else {
+    extra.footAcc = 0
+  }
+
   extra.squashT = Math.min(1, extra.squashT + dt / SQUASH_TIME)
-  const punch = extra.squashT < 1 ? ease.punch(extra.squashT) * 0.32 : 0
+  const punch = extra.squashT < 1 ? ease.punch(extra.squashT) * 0.42 : 0
+  const runStretch = anim.moving ? 0.06 : 0
   const breathe = anim.moving ? 0 : Math.sin(anim.t * 2.1) * 0.03
-  anim.squash = 1 + punch + breathe
+  anim.squash = 1 + punch + breathe + runStretch
 
   anim.kick.x = damp(anim.kick.x, 0, 9, dt)
   anim.kick.y = damp(anim.kick.y, 0, 9, dt)

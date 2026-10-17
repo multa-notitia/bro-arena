@@ -45,9 +45,11 @@ import { updateWeapons } from './weapons.ts'
 import { beginWave, settleWave, updateDirector } from './waves.ts'
 import { clearPlots, plantView, selectCrop, syncFarmUnlocks, togglePlot } from './farm.ts'
 import { createWorld, syncViewport, updateCamera, updateTrees, type SimCtx } from './world.ts'
+import { consumeHitStop, getReducedJuice, resetFeel, setReducedJuice } from '../feel.ts'
 import { defaultModelForSpecies, getLastModel, getPaintStyle, modelsForSpecies, setLastModel, setPaintStyle } from '../render/look.ts'
 import { isConceptAReady, preloadConceptA } from '../render/conceptA.ts'
 import { isBoardReady, preloadBoard } from '../render/board.ts'
+import { isSpriteSheetsReady, preloadSpriteSheets, resetSheetPlayback } from '../render/sheets.ts'
 
 export interface RunDeps {
   canvas: HTMLCanvasElement
@@ -106,6 +108,9 @@ export class Run {
     void preloadBoard().catch(() => {
       /* board radish falls back to Wash if the cut frames fail to load */
     })
+    void preloadSpriteSheets().catch(() => {
+      /* painted sheets are optional; procedural / Board / Painted stay */
+    })
     ui.onPauseRequest(() => this.requestPause())
     ui.onTitle({
       play: () => this.playFromTitle(),
@@ -113,6 +118,8 @@ export class Run {
       muted: audio.muted,
       paintStyle: getPaintStyle(),
       setPaintStyle: (s: PaintStyle) => this.changePaintStyle(s),
+      reducedJuice: getReducedJuice(),
+      setReducedJuice: (v: boolean) => this.changeReducedJuice(v),
     })
   }
 
@@ -135,7 +142,7 @@ export class Run {
     if (this._phase === 'boot') {
       this.bootT += dt
       if (this.bootT > 0.2) this.deps.ui.setBootCopy('The soil is settling.')
-      if (this.bootT > 0.45 && isConceptAReady() && isBoardReady()) this.enterTitle()
+      if (this.bootT > 0.45 && isConceptAReady() && isBoardReady() && isSpriteSheetsReady()) this.enterTitle()
       else if (this.bootT > 1.8) this.enterTitle()
       return
     }
@@ -187,6 +194,8 @@ export class Run {
         muted: audio.muted,
         paintStyle: getPaintStyle(),
         setPaintStyle: (s: PaintStyle) => this.changePaintStyle(s),
+        reducedJuice: getReducedJuice(),
+        setReducedJuice: (v: boolean) => this.changeReducedJuice(v),
       })
     } else if (this._phase === 'paused' && this.world) {
       this.renderPause()
@@ -219,6 +228,8 @@ export class Run {
       muted: audio.muted,
       paintStyle: getPaintStyle(),
       setPaintStyle: (s: PaintStyle) => this.changePaintStyle(s),
+      reducedJuice: getReducedJuice(),
+      setReducedJuice: (v: boolean) => this.changeReducedJuice(v),
     })
   }
 
@@ -244,6 +255,8 @@ export class Run {
     this.shop = emptySession()
     this.farmShop = emptyFarmSession()
     this.deps.render.fx.clear()
+    resetFeel()
+    resetSheetPlayback()
     this.world = createWorld(
       ch,
       waveDef(1),
@@ -372,7 +385,7 @@ export class Run {
 
   private tickWave(world: World, dt: number): void {
     const ctx = this.sim()
-    const simDt = dt * world.slowMo
+    const simDt = consumeHitStop(dt) * world.slowMo
     world.time += simDt
     this.deps.ui.setJoystickVisible(this.deps.input.coarse)
     this.musicT += simDt
@@ -547,6 +560,8 @@ export class Run {
       muted: this.deps.audio.muted,
       paintStyle: getPaintStyle(),
       setPaintStyle: (s: PaintStyle) => this.changePaintStyle(s),
+      reducedJuice: getReducedJuice(),
+      setReducedJuice: (v: boolean) => this.changeReducedJuice(v),
     })
   }
 
@@ -597,11 +612,31 @@ export class Run {
         muted: this.deps.audio.muted,
         paintStyle: getPaintStyle(),
         setPaintStyle: (s: PaintStyle) => this.changePaintStyle(s),
+        reducedJuice: getReducedJuice(),
+        setReducedJuice: (v: boolean) => this.changeReducedJuice(v),
       })
     } else if (this._phase === 'paused') {
       this.renderPause()
     } else if (this._phase === 'charselect') {
       this.enterCharSelect()
+    }
+  }
+
+  private changeReducedJuice(v: boolean): void {
+    setReducedJuice(v)
+    this.deps.audio.play('uiClick')
+    if (this._phase === 'title') {
+      this.deps.ui.onTitle({
+        play: () => this.playFromTitle(),
+        toggleMute: () => this.toggleMute(),
+        muted: this.deps.audio.muted,
+        paintStyle: getPaintStyle(),
+        setPaintStyle: (s: PaintStyle) => this.changePaintStyle(s),
+        reducedJuice: getReducedJuice(),
+        setReducedJuice: (nv: boolean) => this.changeReducedJuice(nv),
+      })
+    } else if (this._phase === 'paused') {
+      this.renderPause()
     }
   }
 
