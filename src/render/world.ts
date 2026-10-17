@@ -1,5 +1,5 @@
 import { TAU, clamp, dist, ease, hashNoise, lerp } from '../core/math.ts'
-import { cameraShakeOffset, FEEL } from '../feel.ts'
+import { addTrauma, cameraShakeOffset, FEEL } from '../feel.ts'
 import type {
   Enemy,
   Form,
@@ -35,14 +35,18 @@ import { boardKnifeSlash, getPaintStyle, proceduralModel, usesBoardArt, usesPain
 import { drawPaintedChili } from './conceptA.ts'
 import { drawBoard, drawBoardShadow, poseBoard, boardHeld, type BoardHero } from './board.ts'
 import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
-import { drawPaddock } from './ground.ts'
+import { drawPaddock, gardenGroundReady } from './ground.ts'
 import { paperColor } from './paintLang.ts'
 import {
+  attackClipActive,
   drawActorSheet,
+  drawSpawnedClips,
+  FX_CLIP_FIT,
   pickClip,
   resolveSheet,
   sheetKeysForEnemy,
   sheetKeysForPlayer,
+  spawnSheetClip,
 } from './sheets.ts'
 import {
   markerSprite,
@@ -112,7 +116,7 @@ function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, r: numb
   ctx.save()
   ctx.translate(x, y + r * 0.62)
   ctx.scale(1, 0.38)
-  ctx.globalAlpha = alpha * (FEEL.shadow.alpha / 0.3)
+  ctx.globalAlpha = Math.min(0.38, alpha * FEEL.shadow.alpha)
   ctx.fillStyle = '#070604'
   ctx.beginPath()
   ctx.arc(0, 0, r * 1.18 * FEEL.shadow.scale, 0, TAU)
@@ -124,6 +128,7 @@ function applySheetEvents(fx: FxApi, x: number, y: number, events: readonly stri
   for (const name of events) {
     if (name === 'spawnFx') fx.sparkle(x, y, '#fff6e8')
     else if (name === 'hit') fx.hitSpark(x, y, 0, '#fff6e8')
+    else if (name === 'release') spawnSheetClip('fx-ink', 'muzzle', x, y, { fit: FX_CLIP_FIT.muzzle })
   }
 }
 
@@ -262,10 +267,33 @@ function drawTree(ctx: CanvasRenderingContext2D, t: Tree, cache: SpriteCache): v
   ctx.restore()
 }
 
-function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache, time: number): void {
+const PICKUP_CLIP: Record<Pickup['type'], { clip: string; fit: number }> = {
+  material: { clip: 'coin', fit: 0.26 },
+  materialBig: { clip: 'crate', fit: 0.3 },
+  fruit: { clip: 'heart', fit: 0.28 },
+  chest: { clip: 'chest', fit: 0.34 },
+  seed: { clip: 'xpSmall', fit: 0.26 },
+}
+
+function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache, time: number, dt: number): void {
+  const sheet = resolveSheet(['pickups'])
+  const spec = PICKUP_CLIP[p.type]
+  const pr = p.type === 'chest' ? 12 : p.type === 'materialBig' ? 10 : 8
+  if (sheet && spec && sheet.manifest.clips[spec.clip]) {
+    drawShadow(ctx, p.x, p.y, pr, 0.28)
+    ctx.save()
+    ctx.translate(p.x, p.y)
+    drawActorSheet(ctx, sheet, `pick:${p.uid}`, spec.clip, dt, {
+      r: pr,
+      facing: 1,
+      alpha: 1,
+      fit: spec.fit,
+    })
+    ctx.restore()
+    return
+  }
   const spr = pickupSprite(cache, p.type, qScale, p.crop)
   const bob = Math.sin(p.t * 3.2 + time) * 3
-  const pr = p.type === 'chest' ? 12 : p.type === 'materialBig' ? 10 : 8
   drawShadow(ctx, p.x, p.y + bob + 4, pr, 0.28)
   ctx.save()
   ctx.translate(p.x, p.y + bob)
@@ -328,14 +356,15 @@ function drawEnemy(
   time: number,
   dt: number,
   fx: FxApi,
+  world: World,
 ): void {
-  if (e.sliced) return
   const species = resolveSpecies(e.def.paint, e.def.species, e.kind)
   const form: Form = e.form ?? e.def.form ?? 'normal'
   const model = foeModel(form)
   const pal = e.def.palette ?? SPECIES_PALETTES[species]
   const artR = sizeBucket(e.r)
   const sheet = resolveSheet(sheetKeysForEnemy(e.kind, form))
+  if (e.sliced && !sheet) return
   const spr = sheet ? null : creatureSprite(cache, species, pal, form, artR, qScale, model, true)
   const spawn = clamp(e.anim.spawnT, 0, 1)
   const dying = e.anim.deathT >= 0
@@ -347,9 +376,9 @@ function drawEnemy(
   const gait = e.anim.gait ?? 0
   const blink = e.anim.blink ?? -1
   const facing = e.anim.facing ?? 1
-  let ox = e.x + e.anim.kick.x
-  let oy = e.y + e.anim.kick.y + e.anim.bob
-  if (e.state === 'windup' || e.state === 'charging') {
+  let ox = e.x + (sheet ? 0 : e.anim.kick.x)
+  let oy = e.y + (sheet ? 0 : e.anim.kick.y + e.anim.bob)
+  if (!sheet && (e.state === 'windup' || e.state === 'charging')) {
     const mag = e.state === 'windup' ? 2.4 : 0.9
     ox += (hashNoise(Math.floor(time * 48), e.uid) - 0.5) * mag * 2
     oy += (hashNoise(Math.floor(time * 48), e.uid + 9) - 0.5) * mag * 2
@@ -358,7 +387,13 @@ function drawEnemy(
   ctx.save()
   ctx.translate(ox, oy)
   if (sheet) {
-    const clip = pickClip(sheet, e.anim, { swinging: e.state === 'windup' || e.state === 'charging' })
+    const clip = pickClip(sheet, e.anim, {
+      swinging:
+        e.state === 'windup' ||
+        e.state === 'charging' ||
+        e.state === 'shooting' ||
+        attackClipActive(`e:${e.uid}`, sheet),
+    })
     ctx.globalAlpha = appear * (1 - (sheet.manifest.clips.death ? 0 : death))
     if (clip) {
       const ev = drawActorSheet(ctx, sheet, `e:${e.uid}`, clip, dt, {
@@ -367,6 +402,17 @@ function drawEnemy(
         alpha: 1,
       })
       applySheetEvents(fx, ox, oy, ev)
+      if (e.kind === 'eliteBlob') {
+        for (const name of ev) {
+          if (name !== 'hit') continue
+          // The slam cell is already the mud impact. Spawn the authored burst
+          // and dust beside it; the full inkBurst helper also lays an opaque
+          // splat over the body and hides the painting.
+          spawnSheetClip('fx-ink', 'inkBurst', ox, oy + e.r * 0.2, { fit: FX_CLIP_FIT.inkBurst })
+          spawnSheetClip('fx-ink', 'dust', ox, e.y + e.r * 0.45, { fit: FX_CLIP_FIT.dust })
+          addTrauma(world, 7, e.aim.x, e.aim.y)
+        }
+      }
     }
     ctx.restore()
     if (e.burn > 0) drawEmbers(ctx, ox, oy, e.r, time, e.uid)
@@ -724,9 +770,8 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   if (p.invuln > 0) alpha = Math.sin(p.anim.t * 24) > 0 ? 1 : 0.32
 
   if (sheet) {
-    const swinging = p.weapons.some((w) => w.swingT >= 0)
+    const swinging = p.weapons.some((w) => w.swingT >= 0) || attackClipActive('player', sheet)
     drawShadow(ctx, x, p.y, p.r, p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.18 : 0.62)
-    drawPlayerWeapons(ctx, world, cache, true, held)
     ctx.save()
     ctx.translate(x, y)
     ctx.rotate(bodyRot)
@@ -736,7 +781,6 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
       applySheetEvents(fx, x, y, ev)
     }
     ctx.restore()
-    drawPlayerWeapons(ctx, world, cache, false, held)
     drawOrbitWeapons(ctx, world, cache)
     return
   }
@@ -876,7 +920,9 @@ export function drawWorld(
   const zoom = cam.zoom > 0 ? cam.zoom : 1
   qScale = qualityBucket(zoom, view.dpr)
   ctx.save()
-  ctx.fillStyle = paperColor()
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.fillStyle = gardenGroundReady() ? '#100e0c' : paperColor()
   ctx.fillRect(0, 0, cssW, cssH)
 
   const shakeOff = cameraShakeOffset(world)
@@ -893,10 +939,12 @@ export function drawWorld(
   const hh = cssH / (2 * zoom) + Math.abs(shake) + 48
   const aw = world.arenaHalfW
   const ah = world.arenaHalfH
-  drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale))
-  drawFarmRows(ctx, world.farm.plots)
-  drawFarmBeds(ctx, world.farm.plots)
+  const hiRes = view.dpr * zoom >= 1.75
+  drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale), hiRes)
+  drawFarmRows(ctx, world.farm.plots, hiRes)
+  drawFarmBeds(ctx, world.farm.plots, hiRes)
   fx.drawFloor(ctx)
+  drawWarmPool(ctx, world.player.x, world.player.y)
 
   cmdN = 0
   for (let i = 0; i < world.trees.length; i++) {
@@ -933,13 +981,13 @@ export function drawWorld(
       if (t) drawTree(ctx, t, cache)
     } else if (c.kind === 1) {
       const p = world.pickups[c.idx]
-      if (p) drawPickup(ctx, p, cache, world.time)
+      if (p) drawPickup(ctx, p, cache, world.time, dt)
     } else if (c.kind === 2) {
       const m = world.markers[c.idx]
       if (m) drawMarker(ctx, m, cache)
     } else if (c.kind === 3) {
       const e = world.enemies[c.idx]
-      if (e) drawEnemy(ctx, e, cache, world.time, dt, fx)
+      if (e) drawEnemy(ctx, e, cache, world.time, dt, fx, world)
     } else if (c.kind === 4 && !playerDrawn) {
       playerDrawn = true
       drawPlayer(ctx, world, cache, dt, fx)
@@ -968,11 +1016,28 @@ export function drawWorld(
     if (p) drawProjectile(ctx, p, cache)
   }
 
+  drawSpawnedClips(ctx, dt)
   fx.drawWorld(ctx)
   ctx.restore()
 
   fx.drawScreen(ctx, cssW, cssH)
   drawOffscreen(ctx, world, cssW, cssH)
-  vignette(ctx, cssW, cssH, 0.4)
+  vignette(ctx, cssW, cssH, gardenGroundReady() ? 0.72 : 0.4)
+  ctx.restore()
+}
+
+function drawWarmPool(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  const r = 220
+  const g = ctx.createRadialGradient(x, y + 8, 16, x, y, r)
+  g.addColorStop(0, 'rgba(255, 198, 120, 0.42)')
+  g.addColorStop(0.38, 'rgba(255, 156, 72, 0.16)')
+  g.addColorStop(0.72, 'rgba(180, 90, 40, 0.05)')
+  g.addColorStop(1, 'rgba(120, 60, 20, 0)')
+  ctx.save()
+  ctx.globalCompositeOperation = 'screen'
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, TAU)
+  ctx.fill()
   ctx.restore()
 }

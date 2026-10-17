@@ -471,7 +471,7 @@ function tileFill(
   y: number,
   w: number,
   h: number,
-  pick: (tx: number, ty: number) => HTMLCanvasElement,
+  pick: (tx: number, ty: number) => CanvasImageSource,
 ): void {
   const t0x = Math.floor(x / GROUND_TILE)
   const t0y = Math.floor(y / GROUND_TILE)
@@ -484,7 +484,39 @@ function tileFill(
   }
 }
 
-/** World-space paddock + outside + cached hedge/ink/posts. No per-frame path gen. */
+const garden: { lo: HTMLImageElement | null; hi: HTMLImageElement | null } = { lo: null, hi: null }
+let gardenFailed = false
+let gardenPending: Promise<void> | null = null
+
+function loadGarden(url: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.decoding = 'async'
+    img.onload = () => resolve(img)
+    img.onerror = () => resolve(null)
+    img.src = url
+  })
+}
+
+export function gardenGroundReady(): boolean {
+  return garden.lo !== null || garden.hi !== null || gardenFailed
+}
+
+export function preloadGarden(): Promise<void> {
+  if (garden.lo || garden.hi || gardenFailed) return Promise.resolve()
+  if (gardenPending) return gardenPending
+  gardenPending = Promise.all([
+    loadGarden('/sprites/ground-garden.png'),
+    loadGarden('/sprites/ground-garden@2x.png'),
+  ]).then(([lo, hi]) => {
+    garden.lo = lo
+    garden.hi = hi
+    gardenFailed = !lo && !hi
+  })
+  return gardenPending
+}
+
+/** World-space paddock. Painted garden tile when it has loaded, else the wash. */
 export function drawPaddock(
   ctx: CanvasRenderingContext2D,
   viewL: number,
@@ -494,7 +526,25 @@ export function drawPaddock(
   aw: number,
   ah: number,
   q: number,
+  hi = false,
 ): void {
+  if (!garden.lo && !garden.hi && !gardenFailed) void preloadGarden()
+  const tile = (hi && garden.hi) || garden.lo || garden.hi
+  if (tile) {
+    ctx.save()
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    tileFill(ctx, viewL, viewT, viewW, viewH, () => tile)
+    ctx.beginPath()
+    ctx.rect(viewL, viewT, viewW, viewH)
+    ctx.rect(-aw, -ah, aw * 2, ah * 2)
+    ctx.fillStyle = 'rgba(2, 4, 8, 0.58)'
+    ctx.fill('evenodd')
+    ctx.restore()
+    const overlay = borderOverlay(aw, ah)
+    ctx.drawImage(overlay, -aw - BORDER_PAD, -ah - BORDER_PAD)
+    return
+  }
   const outside = getOutside(q)
   invalidateIfLookChanged()
   tileFill(ctx, viewL, viewT, viewW, viewH, () => outside)

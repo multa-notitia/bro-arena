@@ -1,0 +1,85 @@
+{
+ "image": "enemy-charger.webp",
+ "frameWidth": 208,
+ "frameHeight": 208,
+ "columns": 4,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.725
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 4, "ms": 170 },
+    { "i": 4, "ms": 130, "scaleX": 1.008, "scaleY": 0.993, "oy": 0.084 },
+    { "i": 4, "ms": 130, "scaleX": 1.022, "scaleY": 0.978, "oy": 0.251 },
+    { "i": 4, "ms": 170, "scaleX": 1.03, "scaleY": 0.97, "oy": 0.335 },
+    { "i": 4, "ms": 130, "scaleX": 1.022, "scaleY": 0.978, "oy": 0.251 },
+    { "i": 4, "ms": 130, "scaleX": 1.008, "scaleY": 0.993, "oy": 0.084 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 85, "scaleX": 1.04, "scaleY": 0.95, "oy": 0.514 },
+    { "i": 1, "ms": 85, "scaleX": 0.98, "scaleY": 1.04, "oy": -2.618 },
+    { "i": 2, "ms": 85, "scaleX": 1.04, "scaleY": 0.95, "oy": -1.238 },
+    { "i": 3, "ms": 85, "scaleX": 0.98, "scaleY": 1.04, "oy": 0.565 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 8, "ms": 40, "scaleX": 1.14, "scaleY": 0.86, "ox": -2.5, "oy": 1.562, "event": "hurt" },
+    { "i": 5, "ms": 60, "scaleX": 0.94, "scaleY": 1.07, "ox": -2.0, "oy": -0.781 },
+    { "i": 5, "ms": 80, "scaleX": 1.02, "scaleY": 0.98, "ox": -1.0, "oy": 0.223 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 4, "ms": 150, "scaleX": 1.03, "scaleY": 0.97, "ox": -0.5, "oy": 0.335 },
+    { "i": 4, "ms": 150, "scaleX": 1.06, "scaleY": 0.94, "ox": -1.0, "oy": 0.67 },
+    { "i": 4, "ms": 150, "scaleX": 1.09, "scaleY": 0.91, "ox": -2.0, "oy": 1.004 },
+    { "i": 4, "ms": 150, "scaleX": 1.12, "scaleY": 0.88, "ox": -2.5, "oy": 1.339 },
+    { "i": 4, "ms": 70, "scaleX": 1.15, "scaleY": 0.85, "ox": -3.0, "oy": 1.674 },
+    { "i": 6, "ms": 60, "scaleX": 0.88, "scaleY": 1.12, "ox": 4.0, "oy": -1.339, "events": [ "release", "spawnFx" ] },
+    { "i": 6, "ms": 120, "scaleX": 1.05, "scaleY": 0.96, "ox": 2.0, "oy": 0.446 },
+    { "i": 6, "ms": 200, "ox": 1.0 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 8, "ms": 50, "scaleX": 1.22, "scaleY": 0.78, "oy": 2.455 },
+    { "i": 9, "ms": 40, "scaleX": 0.85, "scaleY": 0.85, "oy": 1.674, "event": "spawnFx" },
+    { "i": 7, "ms": 90, "scaleX": 1.1, "scaleY": 1.1, "oy": -1.116 },
+    { "i": 7, "ms": 120 },
+    { "i": 7, "ms": 80, "scaleX": 0.82, "scaleY": 0.82, "oy": 2.009 },
+    { "i": 7, "ms": 60, "scaleX": 0.55, "scaleY": 0.55, "oy": 5.022 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Mud carrot (charger)",
+  "source": "image13.jpg",
+  "cells": [
+   "run0",
+   "run1",
+   "run2",
+   "run3",
+   "idle",
+   "hurt",
+   "charge",
+   "death",
+   "hurt_flash",
+   "death_flash"
+  ],
+  "feetY": 195.52,
+  "gameRadius": 18,
+  "gameFit": 0.25,
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; scaled frames already include an oy correction that keeps the feet planted.",
+  "pngFallback": "enemy-charger.png"
+ }
+}

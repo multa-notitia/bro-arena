@@ -1,0 +1,81 @@
+{
+ "image": "enemy-spitter.webp",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "columns": 4,
+ "anchor": {
+  "x": 0.48,
+  "y": 0.745
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 4, "ms": 170 },
+    { "i": 4, "ms": 130, "scaleX": 1.009, "scaleY": 0.991, "oy": 0.087 },
+    { "i": 4, "ms": 130, "scaleX": 1.026, "scaleY": 0.974, "oy": 0.26 },
+    { "i": 4, "ms": 170, "scaleX": 1.035, "scaleY": 0.965, "oy": 0.347 },
+    { "i": 4, "ms": 130, "scaleX": 1.026, "scaleY": 0.974, "oy": 0.26 },
+    { "i": 4, "ms": 130, "scaleX": 1.009, "scaleY": 0.991, "oy": 0.087 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 120, "scaleX": 1.04, "scaleY": 0.95, "oy": 0.496 },
+    { "i": 1, "ms": 105, "scaleX": 0.99, "scaleY": 1.02, "oy": -0.198 },
+    { "i": 2, "ms": 120, "scaleX": 0.98, "scaleY": 1.04, "oy": -0.897 },
+    { "i": 3, "ms": 105, "scaleX": 1.01, "scaleY": 0.99, "oy": 0.099 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 8, "ms": 40, "scaleX": 1.14, "scaleY": 0.86, "ox": -2.5, "oy": 1.389, "event": "hurt" },
+    { "i": 5, "ms": 60, "scaleX": 0.94, "scaleY": 1.07, "ox": -2.0, "oy": -0.694 },
+    { "i": 5, "ms": 80, "scaleX": 1.02, "scaleY": 0.98, "ox": -1.0, "oy": 0.198 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 4, "ms": 90, "scaleX": 1.07, "scaleY": 0.91, "oy": 0.893 },
+    { "i": 6, "ms": 50, "scaleX": 0.93, "scaleY": 1.09, "ox": 1.5, "oy": -0.893, "events": [ "release", "spawnFx" ] },
+    { "i": 6, "ms": 120, "scaleX": 1.02, "scaleY": 0.98, "oy": 0.198 },
+    { "i": 6, "ms": 100 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 8, "ms": 50, "scaleX": 1.22, "scaleY": 0.78, "oy": 2.182 },
+    { "i": 9, "ms": 40, "scaleX": 0.85, "scaleY": 0.85, "oy": 1.488, "event": "spawnFx" },
+    { "i": 7, "ms": 90, "scaleX": 1.1, "scaleY": 1.1, "oy": -0.992 },
+    { "i": 7, "ms": 120 },
+    { "i": 7, "ms": 80, "scaleX": 0.82, "scaleY": 0.82, "oy": 1.786 },
+    { "i": 7, "ms": 60, "scaleX": 0.55, "scaleY": 0.55, "oy": 4.464 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Mud worm (spitter)",
+  "source": "image5.jpg",
+  "cells": [
+   "crawl0",
+   "crawl1",
+   "crawl2",
+   "crawl3",
+   "idle",
+   "hurt",
+   "spit",
+   "death",
+   "hurt_flash",
+   "death_flash"
+  ],
+  "feetY": 230.4,
+  "gameRadius": 16,
+  "gameFit": 0.25,
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; scaled frames already include an oy correction that keeps the feet planted.",
+  "pngFallback": "enemy-spitter.png"
+ }
+}

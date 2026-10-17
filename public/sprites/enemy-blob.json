@@ -1,0 +1,83 @@
+{
+ "image": "enemy-blob.webp",
+ "frameWidth": 160,
+ "frameHeight": 160,
+ "columns": 6,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.643
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 4, "ms": 160 },
+    { "i": 4, "ms": 120, "scaleX": 1.012, "scaleY": 0.988, "oy": 0.108 },
+    { "i": 4, "ms": 120, "scaleX": 1.038, "scaleY": 0.963, "oy": 0.325 },
+    { "i": 4, "ms": 160, "scaleX": 1.05, "scaleY": 0.95, "oy": 0.434 },
+    { "i": 4, "ms": 120, "scaleX": 1.038, "scaleY": 0.963, "oy": 0.325 },
+    { "i": 4, "ms": 120, "scaleX": 1.012, "scaleY": 0.988, "oy": 0.108 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 90, "scaleX": 1.12, "scaleY": 0.86, "oy": 1.215 },
+    { "i": 1, "ms": 60, "scaleX": 0.88, "scaleY": 1.14, "oy": -3.215 },
+    { "i": 2, "ms": 90, "scaleX": 0.92, "scaleY": 1.1, "oy": -8.868 },
+    { "i": 6, "ms": 90, "scaleX": 0.97, "scaleY": 1.04, "oy": -9.347 },
+    { "i": 3, "ms": 60, "scaleX": 0.94, "scaleY": 1.07, "oy": -3.608 },
+    { "i": 0, "ms": 60, "scaleX": 1.2, "scaleY": 0.78, "oy": 1.91 },
+    { "i": 4, "ms": 70, "scaleX": 1.06, "scaleY": 0.95, "oy": 0.434 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 8, "ms": 40, "scaleX": 1.196, "scaleY": 0.804, "ox": -2.5, "oy": 1.701, "event": "hurt" },
+    { "i": 5, "ms": 60, "scaleX": 0.916, "scaleY": 1.098, "ox": -2.0, "oy": -0.851 },
+    { "i": 5, "ms": 80, "scaleX": 1.02, "scaleY": 0.98, "ox": -1.0, "oy": 0.174 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 0, "ms": 90, "scaleX": 1.14, "scaleY": 0.84, "oy": 1.389 },
+    { "i": 6, "ms": 60, "scaleX": 0.88, "scaleY": 1.14, "ox": 3.0, "oy": -5.215, "event": "hit" },
+    { "i": 6, "ms": 110, "ox": 2.0, "oy": -2.0 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 8, "ms": 50, "scaleX": 1.22, "scaleY": 0.78, "oy": 1.91 },
+    { "i": 9, "ms": 40, "scaleX": 0.85, "scaleY": 0.85, "oy": 1.302, "event": "spawnFx" },
+    { "i": 7, "ms": 90, "scaleX": 1.1, "scaleY": 1.1, "oy": -0.868 },
+    { "i": 7, "ms": 120 },
+    { "i": 7, "ms": 80, "scaleX": 0.82, "scaleY": 0.82, "oy": 1.562 },
+    { "i": 7, "ms": 60, "scaleX": 0.55, "scaleY": 0.55, "oy": 3.906 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Mud blob (Pea / Mud Pea)",
+  "source": "image12.jpg",
+  "cells": [
+   "hop0",
+   "hop1",
+   "hop2",
+   "hop3",
+   "idle",
+   "hurt",
+   "move",
+   "death",
+   "hurt_flash",
+   "death_flash"
+  ],
+  "feetY": 137.6,
+  "gameRadius": 14,
+  "gameFit": 0.25,
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; scaled frames already include an oy correction that keeps the feet planted.",
+  "pngFallback": "enemy-blob.png"
+ }
+}

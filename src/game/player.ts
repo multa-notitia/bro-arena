@@ -17,6 +17,7 @@ import type {
 import { ITEMS } from '../data/items.ts'
 import { computeStats } from '../data/stats.ts'
 import { xpForLevel } from '../data/economy.ts'
+import { resolveSheet, sheetKeysForPlayer } from '../render/sheets.ts'
 import type { SimCtx } from './world.ts'
 
 const START_RICH = 40
@@ -288,7 +289,10 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
     player.vx = 0
     player.vy = 0
     anim.moving = false
-    anim.bob = Math.sin(anim.t * 2) * 0.4
+    const species = player.character.species ?? 'potato'
+    anim.bob = resolveSheet(sheetKeysForPlayer(species, player.model))
+      ? 0
+      : Math.sin(anim.t * 2) * 0.4
     anim.kick.x = damp(anim.kick.x, 0, 8, dt)
     anim.kick.y = damp(anim.kick.y, 0, 8, dt)
     if (anim.deathT < 0) anim.deathT = 0
@@ -326,12 +330,12 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
 
   const spd = Math.hypot(player.vx, player.vy)
   anim.moving = spd > 18
-  if (anim.moving) {
-    player.facingAngle = Math.atan2(player.vy, player.vx)
-    anim.bob = Math.sin(anim.t * 13) * 3.6
-  } else {
-    anim.bob = Math.sin(anim.t * 2.3) * 1.4
-  }
+  const species = player.character.species ?? 'potato'
+  const painted = !!resolveSheet(sheetKeysForPlayer(species, player.model))
+  if (anim.moving) player.facingAngle = Math.atan2(player.vy, player.vx)
+  if (painted) anim.bob = 0
+  else if (anim.moving) anim.bob = Math.sin(anim.t * 13) * 3.6
+  else anim.bob = Math.sin(anim.t * 2.3) * 1.4
 
   if (anim.moving && !extra.wasMoving) {
     extra.squashT = 0

@@ -14,6 +14,7 @@ import { farmHpMult, farmNightmareBonus } from './farm.ts'
 import { createAnim, tickFaceAnim } from './player.ts'
 import { spawnProjectile } from './projectiles.ts'
 import { addTrauma, FEEL, requestHitStop } from '../feel.ts'
+import { resolveSheet, sheetClipSeconds, sheetKeysForEnemy } from '../render/sheets.ts'
 import { clampToArena } from './world.ts'
 import type { SimCtx } from './world.ts'
 
@@ -21,6 +22,12 @@ export const MAX_ENEMIES = 160
 const SPAWN_TIME = 0.35
 const DEATH_TIME = 0.45
 const CONTACT_IFRAMES = 0.5
+/** Matches the authored enemy-eliteBlob attack clip (telegraph + slam). */
+const ELITE_SLAM_FALLBACK = 0.975
+const ELITE_SLAM_RANGE = 220
+const ELITE_SLAM_GAP = 3.6
+/** Matches the authored enemy-spitter attack clip. */
+const SHOOT_ANIM_FALLBACK = 0.36
 
 interface EnemyExtra {
   burnAcc: number
@@ -180,16 +187,21 @@ export function beginDeath(world: World, enemy: Enemy, ctx: SimCtx, magnet = fal
   dropFromEnemy(world, enemy.x, enemy.y, mats, enemy.elite && !enemy.boss, ctx, magnet, enemy)
   enemy.anim.squash = 0.35
   const pal = enemy.def.palette
+  const paintedDeath = !!resolveSheet(sheetKeysForEnemy(enemy.kind, enemy.form))?.manifest.clips.death
   ctx.render.fx.inkBurst(enemy.x, enemy.y, enemy.r * FEEL.kill.inkSize)
-  ctx.render.fx.chunks(
-    enemy.x,
-    enemy.y,
-    { body: pal.body, shade: pal.shade, accent: pal.accent },
-    enemy.r * FEEL.kill.chunkScale,
-    true,
-  )
-  ctx.render.fx.splat(enemy.x, enemy.y, pal.body, enemy.r * 1.55, enemy.boss ? 16 : 9)
-  ctx.render.fx.puff(enemy.x, enemy.y, pal.shade, enemy.r * 1.1)
+  // Painted deaths are the corpse. Procedural chunks sit on top of the clip
+  // and hide it. Enemies without a sheet still burst into chunks.
+  if (!paintedDeath) {
+    ctx.render.fx.chunks(
+      enemy.x,
+      enemy.y,
+      { body: pal.body, shade: pal.shade, accent: pal.accent },
+      enemy.r * FEEL.kill.chunkScale,
+      true,
+    )
+    ctx.render.fx.splat(enemy.x, enemy.y, pal.body, enemy.r * 1.55, enemy.boss ? 16 : 9)
+    ctx.render.fx.puff(enemy.x, enemy.y, pal.shade, enemy.r * 1.1)
+  }
   if (enemy.form === 'nightmare') ctx.audio.play('mudSquelch')
   const dx = enemy.x - world.player.x
   const dy = enemy.y - world.player.y
@@ -218,9 +230,20 @@ function currentSpeed(e: Enemy): number {
   return e.speed * (e.slow > 0 ? 0.45 : 1) * surge
 }
 
+function clipSeconds(kind: Enemy['kind'], form: Enemy['form'], clip: string, fallback: number): number {
+  const keys = sheetKeysForEnemy(kind, form)
+  for (const id of keys) {
+    const s = sheetClipSeconds(id, clip)
+    if (s && s > 0) return s
+  }
+  return fallback
+}
+
 function fireAtPlayer(world: World, e: Enemy, proj: ProjectileDef, ctx: SimCtx): void {
   const p = world.player
   const ang = Math.atan2(p.y - e.y, p.x - e.x)
+  e.aim.x = Math.cos(ang)
+  e.aim.y = Math.sin(ang)
   const muzzle = e.r + 6
   spawnProjectile(world, {
     x: e.x + Math.cos(ang) * muzzle,
@@ -395,6 +418,33 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const spd = currentSpeed(e)
 
   if (b.type === 'chase') {
+    if (e.kind === 'eliteBlob') {
+      if (e.state === 'windup') {
+        const ang = Math.atan2(p.y - e.y, p.x - e.x)
+        e.aim.x = Math.cos(ang)
+        e.aim.y = Math.sin(ang)
+        e.vx = 0
+        e.vy = 0
+        e.stateT -= dt
+        if (e.stateT <= 0) {
+          e.state = 'chase'
+          e.cooldown = ELITE_SLAM_GAP
+        }
+        return
+      }
+      e.cooldown -= dt
+      const d = dist(e.x, e.y, p.x, p.y)
+      if (e.cooldown <= 0 && d < ELITE_SLAM_RANGE) {
+        e.state = 'windup'
+        e.stateT = clipSeconds(e.kind, e.form, 'attack', ELITE_SLAM_FALLBACK)
+        e.vx = 0
+        e.vy = 0
+        const ang = Math.atan2(p.y - e.y, p.x - e.x)
+        e.aim.x = Math.cos(ang)
+        e.aim.y = Math.sin(ang)
+        return
+      }
+    }
     steerToward(e, p.x, p.y, spd)
     e.state = 'chase'
     return
@@ -444,10 +494,15 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
       e.vx = Math.cos(side) * spd * 0.55
       e.vy = Math.sin(side) * spd * 0.55
     }
+    if (e.state === 'shooting') {
+      e.stateT -= dt
+      if (e.stateT <= 0) e.state = 'chase'
+    }
     e.cooldown -= dt
-    if (e.cooldown <= 0 && d < b.range * 1.05) {
+    if (e.cooldown <= 0 && d < b.range * 1.05 && e.state !== 'shooting') {
       e.cooldown = b.cooldown
       e.state = 'shooting'
+      e.stateT = clipSeconds(e.kind, e.form, 'attack', SHOOT_ANIM_FALLBACK)
       fireAtPlayer(world, e, b.projectile, ctx)
     }
     return
@@ -671,8 +726,13 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     e.x = c.x
     e.y = c.y
     e.anim.moving = Math.hypot(e.vx, e.vy) > 8
-    e.anim.bob = e.anim.moving ? Math.sin(e.anim.t * 10) * 2.2 : Math.sin(e.anim.t * 2) * 1.1
-    e.anim.facing = e.vx >= 0 ? 1 : -1
+    const painted = sheetKeysForEnemy(e.kind, e.form).some((id) => sheetClipSeconds(id, 'idle') !== null)
+    e.anim.bob = painted ? 0 : e.anim.moving ? Math.sin(e.anim.t * 10) * 2.2 : Math.sin(e.anim.t * 2) * 1.1
+    if (e.state === 'windup' || (e.state === 'shooting' && !e.anim.moving)) {
+      e.anim.facing = e.aim.x >= 0 ? 1 : -1
+    } else {
+      e.anim.facing = e.vx >= 0 ? 1 : -1
+    }
     tickFaceAnim(e.anim, dt, ex, {
       moving: e.anim.moving,
       speed: Math.hypot(e.vx, e.vy),
