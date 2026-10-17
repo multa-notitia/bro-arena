@@ -1,0 +1,95 @@
+{
+ "weapons": {
+  "knife": {
+   "img": "knife",
+   "family": "melee-slash",
+   "wood": false,
+   "restAim": -62.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist34",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_slash",
+     "rule": "swingArc",
+     "z": "behindBody",
+     "params": {
+      "back": 36.0,
+      "radius": 0.92
+     }
+    }
+   }
+  },
+  "cleaver": {
+   "img": "cleaver",
+   "family": "melee-swing",
+   "wood": false,
+   "restAim": -62.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist34",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_slash",
+     "rule": "swingArc",
+     "z": "behindBody",
+     "params": {
+      "back": 40.0,
+      "radius": 0.9
+     }
+    }
+   }
+  },
+  "club": {
+   "img": "club",
+   "family": "melee-swing",
+   "wood": true,
+   "restAim": -62.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist34",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_smear",
+     "rule": "swingArc",
+     "z": "behindBody",
+     "params": {
+      "back": 45.0,
+      "radius": 0.92
+     }
+    }
+   }
+  },
+  "slingshot": {
+   "img": "sling_relaxed",
+   "family": "ranged-recoil",
+   "wood": true,
+   "restAim": -96.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_puff",
+     "rule": "alongShot",
+     "anchor": "cloud",
+     "at": "fork",
+     "params": {
+      "ahead": 8.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   }
+  }
+ },
+ "fist34HandleAlongPlusX": true
+}

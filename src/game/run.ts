@@ -49,7 +49,7 @@ import { consumeHitStop, getReducedJuice, resetFeel, setReducedJuice } from '../
 import { defaultModelForSpecies, getLastModel, getPaintStyle, modelsForSpecies, setLastModel, setPaintStyle } from '../render/look.ts'
 import { isConceptAReady, preloadConceptA } from '../render/conceptA.ts'
 import { isBoardReady, preloadBoard } from '../render/board.ts'
-import { isMultiArmSettled, preloadMultiArm } from '../render/multiarm.ts'
+import { debugHeroId, isMultiArmSettled, preloadMultiArm } from '../render/multiarm.ts'
 import { isSpriteSheetsReady, preloadSpriteSheets, resetSheetPlayback } from '../render/sheets.ts'
 
 export interface RunDeps {
@@ -210,6 +210,11 @@ export class Run {
     const { audio } = this.deps
     audio.unlock()
     audio.play('uiClick')
+    const hero = debugHeroId()
+    if (hero) {
+      this.pickCharacter(hero)
+      return
+    }
     this.enterCharSelect()
   }
 

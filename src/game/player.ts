@@ -18,7 +18,7 @@ import { ITEMS } from '../data/items.ts'
 import { computeStats } from '../data/stats.ts'
 import { xpForLevel } from '../data/economy.ts'
 import type { SimCtx } from './world.ts'
-import { debugPotatoWeapons, multiArmSheet, potatoMultiArm, resetMultiArm } from '../render/multiarm.ts'
+import { debugHeroWeapons, multiArmSheet, potatoMultiArm, resetMultiArm } from '../render/multiarm.ts'
 import {
   actorClipActive,
   advanceActorSheet,
@@ -172,12 +172,12 @@ export function extraState(player: Player): PlayerExtra {
 }
 
 export function createPlayer(character: CharacterDef, model: ModelDir = 'b'): Player {
-  const debugArms = character.species === 'potato' ? debugPotatoWeapons() : null
-  const starters = debugArms
-    ? debugArms
-    : character.species === 'chili' && model === 'board'
-      ? [{ id: 'knife' as const, tier: 1 as const }, ...character.startingWeapons]
-      : character.startingWeapons
+  const debugArms = debugHeroWeapons(character.species)
+  const base = debugArms ?? character.startingWeapons
+  const starters =
+    !debugArms && character.species === 'chili' && model === 'board' && !base.some((w) => w.id === 'knife')
+      ? [{ id: 'knife' as const, tier: 1 as const }, ...base]
+      : base
   const weapons = starters.map((w, i) => makeWeapon(w.id, w.tier, i))
   const items: string[] = []
   const form: Form = 'normal'

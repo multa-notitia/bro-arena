@@ -1,0 +1,192 @@
+{
+ "units": "body px (carrot parts/v1/body.png px); dir/aim = screen deg, y down, 0 = right (facing), -90 = up; CANONICAL = as if on the right side: side -1 slots mirror about their own x",
+ "slots": {
+  "midR": {
+   "pos": [
+    125,
+    192
+   ],
+   "side": 1,
+   "dir": 70.0,
+   "z": 11.0,
+   "native": true
+  },
+  "midL": {
+   "pos": [
+    54,
+    192
+   ],
+   "side": -1,
+   "dir": 70.0,
+   "z": 11.2,
+   "native": true
+  },
+  "upL": {
+   "pos": [
+    47,
+    128
+   ],
+   "side": -1,
+   "dir": -30.0,
+   "z": 4.0,
+   "native": false
+  },
+  "upR": {
+   "pos": [
+    131,
+    128
+   ],
+   "side": 1,
+   "dir": -30.0,
+   "z": 4.1,
+   "native": false
+  },
+  "lowL": {
+   "pos": [
+    62,
+    224
+   ],
+   "side": -1,
+   "dir": 40.0,
+   "z": 3.6,
+   "native": false
+  },
+  "lowR": {
+   "pos": [
+    116,
+    224
+   ],
+   "side": 1,
+   "dir": 40.0,
+   "z": 3.7,
+   "native": false
+  }
+ },
+ "layouts": {
+  "1": {
+   "slots": [
+    "midR",
+    "midL"
+   ],
+   "override": {}
+  },
+  "2": {
+   "slots": [
+    "midR",
+    "midL"
+   ],
+   "override": {}
+  },
+  "3": {
+   "slots": [
+    "midR",
+    "midL",
+    "upL"
+   ],
+   "override": {}
+  },
+  "4": {
+   "slots": [
+    "midR",
+    "midL",
+    "upL",
+    "upR"
+   ],
+   "override": {}
+  },
+  "5": {
+   "slots": [
+    "midR",
+    "midL",
+    "upL",
+    "upR",
+    "lowL"
+   ],
+   "override": {
+    "upL": {
+     "dir": -48.0
+    },
+    "upR": {
+     "dir": -48.0
+    },
+    "midR": {
+     "dir": 44.0
+    },
+    "midL": {
+     "dir": 44.0
+    },
+    "lowL": {
+     "pos": [
+      57,
+      214
+     ],
+     "dir": 12.0
+    },
+    "lowR": {
+     "pos": [
+      121,
+      214
+     ],
+     "dir": 12.0
+    }
+   }
+  },
+  "6": {
+   "slots": [
+    "midR",
+    "midL",
+    "upL",
+    "upR",
+    "lowL",
+    "lowR"
+   ],
+   "override": {
+    "upL": {
+     "dir": -48.0
+    },
+    "upR": {
+     "dir": -48.0
+    },
+    "midR": {
+     "dir": 44.0
+    },
+    "midL": {
+     "dir": 44.0
+    },
+    "lowL": {
+     "pos": [
+      57,
+      214
+     ],
+     "dir": 12.0
+    },
+    "lowR": {
+     "pos": [
+      121,
+      214
+     ],
+     "dir": 12.0
+    }
+   }
+  }
+ },
+ "arms": {
+  "native": {
+   "midR": "arm2",
+   "midL": "arm2",
+   "kind": "bent",
+   "scale": 1.0
+  },
+  "sprouted": {
+   "front": "straight",
+   "back": "straight_dark",
+   "kind": "straight",
+   "scale": 0.8
+  }
+ },
+ "behindBodyZ": 10.0,
+ "bud": {
+  "part": "bud",
+  "frontOnly": true
+ }
+}

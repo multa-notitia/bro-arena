@@ -1,12 +1,12 @@
 /**
- * Runtime multi-arm compositor for the spud.
- * Maths follow figures/player-potato/multiarm/compose_ref.py (`arm_layers` + `frame`).
+ * Runtime multi-arm compositor.
+ * Maths follow each hero's compose_ref.py (`arm_layers` + `frame`).
  * Parts stay in body px; `body_track.m` maps them into the armless hero cell.
  */
 import type { WeaponId } from '../core/types.ts'
 import { actorClipFrame, loadSheetAt, type LoadedSheet, type SheetFrame } from './sheets.ts'
 
-/** One hero's multi-arm folder. Radish, carrot, and chili stay on their legacy sheets. */
+/** One hero's multi-arm folder and the armless sheet that sits under the arms. */
 export interface MultiArmSource {
   root: string
   sheetId: string
@@ -14,6 +14,9 @@ export interface MultiArmSource {
 
 const HERO_SOURCES: Record<string, MultiArmSource> = {
   potato: { root: '/sprites/multiarm/potato', sheetId: 'player-potato-armless' },
+  radish: { root: '/sprites/multiarm/radish', sheetId: 'player-radish-armless' },
+  carrot: { root: '/sprites/multiarm/carrot', sheetId: 'player-carrot-armless' },
+  chili: { root: '/sprites/multiarm/chili', sheetId: 'player-chili-armless' },
 }
 
 type Mat = [
@@ -133,10 +136,33 @@ const PAINT: Partial<Record<WeaponId, 'club' | 'knife' | 'slingshot'>> = {
   flint: 'slingshot',
 }
 
-const DEBUG_POOL: WeaponId[] = ['pistol', 'knife', 'stick', 'slingshot', 'wand', 'hammer']
+/** `?arms=` grows this list. The first id is that hero's main weapon. */
+const DEBUG_POOLS: Record<string, WeaponId[]> = {
+  potato: ['pistol', 'knife', 'stick', 'slingshot', 'wand', 'hammer'],
+  radish: ['pistol', 'knife', 'stick', 'slingshot', 'wand', 'hammer'],
+  carrot: ['slingshot', 'spear', 'stick', 'knife', 'pistol', 'wand'],
+  chili: ['knife', 'stick', 'slingshot', 'hammer', 'pistol', 'wand'],
+}
+const HERO_QUERY: Record<string, string> = {
+  potato: 'well-rounded',
+  spud: 'well-rounded',
+  'well-rounded': 'well-rounded',
+  radish: 'lucky',
+  lucky: 'lucky',
+  carrot: 'ranger',
+  ranger: 'ranger',
+  chili: 'mage',
+  mage: 'mage',
+}
 const SPROUT_STAGGER = 320
 /** Native stab swaps bent parts for the straight painting. Crossfade across this, not one frame. */
 const STAB_BLEND_MS = 120
+/**
+ * Screen degrees of every hero's painted rest aim (y down, 0 = right).
+ * A native track aim of this value holds the weapon at rest, so the wrist
+ * offset is `aim - NATIVE_REST_AIM`.
+ */
+const NATIVE_REST_AIM = -62
 /**
  * Body-px y where the legs leave the torso. Measured on the armless idle and
  * walk cells (the silhouette splits into two legs) and inverse-mapped through
@@ -294,19 +320,42 @@ function bindArt(species: string): boolean {
   return true
 }
 
-/** Slash borrows the swing keys until a hero ships its own `melee-slash` clip. */
+/**
+ * The loaded hero's own clip wins. `melee-slash` falls back to `melee-swing`
+ * only when that hero never shipped a slash family.
+ */
 function familyClip(name: string): FamKey[] | undefined {
   return families[name] ?? (name === 'melee-slash' ? families['melee-swing'] : undefined)
 }
 
-/** `?arms=1..6` replaces the potato's starters. Other heroes ignore it. */
-export function debugPotatoWeapons(): { id: WeaponId; tier: 1 }[] | null {
+function queryParam(name: string): string | null {
   if (typeof location === 'undefined') return null
-  const raw = new URLSearchParams(location.search).get('arms')
+  const raw = new URLSearchParams(location.search).get(name)
+  return raw && raw.trim() ? raw.trim().toLowerCase() : null
+}
+
+/** `?hero=radish` (or a character id) skips the select and plants that hero. */
+export function debugHeroId(): string | null {
+  const raw = queryParam('hero')
   if (!raw) return null
+  return HERO_QUERY[raw] ?? null
+}
+
+/** `?arms=1..6` replaces starters for any hero that has multi-arm art. */
+export function debugHeroWeapons(species: string): { id: WeaponId; tier: 1 }[] | null {
+  const raw = queryParam('arms')
+  if (!raw) return null
+  const pool = DEBUG_POOLS[species]
+  if (!pool) return null
   const n = Number(raw)
-  if (!Number.isInteger(n) || n < 1 || n > 6) return null
-  return DEBUG_POOL.slice(0, n).map((id) => ({ id, tier: 1 as const }))
+  if (!Number.isInteger(n) || n < 1 || n > pool.length) return null
+  return pool.slice(0, n).map((id) => ({ id, tier: 1 as const }))
+}
+
+/** A hero's own weapons.json entry wins; otherwise the shared stand-in. */
+function paintName(id: WeaponId): string | undefined {
+  if (weapons[id]) return id
+  return PAINT[id]
 }
 
 export function resetMultiArm(): void {
@@ -526,7 +575,7 @@ function syncLoadout(list: readonly ArmIn[]): void {
   const items: (AssignItem | null)[] = slots.map((_, i) => {
     const w = list[i]
     if (!w) return null
-    const paint = PAINT[w.id]
+    const paint = paintName(w.id)
     const spec = paint ? weapons[paint] : undefined
     return { uid: w.uid, wood: !!spec?.wood }
   })
@@ -607,7 +656,7 @@ function paintOf(uid: number | null): { name: string; spec: WeaponPaint } | null
   if (uid == null) return null
   const id = idByUid.get(uid)
   if (!id) return null
-  const name = PAINT[id]
+  const name = paintName(id)
   if (!name) return null
   const spec = weapons[name]
   if (!spec) return null
@@ -718,7 +767,7 @@ function armLayers(
     if (hp.elbow !== undefined) pose.elbow = hp.elbow
     if (hp.wrist !== undefined) pose.wrist = hp.wrist
     if (hp.thrust !== undefined) pose.thrust = hp.thrust
-    if (w && hp.aim !== undefined) pose.wrist = hp.aim + 62
+    if (w && hp.aim !== undefined) pose.wrist = hp.aim - NATIVE_REST_AIM
   }
   const keys = w ? familyClip(w.family) : undefined
   const at = w && keys && tAttack !== null ? familyAt(keys, tAttack) : null
@@ -871,6 +920,8 @@ function armLayers(
         out.push({ name: w.img, m: Wm, z: z + 0.03 }, { name: hname, m: H, z: z + 0.06 })
       }
     }
+    // `show` draws the arc or puff. `ev` is what fires, so a slash follow-through
+    // can keep the arc up without a second release.
     if (key && Wm && (key.show ?? []).includes('release') && w.fx?.release) {
       out.push(...fxLayers(w, Wm, P, aimC, k, z, front))
     }

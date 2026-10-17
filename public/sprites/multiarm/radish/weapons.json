@@ -1,0 +1,124 @@
+{
+ "weapons": {
+  "club": {
+   "img": "club",
+   "family": "melee-swing",
+   "wood": true,
+   "restAim": -62.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_smear",
+     "rule": "swingArc",
+     "z": "behindBody",
+     "params": {
+      "back": 45.0,
+      "radius": 0.92
+     }
+    }
+   }
+  },
+  "knife": {
+   "img": "knife",
+   "family": "melee-stab",
+   "wood": false,
+   "restAim": -40.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_streak",
+     "rule": "alongAim",
+     "anchor": "tip",
+     "at": "tip",
+     "params": {
+      "ahead": 4.0,
+      "side": -5.0
+     },
+     "z": 14.0
+    }
+   }
+  },
+  "pistol": {
+   "img": "pistol",
+   "family": "ranged-recoil",
+   "wood": false,
+   "restAim": -96.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_muzzle",
+     "rule": "alongShot",
+     "anchor": "base",
+     "at": "muzzle",
+     "params": {
+      "ahead": 0.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   }
+  },
+  "bow": {
+   "img": "bow",
+   "family": "ranged-recoil",
+   "wood": true,
+   "restAim": -100.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_streak",
+     "rule": "alongShot",
+     "anchor": "tail",
+     "at": "grip",
+     "params": {
+      "ahead": 10.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   }
+  },
+  "slingshot": {
+   "img": "sling_relaxed",
+   "family": "ranged-recoil",
+   "wood": true,
+   "restAim": -96.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_puff",
+     "rule": "alongShot",
+     "anchor": "cloud",
+     "at": "fork",
+     "params": {
+      "ahead": 8.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   }
+  }
+ },
+ "fist34HandleAlongPlusX": true,
+ "heroDefault": "pistol"
+}

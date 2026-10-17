@@ -1,0 +1,498 @@
+{
+ "image": "parts.png",
+ "units": "1 part px = 1 body px (parts/v1/body.png px of the radish)",
+ "parts": {
+  "arm1_fore": {
+   "rect": [
+    568,
+    0,
+    78,
+    113
+   ],
+   "points": {
+    "shoulder": [
+     44.02,
+     31.65
+    ],
+    "elbow": [
+     34.98,
+     67.62
+    ],
+    "wrist": [
+     49.19,
+     78.3
+    ]
+   },
+   "src": "radish v1 arm1",
+   "dir0": 104.11,
+   "fore0": 36.91
+  },
+  "arm1_upper": {
+   "rect": [
+    488,
+    0,
+    78,
+    113
+   ],
+   "points": {
+    "shoulder": [
+     44.02,
+     31.65
+    ],
+    "elbow": [
+     34.98,
+     67.62
+    ],
+    "wrist": [
+     49.19,
+     78.3
+    ]
+   },
+   "src": "radish v1 arm1",
+   "dir0": 104.11,
+   "fore0": 36.91
+  },
+  "arm2_fore": {
+   "rect": [
+    406,
+    0,
+    80,
+    114
+   ],
+   "points": {
+    "shoulder": [
+     44.43,
+     31.78
+    ],
+    "elbow": [
+     36.0,
+     68.98
+    ],
+    "wrist": [
+     51.23,
+     78.77
+    ]
+   },
+   "src": "radish v1 arm2",
+   "dir0": 102.77,
+   "fore0": 32.74
+  },
+  "arm2_upper": {
+   "rect": [
+    324,
+    0,
+    80,
+    114
+   ],
+   "points": {
+    "shoulder": [
+     44.43,
+     31.78
+    ],
+    "elbow": [
+     36.0,
+     68.98
+    ],
+    "wrist": [
+     51.23,
+     78.77
+    ]
+   },
+   "src": "radish v1 arm2",
+   "dir0": 102.77,
+   "fore0": 32.74
+  },
+  "arm3_fore": {
+   "rect": [
+    81,
+    0,
+    79,
+    122
+   ],
+   "points": {
+    "shoulder": [
+     46.06,
+     32.87
+    ],
+    "elbow": [
+     34.3,
+     72.72
+    ],
+    "wrist": [
+     49.67,
+     85.5
+    ]
+   },
+   "src": "radish v1 arm3",
+   "dir0": 106.45,
+   "fore0": 39.76
+  },
+  "arm3_upper": {
+   "rect": [
+    0,
+    0,
+    79,
+    122
+   ],
+   "points": {
+    "shoulder": [
+     46.06,
+     32.87
+    ],
+    "elbow": [
+     34.3,
+     72.72
+    ],
+    "wrist": [
+     49.67,
+     85.5
+    ]
+   },
+   "src": "radish v1 arm3",
+   "dir0": 106.45,
+   "fore0": 39.76
+  },
+  "arm_dark_bent_fore": {
+   "rect": [
+    243,
+    0,
+    79,
+    115
+   ],
+   "points": {
+    "shoulder": [
+     43.89,
+     31.72
+    ],
+    "elbow": [
+     36.0,
+     68.98
+    ],
+    "wrist": [
+     50.35,
+     79.52
+    ]
+   },
+   "src": "radish v1 arm_dark_bent",
+   "dir0": 101.95,
+   "fore0": 36.3
+  },
+  "arm_dark_bent_upper": {
+   "rect": [
+    162,
+    0,
+    79,
+    115
+   ],
+   "points": {
+    "shoulder": [
+     43.89,
+     31.72
+    ],
+    "elbow": [
+     36.0,
+     68.98
+    ],
+    "wrist": [
+     50.35,
+     79.52
+    ]
+   },
+   "src": "radish v1 arm_dark_bent",
+   "dir0": 101.95,
+   "fore0": 36.3
+  },
+  "bow": {
+   "rect": [
+    247,
+    124,
+    121,
+    52
+   ],
+   "points": {
+    "grip": [
+     50.72,
+     41.06
+    ]
+   },
+   "src": "radish v1 bow",
+   "axis": 8.0,
+   "note": "painted lying down, string on top; shoots perpendicular to the string"
+  },
+  "bud": {
+   "rect": [
+    868,
+    124,
+    30,
+    30
+   ],
+   "points": {
+    "center": [
+     15.0,
+     15.0
+    ]
+   },
+   "src": "radish v1 bud"
+  },
+  "club": {
+   "rect": [
+    851,
+    0,
+    93,
+    95
+   ],
+   "points": {
+    "grip": [
+     20.82,
+     67.68
+    ],
+    "head": [
+     74.24,
+     18.01
+    ]
+   },
+   "src": "spud multiarm v1 club (x0.976 to radish body px)",
+   "axis": -48.0
+  },
+  "fist": {
+   "rect": [
+    79,
+    124,
+    40,
+    55
+   ],
+   "points": {
+    "grip": [
+     19.6,
+     19.6
+    ]
+   },
+   "src": "radish v1 fist"
+  },
+  "fist_dark": {
+   "rect": [
+    121,
+    124,
+    40,
+    55
+   ],
+   "points": {
+    "grip": [
+     19.6,
+     19.6
+    ]
+   },
+   "src": "radish v1 fist (stands in for fist_dark)"
+  },
+  "fx_dust": {
+   "rect": [
+    828,
+    124,
+    38,
+    37
+   ],
+   "points": {
+    "center": [
+     18.6,
+     18.11
+    ]
+   },
+   "src": "spud multiarm v2 fx_dust (x0.976 to radish body px)"
+  },
+  "fx_muzzle": {
+   "rect": [
+    454,
+    124,
+    37,
+    48
+   ],
+   "points": {
+    "base": [
+     14.3,
+     25.83
+    ]
+   },
+   "src": "radish legacy image8 attack-cell muzzle puff"
+  },
+  "fx_puff": {
+   "rect": [
+    493,
+    124,
+    98,
+    48
+   ],
+   "points": {
+    "cloud": [
+     22.66,
+     23.86
+    ]
+   },
+   "src": "spud multiarm v2 fx_puff (cloud + motion lines along +x) (x0.976 to radish body px)"
+  },
+  "fx_smear": {
+   "rect": [
+    648,
+    0,
+    201,
+    98
+   ],
+   "points": {
+    "bulge": [
+     195.29,
+     52.75
+    ]
+   },
+   "src": "spud multiarm v2 fx_smear (mirrored: curve leads, trails behind) (x0.976 to radish body px)"
+  },
+  "fx_streak": {
+   "rect": [
+    0,
+    200,
+    125,
+    23
+   ],
+   "points": {
+    "tip": [
+     118.17,
+     11.92
+    ],
+    "tail": [
+     4.44,
+     11.07
+    ]
+   },
+   "src": "spud multiarm v2 fx_streak (x0.976 to radish body px)"
+  },
+  "knife": {
+   "rect": [
+    0,
+    124,
+    77,
+    74
+   ],
+   "points": {
+    "grip": [
+     16.9,
+     50.02
+    ],
+    "tip": [
+     69.05,
+     7.76
+    ]
+   },
+   "src": "spud multiarm v1 knife (x0.976 to radish body px)",
+   "axis": -42.0
+  },
+  "long_cut": {
+   "rect": [
+    593,
+    124,
+    121,
+    40
+   ],
+   "points": {
+    "shoulder": [
+     13.18,
+     18.79
+    ],
+    "wrist": [
+     94.19,
+     19.53
+    ]
+   },
+   "src": "radish v1 arm_straight (turned horizontal, tip cut)",
+   "dir0": 0.52
+  },
+  "long_dark_cut": {
+   "rect": [
+    716,
+    124,
+    110,
+    37
+   ],
+   "points": {
+    "shoulder": [
+     13.18,
+     17.71
+    ],
+    "wrist": [
+     92.23,
+     16.51
+    ]
+   },
+   "src": "radish v1 arm_dark_straight (turned horizontal, tip cut)",
+   "dir0": -0.87
+  },
+  "palm": {
+   "rect": [
+    163,
+    124,
+    40,
+    55
+   ],
+   "points": {
+    "grip": [
+     19.6,
+     19.6
+    ]
+   },
+   "src": "radish v1 fist (stands in for palm)"
+  },
+  "palm_dark": {
+   "rect": [
+    205,
+    124,
+    40,
+    55
+   ],
+   "points": {
+    "grip": [
+     19.6,
+     19.6
+    ]
+   },
+   "src": "radish v1 fist (stands in for palm_dark)"
+  },
+  "pistol": {
+   "rect": [
+    370,
+    124,
+    82,
+    51
+   ],
+   "points": {
+    "grip": [
+     13.76,
+     37.28
+    ],
+    "muzzle": [
+     78.44,
+     17.12
+    ]
+   },
+   "src": "radish v1 pistol",
+   "axis": -90.0,
+   "note": "painted facing right; axis -90 + shotOffset 90 = barrel along the aim"
+  },
+  "sling_relaxed": {
+   "rect": [
+    946,
+    0,
+    72,
+    92
+   ],
+   "points": {
+    "grip": [
+     17.72,
+     66.35
+    ],
+    "fork": [
+     47.54,
+     8.54
+    ]
+   },
+   "src": "spud multiarm v1 sling_relaxed (x0.976 to radish body px)",
+   "axis": -63.0
+  }
+ }
+}

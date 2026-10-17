@@ -1,0 +1,192 @@
+{
+ "units": "body px (parts/v1/body.png px of the chili); dir/aim = screen deg, y down, 0 = right (facing), -90 = up; CANONICAL = as if on the right side: side -1 slots mirror about their own x",
+ "slots": {
+  "midR": {
+   "pos": [
+    170,
+    124
+   ],
+   "side": 1,
+   "dir": 70.0,
+   "z": 11.0,
+   "native": true
+  },
+  "midL": {
+   "pos": [
+    74,
+    126
+   ],
+   "side": -1,
+   "dir": 70.0,
+   "z": 11.2,
+   "native": true
+  },
+  "upL": {
+   "pos": [
+    90,
+    76
+   ],
+   "side": -1,
+   "dir": -30.0,
+   "z": 4.0,
+   "native": false
+  },
+  "upR": {
+   "pos": [
+    166,
+    74
+   ],
+   "side": 1,
+   "dir": -30.0,
+   "z": 4.1,
+   "native": false
+  },
+  "lowL": {
+   "pos": [
+    66,
+    176
+   ],
+   "side": -1,
+   "dir": 40.0,
+   "z": 3.6,
+   "native": false
+  },
+  "lowR": {
+   "pos": [
+    150,
+    168
+   ],
+   "side": 1,
+   "dir": 40.0,
+   "z": 3.7,
+   "native": false
+  }
+ },
+ "layouts": {
+  "1": {
+   "slots": [
+    "midR",
+    "midL"
+   ],
+   "override": {}
+  },
+  "2": {
+   "slots": [
+    "midR",
+    "midL"
+   ],
+   "override": {}
+  },
+  "3": {
+   "slots": [
+    "midR",
+    "midL",
+    "upL"
+   ],
+   "override": {}
+  },
+  "4": {
+   "slots": [
+    "midR",
+    "midL",
+    "upL",
+    "upR"
+   ],
+   "override": {}
+  },
+  "5": {
+   "slots": [
+    "midR",
+    "midL",
+    "upL",
+    "upR",
+    "lowL"
+   ],
+   "override": {
+    "upL": {
+     "dir": -48.0
+    },
+    "upR": {
+     "dir": -48.0
+    },
+    "midR": {
+     "dir": 44.0
+    },
+    "midL": {
+     "dir": 44.0
+    },
+    "lowL": {
+     "pos": [
+      60,
+      168
+     ],
+     "dir": 12.0
+    },
+    "lowR": {
+     "pos": [
+      156,
+      160
+     ],
+     "dir": 12.0
+    }
+   }
+  },
+  "6": {
+   "slots": [
+    "midR",
+    "midL",
+    "upL",
+    "upR",
+    "lowL",
+    "lowR"
+   ],
+   "override": {
+    "upL": {
+     "dir": -48.0
+    },
+    "upR": {
+     "dir": -48.0
+    },
+    "midR": {
+     "dir": 44.0
+    },
+    "midL": {
+     "dir": 44.0
+    },
+    "lowL": {
+     "pos": [
+      60,
+      168
+     ],
+     "dir": 12.0
+    },
+    "lowR": {
+     "pos": [
+      156,
+      160
+     ],
+     "dir": 12.0
+    }
+   }
+  }
+ },
+ "arms": {
+  "native": {
+   "midR": "arm_b1",
+   "midL": "arm_b2",
+   "kind": "bent",
+   "scale": 1.0
+  },
+  "sprouted": {
+   "front": "long_cut",
+   "back": "long_dark_cut",
+   "kind": "straight",
+   "scale": 0.8
+  }
+ },
+ "behindBodyZ": 10.0,
+ "bud": {
+  "part": "bud",
+  "frontOnly": true
+ }
+}

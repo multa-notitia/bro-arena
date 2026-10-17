@@ -1,0 +1,106 @@
+{
+ "weapons": {
+  "slingshot": {
+   "img": "sling_relaxed",
+   "family": "ranged-recoil",
+   "wood": true,
+   "restAim": -62.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist"
+   },
+   "alt": {
+    "imgs": [
+     "sling_drawn"
+    ],
+    "pick": "slotIndex % 1",
+    "hidesHand": true
+   },
+   "fx": {
+    "release": {
+     "img": "fx_puff",
+     "rule": "alongShot",
+     "anchor": "cloud",
+     "at": "fork",
+     "params": {
+      "ahead": 8.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   }
+  },
+  "spear": {
+   "img": "spear",
+   "family": "melee-stab",
+   "wood": true,
+   "restAim": -50.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_streak",
+     "rule": "alongAim",
+     "anchor": "tip",
+     "at": "tip",
+     "params": {
+      "ahead": 4.0,
+      "side": -5.0
+     },
+     "z": 14.0
+    }
+   }
+  },
+  "club": {
+   "img": "club",
+   "family": "melee-swing",
+   "wood": true,
+   "restAim": -62.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_smear",
+     "rule": "swingArc",
+     "z": "behindBody",
+     "params": {
+      "back": 45.0,
+      "radius": 0.92
+     }
+    }
+   }
+  },
+  "knife": {
+   "img": "knife",
+   "family": "melee-stab",
+   "wood": false,
+   "restAim": -40.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_streak",
+     "rule": "alongAim",
+     "anchor": "tip",
+     "at": "tip",
+     "params": {
+      "ahead": 4.0,
+      "side": -5.0
+     },
+     "z": 14.0
+    }
+   }
+  }
+ },
+ "fist34HandleAlongPlusX": true
+}

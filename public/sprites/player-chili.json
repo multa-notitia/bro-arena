@@ -43,9 +43,9 @@
   "attack": {
    "loop": false,
    "frames": [
-    { "i": 17, "ms": 60, "ox": -1.5 },
-    { "i": 18, "ms": 45, "ox": 2.0, "events": [ "release", "spawnFx" ] },
-    { "i": 19, "ms": 70, "ox": 1.0 },
+    { "i": 17, "ms": 60, "ox": -1.4 },
+    { "i": 18, "ms": 45, "ox": 2.2, "events": [ "release", "spawnFx" ] },
+    { "i": 19, "ms": 70, "ox": 1.2 },
     { "i": 20, "ms": 80 }
    ]
   },
@@ -63,8 +63,8 @@
   }
  },
  "meta": {
-  "title": "Chili hero (rigged, knife slash)",
-  "source": "image11_rig.png",
+  "title": "Chili hero (rigged v2, painted parts, knife slash)",
+  "source": "chili_src.png",
   "cells": [
    "walk0",
    "walk1",

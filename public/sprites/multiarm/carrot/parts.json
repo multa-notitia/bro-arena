@@ -1,0 +1,444 @@
+{
+ "image": "parts.png",
+ "units": "1 part px = 1 body px (parts/v1/body.png px of the carrot; same on-screen size as 1 spud body px)",
+ "parts": {
+  "arm1_fore": {
+   "rect": [
+    769,
+    0,
+    89,
+    87
+   ],
+   "points": {
+    "shoulder": [
+     40.88,
+     28.14
+    ],
+    "elbow": [
+     32.24,
+     52.4
+    ],
+    "wrist": [
+     62.34,
+     58.95
+    ]
+   },
+   "src": "carrot v1 arm1",
+   "dir0": 109.6,
+   "fore0": 12.28
+  },
+  "arm1_upper": {
+   "rect": [
+    678,
+    0,
+    89,
+    87
+   ],
+   "points": {
+    "shoulder": [
+     40.88,
+     28.14
+    ],
+    "elbow": [
+     32.24,
+     52.4
+    ],
+    "wrist": [
+     62.34,
+     58.95
+    ]
+   },
+   "src": "carrot v1 arm1",
+   "dir0": 109.6,
+   "fore0": 12.28
+  },
+  "arm2_fore": {
+   "rect": [
+    94,
+    0,
+    92,
+    104
+   ],
+   "points": {
+    "shoulder": [
+     42.68,
+     30.8
+    ],
+    "elbow": [
+     31.88,
+     64.64
+    ],
+    "wrist": [
+     66.51,
+     75.3
+    ]
+   },
+   "src": "carrot v1 arm2",
+   "dir0": 107.7,
+   "fore0": 17.1
+  },
+  "arm2_upper": {
+   "rect": [
+    0,
+    0,
+    92,
+    104
+   ],
+   "points": {
+    "shoulder": [
+     42.68,
+     30.8
+    ],
+    "elbow": [
+     31.88,
+     64.64
+    ],
+    "wrist": [
+     66.51,
+     75.3
+    ]
+   },
+   "src": "carrot v1 arm2",
+   "dir0": 107.7,
+   "fore0": 17.1
+  },
+  "arm_dark_fore": {
+   "rect": [
+    285,
+    0,
+    95,
+    103
+   ],
+   "points": {
+    "shoulder": [
+     45.2,
+     30.66
+    ],
+    "elbow": [
+     33.32,
+     63.92
+    ],
+    "wrist": [
+     68.89,
+     74.65
+    ]
+   },
+   "src": "carrot v1 arm_dark",
+   "dir0": 109.65,
+   "fore0": 16.78
+  },
+  "arm_dark_upper": {
+   "rect": [
+    188,
+    0,
+    95,
+    103
+   ],
+   "points": {
+    "shoulder": [
+     45.2,
+     30.66
+    ],
+    "elbow": [
+     33.32,
+     63.92
+    ],
+    "wrist": [
+     68.89,
+     74.65
+    ]
+   },
+   "src": "carrot v1 arm_dark",
+   "dir0": 109.65,
+   "fore0": 16.78
+  },
+  "bud": {
+   "rect": [
+    668,
+    106,
+    25,
+    26
+   ],
+   "points": {
+    "center": [
+     12.14,
+     12.75
+    ]
+   },
+   "src": "carrot v1 bud"
+  },
+  "club": {
+   "rect": [
+    585,
+    0,
+    91,
+    93
+   ],
+   "points": {
+    "grip": [
+     19.28,
+     67.28
+    ],
+    "head": [
+     74.0,
+     16.4
+    ]
+   },
+   "src": "shared (player-potato/multiarm) v1 club",
+   "axis": -48.0
+  },
+  "fist": {
+   "rect": [
+    593,
+    106,
+    37,
+    40
+   ],
+   "points": {
+    "grip": [
+     18.4,
+     20.4
+    ]
+   },
+   "src": "carrot v1 fist"
+  },
+  "fx_dust": {
+   "rect": [
+    632,
+    106,
+    34,
+    33
+   ],
+   "points": {
+    "center": [
+     17.0,
+     16.5
+    ]
+   },
+   "src": "shared (player-potato/multiarm) v2 fx_dust"
+  },
+  "fx_puff": {
+   "rect": [
+    495,
+    106,
+    96,
+    45
+   ],
+   "points": {
+    "cloud": [
+     21.16,
+     22.39
+    ]
+   },
+   "src": "shared (player-potato/multiarm) v2 fx_puff (cloud + motion lines along +x)"
+  },
+  "fx_smear": {
+   "rect": [
+    382,
+    0,
+    201,
+    96
+   ],
+   "points": {
+    "bulge": [
+     198.0,
+     51.99
+    ]
+   },
+   "src": "shared (player-potato/multiarm) v2 fx_smear (mirrored: curve leads, trails behind)"
+  },
+  "fx_streak": {
+   "rect": [
+    695,
+    106,
+    123,
+    19
+   ],
+   "points": {
+    "tip": [
+     119.0,
+     10.16
+    ],
+    "tail": [
+     2.5,
+     9.29
+    ]
+   },
+   "src": "shared (player-potato/multiarm) v2 fx_streak"
+  },
+  "knife": {
+   "rect": [
+    176,
+    106,
+    74,
+    71
+   ],
+   "points": {
+    "grip": [
+     15.26,
+     49.19
+    ],
+    "tip": [
+     68.69,
+     5.9
+    ]
+   },
+   "src": "shared (player-potato/multiarm) v1 knife",
+   "axis": -42.0
+  },
+  "palm": {
+   "rect": [
+    355,
+    106,
+    47,
+    50
+   ],
+   "points": {
+    "grip": [
+     22.8,
+     30.8
+    ]
+   },
+   "src": "carrot v1 palm"
+  },
+  "palm_dark": {
+   "rect": [
+    404,
+    106,
+    47,
+    50
+   ],
+   "points": {
+    "grip": [
+     22.8,
+     30.8
+    ]
+   },
+   "src": "carrot v1 palm (no dark palm painted: same pixels)"
+  },
+  "pinch": {
+   "rect": [
+    453,
+    106,
+    40,
+    47
+   ],
+   "points": {
+    "grip": [
+     30.0,
+     15.6
+    ]
+   },
+   "src": "carrot v1 pinch"
+  },
+  "sling_drawn": {
+   "rect": [
+    860,
+    0,
+    84,
+    87
+   ],
+   "points": {
+    "grip": [
+     59.0,
+     62.0
+    ],
+    "fork": [
+     53.36,
+     7.15
+    ],
+    "pouch": [
+     5.14,
+     51.0
+    ]
+   },
+   "src": "carrot v1 sling_stretched (mirrored, band+pouch squeezed to 55 %) + carrot fist on the grip",
+   "axis": -95.87,
+   "note": "hand + stretched band + pebble baked together: hide the separate hand while shown"
+  },
+  "sling_relaxed": {
+   "rect": [
+    946,
+    0,
+    64,
+    80
+   ],
+   "points": {
+    "grip": [
+     37.81,
+     61.13
+    ],
+    "fork": [
+     32.31,
+     6.23
+    ]
+   },
+   "src": "carrot v1 sling_relaxed (mirrored)",
+   "axis": -95.72
+  },
+  "spear": {
+   "rect": [
+    252,
+    106,
+    101,
+    70
+   ],
+   "points": {
+    "grip": [
+     30.9,
+     43.87
+    ],
+    "tip": [
+     97.34,
+     2.42
+    ],
+    "butt": [
+     2.42,
+     61.64
+    ]
+   },
+   "src": "carrot v1 spear",
+   "axis": -31.96
+  },
+  "straight": {
+   "rect": [
+    0,
+    106,
+    94,
+    77
+   ],
+   "points": {
+    "shoulder": [
+     16.04,
+     17.34
+    ],
+    "wrist": [
+     82.86,
+     66.3
+    ]
+   },
+   "src": "carrot v1 arm_straight",
+   "dir0": 36.23
+  },
+  "straight_dark": {
+   "rect": [
+    96,
+    106,
+    78,
+    74
+   ],
+   "points": {
+    "shoulder": [
+     14.74,
+     15.54
+    ],
+    "wrist": [
+     65.5,
+     62.48
+    ]
+   },
+   "src": "carrot v1 arm_straight_dark",
+   "dir0": 42.76
+  }
+ }
+}

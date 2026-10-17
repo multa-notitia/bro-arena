@@ -1,0 +1,459 @@
+{
+ "image": "parts.png",
+ "units": "1 part px = 1 body px (parts/v1/body.png px of the chili)",
+ "parts": {
+  "arm_b1_fore": {
+   "rect": [
+    440,
+    151,
+    43,
+    42
+   ],
+   "points": {
+    "shoulder": [
+     -4.09,
+     -10.77
+    ],
+    "elbow": [
+     10.99,
+     11.44
+    ],
+    "wrist": [
+     31.95,
+     32.19
+    ]
+   },
+   "src": "chili v1 arm_b1",
+   "dir0": 55.82,
+   "fore0": 44.71
+  },
+  "arm_b1_upper": {
+   "rect": [
+    256,
+    151,
+    41,
+    48
+   ],
+   "points": {
+    "shoulder": [
+     12.91,
+     13.23
+    ],
+    "elbow": [
+     27.99,
+     35.44
+    ],
+    "wrist": [
+     48.95,
+     56.19
+    ]
+   },
+   "src": "chili v1 arm_b1",
+   "dir0": 55.82,
+   "fore0": 44.71
+  },
+  "arm_b2_fore": {
+   "rect": [
+    485,
+    151,
+    45,
+    42
+   ],
+   "points": {
+    "shoulder": [
+     -3.79,
+     -10.54
+    ],
+    "elbow": [
+     12.21,
+     11.29
+    ],
+    "wrist": [
+     33.46,
+     32.12
+    ]
+   },
+   "src": "chili v1 arm_b2",
+   "dir0": 53.77,
+   "fore0": 44.42
+  },
+  "arm_b2_upper": {
+   "rect": [
+    299,
+    151,
+    42,
+    48
+   ],
+   "points": {
+    "shoulder": [
+     13.21,
+     13.46
+    ],
+    "elbow": [
+     29.21,
+     35.29
+    ],
+    "wrist": [
+     50.46,
+     56.12
+    ]
+   },
+   "src": "chili v1 arm_b2",
+   "dir0": 53.77,
+   "fore0": 44.42
+  },
+  "arm_b3_fore": {
+   "rect": [
+    532,
+    151,
+    43,
+    41
+   ],
+   "points": {
+    "shoulder": [
+     -5.07,
+     -11.32
+    ],
+    "elbow": [
+     11.02,
+     10.52
+    ],
+    "wrist": [
+     32.15,
+     31.43
+    ]
+   },
+   "src": "chili v1 arm_b3",
+   "dir0": 53.63,
+   "fore0": 44.69
+  },
+  "arm_b3_upper": {
+   "rect": [
+    343,
+    151,
+    41,
+    47
+   ],
+   "points": {
+    "shoulder": [
+     12.93,
+     13.68
+    ],
+    "elbow": [
+     29.02,
+     35.52
+    ],
+    "wrist": [
+     50.15,
+     56.43
+    ]
+   },
+   "src": "chili v1 arm_b3",
+   "dir0": 53.63,
+   "fore0": 44.69
+  },
+  "bud": {
+   "rect": [
+    617,
+    151,
+    31,
+    32
+   ],
+   "points": {
+    "center": [
+     15.44,
+     15.92
+    ]
+   },
+   "src": "chili v1 bud"
+  },
+  "cleaver": {
+   "rect": [
+    845,
+    0,
+    106,
+    61
+   ],
+   "points": {
+    "grip": [
+     17.0,
+     35.5
+    ],
+    "head": [
+     101.0,
+     6.0
+    ],
+    "tip": [
+     101.0,
+     6.0
+    ]
+   },
+   "src": "chili v1 cleaver",
+   "axis": -28.6
+  },
+  "club": {
+   "rect": [
+    450,
+    0,
+    103,
+    105
+   ],
+   "points": {
+    "grip": [
+     21.68,
+     76.35
+    ],
+    "head": [
+     84.0,
+     18.4
+    ]
+   },
+   "src": "spud v1 club",
+   "axis": -48.0
+  },
+  "fist": {
+   "rect": [
+    164,
+    151,
+    44,
+    50
+   ],
+   "points": {
+    "grip": [
+     22.0,
+     26.0
+    ]
+   },
+   "src": "chili v1 fist"
+  },
+  "fist34": {
+   "rect": [
+    386,
+    151,
+    52,
+    43
+   ],
+   "points": {
+    "wrist": [
+     16.37,
+     24.18
+    ],
+    "grip": [
+     26.02,
+     11.63
+    ]
+   },
+   "src": "chili v1 fist_handle (painted stick removed, rotated: handle along +x)",
+   "axis": 0.0,
+   "note": "handle runs along +x through the curl; draw the weapon UNDER it"
+  },
+  "fist_dark": {
+   "rect": [
+    210,
+    151,
+    44,
+    50
+   ],
+   "points": {
+    "grip": [
+     22.0,
+     26.0
+    ]
+   },
+   "src": "chili v1 fist (no dark painting on the sheet: same red hand)"
+  },
+  "fx_dust": {
+   "rect": [
+    577,
+    151,
+    38,
+    36
+   ],
+   "points": {
+    "center": [
+     19.0,
+     18.0
+    ]
+   },
+   "src": "spud v2 fx_dust"
+  },
+  "fx_puff": {
+   "rect": [
+    54,
+    151,
+    108,
+    51
+   ],
+   "points": {
+    "cloud": [
+     23.82,
+     25.21
+    ]
+   },
+   "src": "spud v2 fx_puff (cloud + motion lines along +x)"
+  },
+  "fx_slash": {
+   "rect": [
+    0,
+    0,
+    217,
+    149
+   ],
+   "points": {
+    "bulge": [
+     210.95,
+     61.33
+    ]
+   },
+   "src": "chili v1 slash (mirrored vertically: canonical C, bulge +x, leads clockwise)"
+  },
+  "fx_smear": {
+   "rect": [
+    219,
+    0,
+    229,
+    108
+   ],
+   "points": {
+    "bulge": [
+     224.31,
+     58.94
+    ]
+   },
+   "src": "spud v2 fx_smear (mirrored: curve leads, trails behind)"
+  },
+  "fx_streak": {
+   "rect": [
+    650,
+    151,
+    140,
+    21
+   ],
+   "points": {
+    "tip": [
+     134.68,
+     11.28
+    ],
+    "tail": [
+     3.14,
+     10.26
+    ]
+   },
+   "src": "spud v2 fx_streak"
+  },
+  "knife": {
+   "rect": [
+    635,
+    0,
+    103,
+    68
+   ],
+   "points": {
+    "grip": [
+     18.0,
+     46.0
+    ],
+    "tip": [
+     84.5,
+     3.5
+    ],
+    "head": [
+     84.5,
+     3.5
+    ]
+   },
+   "src": "chili v1 knife",
+   "axis": -32.9
+  },
+  "long_cut": {
+   "rect": [
+    740,
+    0,
+    47,
+    65
+   ],
+   "points": {
+    "shoulder": [
+     11.66,
+     11.82
+    ],
+    "wrist": [
+     35.83,
+     55.06
+    ]
+   },
+   "src": "chili v1 arm_straight",
+   "dir0": 60.81
+  },
+  "long_dark_cut": {
+   "rect": [
+    789,
+    0,
+    54,
+    65
+   ],
+   "points": {
+    "shoulder": [
+     12.54,
+     12.67
+    ],
+    "wrist": [
+     42.22,
+     54.97
+    ]
+   },
+   "src": "chili v1 arm_dark1",
+   "dir0": 54.94
+  },
+  "palm": {
+   "rect": [
+    953,
+    0,
+    52,
+    58
+   ],
+   "points": {
+    "grip": [
+     26.0,
+     33.2
+    ]
+   },
+   "src": "chili v1 palm"
+  },
+  "palm_dark": {
+   "rect": [
+    0,
+    151,
+    52,
+    58
+   ],
+   "points": {
+    "grip": [
+     26.0,
+     33.2
+    ]
+   },
+   "src": "chili v1 palm (no dark painting on the sheet: same red hand)"
+  },
+  "sling_relaxed": {
+   "rect": [
+    555,
+    0,
+    78,
+    102
+   ],
+   "points": {
+    "grip": [
+     18.06,
+     74.8
+    ],
+    "fork": [
+     52.85,
+     7.35
+    ]
+   },
+   "src": "spud v1 sling_relaxed",
+   "axis": -63.0
+  }
+ }
+}

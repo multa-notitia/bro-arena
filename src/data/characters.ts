@@ -111,9 +111,9 @@ export const CHARACTERS: CharacterDef[] = [
     species: 'radish',
     flavor: 'Pointy top, V brows, mud on the lower body. The wet-soil radish, not a chili.',
     stats: { luck: 40, harvesting: 10, maxHp: -3 },
-    startingWeapons: [{ id: 'knife', tier: 1 }],
+    startingWeapons: [{ id: 'pistol', tier: 1 }],
     palette: veg('#e05a7a', '#a0344f', '#4f8a3c', '#ff4fd8', '#4a1824', '#1c080c', '#2e2016'),
-    perks: ['+40% Luck, +10 Harvesting.', '-3 Max HP. Shopkeepers like you.', 'Starts with a knife.'],
+    perks: ['+40% Luck, +10 Harvesting.', '-3 Max HP. Shopkeepers like you.', 'Starts with a water pistol.'],
     nightmare: {
       name: 'Mud Radish',
       flavor: "Luck didn't leave. It just got dirty.",
@@ -131,12 +131,12 @@ export const CHARACTERS: CharacterDef[] = [
     species: 'chili',
     flavor: 'Read one book. It was about fire.',
     stats: { elementalDamage: 4, range: -40, attackSpeed: 8, critChance: 5 },
-    startingWeapons: [{ id: 'wand', tier: 1 }],
+    startingWeapons: [{ id: 'knife', tier: 1 }],
     palette: veg('#d9382a', '#8e1f14', '#3f6b2e', '#ff3b1f', '#3a100c', '#1a0806', '#3b2a1c'),
     perks: [
       '+4 Elemental Damage, +8% Attack Speed.',
       '-40 Range. Burns things that get close.',
-      'Starts with a wand.',
+      'Starts with a knife.',
     ],
     special: 'lowRange',
     nightmare: {

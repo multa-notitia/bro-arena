@@ -63,8 +63,8 @@
   }
  },
  "meta": {
-  "title": "Carrot hero (rigged, slingshot)",
-  "source": "image0_orangeburst.png",
+  "title": "Carrot hero (rigged v2, painted parts sheet, slingshot draw)",
+  "source": "carrot_src.png",
   "cells": [
    "walk0",
    "walk1",
