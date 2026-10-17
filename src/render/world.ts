@@ -784,10 +784,14 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const facing = p.anim.facing ?? 1
   const squash = clamp(p.anim.squash || 1, 0.45, 1.8)
   const sc = p.r / artR
-  const bodyRot = imageHero
-    ? clamp(p.vx / 220, -0.18, 0.18)
-    : clamp(p.vx / 180, -0.36, 0.36) * FEEL.motion.lean +
-      clamp(Math.hypot(p.vx, p.vy) / 400, 0, 0.1) * Math.sign(p.vx || p.anim.facing)
+  // Sheet heroes stay upright. A small negative lean plus high-quality
+  // smoothing makes Chrome smear the cell into a wide cloud.
+  const bodyRot = sheet
+    ? 0
+    : imageHero
+      ? clamp(p.vx / 220, -0.18, 0.18)
+      : clamp(p.vx / 180, -0.36, 0.36) * FEEL.motion.lean +
+        clamp(Math.hypot(p.vx, p.vy) / 400, 0, 0.1) * Math.sign(p.vx || p.anim.facing)
   const squashAmt = imageHero ? lerp(1, squash, 0.28) : squash
   const sx = sc * squashAmt * ss.sx
   const sy = (sc * ss.sy) / squashAmt

@@ -817,8 +817,7 @@ export function drawMultiArm(ctx: CanvasRenderingContext2D, which: 'back' | 'fro
   const frame = located.frame
   ctx.save()
   ctx.globalAlpha *= opts.alpha
-  ctx.imageSmoothingEnabled = true
-  ctx.imageSmoothingQuality = 'high'
+  ctx.imageSmoothingEnabled = false
   // Pixels stay right-facing. The caller scales the body and both arm passes together.
   ctx.translate(frame.ox, frame.oy)
   ctx.scale(fit * frame.scaleX, fit * frame.scaleY)

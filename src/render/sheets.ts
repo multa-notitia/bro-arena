@@ -611,8 +611,9 @@ function paintFrame(
   const ay = anchor.y * fh
   ctx.save()
   ctx.globalAlpha *= opts.alpha
-  ctx.imageSmoothingEnabled = true
-  ctx.imageSmoothingQuality = 'high'
+  // High-quality smoothing smears these cells into a wide cloud under some
+  // camera scales (a leftward lean, and sometimes an upright walk frame).
+  ctx.imageSmoothingEnabled = false
   ctx.translate(frame.ox * opts.facing, frame.oy)
   ctx.scale(opts.facing * opts.fit * frame.scaleX, opts.fit * frame.scaleY)
   ctx.drawImage(img, sx, sy, fw, fh, -ax, -ay, fw, fh)
