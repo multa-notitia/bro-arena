@@ -585,9 +585,14 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const dead = e.state === 'dying' || e.anim.deathT >= 0
   const attacking = e.state === 'windup' || e.state === 'charging' || e.state === 'shooting'
   const key = enemyKey(e)
-  const kicked = !dead && !!sheet.manifest.clips.hurt && consumeHurtKick(key)
-  if (kicked) restartActorClip(key, 'hurt')
-  const hurt = kicked || (!dead && !!sheet.manifest.clips.hurt && actorClipActive(key, 'hurt'))
+  const hurtClip = !dead && !!sheet.manifest.clips.hurt
+  // The first hurt cell is a solid cream flash (40 ms). Restarting on every
+  // hit — multi-arm swings, burn ticks — holds that cell, so the blob reads
+  // as a white shape. Let the recovery frames play out.
+  const hurtPlaying = hurtClip && actorClipActive(key, 'hurt')
+  const kicked = hurtClip && consumeHurtKick(key)
+  if (kicked && !hurtPlaying) restartActorClip(key, 'hurt')
+  const hurt = hurtPlaying || kicked
   const clip = dead
     ? sheet.manifest.clips.death
       ? 'death'

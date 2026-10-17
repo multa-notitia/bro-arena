@@ -90,6 +90,8 @@ interface Layer {
   name: string
   m: Mat
   z: number
+  /** Crossfade weight for the native stab blend. Omitted draws at full alpha. */
+  alpha?: number
 }
 
 interface ArmIn {
@@ -126,6 +128,15 @@ const PAINT: Partial<Record<WeaponId, 'club' | 'knife' | 'slingshot'>> = {
 
 const DEBUG_POOL: WeaponId[] = ['pistol', 'knife', 'stick', 'slingshot', 'wand', 'hammer']
 const SPROUT_STAGGER = 320
+/** Native stab swaps bent parts for the straight painting. Crossfade across this, not one frame. */
+const STAB_BLEND_MS = 120
+/**
+ * Body-px y where the legs leave the torso. Measured on the armless idle and
+ * walk cells (the silhouette splits into two legs) and inverse-mapped through
+ * body_track (~197 on every sampled frame). Back arms clip here.
+ */
+const HIP_BODY_Y = 197
+const HIP_BODY_X = 88
 
 let ready = false
 let settled = false
@@ -469,16 +480,44 @@ function syncLoadout(list: readonly ArmIn[]): void {
   })
 }
 
-function familyAt(keys: FamKey[], t: number): { key: FamKey; index: number } | null {
+function familyAt(keys: FamKey[], t: number): { key: FamKey; index: number; into: number } | null {
   if (t < 0) return null
   let left = t
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i]
     if (!key) continue
-    if (left < key.ms) return { key, index: i }
+    if (left < key.ms) return { key, index: i, into: left }
     left -= key.ms
   }
   return null
+}
+
+function smooth01(t: number): number {
+  const x = t < 0 ? 0 : t > 1 ? 1 : t
+  return x * x * (3 - 2 * x)
+}
+
+function poseFromKey(key: Pose, baseRaise: number): Pose {
+  const pose: Pose = { ...key }
+  delete pose.ms
+  delete pose.ev
+  pose.raise = (pose.raise ?? 0) + 0.3 * baseRaise
+  return pose
+}
+
+function lerpPose(a: Pose, b: Pose, t: number): Pose {
+  const n = (x: number | undefined, y: number | undefined) => (x ?? 0) + ((y ?? 0) - (x ?? 0)) * t
+  const aim = a.aim === undefined && b.aim === undefined ? undefined : n(a.aim, b.aim)
+  return {
+    raise: n(a.raise, b.raise),
+    elbow: n(a.elbow, b.elbow),
+    wrist: n(a.wrist, b.wrist),
+    thrust: n(a.thrust, b.thrust),
+    aim,
+    alt: b.alt,
+    show: b.show,
+    straight: b.straight,
+  }
 }
 
 function familyDuration(keys: FamKey[]): number {
@@ -605,14 +644,46 @@ function armLayers(
     if (w && hp.aim !== undefined) pose.wrist = hp.aim + 62
   }
   const keys = w ? families[w.family] : undefined
-  const key = w && keys && tAttack !== null ? familyAt(keys, tAttack)?.key ?? null : null
+  const at = w && keys && tAttack !== null ? familyAt(keys, tAttack) : null
+  const key = at?.key ?? null
+  const held = pose
+  let artBlend = slot.native ? 0 : 1
   let ref = w ? w.restAim : 0
-  if (key) {
-    const baseRaise = pose.raise ?? 0
-    pose = { ...key }
-    delete pose.ms
-    delete pose.ev
-    pose.raise = (pose.raise ?? 0) + 0.3 * baseRaise
+  if (key && at && keys) {
+    const baseRaise = held.raise ?? 0
+    const keyed = poseFromKey(key, baseRaise)
+    if (!slot.native) {
+      pose = keyed
+    } else if (keyed.straight) {
+      let start = 0
+      let runStart = 0
+      let from: Pose = held
+      for (let i = 0; i <= at.index; i++) {
+        const k = keys[i]
+        if (!k) continue
+        if (i === at.index) {
+          const u = smooth01((at.into + (start - runStart)) / STAB_BLEND_MS)
+          pose = lerpPose(from, keyed, u)
+          artBlend = u
+          break
+        }
+        const end = start + k.ms
+        if (!k.straight) {
+          from = poseFromKey(k, baseRaise)
+          runStart = end
+        }
+        start = end
+      }
+    } else {
+      const prev = at.index > 0 ? keys[at.index - 1] : undefined
+      if (prev?.straight) {
+        const u = smooth01(at.into / STAB_BLEND_MS)
+        pose = lerpPose(poseFromKey(prev, baseRaise), keyed, u)
+        artBlend = 1 - u
+      } else {
+        pose = keyed
+      }
+    }
     ref = pose.aim ?? ref
   }
   let aimC = pose.aim !== undefined ? pose.aim : w ? w.restAim + (pose.wrist ?? 0) : 0
@@ -632,35 +703,58 @@ function armLayers(
   const out: Layer[] = []
   const raise = pose.raise ?? 0
   const th = pose.thrust ?? 0
-  const straight = !slot.native || !!pose.straight
-  let wrist: [number, number]
-  let dFore: number
-  if (!straight) {
+  const alongAim = !!pose.straight || (slot.native && artBlend > 0 && artBlend < 1)
+
+  const pushBent = (alpha: number): { wrist: [number, number]; dFore: number } | null => {
     const art = nativeArt[slot.name] ?? 'arm4'
     const up = parts[`${art}_upper`]
-    if (!up || !parts[`${art}_fore`]) return []
+    if (!up || !parts[`${art}_fore`]) return null
     const sh = pointOf(up, 'shoulder')
     const el = pointOf(up, 'elbow')
     const wr = pointOf(up, 'wrist')
     const dUp = slot.dir - raise + armTurnShare * dc
     const U = mul(mul(mul(T(P[0], P[1]), R(dUp - up.dir0)), Sm(k)), T(-sh[0], -sh[1]))
     const eb = pose.elbow ?? 0
+    const dFore = dUp + (up.fore0 - up.dir0) - eb
     let F = mul(mul(mul(U, T(el[0], el[1])), R(-eb)), T(-el[0], -el[1]))
-    dFore = dUp + (up.fore0 - up.dir0) - eb
     if (th) F = mul(T(th * k * Math.cos(rad(dFore)), th * k * Math.sin(rad(dFore))), F)
-    wrist = ap(F, wr)
-    out.push({ name: `${art}_fore`, m: F, z }, { name: `${art}_upper`, m: U, z: z + 0.02 })
-  } else {
+    if (alpha > 0.02) {
+      out.push(
+        { name: `${art}_fore`, m: F, z, alpha },
+        { name: `${art}_upper`, m: U, z: z + 0.02, alpha },
+      )
+    }
+    return { wrist: ap(F, wr), dFore }
+  }
+
+  const pushStraight = (alpha: number): { wrist: [number, number]; dFore: number } | null => {
     const nm = front ? sproutFront : sproutBack
     const la = parts[nm]
-    if (!la) return []
+    if (!la) return null
     const sh = pointOf(la, 'shoulder')
     const wr = pointOf(la, 'wrist')
-    dFore = pose.straight ? aimC : slot.dir - raise + armTurnShare * dc
+    const dFore = alongAim ? aimC : slot.dir - raise + armTurnShare * dc
     let Lm = mul(mul(mul(T(P[0], P[1]), R(dFore - la.dir0)), Sm(k)), T(-sh[0], -sh[1]))
     if (th) Lm = mul(T(th * k * Math.cos(rad(dFore)), th * k * Math.sin(rad(dFore))), Lm)
-    wrist = ap(Lm, wr)
-    out.push({ name: nm, m: Lm, z })
+    if (alpha > 0.02) out.push({ name: nm, m: Lm, z, alpha })
+    return { wrist: ap(Lm, wr), dFore }
+  }
+
+  const bent = artBlend < 0.999 ? pushBent(1 - artBlend) : null
+  const straight = artBlend > 0.001 ? pushStraight(artBlend) : null
+  if (!bent && !straight) return []
+  let wrist: [number, number]
+  let dFore: number
+  if (bent && straight) {
+    const t = artBlend
+    wrist = [bent.wrist[0] + (straight.wrist[0] - bent.wrist[0]) * t, bent.wrist[1] + (straight.wrist[1] - bent.wrist[1]) * t]
+    dFore = bent.dFore + wrap(straight.dFore - bent.dFore) * t
+  } else if (bent) {
+    wrist = bent.wrist
+    dFore = bent.dFore
+  } else {
+    wrist = straight!.wrist
+    dFore = straight!.dFore
   }
   const hd = handD * k
   const gCam: [number, number] = [
@@ -908,9 +1002,29 @@ export function drawMultiArm(ctx: CanvasRenderingContext2D, which: 'back' | 'fro
   ctx.translate(frame.ox * opts.facing, frame.oy)
   ctx.scale(opts.facing * fit * frame.scaleX, fit * frame.scaleY)
   ctx.translate(-ax, -ay)
-  for (const layer of sorted) {
-    const cell = mul(B, layer.m)
-    drawPart(ctx, layer.name, cell, tr.tint)
+  const paint = (list: readonly Layer[]) => {
+    const base = ctx.globalAlpha
+    for (const layer of list) {
+      if (layer.alpha !== undefined) ctx.globalAlpha = base * layer.alpha
+      drawPart(ctx, layer.name, mul(B, layer.m), tr.tint)
+      ctx.globalAlpha = base
+    }
+  }
+  if (which === 'back') {
+    // Legs are baked into the body cell, so a back arm can't sit between them.
+    // Clip at the hip: the arm draws behind the torso and stops before the legs.
+    const hipY = B[3] * HIP_BODY_X + B[4] * HIP_BODY_Y + B[5]
+    const arms = sorted.filter((layer) => !layer.name.startsWith('fx_'))
+    const fx = sorted.filter((layer) => layer.name.startsWith('fx_'))
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(-4000, -4000, 8000, 4000 + hipY)
+    ctx.clip()
+    paint(arms)
+    ctx.restore()
+    paint(fx)
+  } else {
+    paint(sorted)
   }
   ctx.restore()
 }

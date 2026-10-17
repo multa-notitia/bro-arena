@@ -295,12 +295,14 @@ function stepPlayerSheet(world: World, dt: number, ctx: SimCtx): void {
   const anim = player.anim
   const swinging = player.weapons.some((w) => w.swingT >= 0)
   const dead = anim.deathT >= 0 || player.hp <= 0
-  const kicked = !dead && !!sheet.manifest.clips.hurt && consumeHurtKick('player')
-  if (kicked) restartActorClip('player', 'hurt')
+  const hurtClip = !dead && !!sheet.manifest.clips.hurt
+  const hurtPlaying = hurtClip && actorClipActive('player', 'hurt')
+  const kicked = hurtClip && consumeHurtKick('player')
+  // Cream is only the first hurt cell. A second hit during the recovery must not rewind it.
+  if (kicked && !hurtPlaying) restartActorClip('player', 'hurt')
   // The potato's attack lives on each arm. The body stays on walk / idle / hurt / death.
   const attacking = !armed && !!sheet.manifest.clips.attack && (swinging || actorClipActive('player', 'attack'))
-  // Play the authored hurt clip once per hit (cream flash, then the short recovery). Don't hold the last frame.
-  const hurt = kicked || (!dead && !!sheet.manifest.clips.hurt && actorClipActive('player', 'hurt'))
+  const hurt = hurtPlaying || kicked
   const clip = dead
     ? sheet.manifest.clips.death
       ? 'death'
