@@ -12,9 +12,11 @@
  *   player-<species>           e.g. player-chili
  *   enemy-<kind>-<form>        e.g. enemy-blob-nightmare
  *   enemy-<kind>               e.g. enemy-blob
+ *   fx-ink, pickups, prop-furrow, prop-bed
  *
  * The JSON is the animation. This player does not invent frame order, fps,
  * squash curves, or VFX sequences — it steps the clip data exactly.
+ * Any clip name in the JSON can be played (actors, fx, pickups).
  *
  *   {
  *     "image": "chili.webp",
@@ -53,7 +55,8 @@
 import { clamp } from '../core/math.ts'
 import type { AnimState, EnemyKind, Form, ModelDir, Species } from '../core/types.ts'
 
-export type ClipName = 'idle' | 'walk' | 'hurt' | 'attack' | 'death'
+/** Any clip name authored in the JSON. Actors use idle/walk/hurt/attack/death. */
+export type ClipName = string
 
 export interface SheetAnchor {
   x: number
@@ -93,10 +96,39 @@ export interface LoadedSheet {
 }
 
 const BASE = '/sprites'
-const CLIP_NAMES: ClipName[] = ['idle', 'walk', 'hurt', 'attack', 'death']
 
-/** Extra ids to fetch during boot. */
-export const SHEET_PRELOAD: string[] = []
+/**
+ * Shipped sheet ids. resolveSheet only fetches these, so model/form variants
+ * that were never painted do not 404 in the console. Add an id here to ship it.
+ */
+export const SHEET_PRELOAD: string[] = [
+  'player-radish',
+  'player-potato',
+  'player-carrot',
+  'player-chili',
+  'enemy-blob',
+  'enemy-charger',
+  'enemy-spitter',
+  'enemy-eliteBlob',
+  'fx-ink',
+  'pickups',
+  'prop-furrow',
+  'prop-bed',
+]
+
+const SHIPPED = new Set(SHEET_PRELOAD)
+
+/**
+ * World-pixel fit for fx-ink cells (128px). Not an authored JSON scale —
+ * the fx manifest has no game radius. Chosen so the painted bursts read
+ * next to heroes at the combat camera.
+ */
+export const FX_CLIP_FIT: Record<string, number> = {
+  muzzle: 0.42,
+  hitSpark: 0.34,
+  inkBurst: 0.5,
+  dust: 0.36,
+}
 
 const cache = new Map<string, LoadedSheet>()
 const missing = new Set<string>()
@@ -190,7 +222,7 @@ function parseManifest(raw: unknown): SheetManifest | null {
   const clips: Partial<Record<ClipName, SheetClip>> = {}
   const src = o.clips && typeof o.clips === 'object' ? (o.clips as Record<string, unknown>) : null
   if (!src) return null
-  for (const name of CLIP_NAMES) {
+  for (const name of Object.keys(src)) {
     const clip = parseClip(src[name], columns, defaultMs)
     if (clip) clips[name] = clip
   }
@@ -272,9 +304,35 @@ export function resolveSheet(keys: readonly string[]): LoadedSheet | null {
     if (hit) return hit
   }
   for (const id of keys) {
+    if (!SHIPPED.has(id)) continue
     if (!missing.has(id) && !cache.has(id)) void requestSheet(id)
   }
   return null
+}
+
+/** Authored clip length in seconds, once that sheet has loaded. */
+export function sheetClipSeconds(id: string, clip: ClipName): number | null {
+  const c = cache.get(id)?.manifest.clips[clip]
+  if (!c || !c.frames.length) return null
+  let ms = 0
+  for (const f of c.frames) ms += f.ms
+  return ms / 1000
+}
+
+/**
+ * Keep a non-looping attack on screen until its authored frames finish.
+ * Weapon swing windows are shorter than several attack clips (chili wand
+ * swing is 180ms; the painted slash is 255ms). Damage timing stays on the
+ * weapon. This only stops the clip from being cut off.
+ */
+export function attackClipActive(playKey: string, sheet: LoadedSheet): boolean {
+  const head = heads.get(playKey)
+  if (!head || head.clip !== 'attack') return false
+  const clip = sheet.manifest.clips.attack
+  if (!clip || clip.loop || clip.frames.length === 0) return false
+  let total = 0
+  for (const f of clip.frames) total += f.ms
+  return head.elapsed < total - 20
 }
 
 export function pickClip(
@@ -283,16 +341,23 @@ export function pickClip(
   opts: { swinging?: boolean } = {},
 ): ClipName | null {
   const clips = sheet.manifest.clips
-  const want: ClipName[] = []
+  const want: string[] = []
   if (anim.deathT >= 0) want.push('death')
-  if (anim.hitFlash > 0.35) want.push('hurt')
+  // A started attack runs through its authored frames. A hurt flash used to
+  // restart the clip, so the Great Pea telegraph never reached the slam.
   if (opts.swinging) want.push('attack')
+  if (anim.hitFlash > 0.28) want.push('hurt')
   if (anim.moving) want.push('walk')
   want.push('idle', 'walk')
   for (const name of want) if (clips[name]) return name
   return null
 }
 
+/**
+ * Actors were registered so this lands on 0.25. Feet anchors and the oy
+ * foot-plant correction in the JSON assume that fit. Do not loosen it;
+ * on-screen size is the camera's job.
+ */
 function snapScale(s: number): number {
   return Math.max(0.25, Math.round(s * 2) / 2)
 }
@@ -313,8 +378,89 @@ function sampleFrame(clip: SheetClip, elapsed: number): { index: number; frame: 
   return { index: n - 1, frame: frames[n - 1]! }
 }
 
+interface LiveClip {
+  key: string
+  sheetId: string
+  clip: string
+  x: number
+  y: number
+  angle: number
+  fit: number
+  facing: 1 | -1
+  age: number
+  life: number
+}
+
+const liveClips: LiveClip[] = []
+let liveSerial = 1
+const MAX_LIVE_CLIPS = 48
+
+/** One-shot (or short) world-space clip. Used for fx-ink. Does not invent frames. */
+export function spawnSheetClip(
+  sheetId: string,
+  clip: string,
+  x: number,
+  y: number,
+  opts: { fit?: number; angle?: number; facing?: 1 | -1 } = {},
+): void {
+  if (!SHIPPED.has(sheetId)) return
+  if (missing.has(sheetId)) return
+  const sheet = cache.get(sheetId)
+  if (!sheet) {
+    void requestSheet(sheetId)
+    return
+  }
+  const authored = sheet.manifest.clips[clip]
+  if (!authored || !authored.frames.length) return
+  let life = 0
+  for (const f of authored.frames) life += f.ms
+  life = life / 1000 + 0.02
+  if (liveClips.length >= MAX_LIVE_CLIPS) liveClips.shift()
+  liveClips.push({
+    key: `live:${liveSerial++}`,
+    sheetId,
+    clip,
+    x,
+    y,
+    angle: opts.angle ?? 0,
+    fit: opts.fit ?? FX_CLIP_FIT[clip] ?? 0.5,
+    facing: opts.facing ?? 1,
+    age: 0,
+    life,
+  })
+}
+
+export function drawSpawnedClips(ctx: CanvasRenderingContext2D, dt: number): void {
+  const step = Math.max(0, dt)
+  let w = 0
+  for (let i = 0; i < liveClips.length; i++) {
+    const fx = liveClips[i]
+    if (!fx) continue
+    fx.age += step
+    if (fx.age > fx.life) {
+      heads.delete(fx.key)
+      continue
+    }
+    const sheet = cache.get(fx.sheetId)
+    if (!sheet) continue
+    ctx.save()
+    ctx.translate(fx.x, fx.y)
+    if (fx.angle) ctx.rotate(fx.angle)
+    drawActorSheet(ctx, sheet, fx.key, fx.clip, step, {
+      r: 1,
+      facing: fx.facing,
+      alpha: 1,
+      fit: fx.fit,
+    })
+    ctx.restore()
+    liveClips[w++] = fx
+  }
+  liveClips.length = w
+}
+
 export function resetSheetPlayback(): void {
   heads.clear()
+  liveClips.length = 0
 }
 
 export function drawActorSheet(
@@ -323,7 +469,7 @@ export function drawActorSheet(
   playKey: string,
   clipName: ClipName,
   dt: number,
-  opts: { r: number; facing: 1 | -1; alpha: number },
+  opts: { r: number; facing: 1 | -1; alpha: number; fit?: number },
 ): string[] {
   const clip = sheet.manifest.clips[clipName]
   if (!clip || !clip.frames.length) return []
@@ -355,7 +501,10 @@ export function drawActorSheet(
   const anchor = clip.anchor ?? manifest.anchor
   const ax = anchor.x * fw
   const ay = anchor.y * fh
-  const fit = snapScale((opts.r * 2.35) / Math.max(fw, fh))
+  const fit =
+    opts.fit !== undefined && opts.fit > 0
+      ? opts.fit
+      : snapScale((opts.r * 2.35) / Math.max(fw, fh))
 
   ctx.save()
   ctx.globalAlpha *= opts.alpha

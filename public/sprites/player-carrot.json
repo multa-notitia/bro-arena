@@ -1,0 +1,82 @@
+{
+ "image": "player-carrot.webp",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "columns": 5,
+ "anchor": {
+  "x": 0.41,
+  "y": 0.72
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 4, "ms": 170 },
+    { "i": 4, "ms": 130, "scaleX": 1.008, "scaleY": 0.993, "oy": 0.079 },
+    { "i": 4, "ms": 130, "scaleX": 1.022, "scaleY": 0.978, "oy": 0.237 },
+    { "i": 4, "ms": 170, "scaleX": 1.03, "scaleY": 0.97, "oy": 0.316 },
+    { "i": 4, "ms": 130, "scaleX": 1.022, "scaleY": 0.978, "oy": 0.237 },
+    { "i": 4, "ms": 130, "scaleX": 1.008, "scaleY": 0.993, "oy": 0.079 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 100, "scaleX": 1.04, "scaleY": 0.95, "oy": 0.789 },
+    { "i": 1, "ms": 100, "scaleX": 0.98, "scaleY": 1.03, "oy": -1.833 },
+    { "i": 2, "ms": 100, "scaleX": 1.04, "scaleY": 0.95, "oy": 0.333 },
+    { "i": 3, "ms": 100, "scaleX": 0.98, "scaleY": 1.03, "oy": -1.868 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 8, "ms": 40, "scaleX": 1.14, "scaleY": 0.86, "ox": -2.5, "oy": 1.476, "event": "hurt" },
+    { "i": 5, "ms": 60, "scaleX": 0.94, "scaleY": 1.07, "ox": -2.0, "oy": -0.738 },
+    { "i": 5, "ms": 80, "scaleX": 1.02, "scaleY": 0.98, "ox": -1.0, "oy": 0.211 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 4, "ms": 60, "scaleX": 1.07, "scaleY": 0.93, "ox": -1.5, "oy": 0.738 },
+    { "i": 6, "ms": 45, "scaleX": 0.92, "scaleY": 1.09, "ox": 2.0, "oy": -0.949, "events": [ "release", "spawnFx" ] },
+    { "i": 6, "ms": 70, "scaleX": 1.03, "scaleY": 0.98, "ox": 1.0, "oy": 0.211 },
+    { "i": 6, "ms": 80, "ox": 0.5 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 8, "ms": 60, "scaleX": 1.16, "scaleY": 0.82, "oy": 1.897 },
+    { "i": 5, "ms": 60, "scaleX": 0.9, "scaleY": 1.12, "oy": -2.265 },
+    { "i": 9, "ms": 50, "scaleX": 0.85, "scaleY": 0.85, "event": "spawnFx" },
+    { "i": 7, "ms": 110, "scaleX": 1.08, "scaleY": 1.08 },
+    { "i": 7, "ms": 140 },
+    { "i": 7, "ms": 70, "scaleX": 0.85, "scaleY": 0.85 },
+    { "i": 7, "ms": 60, "scaleX": 0.6, "scaleY": 0.6 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Carrot hero",
+  "source": "image0.jpg",
+  "cells": [
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "idle",
+   "hurt",
+   "attack",
+   "death",
+   "hurt_flash",
+   "death_flash"
+  ],
+  "feetY": 180.48,
+  "gameRadius": 17,
+  "gameFit": 0.25,
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; scaled frames already include an oy correction that keeps the feet planted.",
+  "pngFallback": "player-carrot.png"
+ }
+}

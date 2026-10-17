@@ -1,6 +1,7 @@
 import { TAU, clamp, ease, hashNoise, lerp } from '../core/math.ts'
 import type { DamageNumberOpts, FxApi } from '../core/types.ts'
 import { FEEL, flashStrength } from '../feel.ts'
+import { FX_CLIP_FIT, spawnSheetClip } from './sheets.ts'
 import { n01, parseRgb, wobbleBlob } from './watercolor.ts'
 
 const MAX_PARTICLES = 720
@@ -245,7 +246,10 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.life = 0.42
       p.maxLife = 0.42
     },
-    hitSpark(x, y, angle, color) {
+    hitSpark(x, y, angle, color, withSheet = true) {
+      if (withSheet) {
+        spawnSheetClip('fx-ink', 'hitSpark', x, y, { fit: FX_CLIP_FIT.hitSpark, angle })
+      }
       for (let i = 0; i < 6; i++) {
         const p = alloc()
         p.kind = 'spark'
@@ -352,6 +356,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.vy = -8 - hashNoise(nextId, 28) * 16
     },
     inkBurst(x, y, size) {
+      spawnSheetClip('fx-ink', 'inkBurst', x, y, { fit: FX_CLIP_FIT.inkBurst })
       api.splat(x, y, '#16120e', size * 1.05, 11)
       addStain(x, y + 3, '#12100c', size * 0.95)
       addStain(x + size * 0.22, y + 6, '#1c1814', size * 0.45)
@@ -375,12 +380,13 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       bloom.kind = 'bloom'
       bloom.x = x
       bloom.y = y
-      bloom.size = size * 1.15
+      bloom.size = Math.min(16, size * 0.4)
       bloom.color = '#fff6e0'
-      bloom.life = 0.22
-      bloom.maxLife = 0.22
+      bloom.life = 0.12
+      bloom.maxLife = 0.12
     },
     muzzleFlash(x, y, angle, color = '#f0d060') {
+      spawnSheetClip('fx-ink', 'muzzle', x, y, { fit: FX_CLIP_FIT.muzzle, angle })
       const p = alloc()
       p.kind = 'bloom'
       p.x = x + Math.cos(angle) * 6
@@ -389,7 +395,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.color = color
       p.life = 0.12
       p.maxLife = 0.12
-      api.hitSpark(x, y, angle, '#fff6e8')
+      api.hitSpark(x, y, angle, '#fff6e8', false)
     },
     impact(x, y, angle, color) {
       addStain(x, y + 2, color, 7)
@@ -404,6 +410,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.maxLife = 0.16
     },
     dust(x, y, vx = 0, vy = 0) {
+      spawnSheetClip('fx-ink', 'dust', x, y, { fit: FX_CLIP_FIT.dust })
       for (let i = 0; i < 3; i++) {
         const p = alloc()
         p.kind = 'puff'

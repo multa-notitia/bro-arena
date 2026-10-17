@@ -1,0 +1,244 @@
+{
+ "report": {
+  "player-radish": {
+   "key": {
+    "bg": [
+     233.0,
+     5.0,
+     125.0
+    ],
+    "t0": 9.0,
+    "t1": 35.0,
+    "floor": 3.09
+   },
+   "halo_px": 0,
+   "atlas": [
+    1024,
+    512
+   ],
+   "torso_spread_px": [
+    0.0,
+    1.822
+   ]
+  },
+  "player-potato": {
+   "key": {
+    "bg": [
+     228.0,
+     1.0,
+     116.0
+    ],
+    "t0": 9.0,
+    "t1": 35.0,
+    "floor": 5.19
+   },
+   "halo_px": 0,
+   "atlas": [
+    1024,
+    512
+   ],
+   "torso_spread_px": [
+    0.0,
+    1.784
+   ]
+  },
+  "player-carrot": {
+   "key": {
+    "bg": [
+     229.0,
+     0.0,
+     116.0
+    ],
+    "t0": 9.0,
+    "t1": 35.0,
+    "floor": 4.41
+   },
+   "halo_px": 0,
+   "atlas": [
+    1024,
+    512
+   ],
+   "torso_spread_px": [
+    0.0,
+    2.279
+   ]
+  },
+  "player-chili": {
+   "key": {
+    "bg": [
+     230.0,
+     0.0,
+     117.0
+    ],
+    "t0": 9.0,
+    "t1": 35.0,
+    "floor": 4.5
+   },
+   "halo_px": 1,
+   "atlas": [
+    1024,
+    512
+   ],
+   "torso_spread_px": [
+    0.0,
+    5.884
+   ]
+  },
+  "enemy-blob": {
+   "key": {
+    "bg": [
+     226.0,
+     0.0,
+     115.0
+    ],
+    "t0": 9.0,
+    "t1": 35.0,
+    "floor": 5.85
+   },
+   "halo_px": 0,
+   "atlas": [
+    1024,
+    512
+   ],
+   "torso_spread_px": [
+    0.0,
+    16.186
+   ]
+  },
+  "enemy-charger": {
+   "key": {
+    "bg": [
+     222.0,
+     0.0,
+     111.0
+    ],
+    "t0": 9.0,
+    "t1": 35.0,
+    "floor": 3.42
+   },
+   "halo_px": 0,
+   "atlas": [
+    1024,
+    1024
+   ],
+   "torso_spread_px": [
+    0.0,
+    25.114
+   ]
+  },
+  "enemy-spitter": {
+   "key": {
+    "bg": [
+     222.0,
+     0.0,
+     113.0
+    ],
+    "t0": 9.0,
+    "t1": 35.0,
+    "floor": 2.65
+   },
+   "halo_px": 0,
+   "atlas": [
+    1024,
+    1024
+   ],
+   "torso_spread_px": [
+    31.613,
+    14.572
+   ]
+  },
+  "enemy-eliteBlob": {
+   "key": {
+    "bg": [
+     227.0,
+     0.0,
+     115.0
+    ],
+    "t0": 9.0,
+    "t1": 35.0,
+    "floor": 4.2
+   },
+   "halo_px": 0,
+   "atlas": [
+    1024,
+    1024
+   ],
+   "torso_spread_px": [
+    0.0,
+    0.904
+   ]
+  },
+  "fx-ink": {
+   "key": {
+    "bg": [
+     224.0,
+     2.0,
+     116.0
+    ],
+    "t0": 9.0,
+    "t1": 35.0,
+    "floor": 2.85
+   },
+   "halo_px": 0,
+   "atlas": [
+    1024,
+    512
+   ]
+  },
+  "pickups": {
+   "key": {
+    "bg": [
+     228.0,
+     0.0,
+     115.0
+    ],
+    "t0": 9.0,
+    "t1": 35.0,
+    "floor": 3.57
+   },
+   "halo_px": 0,
+   "atlas": [
+    512,
+    512
+   ]
+  },
+  "prop-furrow": {
+   "key": {
+    "bg": [
+     225.0,
+     1.0,
+     116.0
+    ],
+    "t0": 9.0,
+    "t1": 35.0,
+    "floor": 3.72
+   },
+   "halo_px": 0,
+   "atlas": [
+    613,
+    146
+   ]
+  },
+  "prop-bed": {
+   "key": {
+    "bg": [
+     227.0,
+     0.0,
+     116.0
+    ],
+    "t0": 9.0,
+    "t1": 35.0,
+    "floor": 3.66
+   },
+   "halo_px": 0,
+   "atlas": [
+    556,
+    216
+   ]
+  }
+ },
+ "warnings": [
+  "player-carrot:death refit to scale 0.601 (burst wider than cell)",
+  "enemy-charger:death refit to scale 0.567 (burst wider than cell)"
+ ]
+}

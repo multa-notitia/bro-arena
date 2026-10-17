@@ -8,8 +8,14 @@ const JUICE_KEY = 'bro.reducedJuice'
 
 export const FEEL = {
   camera: {
-    /** Smaller = closer. Was 780. */
-    worldWidth: 640,
+    /**
+     * Smaller = closer. Was 780, then 640.
+     * At 1280 CSS px, 600 yields zoom ≈ 2.13. Opaque hero paint is 30–41
+     * world px at the authored 0.25 sheet fit, which lands about 64–88 CSS px.
+     * Tall vegetables (carrot, chili) sit a little over 80 because the
+     * paintings are taller, not because they use a different scale.
+     */
+    worldWidth: 600,
     zoomMin: 1.08,
     zoomMax: 2.7,
   },

@@ -1,0 +1,135 @@
+{
+ "image": "pickups.webp",
+ "frameWidth": 128,
+ "frameHeight": 128,
+ "columns": 4,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.5
+ },
+ "clips": {
+  "xpSmall": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 110 },
+    { "i": 0, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 },
+    { "i": 8, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 8, "ms": 110, "scaleX": 1.04, "scaleY": 1.04, "oy": -2.5 },
+    { "i": 8, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 0, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 }
+   ]
+  },
+  "xpLarge": {
+   "loop": true,
+   "frames": [
+    { "i": 1, "ms": 110 },
+    { "i": 1, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 },
+    { "i": 9, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 9, "ms": 110, "scaleX": 1.04, "scaleY": 1.04, "oy": -2.5 },
+    { "i": 9, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 1, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 }
+   ]
+  },
+  "coin": {
+   "loop": true,
+   "frames": [
+    { "i": 2, "ms": 110 },
+    { "i": 2, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 },
+    { "i": 10, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 10, "ms": 110, "scaleX": 1.04, "scaleY": 1.04, "oy": -2.5 },
+    { "i": 10, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 2, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 }
+   ]
+  },
+  "heart": {
+   "loop": true,
+   "frames": [
+    { "i": 3, "ms": 110 },
+    { "i": 3, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 },
+    { "i": 11, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 11, "ms": 110, "scaleX": 1.04, "scaleY": 1.04, "oy": -2.5 },
+    { "i": 11, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 3, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 }
+   ]
+  },
+  "crate": {
+   "loop": true,
+   "frames": [
+    { "i": 4, "ms": 110 },
+    { "i": 4, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 },
+    { "i": 12, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 12, "ms": 110, "scaleX": 1.04, "scaleY": 1.04, "oy": -2.5 },
+    { "i": 12, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 4, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 }
+   ]
+  },
+  "magnet": {
+   "loop": true,
+   "frames": [
+    { "i": 5, "ms": 110 },
+    { "i": 5, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 },
+    { "i": 13, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 13, "ms": 110, "scaleX": 1.04, "scaleY": 1.04, "oy": -2.5 },
+    { "i": 13, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 5, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 }
+   ]
+  },
+  "bomb": {
+   "loop": true,
+   "frames": [
+    { "i": 6, "ms": 110 },
+    { "i": 6, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 },
+    { "i": 14, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 14, "ms": 110, "scaleX": 1.04, "scaleY": 1.04, "oy": -2.5 },
+    { "i": 14, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 6, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 }
+   ]
+  },
+  "chest": {
+   "loop": true,
+   "frames": [
+    { "i": 7, "ms": 110 },
+    { "i": 7, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 },
+    { "i": 15, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 15, "ms": 110, "scaleX": 1.04, "scaleY": 1.04, "oy": -2.5 },
+    { "i": 15, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 7, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 }
+   ]
+  },
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 110 },
+    { "i": 0, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 },
+    { "i": 8, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 8, "ms": 110, "scaleX": 1.04, "scaleY": 1.04, "oy": -2.5 },
+    { "i": 8, "ms": 110, "scaleX": 1.03, "scaleY": 1.03, "oy": -1.875 },
+    { "i": 0, "ms": 110, "scaleX": 1.01, "scaleY": 1.01, "oy": -0.625 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Pickups",
+  "source": "image17.jpg",
+  "cells": [
+   "xpSmall",
+   "xpLarge",
+   "coin",
+   "heart",
+   "crate",
+   "magnet",
+   "bomb",
+   "chest",
+   "xpSmall_glow",
+   "xpLarge_glow",
+   "coin_glow",
+   "heart_glow",
+   "crate_glow",
+   "magnet_glow",
+   "bomb_glow",
+   "chest_glow"
+  ],
+  "note": "static icons i=0..7, glow variants i=8..15; each clip = idle bob + glow pulse.",
+  "pngFallback": "pickups.png"
+ }
+}
