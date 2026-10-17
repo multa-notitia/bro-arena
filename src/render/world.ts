@@ -43,6 +43,7 @@ import {
   actorFootprint,
   drawActorSheet,
   drawNamedClip,
+  gardenGround,
   pickClip,
   resolveSheet,
   sheetById,
@@ -147,6 +148,23 @@ function drawReadHalo(ctx: CanvasRenderingContext2D, x: number, y: number, footp
   ctx.fillStyle = g
   ctx.beginPath()
   ctx.arc(0, 0, rx, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
+/** Screen-blend pool around the hero so the night edge stays dark and the figure stays warm. */
+function drawWarmPool(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  const r = 220
+  const g = ctx.createRadialGradient(x, y + 8, 16, x, y, r)
+  g.addColorStop(0, 'rgba(255, 198, 120, 0.42)')
+  g.addColorStop(0.38, 'rgba(255, 156, 72, 0.16)')
+  g.addColorStop(0.72, 'rgba(180, 90, 40, 0.05)')
+  g.addColorStop(1, 'rgba(120, 60, 20, 0)')
+  ctx.save()
+  ctx.globalCompositeOperation = 'screen'
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, TAU)
   ctx.fill()
   ctx.restore()
 }
@@ -958,8 +976,9 @@ export function drawWorld(
   const cssH = cam.h > 0 ? cam.h : view.h
   const zoom = cam.zoom > 0 ? cam.zoom : 1
   qScale = qualityBucket(zoom, view.dpr)
+  const night = !!gardenGround(false)
   ctx.save()
-  ctx.fillStyle = paperColor()
+  ctx.fillStyle = night ? '#100e0c' : paperColor()
   ctx.fillRect(0, 0, cssW, cssH)
 
   const shakeOff = cameraShakeOffset(world)
@@ -981,6 +1000,7 @@ export function drawWorld(
   drawFarmBeds(ctx, world.farm.plots, qScale >= 2)
   fx.drawFloor(ctx)
   darkenGround(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
+  if (night) drawWarmPool(ctx, world.player.x, world.player.y)
 
   cmdN = 0
   for (let i = 0; i < world.trees.length; i++) {
@@ -1057,6 +1077,6 @@ export function drawWorld(
 
   fx.drawScreen(ctx, cssW, cssH)
   drawOffscreen(ctx, world, cssW, cssH)
-  vignette(ctx, cssW, cssH, 0.4)
+  vignette(ctx, cssW, cssH, night ? 0.72 : 0.4)
   ctx.restore()
 }

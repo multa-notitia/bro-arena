@@ -485,7 +485,7 @@ function tileFill(
   }
 }
 
-/** World-space paddock + outside + cached hedge/ink/posts. No per-frame path gen. */
+/** World-space paddock. Painted garden tile when it has loaded, else the wash. */
 export function drawPaddock(
   ctx: CanvasRenderingContext2D,
   viewL: number,
@@ -496,6 +496,23 @@ export function drawPaddock(
   ah: number,
   q: number,
 ): void {
+  const garden = gardenGround(q >= 2)
+  if (garden) {
+    ctx.save()
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    tileFill(ctx, viewL, viewT, viewW, viewH, () => garden)
+    ctx.beginPath()
+    ctx.rect(viewL, viewT, viewW, viewH)
+    ctx.rect(-aw, -ah, aw * 2, ah * 2)
+    ctx.fillStyle = 'rgba(2, 4, 8, 0.58)'
+    ctx.fill('evenodd')
+    ctx.restore()
+    const overlay = borderOverlay(aw, ah)
+    ctx.drawImage(overlay, -aw - BORDER_PAD, -ah - BORDER_PAD)
+    return
+  }
+
   const outside = getOutside(q)
   invalidateIfLookChanged()
   tileFill(ctx, viewL, viewT, viewW, viewH, () => outside)
@@ -504,15 +521,10 @@ export function drawPaddock(
   ctx.beginPath()
   ctx.rect(-aw, -ah, aw * 2, ah * 2)
   ctx.clip()
-  const garden = gardenGround(q >= 2)
-  if (garden) {
-    tileFill(ctx, viewL, viewT, viewW, viewH, () => garden)
-  } else {
-    tileFill(ctx, viewL, viewT, viewW, viewH, (tx, ty) => {
-      const v = Math.floor(hashNoise(tx + 3, (ty + 11) | 0) * 4) % 4
-      return paddockTile(v, q)
-    })
-  }
+  tileFill(ctx, viewL, viewT, viewW, viewH, (tx, ty) => {
+    const v = Math.floor(hashNoise(tx + 3, (ty + 11) | 0) * 4) % 4
+    return paddockTile(v, q)
+  })
   ctx.restore()
 
   const overlay = borderOverlay(aw, ah)

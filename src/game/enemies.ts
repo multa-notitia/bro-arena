@@ -466,8 +466,10 @@ function fireBossPattern(world: World, e: Enemy, ctx: SimCtx): void {
 }
 
 const BLOB_REACH = 18
-const ELITE_SLAM_REACH = 36
-const ELITE_SLAM_RANGE = 188
+const ELITE_SLAM_RANGE = 220
+/** Telegraph plus slam. The v3 clip is 885 ms; the windup holds the last cell out to this. */
+const ELITE_SLAM_WINDUP = 0.975
+const ELITE_SLAM_GAP = 3.6
 
 function beginAuthoredAttack(e: Enemy): void {
   extra(e).attackFired = false
@@ -480,19 +482,6 @@ function blobMelee(world: World, e: Enemy, ctx: SimCtx): void {
   ctx.render.fx.hitSpark(e.x + e.aim.x * e.r * 0.6, e.y + e.aim.y * e.r * 0.4, Math.atan2(e.aim.y, e.aim.x), e.def.palette.accent)
   if (dist(e.x, e.y, p.x, p.y) <= reach) {
     damagePlayer(world, e.damage, ctx, e.form === 'nightmare' ? e.def.nightmareName : e.def.name, e)
-  }
-}
-
-function eliteSlam(world: World, e: Enemy, ctx: SimCtx): void {
-  const p = world.player
-  const reach = e.r + p.r + ELITE_SLAM_REACH
-  ctx.render.fx.inkBurst(e.x, e.y + e.r * 0.2, e.r * 1.7)
-  ctx.render.fx.shockwave(e.x, e.y, reach, e.def.palette.accent)
-  ctx.render.fx.hitSpark(e.x, e.y + 4, Math.PI / 2, e.def.palette.accent)
-  addTrauma(world, FEEL.shake.scream, e.x - p.x, e.y - p.y)
-  ctx.audio.play('hit', { pitch: 0.62, gain: 0.95 })
-  if (dist(e.x, e.y, p.x, p.y) <= reach) {
-    damagePlayer(world, e.damage, ctx, e.def.nightmareName || e.def.name, e)
   }
 }
 
@@ -521,21 +510,15 @@ function updateBlobMelee(world: World, e: Enemy, dt: number, _ctx: SimCtx): void
 function updateEliteSlam(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const p = world.player
   if (e.state === 'windup') {
+    const ang = Math.atan2(p.y - e.y, p.x - e.x)
+    e.aim.x = Math.cos(ang)
+    e.aim.y = Math.sin(ang)
     e.vx = 0
     e.vy = 0
-    if (actorClipDone(enemyKey(e), 'attack')) {
-      e.state = 'recover'
-      e.stateT = 0.4
-    }
-    return
-  }
-  if (e.state === 'recover') {
     e.stateT -= dt
-    e.vx = damp(e.vx, 0, 6, dt)
-    e.vy = damp(e.vy, 0, 6, dt)
     if (e.stateT <= 0) {
       e.state = 'chase'
-      e.cooldown = 2.4
+      e.cooldown = ELITE_SLAM_GAP
     }
     return
   }
@@ -547,7 +530,7 @@ function updateEliteSlam(world: World, e: Enemy, dt: number, ctx: SimCtx): void 
     e.aim.x = Math.cos(ang)
     e.aim.y = Math.sin(ang)
     e.state = 'windup'
-    e.cooldown = 2.4
+    e.stateT = ELITE_SLAM_WINDUP
     e.vx = 0
     e.vy = 0
     beginAuthoredAttack(e)
@@ -573,13 +556,13 @@ function sheetEvents(world: World, e: Enemy, clip: string, events: readonly stri
       ex.attackFired = true
       blobMelee(world, e, ctx)
     } else if (e.kind === 'eliteBlob' && e.state === 'windup') {
+      // The 975 ms windup is the telegraph. Contact damage is unchanged; no extra burst.
       ex.attackFired = true
-      eliteSlam(world, e, ctx)
     }
   }
   if (events.includes('spawnFx')) {
     if (clip === 'death' || (events.includes('hit') && e.kind === 'eliteBlob')) {
-      if (clip === 'death') ctx.render.fx.inkBurst(e.x, e.y, e.r * FEEL.kill.inkSize)
+      ctx.render.fx.inkBurst(e.x, e.y, e.r * (clip === 'death' ? FEEL.kill.inkSize : 1.4))
     } else if (e.kind === 'charger') {
       ctx.render.fx.dust(e.x, e.y + e.r * 0.45, e.aim.x * 36, e.aim.y * 12)
     } else {

@@ -480,10 +480,24 @@ export function inkRect(
 }
 
 export function vignette(ctx: CanvasRenderingContext2D, w: number, h: number, strength = 0.42): void {
-  const g = ctx.createRadialGradient(w * 0.5, h * 0.48, Math.min(w, h) * 0.28, w * 0.5, h * 0.5, Math.hypot(w, h) * 0.62)
-  g.addColorStop(0, 'rgba(42, 30, 20, 0)')
-  g.addColorStop(0.65, `rgba(42, 28, 18, ${strength * 0.18})`)
-  g.addColorStop(1, `rgba(36, 24, 16, ${strength})`)
+  const night = strength >= 0.6
+  const g = ctx.createRadialGradient(
+    w * 0.5,
+    h * 0.46,
+    Math.min(w, h) * (night ? 0.2 : 0.28),
+    w * 0.5,
+    h * 0.52,
+    Math.hypot(w, h) * (night ? 0.56 : 0.62),
+  )
+  if (night) {
+    g.addColorStop(0, 'rgba(6, 8, 14, 0)')
+    g.addColorStop(0.5, `rgba(8, 10, 18, ${strength * 0.16})`)
+    g.addColorStop(1, `rgba(3, 5, 10, ${Math.min(0.88, strength)})`)
+  } else {
+    g.addColorStop(0, 'rgba(42, 30, 20, 0)')
+    g.addColorStop(0.65, `rgba(42, 28, 18, ${strength * 0.18})`)
+    g.addColorStop(1, `rgba(36, 24, 16, ${strength})`)
+  }
   ctx.save()
   ctx.fillStyle = g
   ctx.fillRect(0, 0, w, h)
