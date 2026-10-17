@@ -40,18 +40,24 @@ function w(
 
 /** Farm loop: pea / sprout / charger early; garlic / pumpkin / chili unlock later. Pool is leftover — live spawns come from planted beds. */
 const EARLY: Pool = [
-  { kind: 'blob', weight: 70 },
-  { kind: 'sprout', weight: 30 },
+  { kind: 'blob', weight: 48 },
+  { kind: 'sprout', weight: 18 },
+  { kind: 'bean', weight: 22 },
+  { kind: 'tomato', weight: 12 },
 ]
 const MID: Pool = [
-  { kind: 'blob', weight: 45 },
-  { kind: 'sprout', weight: 25 },
-  { kind: 'charger', weight: 30 },
+  { kind: 'blob', weight: 28 },
+  { kind: 'sprout', weight: 14 },
+  { kind: 'charger', weight: 22 },
+  { kind: 'bean', weight: 20 },
+  { kind: 'tomato', weight: 16 },
 ]
 const LATE: Pool = [
-  { kind: 'blob', weight: 32 },
-  { kind: 'sprout', weight: 28 },
-  { kind: 'charger', weight: 40 },
+  { kind: 'blob', weight: 18 },
+  { kind: 'sprout', weight: 12 },
+  { kind: 'charger', weight: 24 },
+  { kind: 'bean', weight: 24 },
+  { kind: 'tomato', weight: 22 },
 ]
 
 export const WAVES: WaveDef[] = [

@@ -23,9 +23,11 @@
  *
  * `event` / `events` fire once when the playhead enters the cell.
  * Gameplay (shots, dashes, slams) reads those events from `advanceActorSheet`
- * during the sim step. `drawActorSheet` only paints the frame the sim landed on.
+ * during the sim step. Draw interpolates ox/oy/scale between cells and can
+ * crossfade idle↔walk; scream/hurt still snap.
  */
-import { clamp } from '../core/math.ts'
+import { clamp, lerp } from '../core/math.ts'
+import { CHAOS } from '../data/chaos.ts'
 import type { AnimState, EnemyKind, Form, ModelDir, Species } from '../core/types.ts'
 
 export interface SheetAnchor {
@@ -59,6 +61,10 @@ export interface SheetManifest {
   clips: Record<string, SheetClip>
   image2x?: string
   pngFallback?: string
+  /** World px per atlas px. fx-funny uses ~0.35. */
+  drawScale?: number
+  /** Per-clip visual Y offsets (leap arc). Negative is up. */
+  airOffsetY?: Record<string, number[]>
 }
 
 export interface LoadedSheet {
@@ -82,6 +88,11 @@ export const SHEET_PRELOAD: string[] = [
   'enemy-spitter',
   'enemy-eliteBlob',
   'fx-ink',
+  'fx-funny',
+  'enemy-tomato-light',
+  'enemy-tomato-mud',
+  'enemy-bean-light',
+  'enemy-bean-mud',
   'pickups',
   'prop-furrow',
   'prop-bed',
@@ -100,6 +111,9 @@ interface ClipHead {
 
 interface ActorHead {
   clip: string
+  shown: string
+  fadeFrom: string
+  fadeT: number
   clips: Map<string, ClipHead>
 }
 
@@ -211,6 +225,15 @@ function parseManifest(raw: unknown): SheetManifest | null {
   const meta = o.meta && typeof o.meta === 'object' ? (o.meta as Record<string, unknown>) : null
   const image2x = meta && typeof meta.image2x === 'string' ? meta.image2x : undefined
   const pngFallback = meta && typeof meta.pngFallback === 'string' ? meta.pngFallback : undefined
+  const drawScale = meta && typeof meta.drawScale === 'number' ? meta.drawScale : undefined
+  let airOffsetY: Record<string, number[]> | undefined
+  if (meta && meta.airOffsetY && typeof meta.airOffsetY === 'object') {
+    airOffsetY = {}
+    for (const [name, list] of Object.entries(meta.airOffsetY as Record<string, unknown>)) {
+      if (!Array.isArray(list)) continue
+      airOffsetY[name] = list.map((v) => (typeof v === 'number' ? v : 0))
+    }
+  }
   return {
     image: o.image,
     frameWidth: o.frameWidth,
@@ -220,6 +243,8 @@ function parseManifest(raw: unknown): SheetManifest | null {
     clips,
     image2x,
     pngFallback,
+    drawScale,
+    airOffsetY,
   }
 }
 
@@ -419,6 +444,19 @@ export function actorClipFrame(
   return { index: at.index, frame: at.frame }
 }
 
+/** Frame index plus 0..1 fraction through that cell (for hops / airOffsetY). */
+export function clipPlayhead(
+  playKey: string,
+  sheet: LoadedSheet,
+  clipName: string,
+): { index: number; frac: number } | null {
+  const clip = sheet.manifest.clips[clipName]
+  if (!clip || !clip.frames.length) return null
+  const elapsed = heads.get(playKey)?.clips.get(clipName)?.elapsed ?? 0
+  const sampled = sampleClip(clip, elapsed)
+  return { index: sampled.index, frac: sampled.u }
+}
+
 function locate(clip: SheetClip, elapsed: number): Located {
   const frames = clip.frames
   const n = frames.length
@@ -441,10 +479,71 @@ function locate(clip: SheetClip, elapsed: number): Located {
 function actor(playKey: string): ActorHead {
   let head = heads.get(playKey)
   if (!head) {
-    head = { clip: '', clips: new Map() }
+    head = { clip: '', shown: '', fadeFrom: '', fadeT: 1, clips: new Map() }
     heads.set(playKey, head)
   }
   return head
+}
+
+function isLocomotion(name: string): boolean {
+  return name === 'idle' || name === 'walk'
+}
+
+function hardSnapFrame(frame: SheetFrame): boolean {
+  return frame.events.includes('scream') || frame.events.includes('hurt')
+}
+
+interface SampledPose {
+  frame: SheetFrame
+  index: number
+  u: number
+  ox: number
+  oy: number
+  scaleX: number
+  scaleY: number
+}
+
+function sampleClip(clip: SheetClip, elapsed: number): SampledPose {
+  const at = locate(clip, elapsed)
+  const frames = clip.frames
+  const n = frames.length
+  const next = frames[clip.loop ? (at.index + 1) % n : Math.min(at.index + 1, n - 1)] ?? at.frame
+  const dur = clipDurationMs(clip)
+  const local = clip.loop && dur > 0 ? elapsed % dur : Math.min(elapsed, Math.max(0, dur - 0.001))
+  const into = Math.max(0, local - at.start)
+  let u = at.frame.ms > 0 ? clamp(into / at.frame.ms, 0, 1) : 0
+  if (hardSnapFrame(at.frame) || hardSnapFrame(next)) u = 0
+  return {
+    frame: at.frame,
+    index: at.index,
+    u,
+    ox: lerp(at.frame.ox, next.ox, u),
+    oy: lerp(at.frame.oy, next.oy, u),
+    scaleX: lerp(at.frame.scaleX, next.scaleX, u),
+    scaleY: lerp(at.frame.scaleY, next.scaleY, u),
+  }
+}
+
+/** Present idle/walk without restarting either clip. Crossfade 60–100 ms. */
+export function presentActorClip(playKey: string, clipName: string, dt: number): void {
+  const head = actor(playKey)
+  const prev = head.shown || head.clip
+  if (prev && prev !== clipName && isLocomotion(prev) && isLocomotion(clipName)) {
+    head.fadeFrom = prev
+    head.fadeT = 0
+  } else if (prev !== clipName) {
+    head.fadeFrom = ''
+    head.fadeT = 1
+  }
+  head.shown = clipName
+  head.clip = clipName
+  if (head.fadeFrom) {
+    head.fadeT += Math.max(0, dt)
+    if (head.fadeT >= CHAOS.smooth.idleWalkFade) {
+      head.fadeFrom = ''
+      head.fadeT = 1
+    }
+  }
 }
 
 function bindClip(head: ActorHead, name: string, clip: SheetClip): ClipHead {
@@ -534,13 +633,19 @@ export function actorFootprint(sheet: LoadedSheet, r: number): number {
  * including frames a long step skipped. Looping clips keep their phase when
  * you come back to them; call `restartActorClip` to swing again from the top.
  */
-export function advanceActorSheet(playKey: string, sheet: LoadedSheet, clipName: string, dt: number): string[] {
+export function advanceActorSheet(
+  playKey: string,
+  sheet: LoadedSheet,
+  clipName: string,
+  dt: number,
+  rate = 1,
+): string[] {
   const clip = sheet.manifest.clips[clipName]
   if (!clip || !clip.frames.length) return []
   const slot = bindClip(actor(playKey), clipName, clip)
   const dur = slot.duration
   if (dur <= 0) return []
-  let left = Math.max(0, dt) * 1000
+  let left = Math.max(0, dt) * 1000 * Math.max(0, rate)
   if (!slot.loop) left = Math.min(left, Math.max(0, dur - slot.elapsed))
   const events: string[] = []
   let guard = 0
@@ -570,7 +675,7 @@ function paintFrame(
   sheet: LoadedSheet,
   clip: SheetClip,
   frame: SheetFrame,
-  opts: { fit: number; facing: 1 | -1; alpha: number },
+  opts: { fit: number; facing: 1 | -1; alpha: number; ox?: number; oy?: number; scaleX?: number; scaleY?: number },
 ): void {
   const { img, columns } = sheet
   const fw = sheet.manifest.frameWidth
@@ -596,13 +701,39 @@ function paintFrame(
   ctx.globalAlpha *= opts.alpha
   ctx.imageSmoothingEnabled = true
   ctx.imageSmoothingQuality = 'high'
-  ctx.translate(frame.ox * opts.facing, frame.oy)
-  ctx.scale(opts.facing * opts.fit * frame.scaleX, opts.fit * frame.scaleY)
+  const ox = opts.ox ?? frame.ox
+  const oy = opts.oy ?? frame.oy
+  const scaleX = opts.scaleX ?? frame.scaleX
+  const scaleY = opts.scaleY ?? frame.scaleY
+  ctx.translate(ox * opts.facing, oy)
+  ctx.scale(opts.facing * opts.fit * scaleX, opts.fit * scaleY)
   ctx.drawImage(img, sx, sy, fw, fh, -ax, -ay, fw, fh)
   ctx.restore()
 }
 
-/** Paint the frame `advanceActorSheet` has already stepped. Does not move the playhead. */
+function paintSampled(
+  ctx: CanvasRenderingContext2D,
+  sheet: LoadedSheet,
+  playKey: string,
+  clipName: string,
+  opts: { fit: number; facing: 1 | -1; alpha: number },
+): void {
+  const clip = sheet.manifest.clips[clipName]
+  if (!clip || !clip.frames.length) return
+  const elapsed = actor(playKey).clips.get(clipName)?.elapsed ?? 0
+  const pose = sampleClip(clip, elapsed)
+  paintFrame(ctx, sheet, clip, pose.frame, {
+    fit: opts.fit,
+    facing: opts.facing,
+    alpha: opts.alpha,
+    ox: pose.ox,
+    oy: pose.oy,
+    scaleX: pose.scaleX,
+    scaleY: pose.scaleY,
+  })
+}
+
+/** Paint the interpolated pose. Idle↔walk may still be crossfading. */
 export function drawActorSheet(
   ctx: CanvasRenderingContext2D,
   sheet: LoadedSheet,
@@ -612,13 +743,24 @@ export function drawActorSheet(
 ): void {
   const clip = sheet.manifest.clips[clipName]
   if (!clip || !clip.frames.length) return
-  const slot = actor(playKey).clips.get(clipName)
-  const elapsed = slot?.elapsed ?? 0
-  const { frame } = locate(clip, elapsed)
   const fw = sheet.manifest.frameWidth
   const fh = sheet.manifest.frameHeight
   const fit = snapScale((opts.r * 2.35) / Math.max(fw, fh))
-  paintFrame(ctx, sheet, clip, frame, { fit, facing: opts.facing, alpha: opts.alpha })
+  const head = actor(playKey)
+  const fadeDur = CHAOS.smooth.idleWalkFade
+  const fading =
+    !!head.fadeFrom &&
+    isLocomotion(clipName) &&
+    isLocomotion(head.fadeFrom) &&
+    head.fadeT < fadeDur &&
+    !!sheet.manifest.clips[head.fadeFrom]
+  if (fading) {
+    const u = clamp(head.fadeT / fadeDur, 0, 1)
+    paintSampled(ctx, sheet, playKey, head.fadeFrom, { fit, facing: opts.facing, alpha: opts.alpha * (1 - u) })
+    paintSampled(ctx, sheet, playKey, clipName, { fit, facing: opts.facing, alpha: opts.alpha * u })
+    return
+  }
+  paintSampled(ctx, sheet, playKey, clipName, { fit, facing: opts.facing, alpha: opts.alpha })
 }
 
 /**
@@ -636,12 +778,16 @@ export function drawNamedClip(
   const clip = sheet.manifest.clips[clipName]
   if (!clip) return false
   advanceActorSheet(playKey, sheet, clipName, dt)
-  const slot = actor(playKey).clips.get(clipName)
-  const { frame } = locate(clip, slot?.elapsed ?? 0)
-  paintFrame(ctx, sheet, clip, frame, {
+  const elapsed = actor(playKey).clips.get(clipName)?.elapsed ?? 0
+  const pose = sampleClip(clip, elapsed)
+  paintFrame(ctx, sheet, clip, pose.frame, {
     fit: opts.scale,
     facing: opts.facing ?? 1,
     alpha: opts.alpha ?? 1,
+    ox: pose.ox,
+    oy: pose.oy,
+    scaleX: pose.scaleX,
+    scaleY: pose.scaleY,
   })
   return true
 }

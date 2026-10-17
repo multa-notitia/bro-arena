@@ -3,12 +3,15 @@ import type { EnemyKind, SpawnMarker, Tree, World } from '../core/types.ts'
 import { CROPS } from '../data/crops.ts'
 import { waveDef } from '../data/waves.ts'
 import { ENEMIES } from '../data/enemies.ts'
-import { beginDeath, MAX_ENEMIES, resetEnemyRuntime, spawnEnemy } from './enemies.ts'
+import { beginDeath, maxEnemies, resetEnemyRuntime, spawnEnemy } from './enemies.ts'
 import { farmSpawnBatch, farmSpawnInterval, plantedPlots, tickFarm } from './farm.ts'
 import { magnetAll, payoutHarvest } from './pickups.ts'
 import { resetWeaponRuntime } from './weapons.ts'
 import { resetForWave } from './world.ts'
 import type { SimCtx } from './world.ts'
+import { chaosBatch, chaosInterval, onHorde, resetChaosDirector, tickChaosDirector } from './chaosDirector.ts'
+import { resetEmerge } from './emerge.ts'
+import { telegraphLife } from '../data/chaos.ts'
 
 const MARKER_LIFE = 1
 
@@ -60,7 +63,7 @@ function clampRange(v: number, a: number, b: number): number {
 }
 
 function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LIFE): void {
-  if (world.enemies.length + world.markers.length >= MAX_ENEMIES) return
+  if (world.enemies.length + world.markers.length >= maxEnemies()) return
   const sown = plantedPlots(world.farm)
   const plot = sown.length > 0 ? ctx.rng.pick(sown) : ctx.rng.pick(world.farm.plots)
   const crop = plot.crop
@@ -71,7 +74,8 @@ function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LI
     x: plot.x + ctx.rng.range(-jitter, jitter),
     y: plot.y + ctx.rng.range(-10, 16),
     t: 0,
-    life,
+    life: life === MARKER_LIFE ? telegraphLife() : life,
+    style: 'crack',
   }
   world.markers.push(marker)
   if (elite) eliteMarkers.add(marker)
@@ -110,6 +114,8 @@ export function beginWave(world: World, ctx: SimCtx, index: number): void {
   resetForWave(world, wdef)
   resetWeaponRuntime()
   resetEnemyRuntime()
+  resetChaosDirector()
+  resetEmerge()
   director = makeDirector(world)
   placeTrees(world, ctx)
   for (const w of world.player.weapons) {
@@ -131,25 +137,26 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
   tickFarm(world, dt)
   const timeUp = world.waveTime >= def.duration
   world.waveLeft = Math.max(0, def.duration - world.waveTime)
-  const interval = farmSpawnInterval(def.spawnInterval, world.farm)
-  const batch = farmSpawnBatch(def.batch, world.farm)
+  const interval = chaosInterval(farmSpawnInterval(def.spawnInterval, world.farm), world)
+  const batch = chaosBatch(farmSpawnBatch(def.batch, world.farm), world)
 
   const markers: SpawnMarker[] = []
   for (const m of world.markers) {
     m.t += dt
     if (m.t >= m.life) {
-      spawnEnemy(world, m.kind, m.x, m.y, ctx, eliteMarkers.has(m), undefined, true)
+      spawnEnemy(world, m.kind, m.x, m.y, ctx, eliteMarkers.has(m) || !!m.elite, undefined, true)
     } else {
       markers.push(m)
     }
   }
   world.markers = markers
+  tickChaosDirector(world, dt, ctx)
 
   const bossAlive = !!(world.boss && world.boss.state !== 'dying' && world.boss.hp > 0)
 
   if (!timeUp) {
     d.spawnAcc += dt
-    while (d.spawnAcc >= interval && world.enemies.length + world.markers.length < MAX_ENEMIES) {
+    while (d.spawnAcc >= interval && world.enemies.length + world.markers.length < maxEnemies()) {
       d.spawnAcc -= Math.max(0.08, interval)
       for (let i = 0; i < batch; i++) spawnFromBed(world, ctx)
     }
@@ -160,7 +167,8 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
       if (world.waveTime >= t) {
         d.hordeFired[i] = true
         const n = ctx.rng.int(10, 18)
-        for (let k = 0; k < n; k++) spawnFromBed(world, ctx, false, 0.7)
+        for (let k = 0; k < n; k++) spawnFromBed(world, ctx, false, telegraphLife())
+        onHorde(world, ctx)
         ctx.ui.banner('Horde', 'The row emptied at once.', 1400)
       }
     }

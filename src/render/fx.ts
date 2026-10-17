@@ -1,5 +1,6 @@
 import { TAU, clamp, ease, hashNoise, lerp } from '../core/math.ts'
 import type { DamageNumberOpts, FxApi } from '../core/types.ts'
+import { CHAOS, chaosJuiceOn } from '../data/chaos.ts'
 import { FEEL, flashStrength } from '../feel.ts'
 import { drawInkClips, spawnInkClip, tickInkClips } from './sheets.ts'
 import { n01, parseRgb, wobbleBlob } from './watercolor.ts'
@@ -660,6 +661,11 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
           ctx.save()
           ctx.translate(p.x, p.y)
           ctx.rotate(p.rot)
+          const pop =
+            p.kind === 'dmg'
+              ? 1 + ease.outBack(Math.min(1, u * 2.8)) * (chaosJuiceOn() ? CHAOS.juice.numberPop - 1 : 0.55)
+              : 1
+          ctx.scale(pop, pop)
           ctx.globalAlpha = fade
           let fill = p.color
           if (p.kind === 'dmg') {

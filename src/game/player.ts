@@ -1,5 +1,6 @@
 import { clamp, damp, ease, uid, wrapAngle } from '../core/math.ts'
 import { FEEL } from '../feel.ts'
+import { walkPlaybackRate } from '../data/chaos.ts'
 import type {
   AnimState,
   CharacterDef,
@@ -24,6 +25,7 @@ import {
   advanceActorSheet,
   consumeHurtKick,
   notePlayerRelease,
+  presentActorClip,
   resolveSheet,
   restartActorClip,
   sheetKeysForPlayer,
@@ -330,12 +332,14 @@ function stepPlayerSheet(world: World, dt: number, ctx: SimCtx): void {
     if (ev.includes('release')) notePlayerRelease()
   }
   if (clip) {
-    const ev = advanceActorSheet('player', sheet, clip, dt)
+    presentActorClip('player', clip, dt)
+    const spd = Math.hypot(player.vx, player.vy)
+    const rate = clip === 'walk' ? walkPlaybackRate(spd, BASE_SPEED) : 1
+    const ev = advanceActorSheet('player', sheet, clip, dt, rate)
     flash(ev, clip)
     if (clip === 'attack' && ev.includes('release')) notePlayerRelease()
   }
   anim.bob = 0
-  anim.squash = 1
 }
 
 export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): void {

@@ -14,6 +14,19 @@ import { farmHpMult, farmNightmareBonus } from './farm.ts'
 import { createAnim, tickFaceAnim } from './player.ts'
 import { spawnProjectile } from './projectiles.ts'
 import { addTrauma, FEEL, requestHitStop } from '../feel.ts'
+import { CHAOS, chaosJuiceOn, maxEnemies, walkPlaybackRate } from '../data/chaos.ts'
+import {
+  chainBurst,
+  comboPitch,
+  corpseClipName,
+  deathClipName,
+  funnyBurstClip,
+  funnySplatClip,
+  markKamikazeCorpse,
+} from './chaosJuice.ts'
+import { beginEmerge, collisionOn, emergeEvents, tickEmerge } from './emerge.ts'
+import { isAirborne, isLeaping, leapEvents, maybeLeap } from './leap.ts'
+import { spawnFunnyClip } from '../render/chaosFx.ts'
 import {
   actorClipActive,
   actorClipDone,
@@ -22,18 +35,17 @@ import {
   clipHasEvent,
   consumeHurtKick,
   forgetActor,
-  resolveSheet,
+  presentActorClip,
   restartActorClip,
   sheetClipSeconds,
-  sheetKeysForEnemy,
   type LoadedSheet,
 } from '../render/sheets.ts'
+import { hasClip, resolveEnemySheet } from '../render/chaosSheets.ts'
 import { retainSpawned } from './roster.ts'
 import { clampToArena } from './world.ts'
 import type { SimCtx } from './world.ts'
 
-export const MAX_ENEMIES = 160
-const SPAWN_TIME = 0.35
+export { maxEnemies }
 const DEATH_TIME = 0.45
 const CONTACT_IFRAMES = 0.5
 
@@ -48,6 +60,9 @@ interface EnemyExtra {
   /** The attack clip's release/hit has already fired this swing. */
   attackFired: boolean
   footAcc: number
+  kamikazePopped: boolean
+  authoredScream: boolean
+  lungeAfterScream: boolean
 }
 
 const extras = new WeakMap<Enemy, EnemyExtra>()
@@ -67,6 +82,9 @@ function extra(e: Enemy): EnemyExtra {
       screamBurst: false,
       attackFired: false,
       footAcc: 0,
+      kamikazePopped: false,
+      authoredScream: false,
+      lungeAfterScream: false,
     }
     extras.set(e, x)
   }
@@ -99,7 +117,7 @@ export function spawnEnemy(
   parent?: Enemy,
   fromMarker = false,
 ): Enemy | null {
-  if (world.enemies.length >= MAX_ENEMIES) return null
+  if (world.enemies.length >= maxEnemies()) return null
   const def = ENEMIES[kind]
   if (!def) return null
   let hp = enemyHpAtWave(def, world.wave)
@@ -122,6 +140,8 @@ export function spawnEnemy(
     hp *= 1.8
     damage *= 1.5
     speed *= 1.15
+    if (kind === 'tomato') r = Math.round(r * (17 / 14))
+    if (kind === 'bean') r = Math.round(r * (19 / 17))
   }
   const interval = screamIntervalOf(def, ctx)
   const screamCooldown = form === 'nightmare' ? ctx.rng.range(0.7, 2.1) : interval
@@ -166,6 +186,9 @@ export function spawnEnemy(
     screamBurst: false,
     attackFired: false,
     footAcc: 0,
+    kamikazePopped: false,
+    authoredScream: false,
+    lungeAfterScream: false,
   })
   if (boss) enemy.cooldown = 1.15
   world.enemies.push(enemy)
@@ -174,6 +197,7 @@ export function spawnEnemy(
   if (parent) parent.children += 1
   ctx.render.fx.inkBloom(pos.x, pos.y, def.palette.body, r * 1.4)
   ctx.audio.play('spawn', { gain: boss ? 1 : 0.55, pitch: boss ? 0.7 : 1 })
+  beginEmerge(enemy)
   if (boss) {
     ctx.render.fx.shockwave(pos.x, pos.y, 160, def.palette.accent)
     ctx.render.fx.inkBurst(pos.x, pos.y, r * 2.2)
@@ -214,9 +238,12 @@ export function beginDeath(world: World, enemy: Enemy, ctx: SimCtx, magnet = fal
   enemy.anim.squash = 0.35
   const pal = enemy.def.palette
   const deathSheet = enemySheet(enemy)
-  const authoredDeath = !!deathSheet?.manifest.clips.death
-  if (authoredDeath) restartActorClip(playKey, 'death')
-  const authoredBurst = !!deathSheet && authoredDeath && clipHasEvent(deathSheet, 'death', 'spawnFx')
+  const kamikazeKeep = ex.kamikazePopped
+  const deathClip = kamikazeKeep ? null : deathClipName(enemy)
+  const authoredDeath = kamikazeKeep || !!deathClip
+  if (deathClip) restartActorClip(playKey, deathClip)
+  const authoredBurst =
+    kamikazeKeep || (!!deathSheet && !!deathClip && clipHasEvent(deathSheet, deathClip, 'spawnFx'))
   if (!authoredBurst) ctx.render.fx.inkBurst(enemy.x, enemy.y, enemy.r * FEEL.kill.inkSize)
   // Painted death and the ink burst are the corpse. A body-colored splat or a
   // cream chunk highlight would sit on the soil after the clip as a white fill.
@@ -240,9 +267,11 @@ export function beginDeath(world: World, enemy: Enemy, ctx: SimCtx, magnet = fal
     addTrauma(world, FEEL.shake.bossKill, dx, dy)
     requestHitStop('bossKill')
   } else {
-    ctx.audio.play('enemyDie', { gain: enemy.elite ? 1 : 0.7 })
-    addTrauma(world, enemy.elite ? FEEL.shake.eliteKill : FEEL.shake.kill, dx, dy)
-    requestHitStop(enemy.elite ? 'eliteKill' : 'kill')
+    ctx.audio.play('enemyDie', { gain: enemy.elite ? 1 : 0.7, pitch: comboPitch() })
+    if (!chaosJuiceOn()) {
+      addTrauma(world, enemy.elite ? FEEL.shake.eliteKill : FEEL.shake.kill, dx, dy)
+      requestHitStop(enemy.elite ? 'eliteKill' : 'kill')
+    }
   }
 }
 
@@ -264,7 +293,7 @@ function enemyKey(e: Enemy): string {
 }
 
 function enemySheet(e: Enemy): LoadedSheet | null {
-  return resolveSheet(sheetKeysForEnemy(e.kind, e.form))
+  return resolveEnemySheet(e.kind, e.form)
 }
 
 function fireAtPlayer(world: World, e: Enemy, proj: ProjectileDef, ctx: SimCtx, silent = false): void {
@@ -476,6 +505,119 @@ function beginAuthoredAttack(e: Enemy): void {
   restartActorClip(enemyKey(e), 'attack')
 }
 
+function popKamikaze(world: World, e: Enemy, ctx: SimCtx): void {
+  const ex = extra(e)
+  if (ex.kamikazePopped) return
+  ex.kamikazePopped = true
+  markKamikazeCorpse(e)
+  const b = e.def.behavior
+  const radius = b.type === 'kamikaze' ? b.radius : (e.def.burst?.radius ?? 70)
+  const p = world.player
+  if (p.hp > 0 && dist(e.x, e.y, p.x, p.y) <= radius + p.r) {
+    damagePlayer(world, e.damage, ctx, e.form === 'nightmare' ? e.def.nightmareName : e.def.name, e)
+  }
+  spawnFunnyClip(CHAOS.sheets.pop, e.x, e.y, { scale: CHAOS.sheets.popScale })
+  chainBurst(world, e, ctx, Math.max(e.damage, 4))
+  addTrauma(world, FEEL.shake.kill, e.x - p.x, e.y - p.y)
+  beginDeath(world, e, ctx)
+}
+
+function updateKamikaze(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
+  const b = e.def.behavior
+  if (b.type !== 'kamikaze') return
+  const p = world.player
+  if (e.state === 'windup') {
+    e.vx = 0
+    e.vy = 0
+    const ang = Math.atan2(p.y - e.y, p.x - e.x)
+    e.aim.x = Math.cos(ang)
+    e.aim.y = Math.sin(ang)
+    if (actorClipDone(enemyKey(e), 'attack') && !extra(e).attackFired) {
+      extra(e).attackFired = true
+      popKamikaze(world, e, ctx)
+    }
+    return
+  }
+  steerToward(e, p.x, p.y, currentSpeed(e))
+  e.state = 'chase'
+  e.cooldown -= dt
+  if (e.cooldown <= 0 && dist(e.x, e.y, p.x, p.y) < b.range) {
+    e.cooldown = b.cooldown
+    e.vx = 0
+    e.vy = 0
+    if (enemySheet(e)?.manifest.clips.attack) {
+      e.state = 'windup'
+      beginAuthoredAttack(e)
+    } else {
+      popKamikaze(world, e, ctx)
+    }
+  }
+}
+
+function beginAuthoredScream(e: Enemy): void {
+  const ex = extra(e)
+  e.state = 'screaming'
+  e.stateT = 0
+  e.vx = 0
+  e.vy = 0
+  e.anim.scream = 1
+  e.anim.mouth = 1
+  ex.screamBurst = false
+  ex.authoredScream = true
+  if (hasClip(enemySheet(e), 'scream')) restartActorClip(enemyKey(e), 'scream')
+}
+
+function tickAuthoredScream(e: Enemy): void {
+  e.vx = 0
+  e.vy = 0
+  const sheet = enemySheet(e)
+  const done = !hasClip(sheet, 'scream') || actorClipDone(enemyKey(e), 'scream')
+  if (!done) return
+  const ex = extra(e)
+  ex.authoredScream = false
+  e.anim.scream = -1
+  if (ex.lungeAfterScream) {
+    ex.lungeAfterScream = false
+    e.state = 'windup'
+    e.vx = 0
+    e.vy = 0
+    beginAuthoredAttack(e)
+    return
+  }
+  e.state = 'idle'
+}
+
+function updateTomatoMud(world: World, e: Enemy, dt: number, _ctx: SimCtx): void {
+  const p = world.player
+  const spd = currentSpeed(e)
+  if (e.state === 'windup') {
+    e.vx = 0
+    e.vy = 0
+    const ang = Math.atan2(p.y - e.y, p.x - e.x)
+    e.aim.x = Math.cos(ang)
+    e.aim.y = Math.sin(ang)
+    if (actorClipDone(enemyKey(e), 'attack')) e.state = 'chase'
+    return
+  }
+  steerToward(e, p.x, p.y, spd)
+  e.state = 'chase'
+  e.cooldown -= dt
+  const reach = e.r + p.r + 28
+  if (e.cooldown <= 0 && dist(e.x, e.y, p.x, p.y) <= reach + 16) {
+    const b = e.def.behavior
+    e.cooldown = b.type === 'kamikaze' ? b.cooldown : 1.15
+    e.vx = 0
+    e.vy = 0
+    extra(e).lungeAfterScream = true
+    if (hasClip(enemySheet(e), 'scream')) beginAuthoredScream(e)
+    else {
+      extra(e).lungeAfterScream = false
+      e.state = 'windup'
+      beginAuthoredAttack(e)
+    }
+  }
+}
+
 function blobMelee(world: World, e: Enemy, ctx: SimCtx): void {
   const p = world.player
   const reach = e.r + p.r + BLOB_REACH
@@ -549,20 +691,35 @@ function sheetEvents(world: World, e: Enemy, clip: string, events: readonly stri
     } else if (b.type === 'charge' && e.state === 'windup') {
       ex.attackFired = true
       startDash(e)
+    } else if (b.type === 'kamikaze' && e.form !== 'nightmare') {
+      ex.attackFired = true
+      popKamikaze(world, e, ctx)
     }
+  }
+  if (events.includes('scream') && !ex.screamBurst) {
+    ex.screamBurst = true
+    fireScreamBurst(world, e, ctx)
   }
   if (events.includes('hit') && !ex.attackFired) {
     if (e.kind === 'blob' && e.state === 'windup') {
       ex.attackFired = true
       blobMelee(world, e, ctx)
     } else if (e.kind === 'eliteBlob' && e.state === 'windup') {
-      // The 975 ms windup is the telegraph. Contact damage is unchanged; no extra burst.
       ex.attackFired = true
+    } else if (e.kind === 'tomato' && e.form === 'nightmare' && e.state === 'windup') {
+      ex.attackFired = true
+      blobMelee(world, e, ctx)
+    } else if (e.kind === 'bean' && e.state === 'windup') {
+      ex.attackFired = true
+      blobMelee(world, e, ctx)
     }
   }
+  if (events.includes('emerge_fx') || events.includes('emerged')) emergeEvents(e, events, ctx)
+  if (events.includes('takeoff') || events.includes('land')) leapEvents(e, events, ctx)
   if (events.includes('spawnFx')) {
-    if (clip === 'death' || (events.includes('hit') && e.kind === 'eliteBlob')) {
-      ctx.render.fx.inkBurst(e.x, e.y, e.r * (clip === 'death' ? FEEL.kill.inkSize : 1.4))
+    if (clip === 'death' || clip === 'death_slice' || clip === 'death_smash' || clip === 'attack') {
+      spawnFunnyClip(funnyBurstClip(e), e.x, e.y, { scale: CHAOS.sheets.drawScale })
+      spawnFunnyClip(funnySplatClip(e), e.x, e.y + 4, { scale: CHAOS.sheets.drawScale })
     } else if (e.kind === 'charger') {
       ctx.render.fx.dust(e.x, e.y + e.r * 0.45, e.aim.x * 36, e.aim.y * 12)
     } else {
@@ -590,36 +747,65 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const kicked = hurtClip && consumeHurtKick(key)
   if (kicked && !hurtPlaying) restartActorClip(key, 'hurt')
   const hurt = hurtPlaying || kicked
+  const deathName = dead ? corpseClipName(e) : null
+  const emerging = e.state === 'spawning' && hasClip(sheet, 'emerge')
+  const leaping = isLeaping(e) && hasClip(sheet, 'leap')
+  const screamingClip = e.state === 'screaming' && hasClip(sheet, 'scream')
   const clip = dead
-    ? sheet.manifest.clips.death
-      ? 'death'
-      : null
-    : hurt
-      ? 'hurt'
-      : attacking && sheet.manifest.clips.attack
-        ? 'attack'
-        : e.anim.moving && sheet.manifest.clips.walk
-          ? 'walk'
-          : sheet.manifest.clips.idle
-            ? 'idle'
-            : sheet.manifest.clips.walk
+    ? deathName
+    : emerging
+      ? 'emerge'
+      : leaping
+        ? 'leap'
+        : screamingClip
+          ? 'scream'
+        : hurt
+          ? 'hurt'
+          : attacking && sheet.manifest.clips.attack
+            ? 'attack'
+            : e.anim.moving && sheet.manifest.clips.walk
               ? 'walk'
-              : null
+              : sheet.manifest.clips.idle
+                ? 'idle'
+                : sheet.manifest.clips.walk
+                  ? 'walk'
+                  : null
   // Hurt is painted on top, but the attack clock keeps running so release/hit still land.
   if (hurt && attacking && sheet.manifest.clips.attack) {
     const ev = advanceActorSheet(enemyKey(e), sheet, 'attack', dt)
     sheetEvents(world, e, 'attack', ev, ctx)
   }
   if (!clip) return
-  const events = advanceActorSheet(enemyKey(e), sheet, clip, dt)
-  if (clip === 'attack' || clip === 'death') sheetEvents(world, e, clip, events, ctx)
+  presentActorClip(key, clip, dt)
+  const walkRate = clip === 'walk' ? walkPlaybackRate(Math.hypot(e.vx, e.vy), Math.max(40, e.speed)) : 1
+  const events = advanceActorSheet(enemyKey(e), sheet, clip, dt, walkRate)
+  if (
+    clip === 'attack' ||
+    clip === 'death' ||
+    clip === 'death_slice' ||
+    clip === 'death_smash' ||
+    clip === 'emerge' ||
+    clip === 'leap' ||
+    clip === 'scream'
+  ) {
+    sheetEvents(world, e, clip, events, ctx)
+  }
 }
 
 function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const b = e.def.behavior
   const p = world.player
   const spd = currentSpeed(e)
+  if (maybeLeap(world, e, dt, ctx)) return
 
+  if (b.type === 'kamikaze') {
+    if (e.kind === 'tomato' && e.form === 'nightmare') {
+      updateTomatoMud(world, e, dt, ctx)
+      return
+    }
+    updateKamikaze(world, e, dt, ctx)
+    return
+  }
   if (b.type === 'chase') {
     if (e.kind === 'eliteBlob' && enemySheet(e)?.manifest.clips.attack) {
       updateEliteSlam(world, e, dt, ctx)
@@ -727,10 +913,10 @@ function separate(world: World): void {
   const n = list.length
   for (let i = 0; i < n; i++) {
     const a = list[i]
-    if (!a || a.state === 'dying' || a.state === 'spawning') continue
+    if (!a || a.state === 'dying' || a.state === 'spawning' || isAirborne(a)) continue
     for (let j = i + 1; j < n; j++) {
       const b = list[j]
-      if (!b || b.state === 'dying' || b.state === 'spawning') continue
+      if (!b || b.state === 'dying' || b.state === 'spawning' || isAirborne(b)) continue
       const dx = a.x - b.x
       if (dx > 46 || dx < -46) continue
       const dy = a.y - b.y
@@ -756,6 +942,7 @@ const SCREAM_TOTAL = SCREAM_WINDUP + SCREAM_HOLD
 
 function canScream(e: Enemy): boolean {
   if (e.form !== 'nightmare') return false
+  if (e.kind === 'tomato' || e.kind === 'bean') return false
   if (e.state === 'spawning' || e.state === 'dying' || e.state === 'charging' || e.state === 'windup') return false
   return true
 }
@@ -855,8 +1042,8 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     e.anim.t += dt
     e.anim.hitFlash = Math.max(0, e.anim.hitFlash - dt * 4)
     if (e.state !== 'screaming') e.anim.squash = damp(e.anim.squash, 1, 10, dt)
-    e.knock.x = damp(e.knock.x, 0, 7, dt)
-    e.knock.y = damp(e.knock.y, 0, 7, dt)
+    e.knock.x = damp(e.knock.x, 0, CHAOS.smooth.knockDamp, dt)
+    e.knock.y = damp(e.knock.y, 0, CHAOS.smooth.knockDamp, dt)
     const ex = extra(e)
     if (ex.surgeT > 0) ex.surgeT = Math.max(0, ex.surgeT - dt)
 
@@ -865,15 +1052,18 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     if (e.state === 'dying') {
       e.stateT += dt
       const sheet = enemySheet(e)
-      const dur = sheet?.manifest.clips.death ? sheetClipSeconds(sheet, 'death') : DEATH_TIME
+      const deathName = corpseClipName(e)
+      const kamikazeBody = extra(e).kamikazePopped
+      const keepAttack = kamikazeBody && sheet && !actorClipDone(enemyKey(e), 'attack')
+      const dur = deathName && sheet ? sheetClipSeconds(sheet, deathName) : DEATH_TIME
       const deathDur = dur > 0 ? dur : DEATH_TIME
-      e.anim.deathT = Math.min(1, e.stateT / deathDur)
+      e.anim.deathT = keepAttack ? Math.min(0.92, e.stateT / Math.max(0.4, deathDur)) : Math.min(1, e.stateT / deathDur)
       if (sheet) stepEnemySheet(world, e, dt, ctx)
       e.vx = damp(e.vx, 0, 8, dt)
       e.vy = damp(e.vy, 0, 8, dt)
       e.x += (e.vx + e.knock.x) * dt
       e.y += (e.vy + e.knock.y) * dt
-      if (e.stateT < deathDur) keep.push(e)
+      if (keepAttack || e.stateT < deathDur) keep.push(e)
       else {
         forgetActor(enemyKey(e))
         byUid.delete(e.uid)
@@ -882,23 +1072,20 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     }
 
     if (e.state === 'spawning') {
-      e.stateT += dt
-      e.anim.spawnT = Math.min(1, e.stateT / SPAWN_TIME)
-      if (e.stateT >= SPAWN_TIME) {
-        e.state = 'idle'
-        e.anim.spawnT = 1
+      if (tickEmerge(e, dt, ctx)) {
+        if (enemySheet(e)) stepEnemySheet(world, e, dt, ctx)
+        tickFaceAnim(e.anim, dt, ex, {
+          moving: false,
+          speed: 0,
+          form: e.form,
+          screaming: false,
+          screamProgress: 0,
+          flinchT: 0,
+          nextBlink: () => ctx.rng.range(3, 6),
+        })
+        keep.push(e)
+        continue
       }
-      tickFaceAnim(e.anim, dt, ex, {
-        moving: false,
-        speed: 0,
-        form: e.form,
-        screaming: false,
-        screamProgress: 0,
-        flinchT: 0,
-        nextBlink: () => ctx.rng.range(3, 6),
-      })
-      keep.push(e)
-      continue
     }
 
     if (e.slow > 0) e.slow = Math.max(0, e.slow - dt)
@@ -918,7 +1105,8 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     }
 
     if (e.state === 'screaming') {
-      tickScream(world, e, dt, ctx)
+      if (ex.authoredScream) tickAuthoredScream(e)
+      else tickScream(world, e, dt, ctx)
     } else if (canScream(e)) {
       e.screamCooldown -= dt
       if (e.screamCooldown <= 0) startScream(e)
@@ -939,9 +1127,11 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     e.anim.moving = Math.hypot(e.vx, e.vy) > 8
     const posed = enemySheet(e)
     if (posed) {
-      // Authored clips already bob and squash. A second sine fights the feet.
+      // Authored clips already bob. Hit-squash is juice, so don't pin it to 1 on a flash.
       e.anim.bob = 0
-      e.anim.squash = 1
+      if (e.anim.hitFlash < 0.05 && !isAirborne(e)) {
+        e.anim.squash = damp(e.anim.squash, 1, CHAOS.juice.squashRecover, dt)
+      }
       if (e.state === 'windup' || e.state === 'shooting' || e.state === 'charging') {
         if (Math.abs(e.aim.x) + Math.abs(e.aim.y) > 0.01) e.anim.facing = e.aim.x >= 0 ? 1 : -1
       } else if (Math.abs(e.vx) > 8) {
@@ -969,16 +1159,19 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
       flinchT: 0,
       nextBlink: () => ctx.rng.range(3, 6),
     })
-    if (e.state === 'screaming') poseScream(e, ctx)
+    if (e.state === 'screaming' && !ex.authoredScream) poseScream(e, ctx)
     if (posed) {
       e.anim.kick.x = 0
       e.anim.kick.y = 0
       e.anim.bob = 0
-      e.anim.squash = 1
+      if (e.anim.hitFlash < 0.05 && !isAirborne(e)) {
+        e.anim.squash = damp(e.anim.squash, 1, CHAOS.juice.squashRecover, dt)
+      }
     }
 
     const sheetStrike = posed && ((e.kind === 'blob' && e.state === 'windup') || (e.kind === 'eliteBlob' && (e.state === 'windup' || e.state === 'recover')))
-    if (!sheetStrike && player.hp > 0 && player.invuln <= 0) {
+    const kamikazeWindup = e.def.behavior.type === 'kamikaze' && e.form !== 'nightmare' && e.state === 'windup'
+    if (!sheetStrike && !kamikazeWindup && player.hp > 0 && player.invuln <= 0 && collisionOn(e) && !isAirborne(e)) {
       const rad = e.r + player.r
       if (dist2(e.x, e.y, player.x, player.y) <= rad * rad) {
         damagePlayer(world, e.damage, ctx, e.form === 'nightmare' ? e.def.nightmareName : e.def.name, e)

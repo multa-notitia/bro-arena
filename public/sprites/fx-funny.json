@@ -1,0 +1,371 @@
+{
+ "image": "fx-funny.webp",
+ "frameWidth": 192,
+ "frameHeight": 192,
+ "columns": 10,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.5
+ },
+ "clips": {
+  "pop": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    { "i": 0, "ms": 30 },
+    { "i": 1, "ms": 40 },
+    { "i": 2, "ms": 40 },
+    { "i": 3, "ms": 50 },
+    { "i": 4, "ms": 60 },
+    { "i": 5, "ms": 70 },
+    { "i": 6, "ms": 80 }
+   ]
+  },
+  "veg_burst": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.562
+   },
+   "frames": [
+    { "i": 7, "ms": 30 },
+    { "i": 8, "ms": 40 },
+    { "i": 9, "ms": 45 },
+    { "i": 10, "ms": 55 },
+    { "i": 11, "ms": 65 },
+    { "i": 12, "ms": 75 },
+    { "i": 13, "ms": 90 }
+   ]
+  },
+  "veg_burst_orange": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.562
+   },
+   "frames": [
+    { "i": 14, "ms": 30 },
+    { "i": 15, "ms": 40 },
+    { "i": 16, "ms": 45 },
+    { "i": 17, "ms": 55 },
+    { "i": 18, "ms": 65 },
+    { "i": 19, "ms": 75 },
+    { "i": 20, "ms": 90 }
+   ]
+  },
+  "veg_burst_red": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.562
+   },
+   "frames": [
+    { "i": 21, "ms": 30 },
+    { "i": 22, "ms": 40 },
+    { "i": 23, "ms": 45 },
+    { "i": 24, "ms": 55 },
+    { "i": 25, "ms": 65 },
+    { "i": 26, "ms": 75 },
+    { "i": 27, "ms": 90 }
+   ]
+  },
+  "mud_erupt": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.781
+   },
+   "frames": [
+    { "i": 28, "ms": 45 },
+    { "i": 29, "ms": 55 },
+    { "i": 30, "ms": 60 },
+    { "i": 31, "ms": 75 },
+    { "i": 32, "ms": 110 },
+    { "i": 33, "ms": 150 }
+   ]
+  },
+  "dust": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.729
+   },
+   "frames": [
+    { "i": 34, "ms": 35 },
+    { "i": 35, "ms": 45 },
+    { "i": 36, "ms": 55 },
+    { "i": 37, "ms": 65 },
+    { "i": 38, "ms": 80 },
+    { "i": 39, "ms": 100 }
+   ]
+  },
+  "stars": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    { "i": 40, "ms": 30 },
+    { "i": 41, "ms": 40 },
+    { "i": 42, "ms": 50 },
+    { "i": 43, "ms": 60 },
+    { "i": 44, "ms": 70 },
+    { "i": 45, "ms": 90 }
+   ]
+  },
+  "spark": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    { "i": 46, "ms": 25 },
+    { "i": 47, "ms": 35 },
+    { "i": 48, "ms": 40 },
+    { "i": 49, "ms": 45 },
+    { "i": 50, "ms": 55 }
+   ]
+  },
+  "splat_orange": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.583
+   },
+   "frames": [
+    { "i": 51, "ms": 30 },
+    { "i": 52, "ms": 40 },
+    { "i": 53, "ms": 60 },
+    { "i": 54, "ms": 130 },
+    { "i": 55, "ms": 170 }
+   ]
+  },
+  "splat_red": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.583
+   },
+   "frames": [
+    { "i": 56, "ms": 30 },
+    { "i": 57, "ms": 40 },
+    { "i": 58, "ms": 60 },
+    { "i": 59, "ms": 130 },
+    { "i": 60, "ms": 170 }
+   ]
+  },
+  "splat_green": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.583
+   },
+   "frames": [
+    { "i": 61, "ms": 30 },
+    { "i": 62, "ms": 40 },
+    { "i": 63, "ms": 60 },
+    { "i": 64, "ms": 130 },
+    { "i": 65, "ms": 170 }
+   ]
+  },
+  "splat_mud": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.583
+   },
+   "frames": [
+    { "i": 66, "ms": 30 },
+    { "i": 67, "ms": 40 },
+    { "i": 68, "ms": 60 },
+    { "i": 69, "ms": 130 },
+    { "i": 70, "ms": 170 }
+   ]
+  },
+  "dizzy": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    { "i": 71, "ms": 60 },
+    { "i": 72, "ms": 60 },
+    { "i": 73, "ms": 60 },
+    { "i": 74, "ms": 60 },
+    { "i": 75, "ms": 60 },
+    { "i": 76, "ms": 60 }
+   ]
+  },
+  "ghost": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.885
+   },
+   "frames": [
+    { "i": 77, "ms": 35 },
+    { "i": 78, "ms": 45 },
+    { "i": 79, "ms": 55 },
+    { "i": 80, "ms": 70 },
+    { "i": 81, "ms": 80 },
+    { "i": 82, "ms": 90 },
+    { "i": 83, "ms": 100 },
+    { "i": 84, "ms": 110 },
+    { "i": 85, "ms": 120 }
+   ]
+  },
+  "rustle_a": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.781
+   },
+   "frames": [
+    { "i": 86, "ms": 40 },
+    { "i": 87, "ms": 45 },
+    { "i": 88, "ms": 50 },
+    { "i": 89, "ms": 60 },
+    { "i": 90, "ms": 70 },
+    { "i": 86, "ms": 80 }
+   ]
+  },
+  "rustle_b": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.781
+   },
+   "frames": [
+    { "i": 91, "ms": 40 },
+    { "i": 92, "ms": 45 },
+    { "i": 93, "ms": 50 },
+    { "i": 94, "ms": 60 },
+    { "i": 95, "ms": 70 },
+    { "i": 91, "ms": 80 }
+   ]
+  },
+  "mud_hole": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.781
+   },
+   "frames": [
+    { "i": 96, "ms": 200 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "VFX funny",
+  "source": "parts/fx_funny_v1.jpg",
+  "cells": [
+   "pop0",
+   "pop1",
+   "pop2",
+   "pop3",
+   "pop4",
+   "pop5",
+   "pop6",
+   "veg_burst0",
+   "veg_burst1",
+   "veg_burst2",
+   "veg_burst3",
+   "veg_burst4",
+   "veg_burst5",
+   "veg_burst6",
+   "veg_burst_orange0",
+   "veg_burst_orange1",
+   "veg_burst_orange2",
+   "veg_burst_orange3",
+   "veg_burst_orange4",
+   "veg_burst_orange5",
+   "veg_burst_orange6",
+   "veg_burst_red0",
+   "veg_burst_red1",
+   "veg_burst_red2",
+   "veg_burst_red3",
+   "veg_burst_red4",
+   "veg_burst_red5",
+   "veg_burst_red6",
+   "mud_erupt0",
+   "mud_erupt1",
+   "mud_erupt2",
+   "mud_erupt3",
+   "mud_erupt4",
+   "mud_erupt5",
+   "dust0",
+   "dust1",
+   "dust2",
+   "dust3",
+   "dust4",
+   "dust5",
+   "stars0",
+   "stars1",
+   "stars2",
+   "stars3",
+   "stars4",
+   "stars5",
+   "spark0",
+   "spark1",
+   "spark2",
+   "spark3",
+   "spark4",
+   "splat_orange0",
+   "splat_orange1",
+   "splat_orange2",
+   "splat_orange3",
+   "splat_orange4",
+   "splat_red0",
+   "splat_red1",
+   "splat_red2",
+   "splat_red3",
+   "splat_red4",
+   "splat_green0",
+   "splat_green1",
+   "splat_green2",
+   "splat_green3",
+   "splat_green4",
+   "splat_mud0",
+   "splat_mud1",
+   "splat_mud2",
+   "splat_mud3",
+   "splat_mud4",
+   "dizzy0",
+   "dizzy1",
+   "dizzy2",
+   "dizzy3",
+   "dizzy4",
+   "dizzy5",
+   "ghost0",
+   "ghost1",
+   "ghost2",
+   "ghost3",
+   "ghost4",
+   "ghost5",
+   "ghost6",
+   "ghost7",
+   "ghost8",
+   "rustle_a0",
+   "rustle_a1",
+   "rustle_a2",
+   "rustle_a3",
+   "rustle_a4",
+   "rustle_b0",
+   "rustle_b1",
+   "rustle_b2",
+   "rustle_b3",
+   "rustle_b4",
+   "mud_hole0"
+  ],
+  "scaleFromSource": 0.62,
+  "drawScale": 0.35,
+  "note": "by-name clips like fx-ink; each clip has its own anchor (centre for pop/stars/spark/dizzy, ground contact for mud_erupt/dust/splat_*/ghost/rustle_*/mud_hole). Suggested world scale 0.35 (pop ~43 world px). dizzy loops; everything else plays once and the last frame is already faded. veg_burst_orange/red are hue-shifted copies of the painted green burst (match juice colour). rustle_a/b = lettuce props shaking for plant ambushes; mud_hole = painted hole with claws (static prop).",
+  "pngFallback": "fx-funny.png"
+ }
+}

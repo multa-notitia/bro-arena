@@ -26,6 +26,7 @@ import {
   potatoMultiArm,
   tickMultiArm,
 } from '../render/multiarm.ts'
+import { deathStyleForWeapon } from '../data/chaos.ts'
 import { dealDamageToEnemy } from './combat.ts'
 import { hitTree, nearestTree } from './pickups.ts'
 import { spawnProjectile } from './projectiles.ts'
@@ -164,6 +165,8 @@ function weaponHurtOpts(def: WeaponDef, w: WeaponInstance) {
     lifeSteal: row.lifeSteal ?? 0,
     effects: (def.effects ?? []) as StatusEffect[],
     color: undefined as string | undefined,
+    deathStyle: deathStyleForWeapon(def.id),
+    weaponId: def.id,
   }
 }
 

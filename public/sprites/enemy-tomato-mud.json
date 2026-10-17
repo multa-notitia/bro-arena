@@ -1,0 +1,208 @@
+{
+ "image": "enemy-tomato-mud.webp",
+ "frameWidth": 224,
+ "frameHeight": 224,
+ "columns": 9,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.712
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 220 },
+    { "i": 1, "ms": 180 },
+    { "i": 2, "ms": 180 },
+    { "i": 3, "ms": 220 },
+    { "i": 4, "ms": 200 },
+    { "i": 5, "ms": 70 },
+    { "i": 6, "ms": 180 },
+    { "i": 7, "ms": 220 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 8, "ms": 90 },
+    { "i": 9, "ms": 90 },
+    { "i": 10, "ms": 90 },
+    { "i": 11, "ms": 90 },
+    { "i": 8, "ms": 90 },
+    { "i": 12, "ms": 90 },
+    { "i": 13, "ms": 90 },
+    { "i": 14, "ms": 90 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 15, "ms": 40, "event": "hurt" },
+    { "i": 16, "ms": 60 },
+    { "i": 17, "ms": 80 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 18, "ms": 80 },
+    { "i": 19, "ms": 40 },
+    { "i": 20, "ms": 60, "event": "hit" },
+    { "i": 21, "ms": 80 },
+    { "i": 22, "ms": 70 },
+    { "i": 23, "ms": 80 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 24, "ms": 60 },
+    { "i": 25, "ms": 60 },
+    { "i": 26, "ms": 70, "event": "spawnFx" },
+    { "i": 27, "ms": 50 },
+    { "i": 28, "ms": 60 },
+    { "i": 29, "ms": 70 },
+    { "i": 30, "ms": 80 },
+    { "i": 31, "ms": 950 }
+   ]
+  },
+  "scream": {
+   "loop": false,
+   "frames": [
+    { "i": 32, "ms": 110 },
+    { "i": 33, "ms": 90 },
+    { "i": 34, "ms": 50, "event": "scream" },
+    { "i": 35, "ms": 72 },
+    { "i": 36, "ms": 72 },
+    { "i": 37, "ms": 72 },
+    { "i": 38, "ms": 72 },
+    { "i": 39, "ms": 72 },
+    { "i": 40, "ms": 70 },
+    { "i": 41, "ms": 90 },
+    { "i": 42, "ms": 60 }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    { "i": 43, "ms": 45 },
+    { "i": 44, "ms": 50, "event": "spawnFx" },
+    { "i": 45, "ms": 55 },
+    { "i": 46, "ms": 55 },
+    { "i": 47, "ms": 60 },
+    { "i": 48, "ms": 70 },
+    { "i": 49, "ms": 60 },
+    { "i": 50, "ms": 950 }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    { "i": 51, "ms": 40 },
+    { "i": 52, "ms": 50 },
+    { "i": 53, "ms": 50, "event": "spawnFx" },
+    { "i": 54, "ms": 60 },
+    { "i": 55, "ms": 70 },
+    { "i": 56, "ms": 80 },
+    { "i": 57, "ms": 950 }
+   ]
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    { "i": 58, "ms": 90 },
+    { "i": 59, "ms": 80, "event": "emerge_fx" },
+    { "i": 60, "ms": 90 },
+    { "i": 61, "ms": 90 },
+    { "i": 62, "ms": 80 },
+    { "i": 63, "ms": 80 },
+    { "i": 64, "ms": 70 },
+    { "i": 65, "ms": 80 },
+    { "i": 66, "ms": 90 },
+    { "i": 67, "ms": 80 },
+    { "i": 68, "ms": 100, "event": "emerged" }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Mud tomato (scary mud variant): split-mouth scream, crawls out of the mud; tomvar layers + warp.py",
+  "source": "derived_mud.png",
+  "cells": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "idle6",
+   "idle7",
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk5",
+   "walk6",
+   "walk7",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "attack4",
+   "attack5",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4",
+   "death5",
+   "death6",
+   "death7",
+   "scream0",
+   "scream1",
+   "scream2",
+   "scream3",
+   "scream4",
+   "scream5",
+   "scream6",
+   "scream7",
+   "scream8",
+   "scream9",
+   "scream10",
+   "death_slice0",
+   "death_slice1",
+   "death_slice2",
+   "death_slice3",
+   "death_slice4",
+   "death_slice5",
+   "death_slice6",
+   "death_slice7",
+   "death_smash0",
+   "death_smash1",
+   "death_smash2",
+   "death_smash3",
+   "death_smash4",
+   "death_smash5",
+   "death_smash6",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "emerge3",
+   "emerge4",
+   "emerge5",
+   "emerge6",
+   "emerge7",
+   "emerge8",
+   "emerge9",
+   "emerge10"
+  ],
+  "feetY": 201.6,
+  "gameRadius": 17,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-tomato-mud/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-tomato-mud.png"
+ }
+}

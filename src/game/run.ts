@@ -46,6 +46,10 @@ import { beginWave, settleWave, updateDirector } from './waves.ts'
 import { clearPlots, plantView, selectCrop, syncFarmUnlocks, togglePlot } from './farm.ts'
 import { createWorld, syncViewport, updateCamera, updateTrees, type SimCtx } from './world.ts'
 import { consumeHitStop, getReducedJuice, resetFeel, setReducedJuice } from '../feel.ts'
+import { applyChaosDemo } from './chaosDemo.ts'
+import { chaosDemoRequested, resetChaosDirector } from './chaosDirector.ts'
+import { resetChaosJuice, tickChaosJuice } from './chaosJuice.ts'
+import { resetChaosFx } from '../render/chaosFx.ts'
 import { defaultModelForSpecies, getLastModel, getPaintStyle, modelsForSpecies, setLastModel, setPaintStyle } from '../render/look.ts'
 import { isConceptAReady, preloadConceptA } from '../render/conceptA.ts'
 import { isBoardReady, preloadBoard } from '../render/board.ts'
@@ -215,6 +219,10 @@ export class Run {
       this.pickCharacter(hero)
       return
     }
+    if (chaosDemoRequested()) {
+      this.pickCharacter('well-rounded')
+      return
+    }
     this.enterCharSelect()
   }
 
@@ -240,6 +248,7 @@ export class Run {
       reducedJuice: getReducedJuice(),
       setReducedJuice: (v: boolean) => this.changeReducedJuice(v),
     })
+    if (chaosDemoRequested()) this.playFromTitle()
   }
 
   private enterCharSelect(): void {
@@ -266,6 +275,9 @@ export class Run {
     this.deps.render.fx.clear()
     resetFeel()
     resetSheetPlayback()
+    resetChaosJuice()
+    resetChaosFx()
+    resetChaosDirector()
     this.world = createWorld(
       ch,
       waveDef(1),
@@ -273,6 +285,16 @@ export class Run {
       canvas.clientHeight || canvas.height,
       model,
     )
+    if (chaosDemoRequested()) {
+      const wave = applyChaosDemo(this.world)
+      this.plantFirst = false
+      this.transitioning = true
+      this.deps.ui.showScreen(null)
+      beginWave(this.world, this.sim(), wave)
+      this.enterWaveView()
+      this.transitioning = false
+      return
+    }
     this.enterPlant(true)
   }
 
@@ -396,6 +418,7 @@ export class Run {
     const ctx = this.sim()
     const simDt = consumeHitStop(dt) * world.slowMo
     world.time += simDt
+    tickChaosJuice(simDt)
     this.deps.ui.setJoystickVisible(this.deps.input.coarse)
     this.musicT += simDt
     if (this.musicT >= 2) {

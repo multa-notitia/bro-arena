@@ -136,6 +136,8 @@ export type Species =
   | 'marrow'
   | 'corn'
   | 'broccoli'
+  | 'tomato'
+  | 'bean'
 
 /**
  * Two forms for every vegetable. `normal` is the clean watercolour version.
@@ -378,6 +380,8 @@ export type EnemyKind =
   | 'spitter'
   | 'hive'
   | 'charger'
+  | 'tomato'
+  | 'bean'
   | 'eliteBlob'
   | 'eliteBrute'
   | 'mother'
@@ -396,7 +400,23 @@ export type EnemyBehavior =
   | { type: 'charge'; windup: number; speedMult: number; cooldown: number; range: number }
   | { type: 'shoot'; range: number; cooldown: number; projectile: ProjectileDef; keepDistance: number }
   | { type: 'spawner'; child: EnemyKind; interval: number; max: number }
+  | { type: 'kamikaze'; range: number; cooldown: number; radius: number }
   | { type: 'boss'; phases: BossPhase[]; summon?: EnemyKind; projectile?: ProjectileDef }
+
+export type JuiceFamily = 'red' | 'orange' | 'green' | 'mud'
+
+export interface LeapDef {
+  range: number
+  cooldown: number
+  height: number
+  duration: number
+}
+
+export interface BurstDef {
+  radius: number
+  damageFrac: number
+  kamikaze?: boolean
+}
 
 export interface EnemyDef {
   kind: EnemyKind
@@ -425,6 +445,14 @@ export interface EnemyDef {
   /** Multiplies hp per wave beyond 1, e.g. 0.12. */
   hpScale: number
   damageScale: number
+  /** Optional hop toward the player. Plays `leap` (takeoff, land) when present. */
+  leap?: LeapDef
+  /** Neighbour splash on death. Kamikaze always pops. */
+  burst?: BurstDef
+  /** Splat / burst wash; defaults to body. */
+  juiceColor?: string
+  /** Funny FX family: veg_burst_red / orange / green, splat_mud when muddy. */
+  juiceFamily?: JuiceFamily
 }
 
 export interface WaveDef {
@@ -655,6 +683,9 @@ export interface SpawnMarker extends Vec {
   kind: EnemyKind
   t: number
   life: number
+  /** Mud-crack telegraph style. Default is a bed marker. */
+  style?: 'crack' | 'ring' | 'patch'
+  elite?: boolean
 }
 
 export interface Camera extends Vec {

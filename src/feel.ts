@@ -122,6 +122,14 @@ export function requestHitStop(kind: HitStopKind): void {
   freeze = Math.min(FEEL.hitStop.max, freeze + FEEL.hitStop[kind])
 }
 
+/** Direct freeze in seconds. `replace` avoids stacking a horde into a stall. */
+export function requestHitStopMs(seconds: number, replace = false): void {
+  if (reduced) return
+  const add = Math.max(0, seconds)
+  if (add <= 0) return
+  freeze = Math.min(FEEL.hitStop.max, replace ? Math.max(freeze, add) : freeze + add)
+}
+
 /** Real dt in, sim dt out. Zero while a freeze frame is holding. */
 export function consumeHitStop(dt: number): number {
   if (freeze <= 0) return dt

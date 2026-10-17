@@ -53,6 +53,8 @@ const cabbage = veg('#8fb87a', '#5a7a48', '#c5d4a8', '#9dff8a', '#2c3010', '#1c2
 const carrot = veg('#e57a2c', '#b3541c', '#4f8a3c', '#ffd23d', '#4a2410', '#1c1008')
 const marrow = veg('#6f8f4a', '#3e5a2c', '#b9c98a', '#a4ff3d', '#0e160a', '#f4e8a8')
 const beet = veg('#7a1f3a', '#3d0f1f', '#e9c7d1', '#ff1f4b', '#06040c', '#f0e0a0')
+const tomato = veg('#d94a32', '#9a2418', '#4f8a3c', '#ff5a3a', '#2c100c', '#1a0806')
+const bean = veg('#7a9e3a', '#4a6824', '#c4d48a', '#b6ff4a', '#1c2810', '#14200c')
 
 export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   blob: {
@@ -74,6 +76,8 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     knockbackResist: 0,
     hpScale: 0.14,
     damageScale: 0.06,
+    juiceColor: pea.body,
+    juiceFamily: 'green',
   },
   sprout: {
     kind: 'sprout',
@@ -94,6 +98,8 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     knockbackResist: 0,
     hpScale: 0.14,
     damageScale: 0.06,
+    juiceColor: sprout.body,
+    juiceFamily: 'green',
   },
   runner: {
     kind: 'runner',
@@ -114,6 +120,8 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     knockbackResist: 0,
     hpScale: 0.12,
     damageScale: 0.05,
+    juiceColor: radish.body,
+    juiceFamily: 'red',
   },
   crab: {
     kind: 'crab',
@@ -174,6 +182,9 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     knockbackResist: 0.6,
     hpScale: 0.16,
     damageScale: 0.08,
+    burst: { radius: 92, damageFrac: 0.55, kamikaze: true },
+    juiceColor: pumpkin.body,
+    juiceFamily: 'orange',
   },
   spitter: {
     kind: 'spitter',
@@ -194,6 +205,9 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     knockbackResist: 0.1,
     hpScale: 0.14,
     damageScale: 0.07,
+    burst: { radius: 70, damageFrac: 0.4 },
+    juiceColor: chili.body,
+    juiceFamily: 'red',
   },
   hive: {
     kind: 'hive',
@@ -214,6 +228,8 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     knockbackResist: 0.35,
     hpScale: 0.15,
     damageScale: 0.05,
+    burst: { radius: 84, damageFrac: 0.38 },
+    juiceColor: cabbage.body,
   },
   charger: {
     kind: 'charger',
@@ -234,6 +250,54 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
     knockbackResist: 0.25,
     hpScale: 0.15,
     damageScale: 0.08,
+    juiceColor: carrot.body,
+    juiceFamily: 'orange',
+  },
+  tomato: {
+    kind: 'tomato',
+    name: 'Tomato',
+    species: 'tomato',
+    nightmareName: 'Mud Tomato',
+    form: 'normal',
+    screamInterval: 6,
+    rank: 'basic',
+    hp: 12,
+    speed: 70,
+    damage: 3,
+    radius: 14,
+    materials: 1,
+    behavior: { type: 'kamikaze', range: 86, cooldown: 1.15, radius: 70 },
+    palette: tomato,
+    paint: 'tomato',
+    knockbackResist: 0.05,
+    hpScale: 0.13,
+    damageScale: 0.07,
+    burst: { radius: 70, damageFrac: 0.7, kamikaze: true },
+    juiceColor: tomato.body,
+    juiceFamily: 'red',
+  },
+  bean: {
+    kind: 'bean',
+    name: 'Bean',
+    species: 'bean',
+    nightmareName: 'Mud Bean',
+    form: 'normal',
+    screamInterval: 8,
+    rank: 'basic',
+    hp: 14,
+    speed: 88,
+    damage: 2,
+    radius: 17,
+    materials: 1,
+    behavior: { type: 'chase' },
+    palette: bean,
+    paint: 'bean',
+    knockbackResist: 0,
+    hpScale: 0.13,
+    damageScale: 0.06,
+    leap: { range: 190, cooldown: 1.8, height: 22, duration: 0.4 },
+    juiceColor: bean.body,
+    juiceFamily: 'green',
   },
   eliteBlob: {
     kind: 'eliteBlob',

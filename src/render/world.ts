@@ -1,4 +1,7 @@
 import { TAU, clamp, dist, ease, hashNoise, lerp } from '../core/math.ts'
+import { comboCount, corpseClipName, deathClipName } from '../game/chaosJuice.ts'
+import { vineOf } from '../game/emerge.ts'
+import { hopHeight, isLeaping } from '../game/leap.ts'
 import { cameraShakeOffset, FEEL } from '../feel.ts'
 import type {
   Enemy,
@@ -47,9 +50,10 @@ import {
   pickClip,
   resolveSheet,
   sheetById,
-  sheetKeysForEnemy,
   sheetKeysForPlayer,
 } from './sheets.ts'
+import { hasClip, resolveEnemySheet } from './chaosSheets.ts'
+import { drawChaosFloor, drawChaosMarker, drawComboHud, drawFunnyBursts, drawLeapShadow, tickChaosFx } from './chaosFx.ts'
 import {
   markerSprite,
   pickupSprite,
@@ -349,7 +353,11 @@ function markerForm(kind: SpawnMarker['kind']): Form {
   return ENEMIES[kind]?.form === 'nightmare' ? 'nightmare' : 'normal'
 }
 
-function drawMarker(ctx: CanvasRenderingContext2D, m: SpawnMarker, cache: SpriteCache): void {
+function drawMarker(ctx: CanvasRenderingContext2D, m: SpawnMarker, cache: SpriteCache, time: number): void {
+  if (m.style) {
+    drawChaosMarker(ctx, m, time)
+    return
+  }
   const form = markerForm(m.kind)
   const spr = markerSprite(cache, form, qScale)
   const u = m.life > 0 ? m.t / m.life : 1
@@ -396,7 +404,7 @@ function drawEnemy(
   const model = foeModel(form)
   const pal = e.def.palette ?? SPECIES_PALETTES[species]
   const artR = sizeBucket(e.r)
-  const sheet = resolveSheet(sheetKeysForEnemy(e.kind, form))
+  const sheet = resolveEnemySheet(e.kind, form)
   // A killing slash used to hide the body and leave watercolor chunks.
   // Authored deaths play the sheet instead; that clip is the corpse.
   if (e.sliced && !sheet?.manifest.clips.death) return
@@ -420,18 +428,42 @@ function drawEnemy(
   }
   const foot = sheet ? actorFootprint(sheet, e.r) : e.r * 1.7
   const shade = appear * (1 - death)
+  const hop = hopHeight(e)
   if (sheet) drawReadHalo(ctx, ox, e.y, foot, shade)
-  drawShadow(ctx, ox, sheet ? e.y : e.y + e.r * 0.45, foot, shade)
+  drawShadow(ctx, ox, sheet ? e.y : e.y + e.r * 0.45, foot, shade * (hop > 1 ? 0.65 : 1))
+  drawLeapShadow(ctx, ox, e.y, foot, hop)
+  const vine = vineOf(e)
+  if (vine && sheet && hasClip(sheet, 'prop_vine')) {
+    ctx.save()
+    ctx.translate(vine.x, vine.y)
+    ctx.globalAlpha = vine.alpha * appear
+    drawActorSheet(ctx, sheet, `vine:${e.uid}`, 'prop_vine', { r: e.r, facing: 1, alpha: 1 })
+    ctx.restore()
+  }
   ctx.save()
-  ctx.translate(ox, oy)
+  ctx.translate(ox, oy - hop)
   if (sheet) {
     const playKey = `e:${e.uid}`
     const dyingSheet = e.state === 'dying' || e.anim.deathT >= 0
-    const clip = pickClip(sheet, e.anim, {
-      attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
-      hurt: !dyingSheet && actorClipActive(playKey, 'hurt'),
-    })
-    ctx.globalAlpha = appear * (1 - (sheet.manifest.clips.death ? 0 : death))
+    const deathName = corpseClipName(e) ?? deathClipName(e)
+    const emerging = e.state === 'spawning' && hasClip(sheet, 'emerge')
+    const leaping = isLeaping(e) && hasClip(sheet, 'leap')
+    const screaming = e.state === 'screaming' && hasClip(sheet, 'scream')
+    const clip = dyingSheet && deathName
+      ? deathName
+      : emerging
+        ? 'emerge'
+        : leaping
+          ? 'leap'
+          : screaming
+            ? 'scream'
+          : pickClip(sheet, e.anim, {
+              attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
+              hurt: !dyingSheet && actorClipActive(playKey, 'hurt'),
+            })
+    const squash = clamp(e.anim.squash || 1, 0.45, 1.8)
+    ctx.globalAlpha = appear * (1 - (deathName ? 0 : death))
+    ctx.scale(squash, 1 / squash)
     if (clip) {
       drawActorSheet(ctx, sheet, playKey, clip, {
         r: e.r,
@@ -999,6 +1031,7 @@ export function drawWorld(
   drawFarmRows(ctx, world.farm.plots, qScale >= 2, world.waveTime)
   drawFarmBeds(ctx, world.farm.plots, qScale >= 2)
   fx.drawFloor(ctx)
+  drawChaosFloor(ctx)
   darkenGround(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
   if (night) drawWarmPool(ctx, world.player.x, world.player.y)
 
@@ -1040,7 +1073,7 @@ export function drawWorld(
       if (p) drawPickup(ctx, p, cache, world.time, dt)
     } else if (c.kind === 2) {
       const m = world.markers[c.idx]
-      if (m) drawMarker(ctx, m, cache)
+      if (m) drawMarker(ctx, m, cache, world.time)
     } else if (c.kind === 3) {
       const e = world.enemies[c.idx]
       if (e) drawEnemy(ctx, e, cache, world.time)
@@ -1072,10 +1105,13 @@ export function drawWorld(
     if (p) drawProjectile(ctx, p, cache)
   }
 
+  tickChaosFx(dt)
+  drawFunnyBursts(ctx, dt)
   fx.drawWorld(ctx)
   ctx.restore()
 
   fx.drawScreen(ctx, cssW, cssH)
+  drawComboHud(ctx, cssW, cssH, comboCount())
   drawOffscreen(ctx, world, cssW, cssH)
   vignette(ctx, cssW, cssH, night ? 0.72 : 0.4)
   ctx.restore()

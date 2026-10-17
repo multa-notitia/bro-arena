@@ -1,7 +1,16 @@
 import { dist2 } from '../core/math.ts'
 import type { Enemy, StatusEffect, World } from '../core/types.ts'
+import type { DeathStyle } from '../data/chaos.ts'
+import { CHAOS, chaosJuiceOn, deathStyleForWeapon } from '../data/chaos.ts'
 import { addTrauma, flashStrength, requestHitStop } from '../feel.ts'
 import { kickHurtClip } from '../render/sheets.ts'
+import {
+  chainBurst,
+  juiceHitFeel,
+  juiceHitStop,
+  juiceOnKill,
+  rememberDeathStyle,
+} from './chaosJuice.ts'
 import { extraState, countSpecial, healPlayer } from './player.ts'
 import { spawnMaterial } from './pickups.ts'
 import type { SimCtx } from './world.ts'
@@ -20,6 +29,9 @@ export interface HurtOpts {
   burnTick?: boolean
   /** Knife hack. Non-lethal chips; a kill marks the enemy sliced. */
   slice?: boolean
+  /** Drives death_slice / death_smash when authored clips exist. */
+  deathStyle?: DeathStyle
+  weaponId?: string
 }
 
 function unit(dx: number, dy: number): { x: number; y: number } {
@@ -62,8 +74,11 @@ export function dealDamageToEnemy(
   // Knock away from the player unless a shot direction was given.
   const kx = opts.dirX !== undefined ? dir.x : -dir.x
   const ky = opts.dirY !== undefined ? dir.y : -dir.y
+  const style = opts.deathStyle ?? (opts.weaponId ? deathStyleForWeapon(opts.weaponId) : opts.slice ? 'slice' : 'normal')
+  rememberDeathStyle(enemy, style)
   if (!opts.burnTick) {
-    const kb = (opts.knockback ?? 0) * (1 + stats.knockback / 100) * (1 - enemy.def.knockbackResist)
+    const juiceKb = chaosJuiceOn() ? CHAOS.juice.knockback : 1
+    const kb = (opts.knockback ?? 0) * (1 + stats.knockback / 100) * (1 - enemy.def.knockbackResist) * juiceKb
     enemy.knock.x += kx * kb * 8
     enemy.knock.y += ky * kb * 8
     ctx.render.fx.hitSpark(enemy.x, enemy.y, Math.atan2(ky, kx), opts.color ?? enemy.def.palette.accent)
@@ -88,9 +103,14 @@ export function dealDamageToEnemy(
   else if (crit) ctx.audio.play('crit')
   else ctx.audio.play('hit', { gain: 0.7 })
 
-  addTrauma(world, crit ? 5.2 : 2.4, kx, ky)
-  if (crit) requestHitStop('crit')
-  else if (!opts.burnTick) requestHitStop('hit')
+  if (chaosJuiceOn() && !opts.burnTick) {
+    juiceHitFeel(world, enemy, dmg, kx, ky, crit)
+    juiceHitStop(dmg, enemy.hp <= 0)
+  } else {
+    addTrauma(world, crit ? 5.2 : 2.4, kx, ky)
+    if (crit) requestHitStop('crit')
+    else if (!opts.burnTick) requestHitStop('hit')
+  }
 
   if (!opts.burnTick && !opts.thorns) {
     const steal = (opts.lifeSteal ?? 0) + stats.lifeSteal
@@ -110,6 +130,10 @@ export function dealDamageToEnemy(
   if (killed) {
     enemy.hp = 0
     if (opts.slice) enemy.sliced = true
+    if (chaosJuiceOn() && !opts.thorns && !opts.burnTick) {
+      juiceOnKill(world, enemy, ctx, dmg)
+      chainBurst(world, enemy, ctx, dmg)
+    }
     if (opts.explode !== false && !opts.thorns && !opts.burnTick) {
       const stacks = countSpecial(world.player, 'explodeOnKill')
       if (stacks > 0) {

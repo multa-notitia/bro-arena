@@ -1,0 +1,222 @@
+{
+ "image": "enemy-bean-light.webp",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "columns": 8,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.695
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 170 },
+    { "i": 1, "ms": 140 },
+    { "i": 1, "ms": 140 },
+    { "i": 0, "ms": 170 },
+    { "i": 2, "ms": 90 },
+    { "i": 3, "ms": 150 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 4, "ms": 70 },
+    { "i": 5, "ms": 50, "oy": -2.0 },
+    { "i": 6, "ms": 80, "oy": -8.0 },
+    { "i": 7, "ms": 80, "oy": -11.0 },
+    { "i": 8, "ms": 70, "oy": -6.0 },
+    { "i": 9, "ms": 60 },
+    { "i": 10, "ms": 70 },
+    { "i": 11, "ms": 60 }
+   ]
+  },
+  "leap": {
+   "loop": false,
+   "frames": [
+    { "i": 12, "ms": 130 },
+    { "i": 13, "ms": 80, "ox": -0.8 },
+    { "i": 14, "ms": 50, "event": "takeoff" },
+    { "i": 15, "ms": 90 },
+    { "i": 16, "ms": 90 },
+    { "i": 17, "ms": 90 },
+    { "i": 18, "ms": 80 },
+    { "i": 9, "ms": 70, "event": "land" },
+    { "i": 10, "ms": 80 },
+    { "i": 11, "ms": 80 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 19, "ms": 40, "event": "hurt" },
+    { "i": 20, "ms": 60 },
+    { "i": 21, "ms": 80 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 22, "ms": 80 },
+    { "i": 23, "ms": 45, "oy": -5.0, "event": "hit" },
+    { "i": 24, "ms": 70, "oy": -3.0 },
+    { "i": 25, "ms": 70 },
+    { "i": 26, "ms": 80 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 27, "ms": 50 },
+    { "i": 28, "ms": 50 },
+    { "i": 29, "ms": 50, "event": "spawnFx" },
+    { "i": 30, "ms": 60 },
+    { "i": 31, "ms": 70 },
+    { "i": 32, "ms": 80 },
+    { "i": 33, "ms": 90 },
+    { "i": 34, "ms": 90 },
+    { "i": 35, "ms": 950 }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    { "i": 36, "ms": 45 },
+    { "i": 37, "ms": 50, "event": "spawnFx" },
+    { "i": 38, "ms": 55 },
+    { "i": 39, "ms": 60 },
+    { "i": 40, "ms": 70 },
+    { "i": 41, "ms": 80 },
+    { "i": 42, "ms": 950 }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    { "i": 43, "ms": 40 },
+    { "i": 44, "ms": 50 },
+    { "i": 45, "ms": 50, "event": "spawnFx" },
+    { "i": 46, "ms": 60 },
+    { "i": 47, "ms": 70 },
+    { "i": 48, "ms": 80 },
+    { "i": 49, "ms": 950 }
+   ]
+  },
+  "taunt": {
+   "loop": false,
+   "frames": [
+    { "i": 50, "ms": 70 },
+    { "i": 51, "ms": 80, "oy": -6.0 },
+    { "i": 52, "ms": 70, "oy": -7.0 },
+    { "i": 53, "ms": 80 },
+    { "i": 54, "ms": 100 }
+   ]
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    { "i": 55, "ms": 120 },
+    { "i": 56, "ms": 90 },
+    { "i": 57, "ms": 80 },
+    { "i": 58, "ms": 60, "event": "emerge_fx" },
+    { "i": 59, "ms": 70 },
+    { "i": 60, "ms": 70 },
+    { "i": 61, "ms": 70 },
+    { "i": 62, "ms": 80 },
+    { "i": 0, "ms": 90, "event": "emerged" }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Bean jumper (light): cheeky 3-bean pod on frog legs, beanvar layers",
+  "source": "derived_light.png",
+  "cells": [
+   "idle0",
+   "idle1",
+   "idle4",
+   "idle5",
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "leap0",
+   "leap1",
+   "leap2",
+   "leap3",
+   "leap4",
+   "leap5",
+   "leap6",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "attack4",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4",
+   "death5",
+   "death6",
+   "death7",
+   "death8",
+   "death_slice0",
+   "death_slice1",
+   "death_slice2",
+   "death_slice3",
+   "death_slice4",
+   "death_slice5",
+   "death_slice6",
+   "death_smash0",
+   "death_smash1",
+   "death_smash2",
+   "death_smash3",
+   "death_smash4",
+   "death_smash5",
+   "death_smash6",
+   "taunt0",
+   "taunt1",
+   "taunt2",
+   "taunt3",
+   "taunt4",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "emerge3",
+   "emerge4",
+   "emerge5",
+   "emerge6",
+   "emerge7"
+  ],
+  "feetY": 220.16,
+  "gameRadius": 17,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-bean-light/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-bean-light.png",
+  "airOffsetY": {
+   "leap": [
+    0,
+    0,
+    -4,
+    -16,
+    -22,
+    -16,
+    -6,
+    0,
+    0,
+    0
+   ]
+  },
+  "leapNote": "leap frames are in place: move the body from the takeoff frame to the land frame (400 ms), arc = airOffsetY (world px). walk hops carry their own oy.",
+  "emergeNote": "emerge cells 0-7 include the bean plant (fades out); emerge_fx on the pop-off, emerged on the last frame."
+ }
+}

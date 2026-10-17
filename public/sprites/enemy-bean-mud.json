@@ -1,0 +1,229 @@
+{
+ "image": "enemy-bean-mud.webp",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "columns": 8,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.696
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 230 },
+    { "i": 1, "ms": 210, "ox": 0.96 },
+    { "i": 2, "ms": 230, "ox": -0.64 },
+    { "i": 3, "ms": 200, "ox": 1.2 },
+    { "i": 4, "ms": 110, "ox": -1.04 },
+    { "i": 5, "ms": 220, "ox": 0.48 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 6, "ms": 90 },
+    { "i": 7, "ms": 50, "oy": -2.0 },
+    { "i": 8, "ms": 80, "oy": -7.0 },
+    { "i": 9, "ms": 80, "oy": -9.0 },
+    { "i": 10, "ms": 70, "oy": -4.0 },
+    { "i": 11, "ms": 70, "ox": -1.2 },
+    { "i": 12, "ms": 70, "ox": 1.0 },
+    { "i": 13, "ms": 80 }
+   ]
+  },
+  "leap": {
+   "loop": false,
+   "frames": [
+    { "i": 6, "ms": 140 },
+    { "i": 14, "ms": 90, "ox": -1.2 },
+    { "i": 7, "ms": 50, "event": "takeoff" },
+    { "i": 8, "ms": 90 },
+    { "i": 9, "ms": 90 },
+    { "i": 10, "ms": 90 },
+    { "i": 10, "ms": 80 },
+    { "i": 11, "ms": 80, "ox": -1.6, "event": "land" },
+    { "i": 12, "ms": 90, "ox": 1.2 },
+    { "i": 13, "ms": 90 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 15, "ms": 40, "ox": -2.0, "event": "hurt" },
+    { "i": 16, "ms": 60, "ox": -1.5 },
+    { "i": 17, "ms": 80, "ox": -0.6 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 18, "ms": 90 },
+    { "i": 19, "ms": 50, "oy": -5.0 },
+    { "i": 20, "ms": 50, "ox": 1.5, "oy": -3.0, "event": "hit" },
+    { "i": 21, "ms": 70, "ox": -1.5 },
+    { "i": 22, "ms": 70 },
+    { "i": 23, "ms": 90 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 24, "ms": 50 },
+    { "i": 25, "ms": 60 },
+    { "i": 26, "ms": 50, "event": "spawnFx" },
+    { "i": 27, "ms": 60 },
+    { "i": 28, "ms": 70 },
+    { "i": 29, "ms": 90 },
+    { "i": 30, "ms": 1000 }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    { "i": 31, "ms": 45 },
+    { "i": 32, "ms": 50, "event": "spawnFx" },
+    { "i": 33, "ms": 55 },
+    { "i": 34, "ms": 55 },
+    { "i": 35, "ms": 60 },
+    { "i": 36, "ms": 70 },
+    { "i": 37, "ms": 60 },
+    { "i": 38, "ms": 1000 }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    { "i": 39, "ms": 40 },
+    { "i": 40, "ms": 50 },
+    { "i": 41, "ms": 50, "event": "spawnFx" },
+    { "i": 42, "ms": 60 },
+    { "i": 43, "ms": 70 },
+    { "i": 44, "ms": 80 },
+    { "i": 45, "ms": 1000 }
+   ]
+  },
+  "scream": {
+   "loop": false,
+   "frames": [
+    { "i": 46, "ms": 140 },
+    { "i": 47, "ms": 100, "ox": 0.6 },
+    { "i": 48, "ms": 60, "event": "scream" },
+    { "i": 49, "ms": 70, "ox": 1.6 },
+    { "i": 50, "ms": 70, "ox": -1.6 },
+    { "i": 49, "ms": 70, "ox": 1.4 },
+    { "i": 50, "ms": 70, "ox": -1.4 },
+    { "i": 49, "ms": 70, "ox": 1.0 },
+    { "i": 51, "ms": 100 },
+    { "i": 52, "ms": 120 }
+   ]
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    { "i": 53, "ms": 90 },
+    { "i": 54, "ms": 80, "event": "emerge_fx" },
+    { "i": 55, "ms": 80 },
+    { "i": 56, "ms": 90 },
+    { "i": 57, "ms": 90, "ox": 1.2 },
+    { "i": 58, "ms": 90, "ox": -1.2 },
+    { "i": 59, "ms": 80 },
+    { "i": 60, "ms": 70, "ox": 1.6 },
+    { "i": 61, "ms": 70, "ox": -1.6 },
+    { "i": 62, "ms": 80 },
+    { "i": 0, "ms": 60, "event": "emerged" }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Mud bean jumper: dripping red-eyed bean blob, needle-tooth scream, beanvar layers",
+  "source": "derived_mud.png",
+  "cells": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "leap1",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "attack4",
+   "attack5",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4",
+   "death5",
+   "death6",
+   "death_slice0",
+   "death_slice1",
+   "death_slice2",
+   "death_slice3",
+   "death_slice4",
+   "death_slice5",
+   "death_slice6",
+   "death_slice7",
+   "death_smash0",
+   "death_smash1",
+   "death_smash2",
+   "death_smash3",
+   "death_smash4",
+   "death_smash5",
+   "death_smash6",
+   "scream0",
+   "scream1",
+   "scream2",
+   "scream3",
+   "scream4",
+   "scream8",
+   "scream9",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "emerge3",
+   "emerge4",
+   "emerge5",
+   "emerge6",
+   "emerge7",
+   "emerge8",
+   "emerge9"
+  ],
+  "feetY": 225.28,
+  "gameRadius": 19,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-bean-mud/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-bean-mud.png",
+  "airOffsetY": {
+   "leap": [
+    0,
+    0,
+    -3,
+    -12,
+    -17,
+    -12,
+    -5,
+    0,
+    0,
+    0
+   ]
+  },
+  "leapNote": "leap frames are in place: move the body from the takeoff frame to the land frame (430 ms), arc = airOffsetY (world px). walk hops carry their own oy.",
+  "emergeNote": "mud hole is baked into emerge (fades); emerge_fx on the first claw break, emerged on the last frame."
+ }
+}
