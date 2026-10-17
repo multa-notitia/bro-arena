@@ -245,6 +245,7 @@ button {
 }
 
 .bar {
+  position: relative;
   height: 11px;
   background: rgba(42, 33, 24, 0.16);
   border: 1px solid var(--line);
@@ -253,11 +254,40 @@ button {
 }
 
 .bar-fill {
+  position: absolute;
+  inset: 0;
   height: 100%;
   width: 100%;
   transform-origin: left center;
   transform: scaleX(1);
   will-change: transform;
+}
+
+.bar-delay {
+  z-index: 0;
+}
+
+.hp-bar .bar-delay {
+  background: #7a3028;
+}
+
+.xp-bar .bar-delay {
+  background: #1e5a50;
+}
+
+.juice-btn {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.bag-count.is-pop {
+  animation: bag-pop 0.28s ease-out;
+}
+
+@keyframes bag-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
 }
 
 .hp-bar .bar-fill {

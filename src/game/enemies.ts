@@ -13,6 +13,7 @@ import { dropFromEnemy, enemyMaterialValue } from './pickups.ts'
 import { farmHpMult, farmNightmareBonus } from './farm.ts'
 import { createAnim, tickFaceAnim } from './player.ts'
 import { spawnProjectile } from './projectiles.ts'
+import { addTrauma, FEEL, requestHitStop } from '../feel.ts'
 import { clampToArena } from './world.ts'
 import type { SimCtx } from './world.ts'
 
@@ -143,6 +144,11 @@ export function spawnEnemy(
   if (parent) parent.children += 1
   ctx.render.fx.inkBloom(pos.x, pos.y, def.palette.body, r * 1.4)
   ctx.audio.play('spawn', { gain: boss ? 1 : 0.55, pitch: boss ? 0.7 : 1 })
+  if (boss) {
+    ctx.render.fx.shockwave(pos.x, pos.y, 160, def.palette.accent)
+    ctx.render.fx.inkBurst(pos.x, pos.y, r * 2.2)
+    addTrauma(world, FEEL.shake.bossEnter, 0, 1)
+  }
   if (
     fromMarker &&
     form === 'nightmare' &&
@@ -172,26 +178,30 @@ export function beginDeath(world: World, enemy: Enemy, ctx: SimCtx, magnet = fal
   const matsRaw = enemyMaterialValue(world, enemy.def, ctx)
   const mats = enemy.form === 'nightmare' ? Math.max(1, Math.round(matsRaw * 1.5)) : matsRaw
   dropFromEnemy(world, enemy.x, enemy.y, mats, enemy.elite && !enemy.boss, ctx, magnet, enemy)
-  if (enemy.sliced) {
-    ctx.render.fx.chunks(
-      enemy.x,
-      enemy.y,
-      { body: enemy.def.palette.body, shade: enemy.def.palette.shade, accent: enemy.def.palette.accent },
-      enemy.r * 1.35,
-      true,
-    )
-  } else {
-    ctx.render.fx.splat(enemy.x, enemy.y, enemy.def.palette.body, enemy.r * 1.6, enemy.boss ? 18 : 8)
-    ctx.render.fx.puff(enemy.x, enemy.y, enemy.def.palette.shade, enemy.r)
-  }
+  enemy.anim.squash = 0.35
+  const pal = enemy.def.palette
+  ctx.render.fx.inkBurst(enemy.x, enemy.y, enemy.r * FEEL.kill.inkSize)
+  ctx.render.fx.chunks(
+    enemy.x,
+    enemy.y,
+    { body: pal.body, shade: pal.shade, accent: pal.accent },
+    enemy.r * FEEL.kill.chunkScale,
+    true,
+  )
+  ctx.render.fx.splat(enemy.x, enemy.y, pal.body, enemy.r * 1.55, enemy.boss ? 16 : 9)
+  ctx.render.fx.puff(enemy.x, enemy.y, pal.shade, enemy.r * 1.1)
   if (enemy.form === 'nightmare') ctx.audio.play('mudSquelch')
+  const dx = enemy.x - world.player.x
+  const dy = enemy.y - world.player.y
   if (enemy.boss) {
-    ctx.render.fx.shockwave(enemy.x, enemy.y, 140, enemy.def.palette.accent)
+    ctx.render.fx.shockwave(enemy.x, enemy.y, 140, pal.accent)
     ctx.audio.play('bossDie')
-    world.camera.shake = Math.min(28, world.camera.shake + 16)
+    addTrauma(world, FEEL.shake.bossKill, dx, dy)
+    requestHitStop('bossKill')
   } else {
     ctx.audio.play('enemyDie', { gain: enemy.elite ? 1 : 0.7 })
-    if (enemy.elite) world.camera.shake = Math.min(20, world.camera.shake + 6)
+    addTrauma(world, enemy.elite ? FEEL.shake.eliteKill : FEEL.shake.kill, dx, dy)
+    requestHitStop(enemy.elite ? 'eliteKill' : 'kill')
   }
 }
 
@@ -507,7 +517,7 @@ function fireScreamBurst(world: World, e: Enemy, ctx: SimCtx): void {
   const glow = e.def.palette.glow ?? '#d9ff5c'
   ctx.render.fx.shockwave(e.x, e.y, 80 + e.r, glow)
   if (dist(e.x, e.y, world.player.x, world.player.y) <= 400) {
-    world.camera.shake = Math.min(26, world.camera.shake + (e.boss ? 12 : 6))
+    addTrauma(world, e.boss ? FEEL.shake.scream * 1.6 : FEEL.shake.scream, e.x - world.player.x, e.y - world.player.y)
   }
   ctx.audio.play(e.boss ? 'screamBig' : 'scream')
 }

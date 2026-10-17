@@ -1,5 +1,6 @@
 import { clamp, dist2, uid, wrapAngle } from '../core/math.ts'
 import type { Projectile, ProjectileDef, StatusEffect, World } from '../core/types.ts'
+import { FEEL } from '../feel.ts'
 import { dealDamageToEnemy, damagePlayer } from './combat.ts'
 import { hitTree } from './pickups.ts'
 import type { SimCtx } from './world.ts'
@@ -93,7 +94,8 @@ export function updateProjectiles(world: World, dt: number, ctx: SimCtx): void {
     p.angle = Math.atan2(p.vy, p.vx)
 
     p.trail.push({ x: p.x, y: p.y })
-    if (p.trail.length > 6) p.trail.splice(0, p.trail.length - 6)
+    const maxTrail = FEEL.projectile.trailPts
+    if (p.trail.length > maxTrail) p.trail.splice(0, p.trail.length - maxTrail)
 
     let dead = false
     if (p.x < -hw || p.x > hw) {
@@ -130,6 +132,7 @@ export function updateProjectiles(world: World, dt: number, ctx: SimCtx): void {
           dirY: p.vy,
           color: world.player.character.palette.accent,
         })
+        ctx.render.fx.impact(p.x, p.y, p.angle, world.player.character.palette.accent)
         p.pierce -= 1
         if (p.pierce < 0) {
           dead = true

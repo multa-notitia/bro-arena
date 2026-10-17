@@ -1,5 +1,6 @@
 import { dist2 } from '../core/math.ts'
 import type { Enemy, StatusEffect, World } from '../core/types.ts'
+import { addTrauma, flashStrength, requestHitStop } from '../feel.ts'
 import { extraState, countSpecial, healPlayer } from './player.ts'
 import { spawnMaterial } from './pickups.ts'
 import type { SimCtx } from './world.ts'
@@ -50,7 +51,7 @@ export function dealDamageToEnemy(
   enemy.hp -= dmg
   world.player.damageDealt += dmg
   enemy.anim.hitFlash = 1
-  enemy.anim.squash = 0.72
+  enemy.anim.squash = 0.62
 
   const dir = unit(
     opts.dirX ?? world.player.x - enemy.x,
@@ -85,7 +86,9 @@ export function dealDamageToEnemy(
   else if (crit) ctx.audio.play('crit')
   else ctx.audio.play('hit', { gain: 0.7 })
 
-  if (crit) world.camera.shake = Math.min(18, world.camera.shake + 2.5)
+  addTrauma(world, crit ? 5.2 : 2.4, kx, ky)
+  if (crit) requestHitStop('crit')
+  else if (!opts.burnTick) requestHitStop('hit')
 
   if (!opts.burnTick && !opts.thorns) {
     const steal = (opts.lifeSteal ?? 0) + stats.lifeSteal
@@ -157,19 +160,21 @@ export function damagePlayer(
   player.damageTaken += taken
   player.invuln = 0.5
   player.anim.hitFlash = 1
-  world.camera.shake = Math.min(22, world.camera.shake + 9)
+  requestHitStop('hurt')
   ctx.audio.play('playerHurt')
-  ctx.render.fx.flash('rgba(140,22,18,0.55)', 0.5)
+  ctx.render.fx.flash('rgba(140,22,18,0.55)', flashStrength(0.5))
   ctx.render.fx.splat(player.x, player.y, player.character.palette.body, 12, 6)
   ctx.render.fx.damageNumber(player.x, player.y - 20, taken)
+  if (!sourceEnemy) addTrauma(world, 11, 0, 1)
 
   const extra = extraState(player)
   extra.flinchT = 0.3
 
   if (sourceEnemy) {
     const away = unit(player.x - sourceEnemy.x, player.y - sourceEnemy.y)
-    player.anim.kick.x += away.x * 14
-    player.anim.kick.y += away.y * 14
+    addTrauma(world, 11, -away.x, -away.y)
+    player.anim.kick.x += away.x * 18
+    player.anim.kick.y += away.y * 18
     let thorns = countSpecial(player, 'thorns')
     if (player.character.special === 'thornsHalf') thorns += Math.max(1, Math.round(amount * 0.5))
     if (thorns > 0 && sourceEnemy.state !== 'dying') {

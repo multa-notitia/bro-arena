@@ -1,4 +1,5 @@
 import { dist, dist2, TAU, wrapAngle } from '../core/math.ts'
+import { addTrauma, FEEL } from '../feel.ts'
 import type {
   Enemy,
   StatusEffect,
@@ -123,8 +124,10 @@ function fireShot(
   const mx = player.x + Math.cos(angle) * muzzle
   const my = player.y + Math.sin(angle) * muzzle
   ctx.render.fx.hitSpark(mx, my, angle, color)
-  player.anim.kick.x -= Math.cos(angle) * 5
-  player.anim.kick.y -= Math.sin(angle) * 5
+  ctx.render.fx.muzzleFlash(mx, my, angle, color)
+  player.anim.kick.x -= Math.cos(angle) * 9
+  player.anim.kick.y -= Math.sin(angle) * 9
+  addTrauma(world, FEEL.shake.weaponKick, -Math.cos(angle), -Math.sin(angle))
 
   for (let i = 0; i < count; i++) {
     const t = count === 1 ? 0 : (i / (count - 1) - 0.5) * 2
@@ -165,8 +168,9 @@ function doThrust(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, 
   const width = 14 + b.reach * 0.12
   ctx.render.fx.thrust(ax, ay, angle, len, accentColor(world))
   ctx.audio.play('stab')
-  player.anim.kick.x += Math.cos(angle) * 10
-  player.anim.kick.y += Math.sin(angle) * 10
+  player.anim.kick.x += Math.cos(angle) * 14
+  player.anim.kick.y += Math.sin(angle) * 14
+  addTrauma(world, FEEL.shake.weaponKick * 0.85, Math.cos(angle), Math.sin(angle))
   startSwing(w)
 
   for (const e of world.enemies) {
@@ -244,6 +248,9 @@ function doKnifeSlash(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimC
     color: accentColor(world),
   })
   ctx.audio.play('swing')
+  player.anim.kick.x += Math.cos(w.angle) * 10
+  player.anim.kick.y += Math.sin(w.angle) * 10
+  addTrauma(world, FEEL.shake.weaponKick, Math.cos(w.angle), Math.sin(w.angle))
   startSwing(w)
 }
 
@@ -256,6 +263,9 @@ function doSweep(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, r
   opts.color = accentColor(world)
   ctx.render.fx.slash(player.x, player.y, w.angle, b.arc, range, accentColor(world))
   ctx.audio.play('swing')
+  player.anim.kick.x += Math.cos(w.angle) * 8
+  player.anim.kick.y += Math.sin(w.angle) * 8
+  addTrauma(world, FEEL.shake.weaponKick * 0.7, Math.cos(w.angle), Math.sin(w.angle))
   startSwing(w)
   const half = b.arc / 2
   for (const e of world.enemies) {

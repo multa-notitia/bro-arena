@@ -661,7 +661,11 @@ export interface Camera extends Vec {
   /** Viewport size in css px. */
   w: number
   h: number
+  /** Trauma magnitude in px; decaying. */
   shake: number
+  /** Unit direction the last trauma came from. */
+  shakeDirX: number
+  shakeDirY: number
   zoom: number
 }
 
@@ -876,6 +880,8 @@ export interface UiApi {
       muted: boolean
       paintStyle: PaintStyle
       setPaintStyle(style: PaintStyle): void
+      reducedJuice: boolean
+      setReducedJuice(v: boolean): void
     },
   ): void
   renderGameOver(summary: RunSummary, handlers: { retry(): void; title(): void }): void
@@ -891,6 +897,8 @@ export interface UiApi {
     muted: boolean
     paintStyle: PaintStyle
     setPaintStyle(style: PaintStyle): void
+    reducedJuice: boolean
+    setReducedJuice(v: boolean): void
   }): void
   onPauseRequest(handler: () => void): void
 }
@@ -928,6 +936,12 @@ export interface FxApi {
   text(x: number, y: number, text: string, color: string): void
   sparkle(x: number, y: number, color: string): void
   puff(x: number, y: number, color: string, size: number): void
+  /** Black ink burst + white sparks. Kill punctuation. */
+  inkBurst(x: number, y: number, size: number): void
+  muzzleFlash(x: number, y: number, angle: number, color?: string): void
+  impact(x: number, y: number, angle: number, color: string): void
+  dust(x: number, y: number, vx?: number, vy?: number): void
+  footprint(x: number, y: number): void
   /** Watercolor wedges. `kill` tumbles a full slice; a nick is a few chips. */
   chunks(
     x: number,

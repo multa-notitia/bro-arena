@@ -1,4 +1,5 @@
 import { clamp, damp, Rng } from '../core/math.ts'
+import { FEEL } from '../feel.ts'
 import type {
   AudioApi,
   CharacterDef,
@@ -48,7 +49,7 @@ export function createWorld(
     trees: [],
     markers: [],
     farm: createFarm(),
-    camera: { x: player.x, y: player.y, w: viewW, h: viewH, shake: 0, zoom: 1 },
+    camera: { x: player.x, y: player.y, w: viewW, h: viewH, shake: 0, shakeDirX: 0, shakeDirY: 1, zoom: 1 },
     boss: null,
     paused: false,
     slowMo: 1,
@@ -75,9 +76,11 @@ export function syncViewport(world: World, canvas: HTMLCanvasElement): void {
   const h = canvas.clientHeight || canvas.height
   world.camera.w = Math.max(1, w)
   world.camera.h = Math.max(1, h)
-  // ~1050 world px across on desktop so the vegetable reads at a playable size.
-  // ~780 world px across on desktop so faces and limbs read; phones stay wider.
-  world.camera.zoom = clamp(world.camera.w / 780, 1.0, 2.4)
+  world.camera.zoom = clamp(
+    world.camera.w / FEEL.camera.worldWidth,
+    FEEL.camera.zoomMin,
+    FEEL.camera.zoomMax,
+  )
 }
 
 export function clampToArena(world: World, x: number, y: number, r: number): Vec {
@@ -99,8 +102,12 @@ export function updateCamera(world: World, dt: number): void {
   const maxY = Math.max(0, world.arenaHalfH - halfH)
   cam.x = clamp(cam.x, -maxX, maxX)
   cam.y = clamp(cam.y, -maxY, maxY)
-  cam.shake = damp(cam.shake, 0, 7, dt)
-  if (cam.shake < 0.05) cam.shake = 0
+  cam.shake = damp(cam.shake, 0, FEEL.shake.decay, dt)
+  if (cam.shake < 0.05) {
+    cam.shake = 0
+    cam.shakeDirX = 0
+    cam.shakeDirY = 1
+  }
 }
 
 export function updateTrees(world: World, dt: number): void {
