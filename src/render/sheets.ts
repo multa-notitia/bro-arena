@@ -499,6 +499,12 @@ export function kickHurtClip(playKey: string): void {
   hurtKicks.add(playKey)
 }
 
+/** Death owns the body. Drop a pending hurt replay and the cream hurt cell. */
+export function clearHurtState(playKey: string): void {
+  hurtKicks.delete(playKey)
+  heads.get(playKey)?.clips.delete('hurt')
+}
+
 export function consumeHurtKick(playKey: string): boolean {
   return hurtKicks.delete(playKey)
 }

@@ -373,13 +373,15 @@ function drawEnemy(
   cache: SpriteCache,
   time: number,
 ): void {
-  if (e.sliced) return
   const species = resolveSpecies(e.def.paint, e.def.species, e.kind)
   const form: Form = e.form ?? e.def.form ?? 'normal'
   const model = foeModel(form)
   const pal = e.def.palette ?? SPECIES_PALETTES[species]
   const artR = sizeBucket(e.r)
   const sheet = resolveSheet(sheetKeysForEnemy(e.kind, form))
+  // A killing slash used to hide the body and leave watercolor chunks.
+  // Authored deaths play the sheet instead; that clip is the corpse.
+  if (e.sliced && !sheet?.manifest.clips.death) return
   const spr = sheet ? null : creatureSprite(cache, species, pal, form, artR, qScale, model, true)
   const spawn = clamp(e.anim.spawnT, 0, 1)
   const dying = e.anim.deathT >= 0
@@ -406,9 +408,10 @@ function drawEnemy(
   ctx.translate(ox, oy)
   if (sheet) {
     const playKey = `e:${e.uid}`
+    const dyingSheet = e.state === 'dying' || e.anim.deathT >= 0
     const clip = pickClip(sheet, e.anim, {
       attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
-      hurt: actorClipActive(playKey, 'hurt'),
+      hurt: !dyingSheet && actorClipActive(playKey, 'hurt'),
     })
     ctx.globalAlpha = appear * (1 - (sheet.manifest.clips.death ? 0 : death))
     if (clip) {
@@ -463,7 +466,7 @@ function drawEnemy(
     model,
   })
   ctx.restore()
-  if (e.anim.hitFlash > 0.02) {
+  if (e.anim.hitFlash > 0.02 && e.anim.deathT < 0 && e.state !== 'dying') {
     ctx.save()
     ctx.globalAlpha = e.anim.hitFlash * 0.65
     ctx.fillStyle = '#fff6e8'

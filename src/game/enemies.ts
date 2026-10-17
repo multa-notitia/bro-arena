@@ -18,6 +18,7 @@ import {
   actorClipActive,
   actorClipDone,
   advanceActorSheet,
+  clearHurtState,
   clipHasEvent,
   consumeHurtKick,
   forgetActor,
@@ -27,6 +28,7 @@ import {
   sheetKeysForEnemy,
   type LoadedSheet,
 } from '../render/sheets.ts'
+import { retainSpawned } from './roster.ts'
 import { clampToArena } from './world.ts'
 import type { SimCtx } from './world.ts'
 
@@ -197,6 +199,9 @@ export function beginDeath(world: World, enemy: Enemy, ctx: SimCtx, magnet = fal
   enemy.stateT = 0
   enemy.hp = 0
   enemy.anim.deathT = 0
+  enemy.anim.hitFlash = 0
+  const playKey = enemyKey(enemy)
+  clearHurtState(playKey)
   world.player.kills += 1
   const ex = extra(enemy)
   if (ex.parentUid !== null) {
@@ -209,17 +214,23 @@ export function beginDeath(world: World, enemy: Enemy, ctx: SimCtx, magnet = fal
   enemy.anim.squash = 0.35
   const pal = enemy.def.palette
   const deathSheet = enemySheet(enemy)
-  const authoredBurst = !!deathSheet && clipHasEvent(deathSheet, 'death', 'spawnFx')
+  const authoredDeath = !!deathSheet?.manifest.clips.death
+  if (authoredDeath) restartActorClip(playKey, 'death')
+  const authoredBurst = !!deathSheet && authoredDeath && clipHasEvent(deathSheet, 'death', 'spawnFx')
   if (!authoredBurst) ctx.render.fx.inkBurst(enemy.x, enemy.y, enemy.r * FEEL.kill.inkSize)
-  ctx.render.fx.chunks(
-    enemy.x,
-    enemy.y,
-    { body: pal.body, shade: pal.shade, accent: pal.accent },
-    enemy.r * FEEL.kill.chunkScale,
-    true,
-  )
-  ctx.render.fx.splat(enemy.x, enemy.y, pal.body, enemy.r * 1.55, enemy.boss ? 16 : 9)
-  ctx.render.fx.puff(enemy.x, enemy.y, pal.shade, enemy.r * 1.1)
+  // Painted death and the ink burst are the corpse. A body-colored splat or a
+  // cream chunk highlight would sit on the soil after the clip as a white fill.
+  if (!authoredDeath) {
+    ctx.render.fx.chunks(
+      enemy.x,
+      enemy.y,
+      { body: pal.body, shade: pal.shade, accent: pal.accent },
+      enemy.r * FEEL.kill.chunkScale,
+      true,
+    )
+    ctx.render.fx.splat(enemy.x, enemy.y, pal.body, enemy.r * 1.55, enemy.boss ? 16 : 9)
+    ctx.render.fx.puff(enemy.x, enemy.y, pal.shade, enemy.r * 1.1)
+  }
   if (enemy.form === 'nightmare') ctx.audio.play('mudSquelch')
   const dx = enemy.x - world.player.x
   const dy = enemy.y - world.player.y
@@ -585,6 +596,9 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const dead = e.state === 'dying' || e.anim.deathT >= 0
   const attacking = e.state === 'windup' || e.state === 'charging' || e.state === 'shooting'
   const key = enemyKey(e)
+  // A killing blow queues a hurt replay before death starts. Swallow it so the
+  // cream hurt cell cannot replace, or restart, the death clip.
+  if (dead) consumeHurtKick(key)
   const hurtClip = !dead && !!sheet.manifest.clips.hurt
   // The first hurt cell is a solid cream flash (40 ms). Restarting on every
   // hit — multi-arm swings, burn ticks — holds that cell, so the blob reads
@@ -851,6 +865,7 @@ export function nightmaresAlive(world: World): number {
 
 export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
   const player = world.player
+  const roster = new Set(world.enemies)
   const keep: Enemy[] = []
 
   for (const e of world.enemies) {
@@ -991,11 +1006,10 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     keep.push(e)
   }
 
-  const kept = new Set(keep.map((e) => e.uid))
-  for (const e of world.enemies) {
-    if (!kept.has(e.uid)) keep.push(e)
-  }
-  world.enemies = keep
+  // A finished death is left out of `keep` on purpose. Putting every missing
+  // uid back resurrected the corpse, and the fresh playhead was the cream
+  // first cell of the death clip. Only actors spawned during this pass join.
+  world.enemies = retainSpawned(roster, world.enemies, keep)
   separate(world)
 
   world.boss = null
