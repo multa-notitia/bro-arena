@@ -2,7 +2,7 @@ import { CHAOS, chaosOn } from '../data/chaos.ts'
 import type { Enemy } from '../core/types.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
 import { hasClip, resolveEnemySheet } from '../render/chaosSheets.ts'
-import { actorClipDone, clipHasEvent, restartActorClip } from '../render/sheets.ts'
+import { actorClipDone, actorClipFraction, clipHasEvent, restartActorClip } from '../render/sheets.ts'
 import type { SimCtx } from './world.ts'
 
 const ready = new WeakSet<Enemy>()
@@ -69,9 +69,10 @@ export function tickEmerge(e: Enemy, dt: number, ctx: SimCtx): boolean {
   e.stateT += dt
   const sheet = resolveEnemySheet(e.kind, e.form)
   const authored = hasClip(sheet, 'emerge')
+  const key = `e:${e.uid}`
   if (authored) {
-    e.anim.spawnT = Math.min(1, 0.55 + e.stateT)
-    if (sheet && !clipHasEvent(sheet, 'emerge', 'emerged') && actorClipDone(`e:${e.uid}`, 'emerge')) {
+    e.anim.spawnT = actorClipFraction(key, 'emerge')
+    if (sheet && !clipHasEvent(sheet, 'emerge', 'emerged') && actorClipDone(key, 'emerge')) {
       ready.add(e)
     }
     if (!erupted.has(e) && sheet && !clipHasEvent(sheet, 'emerge', 'emerge_fx') && e.stateT > 0.12) {
@@ -83,8 +84,8 @@ export function tickEmerge(e: Enemy, dt: number, ctx: SimCtx): boolean {
     if (e.stateT >= dur * 0.45 && !erupted.has(e)) emergeEvents(e, ['emerge_fx'], ctx)
     if (e.stateT >= dur) ready.add(e)
   }
-  if (ready.has(e)) {
-    e.state = 'idle'
+  if (ready.has(e) || (authored && actorClipDone(key, 'emerge'))) {
+    ready.add(e)
     e.anim.spawnT = 1
     if (!erupted.has(e)) emergeEvents(e, ['emerge_fx'], ctx)
     return false

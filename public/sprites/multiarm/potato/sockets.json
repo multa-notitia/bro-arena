@@ -1,65 +1,77 @@
 {
- "units": "body px (parts/v1/body.png px); dir/aim = screen deg, y down, 0 = right (facing), -90 = up; CANONICAL = as if on the right side: side -1 slots mirror about their own x",
+ "units": "body px (parts/cc/body.png px of the side-view spud); dir/aim = screen deg, y down, 0 = right (facing), -90 = up",
+ "view": "side",
+ "mirror": "every slot is side +1 (facing right); nothing is mirrored per slot. When the target is behind the hero (or it walks left) the game mirrors the WHOLE composite (body cell + all arms) about the anchor x, exactly like it already does for sheets; aim maths stays in the unmirrored frame (mirror the target x about the anchor first). See compose_ref.MultiArm.frame(facing=-1).",
+ "layers": {
+  "front": "near side: drawn over the body (z > behindBodyZ), light arm + bud",
+  "back": "far side: behind the body (z < behindBodyZ), dark arm + dark hand"
+ },
  "slots": {
   "midR": {
    "pos": [
-    160,
-    116
+    154,
+    158
    ],
    "side": 1,
-   "dir": 70.0,
+   "dir": 54.0,
    "z": 11.0,
-   "native": true
+   "native": true,
+   "layer": "front"
   },
   "midL": {
    "pos": [
-    16,
-    116
-   ],
-   "side": -1,
-   "dir": 70.0,
-   "z": 11.2,
-   "native": true
-  },
-  "upL": {
-   "pos": [
     26,
-    50
+    126
    ],
-   "side": -1,
-   "dir": -30.0,
+   "side": 1,
+   "dir": 118.0,
    "z": 4.0,
-   "native": false
+   "native": true,
+   "layer": "back"
   },
   "upR": {
    "pos": [
-    150,
-    50
+    166,
+    124
    ],
    "side": 1,
-   "dir": -30.0,
-   "z": 4.1,
-   "native": false
+   "dir": -8.0,
+   "z": 11.4,
+   "native": false,
+   "layer": "front"
   },
-  "lowL": {
+  "upL": {
    "pos": [
-    32,
-    158
+    62,
+    26
    ],
-   "side": -1,
-   "dir": 40.0,
+   "side": 1,
+   "dir": -42.0,
    "z": 3.6,
-   "native": false
+   "native": false,
+   "layer": "back"
   },
   "lowR": {
    "pos": [
-    144,
-    158
+    140,
+    190
    ],
    "side": 1,
-   "dir": 40.0,
-   "z": 3.7,
-   "native": false
+   "dir": 34.0,
+   "z": 11.6,
+   "native": false,
+   "layer": "front"
+  },
+  "lowL": {
+   "pos": [
+    22,
+    168
+   ],
+   "side": 1,
+   "dir": 146.0,
+   "z": 3.8,
+   "native": false,
+   "layer": "back"
   }
  },
  "layouts": {
@@ -81,7 +93,7 @@
    "slots": [
     "midR",
     "midL",
-    "upL"
+    "upR"
    ],
    "override": {}
   },
@@ -89,8 +101,8 @@
    "slots": [
     "midR",
     "midL",
-    "upL",
-    "upR"
+    "upR",
+    "upL"
    ],
    "override": {}
   },
@@ -98,82 +110,28 @@
    "slots": [
     "midR",
     "midL",
-    "upL",
     "upR",
-    "lowL"
+    "upL",
+    "lowR"
    ],
-   "override": {
-    "upL": {
-     "dir": -48.0
-    },
-    "upR": {
-     "dir": -48.0
-    },
-    "midR": {
-     "dir": 44.0
-    },
-    "midL": {
-     "dir": 44.0
-    },
-    "lowL": {
-     "pos": [
-      25,
-      150
-     ],
-     "dir": 12.0
-    },
-    "lowR": {
-     "pos": [
-      151,
-      150
-     ],
-     "dir": 12.0
-    }
-   }
+   "override": {}
   },
   "6": {
    "slots": [
     "midR",
     "midL",
-    "upL",
     "upR",
-    "lowL",
-    "lowR"
+    "upL",
+    "lowR",
+    "lowL"
    ],
-   "override": {
-    "upL": {
-     "dir": -48.0
-    },
-    "upR": {
-     "dir": -48.0
-    },
-    "midR": {
-     "dir": 44.0
-    },
-    "midL": {
-     "dir": 44.0
-    },
-    "lowL": {
-     "pos": [
-      25,
-      150
-     ],
-     "dir": 12.0
-    },
-    "lowR": {
-     "pos": [
-      151,
-      150
-     ],
-     "dir": 12.0
-    }
-   }
+   "override": {}
   }
  },
  "arms": {
   "native": {
-   "midR": "arm4",
-   "midL": "arm5",
+   "midR": "arm_bent2",
+   "midL": "arm_dark_bent2",
    "kind": "bent",
    "scale": 1.0
   },

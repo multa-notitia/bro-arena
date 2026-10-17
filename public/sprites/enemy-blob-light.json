@@ -1,0 +1,191 @@
+{
+ "image": "enemy-blob-light.webp",
+ "frameWidth": 208,
+ "frameHeight": 208,
+ "columns": 9,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.693
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 170 },
+    { "i": 1, "ms": 140 },
+    { "i": 2, "ms": 140 },
+    { "i": 3, "ms": 170 },
+    { "i": 4, "ms": 90 },
+    { "i": 5, "ms": 150 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 6, "ms": 40 },
+    { "i": 7, "ms": 70 },
+    { "i": 8, "ms": 60 },
+    { "i": 9, "ms": 40 },
+    { "i": 10, "ms": 50 },
+    { "i": 11, "ms": 60 },
+    { "i": 12, "ms": 50 },
+    { "i": 13, "ms": 40 },
+    { "i": 14, "ms": 60 },
+    { "i": 15, "ms": 50 },
+    { "i": 16, "ms": 50 },
+    { "i": 17, "ms": 50 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 18, "ms": 40, "event": "hurt" },
+    { "i": 19, "ms": 60 },
+    { "i": 20, "ms": 80 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 21, "ms": 60 },
+    { "i": 22, "ms": 45, "event": "hit" },
+    { "i": 23, "ms": 70 },
+    { "i": 24, "ms": 80 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 25, "ms": 50 },
+    { "i": 26, "ms": 60 },
+    { "i": 27, "ms": 50, "event": "spawnFx" },
+    { "i": 28, "ms": 60 },
+    { "i": 29, "ms": 70 },
+    { "i": 30, "ms": 80 },
+    { "i": 31, "ms": 900 }
+   ]
+  },
+  "taunt": {
+   "loop": false,
+   "frames": [
+    { "i": 32, "ms": 80 },
+    { "i": 33, "ms": 80 },
+    { "i": 34, "ms": 70 },
+    { "i": 35, "ms": 90 },
+    { "i": 36, "ms": 80 }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    { "i": 37, "ms": 45 },
+    { "i": 38, "ms": 50, "event": "spawnFx" },
+    { "i": 39, "ms": 55 },
+    { "i": 40, "ms": 55 },
+    { "i": 41, "ms": 60 },
+    { "i": 42, "ms": 70 },
+    { "i": 43, "ms": 60 },
+    { "i": 44, "ms": 900 }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    { "i": 45, "ms": 40 },
+    { "i": 46, "ms": 50 },
+    { "i": 47, "ms": 50, "event": "spawnFx" },
+    { "i": 48, "ms": 60 },
+    { "i": 49, "ms": 70 },
+    { "i": 50, "ms": 80 },
+    { "i": 51, "ms": 900 }
+   ]
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    { "i": 52, "ms": 60, "event": "emerge_fx" },
+    { "i": 53, "ms": 70 },
+    { "i": 54, "ms": 60 },
+    { "i": 55, "ms": 60 },
+    { "i": 56, "ms": 70 },
+    { "i": 57, "ms": 70 },
+    { "i": 58, "ms": 70 },
+    { "i": 59, "ms": 70 },
+    { "i": 0, "ms": 90, "event": "emerged" }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Garden blob (light variant), blobvar layers + warp.py",
+  "source": "derived_light.png",
+  "cells": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "walk8",
+   "walk9",
+   "walk10",
+   "walk11",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4",
+   "death5",
+   "death6",
+   "taunt0",
+   "taunt1",
+   "taunt2",
+   "taunt3",
+   "taunt4",
+   "death_slice0",
+   "death_slice1",
+   "death_slice2",
+   "death_slice3",
+   "death_slice4",
+   "death_slice5",
+   "death_slice6",
+   "death_slice7",
+   "death_smash0",
+   "death_smash1",
+   "death_smash2",
+   "death_smash3",
+   "death_smash4",
+   "death_smash5",
+   "death_smash6",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "emerge3",
+   "emerge4",
+   "emerge5",
+   "emerge6",
+   "emerge7"
+  ],
+  "feetY": 178.88,
+  "gameRadius": 14,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-blob-light/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-blob-light.png",
+  "emerge": "emerge (light): 620 ms spawn clip, plays once before AI. `emerge_fx` on f0 (spawn fx-funny mud_erupt at the feet), `emerged` on the last frame (= idle f0; AI + collisions on). ox/oy are world px (shake / hop beyond the cell). Built by figures/fx-funny/src/emerge.py, appended after all other cells (indices of every other clip unchanged)."
+ }
+}

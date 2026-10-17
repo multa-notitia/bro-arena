@@ -412,7 +412,10 @@ function drawEnemy(
   const spawn = clamp(e.anim.spawnT, 0, 1)
   const dying = e.anim.deathT >= 0
   const death = dying ? clamp(e.anim.deathT, 0, 1) : 0
-  const appear = ease.outCubic(spawn)
+  // Authored emerge is the body. The shadow only arrives over the clip's second half.
+  const emerging = e.state === 'spawning' && !!sheet?.manifest.clips.emerge
+  const appear = emerging ? 1 : ease.outCubic(spawn)
+  const shadowIn = emerging ? (spawn <= 0.5 ? 0 : (spawn - 0.5) / 0.5) : appear
   const scream = resolveScream(e.anim, e.state, e.stateT)
   const ss = screamScale(scream)
   const mouth = resolveMouth(e.anim, form, scream)
@@ -427,7 +430,7 @@ function drawEnemy(
     oy += (hashNoise(Math.floor(time * 48), e.uid + 9) - 0.5) * mag * 2
   }
   const foot = sheet ? actorFootprint(sheet, e.r) : e.r * 1.7
-  const shade = appear * (1 - death)
+  const shade = shadowIn * (1 - death)
   const hop = hopHeight(e)
   if (sheet) drawReadHalo(ctx, ox, e.y, foot, shade)
   drawShadow(ctx, ox, sheet ? e.y : e.y + e.r * 0.45, foot, shade * (hop > 1 ? 0.65 : 1))
@@ -445,11 +448,10 @@ function drawEnemy(
   if (sheet) {
     const playKey = `e:${e.uid}`
     const dyingSheet = e.state === 'dying' || e.anim.deathT >= 0
-    const deathName = corpseClipName(e) ?? deathClipName(e)
-    const emerging = e.state === 'spawning' && hasClip(sheet, 'emerge')
+    const deathName = corpseClipName(e) ?? (e.corpse && sheet.manifest.clips[e.corpse] ? e.corpse : deathClipName(e))
     const leaping = isLeaping(e) && hasClip(sheet, 'leap')
     const screaming = e.state === 'screaming' && hasClip(sheet, 'scream')
-    const clip = dyingSheet && deathName
+    const clip = dyingSheet && deathName && sheet.manifest.clips[deathName]
       ? deathName
       : emerging
         ? 'emerge'
@@ -457,12 +459,14 @@ function drawEnemy(
           ? 'leap'
           : screaming
             ? 'scream'
-          : pickClip(sheet, e.anim, {
-              attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
-              hurt: !dyingSheet && actorClipActive(playKey, 'hurt'),
-            })
+            : e.perform && sheet.manifest.clips[e.perform]
+              ? e.perform
+              : pickClip(sheet, e.anim, {
+                  attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
+                  hurt: !dyingSheet && actorClipActive(playKey, 'hurt'),
+                })
     const squash = clamp(e.anim.squash || 1, 0.45, 1.8)
-    ctx.globalAlpha = appear * (1 - (deathName ? 0 : death))
+    ctx.globalAlpha = appear * (1 - (deathName && dyingSheet ? 0 : death))
     ctx.scale(squash, 1 / squash)
     if (clip) {
       drawActorSheet(ctx, sheet, playKey, clip, {
@@ -804,10 +808,14 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const facing = p.anim.facing ?? 1
   const squash = clamp(p.anim.squash || 1, 0.45, 1.8)
   const sc = p.r / artR
-  const bodyRot = imageHero
-    ? clamp(p.vx / 220, -0.18, 0.18)
-    : clamp(p.vx / 180, -0.36, 0.36) * FEEL.motion.lean +
-      clamp(Math.hypot(p.vx, p.vy) / 400, 0, 0.1) * Math.sign(p.vx || p.anim.facing)
+  // Sheet heroes stay upright. A small negative lean plus high-quality
+  // smoothing makes Chrome smear the cell into a wide cloud.
+  const bodyRot = sheet
+    ? 0
+    : imageHero
+      ? clamp(p.vx / 220, -0.18, 0.18)
+      : clamp(p.vx / 180, -0.36, 0.36) * FEEL.motion.lean +
+        clamp(Math.hypot(p.vx, p.vy) / 400, 0, 0.1) * Math.sign(p.vx || p.anim.facing)
   const squashAmt = imageHero ? lerp(1, squash, 0.28) : squash
   const sx = sc * squashAmt * ss.sx
   const sy = (sc * ss.sy) / squashAmt

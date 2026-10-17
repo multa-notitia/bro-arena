@@ -3,16 +3,17 @@
   "melee-swing": [
    {
     "ms": 60,
-    "raise": 48,
-    "elbow": 22,
-    "aim": -100,
-    "squash": 0.02
+    "raise": 100,
+    "elbow": -40,
+    "aim": -98,
+    "squash": 0.02,
+    "weaponBehind": true
    },
    {
     "ms": 45,
-    "raise": -12,
-    "elbow": -24,
-    "aim": -4,
+    "raise": 36,
+    "elbow": -62,
+    "aim": 6,
     "thrust": 2,
     "show": [
      "release"
@@ -24,17 +25,17 @@
    },
    {
     "ms": 70,
-    "raise": -22,
-    "elbow": -14,
-    "aim": 32,
+    "raise": 10,
+    "elbow": -56,
+    "aim": 26,
     "thrust": 1,
     "squash": 0.025
    },
    {
     "ms": 80,
-    "raise": -6,
-    "elbow": -4,
-    "aim": -48
+    "raise": 6,
+    "elbow": -8,
+    "aim": -40
    }
   ],
   "melee-stab": [
@@ -82,7 +83,6 @@
     "elbow": 26,
     "aim": -98,
     "thrust": -4,
-    "alt": true,
     "squash": 0.01
    },
    {
@@ -152,7 +152,7 @@
  ],
  "sproutScale": 0.8,
  "armTurnShare": 0.6,
- "handD": 13.0,
+ "handD": 10.0,
  "loadoutRules": {
   "woodPerSide": "minimise (cost 10 per extra wooden weapon on a side, 3 per vertically adjacent wooden pair, 1 per weapon that changes slot)"
  }

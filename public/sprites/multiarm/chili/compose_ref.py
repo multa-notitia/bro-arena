@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Reference multi-arm compositor for the chili (copied 1:1 from figures/player-potato/multiarm/compose_ref.py; only the sheet id differs). Reads ONLY the exported files in this folder
+"""Reference multi-arm compositor for the SIDE-VIEW chili (figures/player-potato/multiarm/compose_ref.py + the side-view
+additions of art/HERO_SIDE_VIEW_BRIEF.md, marked "SIDE:" below: slot `layer` (front/back) instead of left/right sides,
+native slots replay the hero arm named by slot `hero`, painted raised arm for `raised` keys, no shoulder bud, and
+whole-figure mirroring with frame(..., facing=-1)). Without those keys it behaves exactly like the spud's. Reads ONLY the exported files in this folder
 (player-chili-armless.*, body_track.json, parts.*, sockets.json, weapons.json, families.json) and composes one
 frame in hero-cell px. It is the executable spec for README.md (used to render previews/multiarm_showcase.mp4);
 the game port should reproduce `arm_layers()` + `frame()` exactly.
@@ -83,9 +86,10 @@ class MultiArm:
         for perm in sorted(set(itertools.permutations(range(n)))):
             a = [ws[p] for p in perm]
             c = 0.0
-            for side in (1, -1):
+            for side in ((1, -1) if self.sock.get("view") != "side" else ("front", "back")):    # SIDE: per layer
+                key_of = (lambda s_: s_["side"]) if self.sock.get("view") != "side" else (lambda s_: s_["layer"])
                 wood = sorted(order[slots[i]["name"][:-1]] for i in range(n)
-                              if slots[i]["side"] == side and a[i] and self.wpn["weapons"][a[i]]["wood"])
+                              if key_of(slots[i]) == side and a[i] and self.wpn["weapons"][a[i]]["wood"])
                 if len(wood) >= 2:
                     c += 10 * (len(wood) - 1) + 3 * sum(1 for x, y in zip(wood, wood[1:]) if y - x == 1)
             ref = prev or ws
@@ -118,8 +122,8 @@ class MultiArm:
         w = self.wpn["weapons"].get(weapon) if weapon else None
         pose = dict(sec)
         if native and tr.get("native"):            # hero's own native arm motion for this frame (club poses)
-            hp = dict(tr["native"]["R" if sd > 0 else "L"])
-            pose = {k: v for k, v in hp.items() if k in ("raise", "elbow", "wrist", "thrust")}
+            hp = dict(tr["native"][slot.get("hero", "R" if sd > 0 else "L")])          # SIDE: slot names its hero arm
+            pose = {k: v for k, v in hp.items() if k in ("raise", "elbow", "wrist", "thrust", "raised", "rrot")}
             if w and "aim" in hp:
                 pose["wrist"] = hp["aim"] + 62.0          # hero club rest aim -62: keep the swing, other weapons' rest
         key = self.family_key(w["family"], t_attack) if w else None
@@ -143,6 +147,19 @@ class MultiArm:
         front = slot["z"] > self.sock["behindBodyZ"]
         z = slot["z"]
         out = []
+        raised_art = (self.sock["arms"].get("raised") or {}).get("front") if front else None
+        if pose.get("raised") and raised_art:       # SIDE: painted raised arm (windup), weapon behind the body
+            ra = self.parts[raised_art]
+            sh, gp = ra["points"]["shoulder"], ra["points"]["grip"]
+            Lm = T(*P) @ R(pose.get("rrot", 0.0) + self.fam["armTurnShare"] * dc) @ S(k) @ T(-sh[0], -sh[1])
+            out.append((raised_art, Lm, z))
+            if w:
+                g = ap(Lm, gp)
+                wp = self.parts[w["img"]]
+                gw = wp["points"]["grip"]
+                Wm = T(*g) @ R(aim_c - wp["axis"]) @ S(k) @ T(-gw[0], -gw[1])
+                out.append((w["img"], Wm, self.sock["arms"]["raised"].get("weaponZ", 9.5)))
+            return out
         raise_ = pose.get("raise", 0.0)
         th = pose.get("thrust", 0.0)
         straight = (not native) or pose.get("straight", False)
@@ -200,7 +217,7 @@ class MultiArm:
             hp = self.parts[hname]
             H = T(*g_cam) @ R(d_fore - 22.0 + pose.get("wrist", 0.0)) @ S(k) @ T(-hp["points"]["grip"][0], -hp["points"]["grip"][1])
             out.append((hname, H, z + 0.06))
-        if front:
+        if front and self.sock.get("bud", {"part": "bud"}) is not None:     # SIDE: no bud (painted round shoulders)
             b = self.parts["bud"]
             c = b["points"]["center"]
             out.append(("bud", T(*P) @ S(k) @ T(-c[0], -c[1]), z + 0.04))
@@ -213,7 +230,7 @@ class MultiArm:
         fx = w["fx"]["release"]
         part = self.parts[fx["img"]]
         prm = fx.get("params", {})
-        zz = (9.5 if front else z - 0.05) if fx["z"] == "behindBody" else fx["z"]
+        zz = (9.5 if front else z - 0.05) if fx["z"] == "behindBody" else (z + 0.5 if fx["z"] == "aboveArm" else fx["z"])  # SIDE: aboveArm
         if fx["rule"] == "swingArc":
             head = ap(Wm, self.parts[w["img"]]["points"]["head"])
             a = math.degrees(math.atan2(head[1] - P[1], head[0] - P[0]))
@@ -231,9 +248,22 @@ class MultiArm:
         return [(fx["img"], T(cx, cy) @ R(d) @ S(k) @ T(-an[0], -an[1]), zz)]
 
     # ------------------------------------------------------------------ one frame
-    def frame(self, clip, fi, arms, target=None, extra=(), margin=110):
+    def anchor_x(self):
+        return self.sheet["anchor"]["x"] * self.cell
+
+    def facing_for(self, target, walking=0):
+        """SIDE: +1 facing right / -1 left. Target behind (x < anchor x) flips; else the walking direction; else +1."""
+        if target is not None:
+            return 1 if target[0] >= self.anchor_x() else -1
+        return -1 if walking < 0 else 1
+
+    def frame(self, clip, fi, arms, target=None, extra=(), margin=110, facing=1):
         """arms: list of dict(slot, weapon, t_attack, grow). target: hero-cell px. returns RGBA float canvas
-        (cell + 2*margin square) in hero-cell px offset by margin, plus the frame's tint."""
+        (cell + 2*margin square) in hero-cell px offset by margin, plus the frame's tint.
+        SIDE: facing=-1 composes facing right with the target mirrored about the anchor x, then mirrors the whole
+        canvas about the anchor x (the game draws the sheet flipped the same way)."""
+        if facing < 0 and target is not None:
+            target = (2 * self.anchor_x() - target[0], target[1])
         tr = self.track["clips"][clip][fi]
         sm = self.sheet["clips"][clip]["frames"][fi]
         cols = self.sheet["columns"]
@@ -261,6 +291,10 @@ class MultiArm:
             wp = np.clip(wp, 0, 1)
             wp[..., :3] = np.minimum(wp[..., :3], wp[..., 3:4])
             acc = wp + acc * (1 - wp[..., 3:4])
+        if facing < 0:                              # SIDE: mirror the premultiplied canvas about the anchor x
+            x0 = margin + self.anchor_x()
+            acc = cv2.warpAffine(acc, np.float32([[-1, 0, 2 * x0], [0, 1, 0]]), (N, N), flags=cv2.INTER_LINEAR,
+                                 borderMode=cv2.BORDER_CONSTANT, borderValue=0)
         a = np.maximum(acc[..., 3:4], 1e-6)
         out = np.dstack([np.where(acc[..., 3:4] > 1e-4, acc[..., :3] / a, 0), acc[..., 3:4]])
         return np.clip(out, 0, 1), tr.get("tint")

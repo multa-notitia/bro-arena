@@ -1,0 +1,185 @@
+{
+ "image": "enemy-charger-mud.webp",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "columns": 8,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.727
+ },
+ "clips": {
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 75 },
+    { "i": 1, "ms": 75 },
+    { "i": 2, "ms": 75 },
+    { "i": 3, "ms": 75 },
+    { "i": 4, "ms": 75 },
+    { "i": 5, "ms": 75 },
+    { "i": 6, "ms": 75 },
+    { "i": 7, "ms": 75 }
+   ]
+  },
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 8, "ms": 230 },
+    { "i": 9, "ms": 210 },
+    { "i": 10, "ms": 230 },
+    { "i": 11, "ms": 200, "ox": 1.2 },
+    { "i": 12, "ms": 110 },
+    { "i": 13, "ms": 220 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 14, "ms": 40, "ox": -2.5, "event": "hurt" },
+    { "i": 15, "ms": 60, "ox": -2.0 },
+    { "i": 16, "ms": 80, "ox": -1.0 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 17, "ms": 140, "ox": 0.5 },
+    { "i": 18, "ms": 50, "ox": -2.0, "event": "scream" },
+    { "i": 19, "ms": 80, "ox": 2.0 },
+    { "i": 20, "ms": 80, "ox": -2.0 },
+    { "i": 19, "ms": 80, "ox": 1.6 },
+    { "i": 20, "ms": 80, "ox": -1.6 },
+    { "i": 21, "ms": 210, "ox": -2.5 },
+    { "i": 22, "ms": 60, "ox": 5.0, "events": [ "release", "spawnFx" ] },
+    { "i": 23, "ms": 120, "ox": 3.0 },
+    { "i": 0, "ms": 200, "ox": 1.5 }
+   ]
+  },
+  "scream": {
+   "loop": false,
+   "frames": [
+    { "i": 17, "ms": 150, "ox": 0.5 },
+    { "i": 18, "ms": 50, "ox": -2.0, "event": "scream" },
+    { "i": 19, "ms": 85, "ox": 2.0 },
+    { "i": 20, "ms": 85, "ox": -2.0 },
+    { "i": 19, "ms": 85, "ox": 1.6 },
+    { "i": 20, "ms": 85, "ox": -1.6 },
+    { "i": 24, "ms": 120, "ox": 0.5 },
+    { "i": 8, "ms": 140 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 25, "ms": 60 },
+    { "i": 26, "ms": 50 },
+    { "i": 27, "ms": 60, "event": "spawnFx" },
+    { "i": 28, "ms": 90 },
+    { "i": 29, "ms": 90 },
+    { "i": 30, "ms": 1000 }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    { "i": 31, "ms": 50 },
+    { "i": 32, "ms": 60, "event": "spawnFx" },
+    { "i": 33, "ms": 80 },
+    { "i": 34, "ms": 100 },
+    { "i": 35, "ms": 100 },
+    { "i": 36, "ms": 1000 }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    { "i": 37, "ms": 60 },
+    { "i": 38, "ms": 50 },
+    { "i": 39, "ms": 60, "event": "spawnFx" },
+    { "i": 40, "ms": 100 },
+    { "i": 41, "ms": 1000 }
+   ]
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    { "i": 42, "ms": 70, "event": "emerge_fx" },
+    { "i": 43, "ms": 70 },
+    { "i": 44, "ms": 90 },
+    { "i": 45, "ms": 80 },
+    { "i": 46, "ms": 70 },
+    { "i": 47, "ms": 60 },
+    { "i": 48, "ms": 70 },
+    { "i": 49, "ms": 60, "ox": 1.6 },
+    { "i": 50, "ms": 60, "ox": -1.6 },
+    { "i": 51, "ms": 60, "ox": 0.8 },
+    { "i": 8, "ms": 100, "event": "emerged" }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Mud charger (screaming mud carrot, rigged)",
+  "source": "charger_variants_v1.jpg",
+  "cells": [
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "attack6",
+   "attack7",
+   "attack8",
+   "scream6",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4",
+   "death5",
+   "death_slice0",
+   "death_slice1",
+   "death_slice2",
+   "death_slice3",
+   "death_slice4",
+   "death_slice5",
+   "death_smash0",
+   "death_smash1",
+   "death_smash2",
+   "death_smash3",
+   "death_smash4",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "emerge3",
+   "emerge4",
+   "emerge5",
+   "emerge6",
+   "emerge7",
+   "emerge8",
+   "emerge9"
+  ],
+  "feetY": 240.64,
+  "gameRadius": 22,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-charger-mud/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-charger-mud.png",
+  "emerge": "emerge (mud): 790 ms spawn clip, plays once before AI. `emerge_fx` on f0 (spawn fx-funny mud_erupt at the feet), `emerged` on the last frame (= idle f0; AI + collisions on). ox/oy are world px (shake / hop beyond the cell). Built by figures/fx-funny/src/emerge.py, appended after all other cells (indices of every other clip unchanged)."
+ }
+}

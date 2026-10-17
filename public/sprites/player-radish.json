@@ -63,8 +63,8 @@
   }
  },
  "meta": {
-  "title": "Radish hero (rigged v2, painted parts, multi-arm ready)",
-  "source": "radish_src.png",
+  "title": "Radish hero (rigged, side view: legacy body + side-sheet limbs, multi-arm ready)",
+  "source": "radish_side_src.png",
   "cells": [
    "walk0",
    "walk1",

@@ -23,6 +23,11 @@ export function resetChaosDirector(): void {
   nextAmbush = CHAOS.director.ambushEvery[0]
   nextPatch = CHAOS.director.patchEvery[0]
   nextHop = CHAOS.director.hopPackEvery[0]
+  if (chaosDemoRequested()) {
+    nextAmbush = 2.4
+    nextPatch = 3.8
+    nextHop = 1.6
+  }
 }
 
 function pressure(world: World): number {
@@ -102,7 +107,7 @@ function mixedPack(world: World, ctx: SimCtx): void {
   const sown = plantedPlots(world.farm)
   for (let i = 0; i < n; i++) {
     const plot = sown.length ? ctx.rng.pick(sown) : ctx.rng.pick(world.farm.plots)
-    const kind = pickKind(world, ctx, 'blob')
+    const kind = pickKind(world, ctx, 'blob-light')
     const jx = ctx.rng.range(-36, 36)
     const jy = ctx.rng.range(-20, 22)
     queueCrack(world, kind, plot.x + jx, plot.y + jy, { style: 'crack' })
@@ -112,8 +117,8 @@ function mixedPack(world: World, ctx: SimCtx): void {
 function ambushRing(world: World, ctx: SimCtx): void {
   const n = ctx.rng.int(CHAOS.director.ringCount[0], CHAOS.director.ringCount[1])
   const r = CHAOS.director.ringRadius
-  const kindA = pickKind(world, ctx, 'blob')
-  const kindB = pickKind(world, ctx, 'runner')
+  const kindA = pickKind(world, ctx, 'blob-light')
+  const kindB = pickKind(world, ctx, 'blob-mud')
   ctx.ui.banner('Ambush', 'They came up in a ring.', 1400)
   ctx.audio.play('mudRise')
   for (let i = 0; i < n; i++) {
@@ -164,7 +169,7 @@ export function onHorde(world: World, ctx: SimCtx): void {
   if (!chaosDirectorOn()) return
   for (let i = 0; i < CHAOS.director.hordeBonus; i++) {
     const pos = randomAway(world, ctx, 70, 40)
-    queueCrack(world, pickKind(world, ctx, 'blob'), pos.x, pos.y)
+    queueCrack(world, pickKind(world, ctx, 'blob-light'), pos.x, pos.y)
   }
   mixedPack(world, ctx)
   hopPack(world, ctx)

@@ -4,14 +4,14 @@ import type { Enemy, JuiceFamily, World } from '../core/types.ts'
 import { addTrauma, juiceScale, requestHitStopMs } from '../feel.ts'
 import { spawnFunnyClip, spawnSplatDecal } from '../render/chaosFx.ts'
 import { pickDeathClip, resolveEnemySheet } from '../render/chaosSheets.ts'
+import { enemyFamily } from '../data/enemies.ts'
 import type { SimCtx } from './world.ts'
 
 export function juiceFamilyOf(enemy: Enemy): JuiceFamily {
-  if (enemy.form === 'nightmare' && enemy.def.juiceFamily !== 'red' && enemy.def.juiceFamily !== 'orange') {
-    return enemy.def.juiceFamily ?? 'mud'
-  }
-  if (enemy.kind === 'tomato' || enemy.kind === 'crab') return 'red'
-  if (enemy.kind === 'charger') return 'orange'
+  const fam = enemyFamily(enemy.kind)
+  if (fam === 'tomato' || fam === 'beetle' || fam === 'crab') return 'red'
+  if (fam === 'charger') return 'orange'
+  if (enemy.kind.endsWith('-mud') || enemy.form === 'nightmare') return enemy.def.juiceFamily ?? 'mud'
   return enemy.def.juiceFamily ?? 'green'
 }
 

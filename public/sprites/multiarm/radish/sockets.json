@@ -1,179 +1,156 @@
 {
- "units": "radish body px (parts/v1/body.png px); dir/aim = screen deg, y down, 0 = right (facing), -90 = up; CANONICAL = as if on the right side: side -1 slots mirror about their own x",
+ "view": "side",
+ "units": "radish body px (legacy rest px, = the hero sheet's rest crop); dir/aim = screen deg, y down, 0 = right (facing), -90 = up. Every slot is side +1: there is no per-slot mirroring in the side view",
+ "mirror": "The hero is drawn facing RIGHT. When it faces left (moving left, or the target is behind it: target.x < anchor.x in cell px), the game flips the WHOLE composed figure (armless body + every arm, hand, weapon, fx) horizontally about the sheet anchor x, after composing it facing right with the target mirrored into that frame. Arms therefore only ever aim into the facing half-plane (compose_ref.frame(..., mirror=)).",
+ "layers": {
+  "front": "z > behindBodyZ: drawn over the body; red arm, bud on sprouted arms, fist / palm",
+  "back": "z < behindBodyZ: drawn behind the body; dark arm, fist_dark / palm_dark"
+ },
  "slots": {
-  "midR": {
+  "midF": {
    "pos": [
-    148,
-    168
+    137.0,
+    166.0
    ],
    "side": 1,
-   "dir": 72.0,
+   "dir": 62.0,
    "z": 11.0,
-   "native": true
+   "native": true,
+   "layer": "front",
+   "nativeKey": "R"
   },
-  "midL": {
+  "midB": {
    "pos": [
-    18,
-    168
+    40.0,
+    166.0
    ],
-   "side": -1,
-   "dir": 72.0,
-   "z": 11.2,
-   "native": true
-  },
-  "upL": {
-   "pos": [
-    26,
-    124
-   ],
-   "side": -1,
-   "dir": -30.0,
+   "side": 1,
+   "dir": 118.0,
    "z": 4.0,
-   "native": false
+   "native": true,
+   "layer": "back",
+   "nativeKey": "L",
+   "holds": false
   },
-  "upR": {
+  "upB": {
    "pos": [
-    140,
-    124
+    138,
+    134
    ],
    "side": 1,
-   "dir": -30.0,
-   "z": 4.1,
-   "native": false
+   "dir": -14.0,
+   "z": 4.2,
+   "native": false,
+   "layer": "back"
   },
-  "lowL": {
+  "lowF": {
    "pos": [
-    36,
-    208
-   ],
-   "side": -1,
-   "dir": 40.0,
-   "z": 3.6,
-   "native": false
-  },
-  "lowR": {
-   "pos": [
-    130,
-    208
+    120,
+    199
    ],
    "side": 1,
-   "dir": 40.0,
-   "z": 3.7,
-   "native": false
+   "dir": 34.0,
+   "z": 11.6,
+   "native": false,
+   "layer": "front"
+  },
+  "lowB": {
+   "pos": [
+    127,
+    190
+   ],
+   "side": 1,
+   "dir": 16.0,
+   "z": 4.4,
+   "native": false,
+   "layer": "back"
+  },
+  "upF": {
+   "pos": [
+    141,
+    121
+   ],
+   "side": 1,
+   "dir": -38.0,
+   "z": 11.4,
+   "native": false,
+   "layer": "front"
+  },
+  "topB": {
+   "pos": [
+    127,
+    104
+   ],
+   "side": 1,
+   "dir": -52.0,
+   "z": 4.6,
+   "native": false,
+   "layer": "back"
   }
  },
  "layouts": {
   "1": {
    "slots": [
-    "midR",
-    "midL"
+    "midF",
+    "midB"
    ],
    "override": {}
   },
   "2": {
    "slots": [
-    "midR",
-    "midL"
+    "midF",
+    "upB",
+    "midB"
    ],
    "override": {}
   },
   "3": {
    "slots": [
-    "midR",
-    "midL",
-    "upL"
+    "midF",
+    "upB",
+    "lowF",
+    "midB"
    ],
    "override": {}
   },
   "4": {
    "slots": [
-    "midR",
-    "midL",
-    "upL",
-    "upR"
+    "midF",
+    "upB",
+    "lowF",
+    "lowB",
+    "midB"
    ],
    "override": {}
   },
   "5": {
    "slots": [
-    "midR",
-    "midL",
-    "upL",
-    "upR",
-    "lowL"
+    "midF",
+    "upB",
+    "lowF",
+    "lowB",
+    "upF",
+    "midB"
    ],
-   "override": {
-    "upL": {
-     "dir": -48.0
-    },
-    "upR": {
-     "dir": -48.0
-    },
-    "midR": {
-     "dir": 44.0
-    },
-    "midL": {
-     "dir": 44.0
-    },
-    "lowL": {
-     "pos": [
-      26,
-      198
-     ],
-     "dir": 12.0
-    },
-    "lowR": {
-     "pos": [
-      140,
-      198
-     ],
-     "dir": 12.0
-    }
-   }
+   "override": {}
   },
   "6": {
    "slots": [
-    "midR",
-    "midL",
-    "upL",
-    "upR",
-    "lowL",
-    "lowR"
+    "midF",
+    "upB",
+    "lowF",
+    "lowB",
+    "upF",
+    "topB",
+    "midB"
    ],
-   "override": {
-    "upL": {
-     "dir": -48.0
-    },
-    "upR": {
-     "dir": -48.0
-    },
-    "midR": {
-     "dir": 44.0
-    },
-    "midL": {
-     "dir": 44.0
-    },
-    "lowL": {
-     "pos": [
-      26,
-      198
-     ],
-     "dir": 12.0
-    },
-    "lowR": {
-     "pos": [
-      140,
-      198
-     ],
-     "dir": 12.0
-    }
-   }
+   "override": {}
   }
  },
  "arms": {
   "native": {
-   "midR": "arm1",
-   "midL": "arm2",
+   "midF": "arm1",
+   "midB": "arm2_dark",
    "kind": "bent",
    "scale": 1.0
   },
@@ -187,6 +164,7 @@
  "behindBodyZ": 10.0,
  "bud": {
   "part": "bud",
-  "frontOnly": true
+  "frontOnly": true,
+  "sproutedOnly": true
  }
 }

@@ -1,7 +1,8 @@
 import { dist2 } from '../core/math.ts'
-import type { Enemy, StatusEffect, World } from '../core/types.ts'
+import type { Enemy, StatusEffect, WeaponId, World } from '../core/types.ts'
 import type { DeathStyle } from '../data/chaos.ts'
 import { CHAOS, chaosJuiceOn, deathStyleForWeapon } from '../data/chaos.ts'
+import { corpseClipFor } from '../data/enemies.ts'
 import { addTrauma, flashStrength, requestHitStop } from '../feel.ts'
 import { kickHurtClip } from '../render/sheets.ts'
 import {
@@ -29,7 +30,8 @@ export interface HurtOpts {
   burnTick?: boolean
   /** Knife hack. Non-lethal chips; a kill marks the enemy sliced. */
   slice?: boolean
-  /** Drives death_slice / death_smash when authored clips exist. */
+  /** Killing weapon. Picks death, death_slice, or death_smash. */
+  weapon?: WeaponId
   deathStyle?: DeathStyle
   weaponId?: string
 }
@@ -74,7 +76,9 @@ export function dealDamageToEnemy(
   // Knock away from the player unless a shot direction was given.
   const kx = opts.dirX !== undefined ? dir.x : -dir.x
   const ky = opts.dirY !== undefined ? dir.y : -dir.y
-  const style = opts.deathStyle ?? (opts.weaponId ? deathStyleForWeapon(opts.weaponId) : opts.slice ? 'slice' : 'normal')
+  const style =
+    opts.deathStyle ??
+    (opts.weaponId ? deathStyleForWeapon(opts.weaponId) : opts.weapon ? deathStyleForWeapon(opts.weapon) : opts.slice ? 'slice' : 'normal')
   rememberDeathStyle(enemy, style)
   if (!opts.burnTick) {
     const juiceKb = chaosJuiceOn() ? CHAOS.juice.knockback : 1
@@ -129,6 +133,7 @@ export function dealDamageToEnemy(
   const killed = enemy.hp <= 0
   if (killed) {
     enemy.hp = 0
+    enemy.corpse = corpseClipFor(opts.weapon ?? (opts.weaponId as WeaponId | undefined))
     if (opts.slice) enemy.sliced = true
     if (chaosJuiceOn() && !opts.thorns && !opts.burnTick) {
       juiceOnKill(world, enemy, ctx, dmg)

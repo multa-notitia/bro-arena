@@ -8,11 +8,14 @@
    "shotOffset": 90.0,
    "hand": {
     "front": "fist",
-    "back": "fist"
+    "back": "fist_dark"
    },
    "alt": {
     "imgs": [
      "sling_drawn"
+    ],
+    "imgsBack": [
+     "sling_drawn_dark"
     ],
     "pick": "slotIndex % 1",
     "hidesHand": true
@@ -39,7 +42,7 @@
    "shotOffset": 0.0,
    "hand": {
     "front": "fist",
-    "back": "fist"
+    "back": "fist_dark"
    },
    "fx": {
     "release": {
@@ -63,7 +66,7 @@
    "shotOffset": 0.0,
    "hand": {
     "front": "fist",
-    "back": "fist"
+    "back": "fist_dark"
    },
    "fx": {
     "release": {
@@ -85,7 +88,7 @@
    "shotOffset": 0.0,
    "hand": {
     "front": "fist",
-    "back": "fist"
+    "back": "fist_dark"
    },
    "fx": {
     "release": {

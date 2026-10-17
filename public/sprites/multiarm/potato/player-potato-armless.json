@@ -63,8 +63,8 @@
   }
  },
  "meta": {
-  "title": "Spud body + legs (multi-arm base, arms drawn at runtime)",
-  "source": "spud_src.png",
+  "title": "Spud body + legs, side view (multi-arm base, arms drawn at runtime)",
+  "source": "spud_side_src.png",
   "cells": [
    "walk0",
    "walk1",

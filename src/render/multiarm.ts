@@ -4,6 +4,15 @@
  * Parts stay in body px; `body_track.m` maps them into the armless hero cell.
  */
 import type { WeaponId } from '../core/types.ts'
+import {
+  assignWeapons,
+  composeArmLayers,
+  type ComposeRig,
+  type Mat,
+  type Pose,
+  type Slot,
+  type WeaponPaint,
+} from './armCompose.ts'
 import { actorClipFrame, loadSheetAt, type LoadedSheet, type SheetFrame } from './sheets.ts'
 
 /** One hero's multi-arm folder and the armless sheet that sits under the arms. */
@@ -19,18 +28,6 @@ const HERO_SOURCES: Record<string, MultiArmSource> = {
   chili: { root: '/sprites/multiarm/chili', sheetId: 'player-chili-armless' },
 }
 
-type Mat = [
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-]
-
 interface Part {
   rect: [number, number, number, number]
   points: Record<string, [number, number]>
@@ -39,57 +36,11 @@ interface Part {
   axis: number
 }
 
-interface Pose {
-  raise?: number
-  elbow?: number
-  wrist?: number
-  thrust?: number
-  aim?: number
-  straight?: boolean
-  alt?: boolean
-  show?: string[]
-  ev?: string[]
-  ms?: number
-  scale?: number
-  bud?: number
-  dust?: boolean
-}
-
 interface TrackFrame {
   arms?: boolean
   m?: number[][]
   tint?: number[]
-  native?: { R?: Pose; L?: Pose }
-}
-
-interface Slot {
-  name: string
-  index: number
-  pos: [number, number]
-  side: number
-  dir: number
-  z: number
-  native: boolean
-}
-
-interface WeaponPaint {
-  img: string
-  family: string
-  wood: boolean
-  restAim: number
-  shotOffset: number
-  hand: { front: string; back: string }
-  alt?: { imgs: string[] }
-  fx?: {
-    release: {
-      img: string
-      rule: string
-      z: number | string
-      anchor?: string
-      at?: string
-      params?: { back?: number; radius?: number; ahead?: number; side?: number }
-    }
-  }
+  native?: Record<string, Pose>
 }
 
 interface FamKey extends Pose {
@@ -100,7 +51,6 @@ interface Layer {
   name: string
   m: Mat
   z: number
-  /** Crossfade weight for the native stab blend. Omitted draws at full alpha. */
   alpha?: number
 }
 
@@ -155,21 +105,6 @@ const HERO_QUERY: Record<string, string> = {
   mage: 'mage',
 }
 const SPROUT_STAGGER = 320
-/** Native stab swaps bent parts for the straight painting. Crossfade across this, not one frame. */
-const STAB_BLEND_MS = 120
-/**
- * Screen degrees of every hero's painted rest aim (y down, 0 = right).
- * A native track aim of this value holds the weapon at rest, so the wrist
- * offset is `aim - NATIVE_REST_AIM`.
- */
-const NATIVE_REST_AIM = -62
-/**
- * Body-px y where the legs leave the torso. Measured on the armless idle and
- * walk cells (the silhouette splits into two legs) and inverse-mapped through
- * body_track (~197 on every sampled frame). Back arms clip here.
- */
-const HIP_BODY_Y = 197
-const HIP_BODY_X = 88
 
 interface HeroArt {
   partsImg: HTMLImageElement
@@ -190,6 +125,11 @@ interface HeroArt {
   layouts: Record<string, { slots: string[]; override: Record<string, Partial<Slot>> }>
   tracks: Record<string, TrackFrame[]>
   secondary: Record<string, Pose[][]>
+  emptyHand: string | null
+  raisedFront: string | null
+  raisedWeaponZ: number
+  bud: { sproutedOnly: boolean } | null
+  woodGroup: 'layer' | 'side'
 }
 
 const arts = new Map<string, HeroArt>()
@@ -214,6 +154,11 @@ let slotDefs: Record<string, Omit<Slot, 'name' | 'index'>> = {}
 let layouts: Record<string, { slots: string[]; override: Record<string, Partial<Slot>> }> = {}
 let tracks: Record<string, TrackFrame[]> = {}
 let secondary: Record<string, Pose[][]> = {}
+let emptyHand: string | null = 'palm'
+let raisedFront: string | null = null
+let raisedWeaponZ = 9.5
+let budMode: { sproutedOnly: boolean } | null = { sproutedOnly: false }
+let woodGroup: 'layer' | 'side' = 'side'
 
 let loadKey = ''
 let currentSlots: Slot[] = []
@@ -222,20 +167,11 @@ const states = new Map<string, SlotState>()
 const prevBySlot = new Map<string, number | null>()
 const idByUid = new Map<number, WeaponId>()
 const aimAt = new Map<number, { x: number; y: number }>()
-const perms = new Map<number, number[][]>()
-
 let scratch: HTMLCanvasElement | null = null
 let scratchCtx: CanvasRenderingContext2D | null = null
 
 function T(x: number, y: number): Mat {
   return [1, 0, x, 0, 1, y, 0, 0, 1]
-}
-
-function R(deg: number): Mat {
-  const r = (deg * Math.PI) / 180
-  const c = Math.cos(r)
-  const s = Math.sin(r)
-  return [c, -s, 0, s, c, 0, 0, 0, 1]
 }
 
 function Sm(k: number): Mat {
@@ -251,20 +187,6 @@ function mul(a: Mat, b: Mat): Mat {
     }
   }
   return o as Mat
-}
-
-function ap(m: Mat, p: [number, number]): [number, number] {
-  return [m[0] * p[0] + m[1] * p[1] + m[2], m[3] * p[0] + m[4] * p[1] + m[5]]
-}
-
-function wrap(a: number): number {
-  let x = (a + 180) % 360
-  if (x < 0) x += 360
-  return x - 180
-}
-
-function rad(deg: number): number {
-  return (deg * Math.PI) / 180
 }
 
 function num(v: unknown, fallback = 0): number {
@@ -316,6 +238,11 @@ function bindArt(species: string): boolean {
   layouts = next.layouts
   tracks = next.tracks
   secondary = next.secondary
+  emptyHand = next.emptyHand
+  raisedFront = next.raisedFront
+  raisedWeaponZ = next.raisedWeaponZ
+  budMode = next.bud
+  woodGroup = next.woodGroup
   ready = true
   return true
 }
@@ -400,7 +327,49 @@ async function loadHeroArt(source: MultiArmSource): Promise<HeroArt | null> {
     layouts: sockJ.layouts ?? {},
     tracks: (trackJ.clips ?? {}) as Record<string, TrackFrame[]>,
     secondary: (trackJ.secondary ?? {}) as Record<string, Pose[][]>,
+    emptyHand: emptyHandOf(sockJ.arms),
+    raisedFront: raisedFrontOf(sockJ.arms),
+    raisedWeaponZ: raisedZOf(sockJ.arms),
+    bud: budOf(sockJ.bud),
+    woodGroup: woodGroupOf(sockJ, famJ),
   }
+}
+
+function emptyHandOf(arms: { emptyHand?: string | null } | undefined): string | null {
+  if (!arms || !Object.prototype.hasOwnProperty.call(arms, 'emptyHand')) return 'palm'
+  return arms.emptyHand ?? null
+}
+
+function raisedFrontOf(arms: { raised?: { front?: string } } | undefined): string | null {
+  const name = arms?.raised?.front
+  return typeof name === 'string' && name ? name : null
+}
+
+function raisedZOf(arms: { raised?: { weaponZ?: number } } | undefined): number {
+  return num(arms?.raised?.weaponZ, 9.5)
+}
+
+function budOf(raw: unknown): { sproutedOnly: boolean } | null {
+  if (raw === null) return null
+  if (!raw || typeof raw !== 'object') return { sproutedOnly: false }
+  return { sproutedOnly: !!(raw as { sproutedOnly?: boolean }).sproutedOnly }
+}
+
+function woodGroupOf(sockJ: { view?: string; slots?: unknown; arms?: { emptyHand?: string | null } }, famJ: { loadoutRules?: Record<string, unknown> }): 'layer' | 'side' {
+  if (sockJ.view !== 'side') return 'side'
+  if (famJ.loadoutRules && 'woodPerLayer' in famJ.loadoutRules) return 'layer'
+  if (sockJ.arms && Object.prototype.hasOwnProperty.call(sockJ.arms, 'emptyHand') && sockJ.arms.emptyHand === null) {
+    return 'layer'
+  }
+  const slots = sockJ.slots
+  if (slots && typeof slots === 'object') {
+    for (const value of Object.values(slots as Record<string, unknown>)) {
+      if (!value || typeof value !== 'object') continue
+      const o = value as { hero?: string; nativeKey?: string; holds?: boolean }
+      if (o.hero || o.nativeKey || o.holds === false) return 'layer'
+    }
+  }
+  return 'side'
 }
 
 export function preloadMultiArm(): Promise<void> {
@@ -460,12 +429,16 @@ function parseSlots(raw: unknown): Record<string, Omit<Slot, 'name' | 'index'>> 
   for (const [name, value] of Object.entries(raw as Record<string, unknown>)) {
     if (!value || typeof value !== 'object') continue
     const o = value as Record<string, unknown>
+    const hero = typeof o.hero === 'string' ? o.hero : typeof o.nativeKey === 'string' ? o.nativeKey : undefined
     out[name] = {
       pos: pt(o.pos),
       side: num(o.side, 1),
       dir: num(o.dir),
       z: num(o.z),
       native: !!o.native,
+      layer: o.layer === 'front' || o.layer === 'back' ? o.layer : undefined,
+      hero,
+      holds: o.holds !== false,
     }
   }
   return out
@@ -489,42 +462,14 @@ function layout(nWeapons: number): Slot[] {
       dir: over.dir ?? base.dir,
       z: over.z ?? base.z,
       native: over.native ?? base.native,
+      layer: over.layer ?? base.layer,
+      hero: over.hero ?? base.hero,
+      holds: over.holds ?? base.holds,
     })
   })
   return out
 }
 
-function permutations(n: number): number[][] {
-  const hit = perms.get(n)
-  if (hit) return hit
-  const out: number[][] = []
-  const used = new Array<boolean>(n).fill(false)
-  const cur: number[] = []
-  const rec = (): void => {
-    if (cur.length === n) {
-      out.push(cur.slice())
-      return
-    }
-    for (let i = 0; i < n; i++) {
-      if (used[i]) continue
-      used[i] = true
-      cur.push(i)
-      rec()
-      cur.pop()
-      used[i] = false
-    }
-  }
-  rec()
-  perms.set(n, out)
-  return out
-}
-
-function bandOf(name: string): number {
-  const band = name.slice(0, -1)
-  if (band === 'up') return 0
-  if (band === 'mid') return 1
-  return 2
-}
 
 interface AssignItem {
   uid: number
@@ -532,33 +477,13 @@ interface AssignItem {
 }
 
 function assign(loadout: (AssignItem | null)[], slots: Slot[], prev: (number | null)[]): number[] {
-  const n = slots.length
-  let best = loadout.map((item) => (item ? item.uid : -1))
-  let bestC = 1e9
-  for (const perm of permutations(n)) {
-    const a = perm.map((p) => loadout[p] ?? null)
-    let c = 0
-    for (const side of [1, -1]) {
-      const wood = a
-        .map((item, i) => (item && item.wood && slots[i]!.side === side ? bandOf(slots[i]!.name) : null))
-        .filter((v): v is number => v !== null)
-        .sort((x, y) => x - y)
-      if (wood.length >= 2) {
-        c += 10 * (wood.length - 1)
-        for (let i = 1; i < wood.length; i++) if (wood[i]! - wood[i - 1]! === 1) c += 3
-      }
-    }
-    const ref = prev.length === n ? prev : a.map((item) => (item ? item.uid : null))
-    for (let i = 0; i < n; i++) {
-      const uid = a[i] ? a[i]!.uid : null
-      if (ref[i] != null && uid !== ref[i]) c += 1
-    }
-    if (c < bestC) {
-      bestC = c
-      best = a.map((item) => (item ? item.uid : -1))
-    }
-  }
-  return best
+  const names = assignWeapons(
+    currentRig(),
+    loadout.map((item) => (item ? { id: String(item.uid), wood: item.wood } : null)),
+    slots,
+    prev.map((uid) => (uid == null ? null : String(uid))),
+  )
+  return names.map((id) => (id == null ? -1 : Number(id)))
 }
 
 function freshState(): SlotState {
@@ -618,33 +543,6 @@ function familyAt(keys: FamKey[], t: number): { key: FamKey; index: number; into
   return null
 }
 
-function smooth01(t: number): number {
-  const x = t < 0 ? 0 : t > 1 ? 1 : t
-  return x * x * (3 - 2 * x)
-}
-
-function poseFromKey(key: Pose, baseRaise: number): Pose {
-  const pose: Pose = { ...key }
-  delete pose.ms
-  delete pose.ev
-  pose.raise = (pose.raise ?? 0) + 0.3 * baseRaise
-  return pose
-}
-
-function lerpPose(a: Pose, b: Pose, t: number): Pose {
-  const n = (x: number | undefined, y: number | undefined) => (x ?? 0) + ((y ?? 0) - (x ?? 0)) * t
-  const aim = a.aim === undefined && b.aim === undefined ? undefined : n(a.aim, b.aim)
-  return {
-    raise: n(a.raise, b.raise),
-    elbow: n(a.elbow, b.elbow),
-    wrist: n(a.wrist, b.wrist),
-    thrust: n(a.thrust, b.thrust),
-    aim,
-    alt: b.alt,
-    show: b.show,
-    straight: b.straight,
-  }
-}
 
 function familyDuration(keys: FamKey[]): number {
   let t = 0
@@ -743,6 +641,29 @@ function pointOf(part: Part, name: string): [number, number] {
   return part.points[name] ?? [0, 0]
 }
 
+function currentRig(): ComposeRig {
+  return {
+    parts,
+    weapons,
+    families,
+    aimClamp,
+    sproutScale,
+    armTurnShare,
+    handD,
+    behindZ,
+    nativeArt,
+    sproutFront,
+    sproutBack,
+    tracks,
+    secondary,
+    emptyHand,
+    raisedFront,
+    raisedWeaponZ,
+    bud: budMode,
+    woodGroup,
+  }
+}
+
 function armLayers(
   slot: Slot,
   clip: string,
@@ -753,240 +674,9 @@ function armLayers(
   target: [number, number] | null,
   B: Mat,
 ): Layer[] {
-  const P = slot.pos
-  const sd = slot.side
-  const tr = tracks[clip]?.[fi]
-  if (!tr) return []
-  const sec = secondary[clip]?.[fi]?.[slot.index]
-  const w = weaponName ? weapons[weaponName] : undefined
-  let pose: Pose = sec ? { ...sec } : {}
-  if (slot.native && tr.native) {
-    const hp = tr.native[sd > 0 ? 'R' : 'L'] ?? {}
-    pose = {}
-    if (hp.raise !== undefined) pose.raise = hp.raise
-    if (hp.elbow !== undefined) pose.elbow = hp.elbow
-    if (hp.wrist !== undefined) pose.wrist = hp.wrist
-    if (hp.thrust !== undefined) pose.thrust = hp.thrust
-    if (w && hp.aim !== undefined) pose.wrist = hp.aim - NATIVE_REST_AIM
-  }
-  const keys = w ? familyClip(w.family) : undefined
-  const at = w && keys && tAttack !== null ? familyAt(keys, tAttack) : null
-  const key = at?.key ?? null
-  const held = pose
-  let artBlend = slot.native ? 0 : 1
-  let ref = w ? w.restAim : 0
-  if (key && at && keys) {
-    const baseRaise = held.raise ?? 0
-    const keyed = poseFromKey(key, baseRaise)
-    if (!slot.native) {
-      pose = keyed
-    } else if (w?.family === 'melee-stab' && keyed.straight) {
-      let start = 0
-      let runStart = 0
-      let from: Pose = held
-      for (let i = 0; i <= at.index; i++) {
-        const k = keys[i]
-        if (!k) continue
-        if (i === at.index) {
-          const u = smooth01((at.into + (start - runStart)) / STAB_BLEND_MS)
-          pose = lerpPose(from, keyed, u)
-          artBlend = u
-          break
-        }
-        const end = start + k.ms
-        if (!k.straight) {
-          from = poseFromKey(k, baseRaise)
-          runStart = end
-        }
-        start = end
-      }
-    } else {
-      const prev = at.index > 0 ? keys[at.index - 1] : undefined
-      if (prev?.straight) {
-        const u = smooth01(at.into / STAB_BLEND_MS)
-        pose = lerpPose(poseFromKey(prev, baseRaise), keyed, u)
-        artBlend = 1 - u
-      } else {
-        pose = keyed
-      }
-    }
-    ref = pose.aim ?? ref
-  }
-  let aimC = pose.aim !== undefined ? pose.aim : w ? w.restAim + (pose.wrist ?? 0) : 0
-  let dc = 0
-  if (target && w) {
-    const sw = ap(B, P)
-    const tAng = (Math.atan2(target[1] - sw[1], target[0] - sw[0]) * 180) / Math.PI
-    const refc = ref + w.shotOffset
-    const refW = sd > 0 ? refc : 180 - refc
-    const delta = Math.max(-aimClamp, Math.min(aimClamp, wrap(tAng - refW)))
-    dc = sd > 0 ? delta : -delta
-  }
-  aimC += dc
-  const k = (slot.native ? 1 : sproutScale) * grow
-  const front = slot.z > behindZ
-  const z = slot.z
-  const out: Layer[] = []
-  const raise = pose.raise ?? 0
-  const th = pose.thrust ?? 0
-  const alongAim = !!pose.straight || (slot.native && artBlend > 0 && artBlend < 1)
-
-  const pushBent = (alpha: number): { wrist: [number, number]; dFore: number } | null => {
-    const art = nativeArt[slot.name] ?? 'arm4'
-    const up = parts[`${art}_upper`]
-    if (!up || !parts[`${art}_fore`]) return null
-    const sh = pointOf(up, 'shoulder')
-    const el = pointOf(up, 'elbow')
-    const wr = pointOf(up, 'wrist')
-    const dUp = slot.dir - raise + armTurnShare * dc
-    const U = mul(mul(mul(T(P[0], P[1]), R(dUp - up.dir0)), Sm(k)), T(-sh[0], -sh[1]))
-    const eb = pose.elbow ?? 0
-    const dFore = dUp + (up.fore0 - up.dir0) - eb
-    let F = mul(mul(mul(U, T(el[0], el[1])), R(-eb)), T(-el[0], -el[1]))
-    if (th) F = mul(T(th * k * Math.cos(rad(dFore)), th * k * Math.sin(rad(dFore))), F)
-    if (alpha > 0.02) {
-      out.push(
-        { name: `${art}_fore`, m: F, z, alpha },
-        { name: `${art}_upper`, m: U, z: z + 0.02, alpha },
-      )
-    }
-    return { wrist: ap(F, wr), dFore }
-  }
-
-  const pushStraight = (alpha: number): { wrist: [number, number]; dFore: number } | null => {
-    const nm = front ? sproutFront : sproutBack
-    const la = parts[nm]
-    if (!la) return null
-    const sh = pointOf(la, 'shoulder')
-    const wr = pointOf(la, 'wrist')
-    const dFore = alongAim ? aimC : slot.dir - raise + armTurnShare * dc
-    let Lm = mul(mul(mul(T(P[0], P[1]), R(dFore - la.dir0)), Sm(k)), T(-sh[0], -sh[1]))
-    if (th) Lm = mul(T(th * k * Math.cos(rad(dFore)), th * k * Math.sin(rad(dFore))), Lm)
-    if (alpha > 0.02) out.push({ name: nm, m: Lm, z, alpha })
-    return { wrist: ap(Lm, wr), dFore }
-  }
-
-  const bent = artBlend < 0.999 ? pushBent(1 - artBlend) : null
-  const straight = artBlend > 0.001 ? pushStraight(artBlend) : null
-  if (!bent && !straight) return []
-  let wrist: [number, number]
-  let dFore: number
-  if (bent && straight) {
-    const t = artBlend
-    wrist = [bent.wrist[0] + (straight.wrist[0] - bent.wrist[0]) * t, bent.wrist[1] + (straight.wrist[1] - bent.wrist[1]) * t]
-    dFore = bent.dFore + wrap(straight.dFore - bent.dFore) * t
-  } else if (bent) {
-    wrist = bent.wrist
-    dFore = bent.dFore
-  } else {
-    wrist = straight!.wrist
-    dFore = straight!.dFore
-  }
-  const hd = handD * k
-  const gCam: [number, number] = [
-    wrist[0] + hd * Math.cos(rad(dFore)),
-    wrist[1] + hd * Math.sin(rad(dFore)),
-  ]
-  const useAlt = !!(w && pose.alt && w.alt)
-  let Wm: Mat | null = null
-  if (w) {
-    const hname = front ? w.hand.front : w.hand.back
-    const hp = parts[hname]
-    if (!hp) return out
-    let H: Mat
-    let g: [number, number]
-    if (hname === 'fist34') {
-      const hw = pointOf(hp, 'wrist')
-      H = mul(mul(mul(T(wrist[0], wrist[1]), R(aimC)), Sm(k)), T(-hw[0], -hw[1]))
-      g = ap(H, pointOf(hp, 'grip'))
-    } else {
-      g = gCam
-      const hg = pointOf(hp, 'grip')
-      H = mul(mul(mul(T(g[0], g[1]), R(dFore - 22)), Sm(k)), T(-hg[0], -hg[1]))
-    }
-    if (useAlt && w.alt) {
-      const an = w.alt.imgs[slot.index % w.alt.imgs.length] ?? w.alt.imgs[0]
-      const apart = an ? parts[an] : undefined
-      if (apart && an) {
-        const ga = pointOf(apart, 'grip')
-        Wm = mul(mul(mul(T(g[0], g[1]), R(aimC - apart.axis)), Sm(k)), T(-ga[0], -ga[1]))
-        out.push({ name: an, m: Wm, z: z + 0.06 })
-      }
-    } else {
-      const wp = parts[w.img]
-      if (wp) {
-        const gw = pointOf(wp, 'grip')
-        Wm = mul(mul(mul(T(g[0], g[1]), R(aimC - wp.axis)), Sm(k)), T(-gw[0], -gw[1]))
-        out.push({ name: w.img, m: Wm, z: z + 0.03 }, { name: hname, m: H, z: z + 0.06 })
-      }
-    }
-    // `show` draws the arc or puff. `ev` is what fires, so a slash follow-through
-    // can keep the arc up without a second release.
-    if (key && Wm && (key.show ?? []).includes('release') && w.fx?.release) {
-      out.push(...fxLayers(w, Wm, P, aimC, k, z, front))
-    }
-  } else {
-    const hname = front ? 'palm' : 'palm_dark'
-    const hp = parts[hname]
-    if (hp) {
-      const hg = pointOf(hp, 'grip')
-      const H = mul(
-        mul(mul(T(gCam[0], gCam[1]), R(dFore - 22 + (pose.wrist ?? 0))), Sm(k)),
-        T(-hg[0], -hg[1]),
-      )
-      out.push({ name: hname, m: H, z: z + 0.06 })
-    }
-  }
-  if (front) {
-    const b = parts.bud
-    if (b) {
-      const c = pointOf(b, 'center')
-      out.push({ name: 'bud', m: mul(mul(T(P[0], P[1]), Sm(k)), T(-c[0], -c[1])), z: z + 0.04 })
-    }
-  }
-  if (sd < 0) {
-    const Wf = mul(mul(T(P[0], 0), [-1, 0, 0, 0, 1, 0, 0, 0, 1]), T(-P[0], 0))
-    for (const layer of out) {
-      if (layer.name !== 'bud') layer.m = mul(Wf, layer.m)
-    }
-  }
-  return out
+  return composeArmLayers(currentRig(), slot, clip, fi, weaponName, tAttack, grow, target, B)
 }
 
-function fxLayers(w: WeaponPaint, Wm: Mat, P: [number, number], aimC: number, k: number, z: number, front: boolean): Layer[] {
-  const fx = w.fx?.release
-  if (!fx) return []
-  const part = parts[fx.img]
-  if (!part) return []
-  const prm = fx.params ?? {}
-  const zz = fx.z === 'behindBody' ? (front ? 9.5 : z - 0.05) : num(fx.z, 14)
-  if (fx.rule === 'swingArc') {
-    const club = parts[w.img]
-    if (!club) return []
-    const head = ap(Wm, pointOf(club, 'head'))
-    const a = (Math.atan2(head[1] - P[1], head[0] - P[0]) * 180) / Math.PI
-    const reach = Math.hypot(head[0] - P[0], head[1] - P[1])
-    const mid = a - num(prm.back, 45)
-    const radius = num(prm.radius, 0.92)
-    const c: [number, number] = [
-      P[0] + radius * reach * Math.cos(rad(mid)),
-      P[1] + radius * reach * Math.sin(rad(mid)),
-    ]
-    const b = pointOf(part, 'bulge')
-    return [{ name: fx.img, m: mul(mul(mul(T(c[0], c[1]), R(mid)), Sm(k)), T(-b[0], -b[1])), z: zz }]
-  }
-  const wp = parts[w.img]
-  if (!wp || !fx.at) return []
-  const at = ap(Wm, pointOf(wp, fx.at))
-  const d = aimC + (fx.rule === 'alongShot' ? w.shotOffset : 0)
-  const ahead = num(prm.ahead)
-  const side = num(prm.side)
-  const cx = at[0] + ahead * k * Math.cos(rad(d)) - side * k * Math.sin(rad(d))
-  const cy = at[1] + ahead * k * Math.sin(rad(d)) + side * k * Math.cos(rad(d))
-  const anchorName = fx.anchor ?? 'tip'
-  const an = pointOf(part, anchorName)
-  return [{ name: fx.img, m: mul(mul(mul(T(cx, cy), R(d)), Sm(k)), T(-an[0], -an[1])), z: zz }]
-}
 
 function sproutExtras(slot: Slot, st: SlotState): Layer[] {
   if (st.sproutMs < 0) return []
@@ -994,7 +684,7 @@ function sproutExtras(slot: Slot, st: SlotState): Layer[] {
   if (!at) return []
   const out: Layer[] = []
   const P = slot.pos
-  if (at.key.bud) {
+  if (at.key.bud && budMode) {
     const b = parts.bud
     if (b) {
       const c = pointOf(b, 'center')
@@ -1127,8 +817,7 @@ export function drawMultiArm(ctx: CanvasRenderingContext2D, which: 'back' | 'fro
   const frame = located.frame
   ctx.save()
   ctx.globalAlpha *= opts.alpha
-  ctx.imageSmoothingEnabled = true
-  ctx.imageSmoothingQuality = 'high'
+  ctx.imageSmoothingEnabled = false
   // Pixels stay right-facing. The caller scales the body and both arm passes together.
   ctx.translate(frame.ox, frame.oy)
   ctx.scale(fit * frame.scaleX, fit * frame.scaleY)
@@ -1141,21 +830,8 @@ export function drawMultiArm(ctx: CanvasRenderingContext2D, which: 'back' | 'fro
       ctx.globalAlpha = base
     }
   }
-  if (which === 'back') {
-    // Legs are baked into the body cell, so a back arm can't sit between them.
-    // Clip at the hip: the arm draws behind the torso and stops before the legs.
-    const hipY = B[3] * HIP_BODY_X + B[4] * HIP_BODY_Y + B[5]
-    const arms = sorted.filter((layer) => !layer.name.startsWith('fx_'))
-    const fx = sorted.filter((layer) => layer.name.startsWith('fx_'))
-    ctx.save()
-    ctx.beginPath()
-    ctx.rect(-4000, -4000, 8000, 4000 + hipY)
-    ctx.clip()
-    paint(arms)
-    ctx.restore()
-    paint(fx)
-  } else {
-    paint(sorted)
-  }
+  // Side view: back-layer arms (z < body) paint before the body, front-layer after.
+  // Legs live in the body cell, so a back arm sits behind the whole figure.
+  paint(sorted)
   ctx.restore()
 }

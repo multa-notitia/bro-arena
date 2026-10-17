@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Reference multi-arm compositor for the radish (copied from the spud's; only the sheet id differs). Reads ONLY the exported files in this folder
+"""Reference multi-arm compositor for the SIDE-VIEW radish (the spud's compose_ref + four side-view additions, all
+marked "SIDE:" below and listed in README.md: per-slot `nativeKey`, `holds: false` slots, wood crowding counted per
+`layer` instead of per side, `bud.sproutedOnly`, and `frame(..., mirror=)` = the game's horizontal flip when the hero
+faces left). Reads ONLY the exported files in this folder
 (player-radish-armless.*, body_track.json, parts.*, sockets.json, weapons.json, families.json) and composes one
 frame in hero-cell px. It is the executable spec for README.md (used to render previews/multiarm_showcase.mp4);
 the game port should reproduce `arm_layers()` + `frame()` exactly.
@@ -78,14 +81,19 @@ class MultiArm:
         """weapons -> slots: minimise wooden weapons sharing a side / adjacent, and slot hops (families.json)."""
         n = len(slots)
         ws = list(loadout[:n]) + [None] * (n - len(loadout[:n]))
-        order = {"up": 0, "mid": 1, "low": 2}
+        order = {"top": -1, "up": 0, "mid": 1, "low": 2}
         best, best_c = None, 1e9
         for perm in sorted(set(itertools.permutations(range(n)))):
             a = [ws[p] for p in perm]
+            # SIDE: a slot with "holds": false (the far native arm behind the body) never gets a weapon
+            if any(a[i] and slots[i].get("holds", True) is False for i in range(n)):
+                continue
             c = 0.0
-            for side in (1, -1):
+            # SIDE: crowding is counted per layer ("front"/"back") when slots carry one, else per side
+            grp = lambda sl: sl.get("layer", sl["side"])  # noqa: E731
+            for side in sorted({grp(sl) for sl in slots}, key=str):
                 wood = sorted(order[slots[i]["name"][:-1]] for i in range(n)
-                              if slots[i]["side"] == side and a[i] and self.wpn["weapons"][a[i]]["wood"])
+                              if grp(slots[i]) == side and a[i] and self.wpn["weapons"][a[i]]["wood"])
                 if len(wood) >= 2:
                     c += 10 * (len(wood) - 1) + 3 * sum(1 for x, y in zip(wood, wood[1:]) if y - x == 1)
             ref = prev or ws
@@ -118,7 +126,7 @@ class MultiArm:
         w = self.wpn["weapons"].get(weapon) if weapon else None
         pose = dict(sec)
         if native and tr.get("native"):            # hero's own native arm motion for this frame (club poses)
-            hp = dict(tr["native"]["R" if sd > 0 else "L"])
+            hp = dict(tr["native"][slot.get("nativeKey", "R" if sd > 0 else "L")])     # SIDE: nativeKey
             pose = {k: v for k, v in hp.items() if k in ("raise", "elbow", "wrist", "thrust")}
             if w and "aim" in hp:
                 pose["wrist"] = hp["aim"] + 62.0          # hero club rest aim -62: keep the swing, other weapons' rest
@@ -200,7 +208,7 @@ class MultiArm:
             hp = self.parts[hname]
             H = T(*g_cam) @ R(d_fore - 22.0 + pose.get("wrist", 0.0)) @ S(k) @ T(-hp["points"]["grip"][0], -hp["points"]["grip"][1])
             out.append((hname, H, z + 0.06))
-        if front:
+        if front and not (native and self.sock["bud"].get("sproutedOnly")):      # SIDE: no bud on the hero's own arm
             b = self.parts["bud"]
             c = b["points"]["center"]
             out.append(("bud", T(*P) @ S(k) @ T(-c[0], -c[1]), z + 0.04))
@@ -231,9 +239,17 @@ class MultiArm:
         return [(fx["img"], T(cx, cy) @ R(d) @ S(k) @ T(-an[0], -an[1]), zz)]
 
     # ------------------------------------------------------------------ one frame
-    def frame(self, clip, fi, arms, target=None, extra=(), margin=110):
+    def frame(self, clip, fi, arms, target=None, extra=(), margin=110, mirror=None):
         """arms: list of dict(slot, weapon, t_attack, grow). target: hero-cell px. returns RGBA float canvas
-        (cell + 2*margin square) in hero-cell px offset by margin, plus the frame's tint."""
+        (cell + 2*margin square) in hero-cell px offset by margin, plus the frame's tint.
+        SIDE: mirror=True draws the hero facing LEFT (the game flips the whole sprite about the anchor x). mirror=None
+        picks it from the target: a target behind the anchor flips the figure, so arms only aim in the facing
+        half-plane. The target is mirrored into the canonical (facing-right) frame before aiming."""
+        ax = self.sheet["anchor"]["x"] * self.cell
+        if mirror is None:
+            mirror = target is not None and target[0] < ax
+        if mirror and target is not None:
+            target = (2 * ax - target[0], target[1])
         tr = self.track["clips"][clip][fi]
         sm = self.sheet["clips"][clip]["frames"][fi]
         cols = self.sheet["columns"]
@@ -261,6 +277,9 @@ class MultiArm:
             wp = np.clip(wp, 0, 1)
             wp[..., :3] = np.minimum(wp[..., :3], wp[..., 3:4])
             acc = wp + acc * (1 - wp[..., 3:4])
+        if mirror:                                   # SIDE: flip about the anchor x (exactly the game's sprite flip)
+            fm = (T(2 * (ax + margin), 0) @ FLIPX)[:2].astype(np.float32)
+            acc = cv2.warpAffine(acc, fm, (N, N), flags=cv2.INTER_NEAREST, borderMode=cv2.BORDER_CONSTANT, borderValue=0)
         a = np.maximum(acc[..., 3:4], 1e-6)
         out = np.dstack([np.where(acc[..., 3:4] > 1e-4, acc[..., :3] / a, 0), acc[..., 3:4]])
         return np.clip(out, 0, 1), tr.get("tint")

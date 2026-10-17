@@ -62,12 +62,37 @@ function clampRange(v: number, a: number, b: number): number {
   return Math.max(a, Math.min(b, v))
 }
 
+const MUD_CHANCE = 0.28
+
+function rollMud(kind: EnemyKind, ctx: SimCtx): EnemyKind {
+  if (!kind.endsWith('-light')) return kind
+  if (!ctx.rng.chance(MUD_CHANCE)) return kind
+  const mud = kind.replace(/-light$/, '-mud') as EnemyKind
+  return ENEMIES[mud] ? mud : kind
+}
+
+function pickPool(world: World, ctx: SimCtx): EnemyKind {
+  const pool = world.waveDef.pool
+  let total = 0
+  for (const row of pool) total += row.weight
+  if (total <= 0 || pool.length === 0) return 'blob-light'
+  let r = ctx.rng.range(0, total)
+  for (const row of pool) {
+    r -= row.weight
+    if (r <= 0) return row.kind
+  }
+  return pool[0]!.kind
+}
+
 function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LIFE): void {
   if (world.enemies.length + world.markers.length >= maxEnemies()) return
   const sown = plantedPlots(world.farm)
   const plot = sown.length > 0 ? ctx.rng.pick(sown) : ctx.rng.pick(world.farm.plots)
   const crop = plot.crop
-  const kind: EnemyKind = crop ? CROPS[crop].enemy : 'blob'
+  let kind: EnemyKind = crop ? CROPS[crop].enemy : pickPool(world, ctx)
+  // Most spawns follow the bed. A smaller share comes from the wave mix (beetle, shroom, mud).
+  if (crop && ctx.rng.chance(0.25)) kind = pickPool(world, ctx)
+  kind = rollMud(kind, ctx)
   const jitter = 22
   const marker: SpawnMarker = {
     kind,

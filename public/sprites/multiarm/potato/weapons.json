@@ -16,7 +16,7 @@
      "rule": "swingArc",
      "z": "behindBody",
      "params": {
-      "back": 45.0,
+      "back": 40.0,
       "radius": 0.92
      }
     }
@@ -55,14 +55,6 @@
    "hand": {
     "front": "fist",
     "back": "fist_dark"
-   },
-   "alt": {
-    "imgs": [
-     "sling_fist",
-     "sling_fist_b"
-    ],
-    "pick": "slotIndex % 2",
-    "hidesHand": true
    },
    "fx": {
     "release": {

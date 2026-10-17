@@ -38,26 +38,40 @@ function w(
   return wave
 }
 
-/** Farm loop: pea / sprout / charger early; garlic / pumpkin / chili unlock later. Pool is leftover — live spawns come from planted beds. */
+/** Light is the common garden twin. Mud is rarer inside each family. */
+function mix(light: EnemyKind, mud: EnemyKind, lightW: number): Pool {
+  return [
+    { kind: light, weight: lightW },
+    { kind: mud, weight: Math.max(1, Math.round(lightW * 0.28)) },
+  ]
+}
+
+/** Farm loop still follows the beds. This pool is the mix when a spawn is not tied to a crop. */
 const EARLY: Pool = [
-  { kind: 'blob', weight: 48 },
-  { kind: 'sprout', weight: 18 },
-  { kind: 'bean', weight: 22 },
-  { kind: 'tomato', weight: 12 },
+  ...mix('blob-light', 'blob-mud', 40),
+  ...mix('beetle-light', 'beetle-mud', 12),
+  ...mix('shroom-light', 'shroom-mud', 10),
+  { kind: 'bean', weight: 18 },
+  { kind: 'tomato', weight: 10 },
+  { kind: 'sprout', weight: 10 },
 ]
 const MID: Pool = [
-  { kind: 'blob', weight: 28 },
-  { kind: 'sprout', weight: 14 },
-  { kind: 'charger', weight: 22 },
-  { kind: 'bean', weight: 20 },
-  { kind: 'tomato', weight: 16 },
+  ...mix('blob-light', 'blob-mud', 22),
+  ...mix('charger-light', 'charger-mud', 20),
+  ...mix('beetle-light', 'beetle-mud', 12),
+  ...mix('shroom-light', 'shroom-mud', 10),
+  { kind: 'bean', weight: 16 },
+  { kind: 'tomato', weight: 14 },
+  { kind: 'sprout', weight: 8 },
 ]
 const LATE: Pool = [
-  { kind: 'blob', weight: 18 },
-  { kind: 'sprout', weight: 12 },
-  { kind: 'charger', weight: 24 },
-  { kind: 'bean', weight: 24 },
-  { kind: 'tomato', weight: 22 },
+  ...mix('blob-light', 'blob-mud', 14),
+  ...mix('charger-light', 'charger-mud', 18),
+  ...mix('spitter-light', 'spitter-mud', 14),
+  ...mix('beetle-light', 'beetle-mud', 10),
+  ...mix('shroom-light', 'shroom-mud', 10),
+  { kind: 'bean', weight: 18 },
+  { kind: 'tomato', weight: 16 },
 ]
 
 export const WAVES: WaveDef[] = [
