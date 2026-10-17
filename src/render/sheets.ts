@@ -406,6 +406,19 @@ interface Located {
   frame: SheetFrame
 }
 
+/** Frame index in clip order (the index `body_track` uses), not the cell index. */
+export function actorClipFrame(
+  playKey: string,
+  sheet: LoadedSheet,
+  clipName: string,
+): { index: number; frame: SheetFrame } | null {
+  const clip = sheet.manifest.clips[clipName]
+  if (!clip || !clip.frames.length) return null
+  const elapsed = heads.get(playKey)?.clips.get(clipName)?.elapsed ?? 0
+  const at = locate(clip, elapsed)
+  return { index: at.index, frame: at.frame }
+}
+
 function locate(clip: SheetClip, elapsed: number): Located {
   const frames = clip.frames
   const n = frames.length
@@ -723,6 +736,38 @@ export function resetSheetPlayback(): void {
 
 export function isSpriteSheetsReady(): boolean {
   return bootDone
+}
+
+/** Load a sheet whose images sit next to the JSON, not under `/sprites/<id>`. */
+export function loadSheetAt(jsonUrl: string, id: string): Promise<LoadedSheet | null> {
+  if (cache.has(id)) return Promise.resolve(cache.get(id) ?? null)
+  let pending = inflight.get(id)
+  if (pending) return pending
+  pending = (async () => {
+    try {
+      const res = await fetch(jsonUrl)
+      if (!res.ok) return null
+      const manifest = parseManifest(await res.json())
+      if (!manifest) return null
+      const dir = jsonUrl.slice(0, jsonUrl.lastIndexOf('/') + 1)
+      let img: HTMLImageElement
+      try {
+        img = await loadImage(dir + manifest.image)
+      } catch (err) {
+        if (!manifest.pngFallback) throw err
+        img = await loadImage(dir + manifest.pngFallback)
+      }
+      const columns = columnsFor(manifest, img)
+      manifest.columns = columns
+      const loaded: LoadedSheet = { id, img, manifest, columns }
+      cache.set(id, loaded)
+      return loaded
+    } catch {
+      return null
+    }
+  })().finally(() => inflight.delete(id))
+  inflight.set(id, pending)
+  return pending
 }
 
 export function preloadSpriteSheets(): Promise<void> {

@@ -49,6 +49,7 @@ import { consumeHitStop, getReducedJuice, resetFeel, setReducedJuice } from '../
 import { defaultModelForSpecies, getLastModel, getPaintStyle, modelsForSpecies, setLastModel, setPaintStyle } from '../render/look.ts'
 import { isConceptAReady, preloadConceptA } from '../render/conceptA.ts'
 import { isBoardReady, preloadBoard } from '../render/board.ts'
+import { isMultiArmSettled, preloadMultiArm } from '../render/multiarm.ts'
 import { isSpriteSheetsReady, preloadSpriteSheets, resetSheetPlayback } from '../render/sheets.ts'
 
 export interface RunDeps {
@@ -111,6 +112,9 @@ export class Run {
     void preloadSpriteSheets().catch(() => {
       /* painted sheets are optional; procedural / Board / Painted stay */
     })
+    void preloadMultiArm().catch(() => {
+      /* potato falls back to the single-body sheet if the arm data fails */
+    })
     ui.onPauseRequest(() => this.requestPause())
     ui.onTitle({
       play: () => this.playFromTitle(),
@@ -142,7 +146,7 @@ export class Run {
     if (this._phase === 'boot') {
       this.bootT += dt
       if (this.bootT > 0.2) this.deps.ui.setBootCopy('The soil is settling.')
-      if (this.bootT > 0.45 && isConceptAReady() && isBoardReady() && isSpriteSheetsReady()) this.enterTitle()
+      if (this.bootT > 0.45 && isConceptAReady() && isBoardReady() && isSpriteSheetsReady() && isMultiArmSettled()) this.enterTitle()
       else if (this.bootT > 8) this.enterTitle()
       return
     }

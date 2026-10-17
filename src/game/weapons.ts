@@ -19,6 +19,13 @@ import {
   sheetKeysForPlayer,
   takePlayerRelease,
 } from '../render/sheets.ts'
+import {
+  armIdle,
+  beginArmAttack,
+  noteArmTarget,
+  potatoMultiArm,
+  tickMultiArm,
+} from '../render/multiarm.ts'
 import { dealDamageToEnemy } from './combat.ts'
 import { hitTree, nearestTree } from './pickups.ts'
 import { spawnProjectile } from './projectiles.ts'
@@ -166,6 +173,7 @@ function fireShot(
   def: WeaponDef,
   ctx: SimCtx,
   angle: number,
+  immediate = false,
 ): void {
   const b = def.behavior
   if (b.type !== 'shoot') return
@@ -180,7 +188,7 @@ function fireShot(
   const my = player.y + Math.sin(angle) * muzzle
   const heroSheet = resolveSheet(sheetKeysForPlayer(player.character.species, player.model))
   const authoredFlash = !!heroSheet && clipHasEvent(heroSheet, 'attack', 'spawnFx')
-  if (!authoredFlash) {
+  if (!immediate && !authoredFlash) {
     ctx.render.fx.hitSpark(mx, my, angle, color)
     ctx.render.fx.muzzleFlash(mx, my, angle, color)
   }
@@ -190,7 +198,7 @@ function fireShot(
 
   const sound: PendingShot['sound'] =
     def.paint === 'shotgun' || count >= 4 ? 'shotgun' : def.paint === 'flint' || b.projectile.paint === 'bolt' ? 'bolt' : 'shoot'
-  const hold = heroShotOnRelease(world)
+  const hold = !immediate && heroShotOnRelease(world)
   for (let i = 0; i < count; i++) {
     const t = count === 1 ? 0 : (i / (count - 1) - 0.5) * 2
     const a = angle + t * (spread / 2)
@@ -219,7 +227,7 @@ function fireShot(
   }
 }
 
-function doThrust(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, range: number): void {
+function doThrust(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, range: number, fromArm = false): void {
   const b = def.behavior
   if (b.type !== 'thrust') return
   const player = world.player
@@ -233,12 +241,12 @@ function doThrust(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, 
   const opts = weaponHurtOpts(def, w)
   opts.color = accentColor(world)
   const width = 14 + b.reach * 0.12
-  ctx.render.fx.thrust(ax, ay, angle, len, accentColor(world))
+  if (!fromArm) ctx.render.fx.thrust(ax, ay, angle, len, accentColor(world))
   ctx.audio.play('stab')
   player.anim.kick.x += Math.cos(angle) * 14
   player.anim.kick.y += Math.sin(angle) * 14
   addTrauma(world, FEEL.shake.weaponKick * 0.85, Math.cos(angle), Math.sin(angle))
-  startSwing(world, w)
+  if (!fromArm) startSwing(world, w)
 
   for (const e of world.enemies) {
     if (e.state === 'dying' || e.state === 'spawning') continue
@@ -321,19 +329,19 @@ function doKnifeSlash(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimC
   startSwing(world, w)
 }
 
-function doSweep(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, range: number): void {
+function doSweep(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, range: number, fromArm = false): void {
   const b = def.behavior
   if (b.type !== 'sweep') return
   const player = world.player
   const dmg = weaponDamage(def, w.tier, player.stats)
   const opts = weaponHurtOpts(def, w)
   opts.color = accentColor(world)
-  ctx.render.fx.slash(player.x, player.y, w.angle, b.arc, range, accentColor(world))
+  if (!fromArm) ctx.render.fx.slash(player.x, player.y, w.angle, b.arc, range, accentColor(world))
   ctx.audio.play('swing')
   player.anim.kick.x += Math.cos(w.angle) * 8
   player.anim.kick.y += Math.sin(w.angle) * 8
   addTrauma(world, FEEL.shake.weaponKick * 0.7, Math.cos(w.angle), Math.sin(w.angle))
-  startSwing(world, w)
+  if (!fromArm) startSwing(world, w)
   const half = b.arc / 2
   for (const e of world.enemies) {
     if (e.state === 'dying' || e.state === 'spawning') continue
@@ -467,6 +475,20 @@ function doOrbit(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, d
   }
 }
 
+function nearestEnemyExcept(world: World, x: number, y: number, range: number, skip: ReadonlySet<number>): Enemy | null {
+  let best: Enemy | null = null
+  let bestD = range * range
+  for (const e of world.enemies) {
+    if (e.state === 'dying' || e.state === 'spawning' || skip.has(e.uid)) continue
+    const d = dist2(x, y, e.x, e.y)
+    if (d < bestD) {
+      bestD = d
+      best = e
+    }
+  }
+  return best
+}
+
 function aimWeapon(world: World, w: WeaponInstance, range: number, dt: number, melee: boolean): void {
   const player = world.player
   const enemy = nearestEnemy(world, player.x, player.y, range)
@@ -489,6 +511,33 @@ export function updateWeapons(world: World, dt: number, ctx: SimCtx): void {
   if (takePlayerRelease() || (pendingShots.length > 0 && actorClipDone('player', 'attack'))) {
     emitPendingShots(world, ctx)
   }
+  const armMode = potatoMultiArm(player.character.species)
+  const armClaimed = new Set<number>()
+  if (armMode) {
+    const released = tickMultiArm(
+      dt,
+      player.weapons.map((w) => ({ uid: w.uid, id: w.id })),
+    )
+    for (const uid of released) {
+      const w = player.weapons.find((item) => item.uid === uid)
+      if (!w) continue
+      const def = WEAPONS[w.id]
+      if (!def) continue
+      const b = def.behavior
+      const range = weaponRange(def, w.tier, player.stats)
+      if (b.type === 'shoot') {
+        fireShot(world, w, def, ctx, w.angle, true)
+        if (w.burstLeft > 0) {
+          w.burstLeft -= 1
+          if (w.burstLeft <= 0) w.cooldown = weaponCooldown(def, w.tier, player.stats)
+        }
+      } else if (b.type === 'thrust') {
+        doThrust(world, w, def, ctx, range, true)
+      } else if (b.type === 'sweep') {
+        doSweep(world, w, def, ctx, range, true)
+      }
+    }
+  }
   for (const w of player.weapons) {
     const def = WEAPONS[w.id]
     if (!def) continue
@@ -505,6 +554,35 @@ export function updateWeapons(world: World, dt: number, ctx: SimCtx): void {
     }
     if (b.type === 'aura') {
       doAura(world, w, def, ctx, dt)
+      continue
+    }
+
+    if (armMode && (b.type === 'shoot' || b.type === 'thrust' || b.type === 'sweep')) {
+      const reach = b.type === 'shoot' ? range * 1.12 : range
+      const distinct = nearestEnemyExcept(world, player.x, player.y, reach, armClaimed)
+      const enemy = distinct ?? nearestEnemy(world, player.x, player.y, reach)
+      const tree = enemy || b.type === 'shoot' ? null : nearestTree(world, player.x, player.y, range)
+      const target = enemy ?? tree
+      if (enemy) armClaimed.add(enemy.uid)
+      w.targetUid = target ? target.uid : null
+      const desired = target ? Math.atan2(target.y - player.y, target.x - player.x) : player.facingAngle
+      w.angle += wrapAngle(desired - w.angle) * Math.min(1, 14 * dt)
+      noteArmTarget(w.uid, target ? target.x : null, target ? target.y : null)
+      w.cooldown = Math.max(0, w.cooldown - dt)
+      if (b.type === 'shoot' && w.burstLeft > 0) {
+        if (armIdle(w.uid)) beginArmAttack(w.uid)
+        continue
+      }
+      if (w.cooldown > 0 || !target || !armIdle(w.uid)) continue
+      if (!beginArmAttack(w.uid)) continue
+      const burst = b.type === 'shoot' ? (b.burst ?? 1) : 1
+      if (b.type === 'shoot' && burst > 1) {
+        w.burstLeft = burst - 1
+        w.burstTimer = b.burstDelay ?? 0.08
+        w.cooldown = 999
+      } else {
+        w.cooldown = cd
+      }
       continue
     }
 

@@ -18,6 +18,7 @@ import { ITEMS } from '../data/items.ts'
 import { computeStats } from '../data/stats.ts'
 import { xpForLevel } from '../data/economy.ts'
 import type { SimCtx } from './world.ts'
+import { debugPotatoWeapons, multiArmSheet, potatoMultiArm, resetMultiArm } from '../render/multiarm.ts'
 import {
   actorClipActive,
   advanceActorSheet,
@@ -171,8 +172,10 @@ export function extraState(player: Player): PlayerExtra {
 }
 
 export function createPlayer(character: CharacterDef, model: ModelDir = 'b'): Player {
-  const starters =
-    character.species === 'chili' && model === 'board'
+  const debugArms = character.species === 'potato' ? debugPotatoWeapons() : null
+  const starters = debugArms
+    ? debugArms
+    : character.species === 'chili' && model === 'board'
       ? [{ id: 'knife' as const, tier: 1 as const }, ...character.startingWeapons]
       : character.startingWeapons
   const weapons = starters.map((w, i) => makeWeapon(w.id, w.tier, i))
@@ -213,6 +216,7 @@ export function createPlayer(character: CharacterDef, model: ModelDir = 'b'): Pl
     materialsCollected: 0,
   }
   bonusByPlayer.set(player, {})
+  resetMultiArm()
   extraByPlayer.set(player, {
     squashT: 1,
     matHeal: 0,
@@ -285,14 +289,16 @@ export function countSpecial(player: Player, special: ItemSpecial): number {
 
 function stepPlayerSheet(world: World, dt: number, ctx: SimCtx): void {
   const player = world.player
-  const sheet = resolveSheet(sheetKeysForPlayer(player.character.species, player.model))
+  const armed = potatoMultiArm(player.character.species)
+  const sheet = armed ? multiArmSheet() : resolveSheet(sheetKeysForPlayer(player.character.species, player.model))
   if (!sheet) return
   const anim = player.anim
   const swinging = player.weapons.some((w) => w.swingT >= 0)
   const dead = anim.deathT >= 0 || player.hp <= 0
   const kicked = !dead && !!sheet.manifest.clips.hurt && consumeHurtKick('player')
   if (kicked) restartActorClip('player', 'hurt')
-  const attacking = !!sheet.manifest.clips.attack && (swinging || actorClipActive('player', 'attack'))
+  // The potato's attack lives on each arm. The body stays on walk / idle / hurt / death.
+  const attacking = !armed && !!sheet.manifest.clips.attack && (swinging || actorClipActive('player', 'attack'))
   // Play the authored hurt clip once per hit (cream flash, then the short recovery). Don't hold the last frame.
   const hurt = kicked || (!dead && !!sheet.manifest.clips.hurt && actorClipActive('player', 'hurt'))
   const clip = dead

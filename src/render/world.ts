@@ -37,6 +37,7 @@ import { drawBoard, drawBoardShadow, poseBoard, boardHeld, type BoardHero } from
 import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { drawPaddock } from './ground.ts'
 import { paperColor } from './paintLang.ts'
+import { drawMultiArm, multiArmSheet } from './multiarm.ts'
 import {
   actorClipActive,
   actorFootprint,
@@ -776,19 +777,33 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   if (p.invuln > 0) alpha = Math.sin(p.anim.t * 24) > 0 ? 1 : 0.32
 
   if (sheet) {
-    const swinging = p.weapons.some((w) => w.swingT >= 0)
+    const arms = species === 'potato' ? multiArmSheet() : null
+    const body = arms ?? sheet
+    const swinging = !arms && p.weapons.some((w) => w.swingT >= 0)
     const shade = p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.35 : 1
-    const foot = actorFootprint(sheet, p.r)
+    const foot = actorFootprint(body, p.r)
     drawReadHalo(ctx, x, p.y, foot, shade)
     drawShadow(ctx, x, p.y, foot, shade)
     drawPlayerWeapons(ctx, world, cache, true, held, true)
     ctx.save()
     ctx.translate(x, y)
     ctx.rotate(bodyRot)
-    const clip = pickClip(sheet, p.anim, { swinging, hurt: actorClipActive('player', 'hurt') })
-    if (clip) {
-      drawActorSheet(ctx, sheet, 'player', clip, { r: p.r, facing, alpha })
-    }
+    const clip = pickClip(body, p.anim, { swinging, hurt: actorClipActive('player', 'hurt') })
+    const armPose = arms
+      ? {
+          weapons: p.weapons.map((w) => ({ uid: w.uid, id: w.id })),
+          clip: clip ?? 'idle',
+          r: p.r,
+          facing,
+          alpha,
+          originX: x,
+          originY: y,
+          bodyRot,
+        }
+      : null
+    if (armPose && clip) drawMultiArm(ctx, 'back', armPose)
+    if (clip) drawActorSheet(ctx, body, 'player', clip, { r: p.r, facing, alpha })
+    if (armPose && clip) drawMultiArm(ctx, 'front', armPose)
     ctx.restore()
     drawPlayerWeapons(ctx, world, cache, false, held, true)
     drawOrbitWeapons(ctx, world, cache)
