@@ -6,8 +6,15 @@
 import type { WeaponId } from '../core/types.ts'
 import { actorClipFrame, loadSheetAt, type LoadedSheet, type SheetFrame } from './sheets.ts'
 
-const ROOT = '/sprites/multiarm/potato'
-const SHEET_ID = 'player-potato-armless'
+/** One hero's multi-arm folder. Radish, carrot, and chili stay on their legacy sheets. */
+export interface MultiArmSource {
+  root: string
+  sheetId: string
+}
+
+const HERO_SOURCES: Record<string, MultiArmSource> = {
+  potato: { root: '/sprites/multiarm/potato', sheetId: 'player-potato-armless' },
+}
 
 type Mat = [
   number,
@@ -138,6 +145,29 @@ const STAB_BLEND_MS = 120
 const HIP_BODY_Y = 197
 const HIP_BODY_X = 88
 
+interface HeroArt {
+  partsImg: HTMLImageElement
+  bodySheet: LoadedSheet
+  parts: Record<string, Part>
+  weapons: Record<string, WeaponPaint>
+  families: Record<string, FamKey[]>
+  sproutKeys: FamKey[]
+  aimClamp: number
+  sproutScale: number
+  armTurnShare: number
+  handD: number
+  behindZ: number
+  nativeArt: Record<string, string>
+  sproutFront: string
+  sproutBack: string
+  slotDefs: Record<string, Omit<Slot, 'name' | 'index'>>
+  layouts: Record<string, { slots: string[]; override: Record<string, Partial<Slot>> }>
+  tracks: Record<string, TrackFrame[]>
+  secondary: Record<string, Pose[][]>
+}
+
+const arts = new Map<string, HeroArt>()
+
 let ready = false
 let settled = false
 let partsImg: HTMLImageElement | null = null
@@ -228,12 +258,45 @@ export function isMultiArmSettled(): boolean {
   return settled
 }
 
-export function multiArmSheet(): LoadedSheet | null {
-  return ready ? bodySheet : null
+export function multiArmSheet(species = 'potato'): LoadedSheet | null {
+  return arts.get(species)?.bodySheet ?? null
 }
 
 export function potatoMultiArm(species: string): boolean {
-  return species === 'potato' && ready
+  return arts.has(species)
+}
+
+function bindArt(species: string): boolean {
+  const next = arts.get(species)
+  if (!next) {
+    ready = false
+    return false
+  }
+  partsImg = next.partsImg
+  bodySheet = next.bodySheet
+  parts = next.parts
+  weapons = next.weapons
+  families = next.families
+  sproutKeys = next.sproutKeys
+  aimClamp = next.aimClamp
+  sproutScale = next.sproutScale
+  armTurnShare = next.armTurnShare
+  handD = next.handD
+  behindZ = next.behindZ
+  nativeArt = next.nativeArt
+  sproutFront = next.sproutFront
+  sproutBack = next.sproutBack
+  slotDefs = next.slotDefs
+  layouts = next.layouts
+  tracks = next.tracks
+  secondary = next.secondary
+  ready = true
+  return true
+}
+
+/** Slash borrows the swing keys until a hero ships its own `melee-slash` clip. */
+function familyClip(name: string): FamKey[] | undefined {
+  return families[name] ?? (name === 'melee-slash' ? families['melee-swing'] : undefined)
 }
 
 /** `?arms=1..6` replaces the potato's starters. Other heroes ignore it. */
@@ -256,38 +319,52 @@ export function resetMultiArm(): void {
   aimAt.clear()
 }
 
+async function loadHeroArt(source: MultiArmSource): Promise<HeroArt | null> {
+  const { root, sheetId } = source
+  const [trackJ, sockJ, wpnJ, famJ, partsJ, sheet] = await Promise.all([
+    fetch(`${root}/body_track.json`).then((r) => r.json()),
+    fetch(`${root}/sockets.json`).then((r) => r.json()),
+    fetch(`${root}/weapons.json`).then((r) => r.json()),
+    fetch(`${root}/families.json`).then((r) => r.json()),
+    fetch(`${root}/parts.json`).then((r) => r.json()),
+    loadSheetAt(`${root}/${sheetId}.json`, sheetId),
+  ])
+  if (!sheet) return null
+  const imageName = typeof partsJ.image === 'string' ? partsJ.image : 'parts.png'
+  const img = await loadImage(`${root}/${imageName}`)
+  return {
+    partsImg: img,
+    bodySheet: sheet,
+    parts: parseParts(partsJ.parts),
+    weapons: (wpnJ.weapons ?? {}) as Record<string, WeaponPaint>,
+    families: (famJ.families ?? {}) as Record<string, FamKey[]>,
+    sproutKeys: (famJ.sprout ?? []) as FamKey[],
+    aimClamp: num(famJ.aimClamp, 50),
+    sproutScale: num(famJ.sproutScale, num(sockJ.arms?.sprouted?.scale, 0.8)),
+    armTurnShare: num(famJ.armTurnShare, 0.6),
+    handD: num(famJ.handD, 13),
+    behindZ: num(sockJ.behindBodyZ, 10),
+    nativeArt: (sockJ.arms?.native ?? {}) as Record<string, string>,
+    sproutFront: sockJ.arms?.sprouted?.front ?? 'long_cut',
+    sproutBack: sockJ.arms?.sprouted?.back ?? 'long_dark_cut',
+    slotDefs: parseSlots(sockJ.slots),
+    layouts: sockJ.layouts ?? {},
+    tracks: (trackJ.clips ?? {}) as Record<string, TrackFrame[]>,
+    secondary: (trackJ.secondary ?? {}) as Record<string, Pose[][]>,
+  }
+}
+
 export function preloadMultiArm(): Promise<void> {
   if (settled) return Promise.resolve()
   return (async () => {
     try {
-      const [trackJ, sockJ, wpnJ, famJ, partsJ, sheet] = await Promise.all([
-        fetch(`${ROOT}/body_track.json`).then((r) => r.json()),
-        fetch(`${ROOT}/sockets.json`).then((r) => r.json()),
-        fetch(`${ROOT}/weapons.json`).then((r) => r.json()),
-        fetch(`${ROOT}/families.json`).then((r) => r.json()),
-        fetch(`${ROOT}/parts.json`).then((r) => r.json()),
-        loadSheetAt(`${ROOT}/player-potato-armless.json`, SHEET_ID),
-      ])
-      const imageName = typeof partsJ.image === 'string' ? partsJ.image : 'parts.png'
-      partsImg = await loadImage(`${ROOT}/${imageName}`)
-      parts = parseParts(partsJ.parts)
-      weapons = (wpnJ.weapons ?? {}) as Record<string, WeaponPaint>
-      families = (famJ.families ?? {}) as Record<string, FamKey[]>
-      sproutKeys = (famJ.sprout ?? []) as FamKey[]
-      aimClamp = num(famJ.aimClamp, 50)
-      sproutScale = num(famJ.sproutScale, num(sockJ.arms?.sprouted?.scale, 0.8))
-      armTurnShare = num(famJ.armTurnShare, 0.6)
-      handD = num(famJ.handD, 13)
-      behindZ = num(sockJ.behindBodyZ, 10)
-      nativeArt = (sockJ.arms?.native ?? {}) as Record<string, string>
-      sproutFront = sockJ.arms?.sprouted?.front ?? 'long_cut'
-      sproutBack = sockJ.arms?.sprouted?.back ?? 'long_dark_cut'
-      slotDefs = parseSlots(sockJ.slots)
-      layouts = sockJ.layouts ?? {}
-      tracks = (trackJ.clips ?? {}) as Record<string, TrackFrame[]>
-      secondary = (trackJ.secondary ?? {}) as Record<string, Pose[][]>
-      bodySheet = sheet
-      ready = !!sheet && !!partsImg
+      await Promise.all(
+        Object.entries(HERO_SOURCES).map(async ([species, source]) => {
+          const loaded = await loadHeroArt(source)
+          if (loaded) arts.set(species, loaded)
+        }),
+      )
+      ready = bindArt('potato')
     } catch {
       ready = false
     } finally {
@@ -575,8 +652,8 @@ function jitterMs(slotIndex: number, cycle: number, seed = 7): number {
 }
 
 /** Advance sprout and attack clocks. Returns weapon uids whose family clip released or hit this step. */
-export function tickMultiArm(dt: number, list: readonly ArmIn[]): number[] {
-  if (!ready) return []
+export function tickMultiArm(dt: number, list: readonly ArmIn[], species = 'potato'): number[] {
+  if (!bindArt(species)) return []
   syncLoadout(list)
   const fired: number[] = []
   const step = Math.max(0, dt) * 1000
@@ -592,7 +669,7 @@ export function tickMultiArm(dt: number, list: readonly ArmIn[]): number[] {
     }
     if (st.attackMs === null || st.uid == null) continue
     const painted = paintOf(st.uid)
-    const keys = painted ? families[painted.spec.family] : undefined
+    const keys = painted ? familyClip(painted.spec.family) : undefined
     const t0 = st.attackMs - st.jitter
     st.attackMs += step
     const t1 = st.attackMs - st.jitter
@@ -643,7 +720,7 @@ function armLayers(
     if (hp.thrust !== undefined) pose.thrust = hp.thrust
     if (w && hp.aim !== undefined) pose.wrist = hp.aim + 62
   }
-  const keys = w ? families[w.family] : undefined
+  const keys = w ? familyClip(w.family) : undefined
   const at = w && keys && tAttack !== null ? familyAt(keys, tAttack) : null
   const key = at?.key ?? null
   const held = pose
@@ -654,7 +731,7 @@ function armLayers(
     const keyed = poseFromKey(key, baseRaise)
     if (!slot.native) {
       pose = keyed
-    } else if (keyed.straight) {
+    } else if (w?.family === 'melee-stab' && keyed.straight) {
       let start = 0
       let runStart = 0
       let from: Pose = held
@@ -954,16 +1031,18 @@ export interface MultiArmDraw {
   weapons: readonly ArmIn[]
   clip: string
   r: number
+  /** World facing. Aim is unmirrored into the right-facing cell; the caller flips the pixels. */
   facing: 1 | -1
   alpha: number
   originX: number
   originY: number
   bodyRot: number
+  species?: string
 }
 
 /** Draw arm parts in the same space as `drawActorSheet` (caller has translated to the hero). */
 export function drawMultiArm(ctx: CanvasRenderingContext2D, which: 'back' | 'front', opts: MultiArmDraw): void {
-  if (!ready || !bodySheet) return
+  if (!bindArt(opts.species ?? 'potato') || !bodySheet) return
   syncLoadout(opts.weapons)
   const located = actorClipFrame('player', bodySheet, opts.clip)
   if (!located) return
@@ -999,8 +1078,9 @@ export function drawMultiArm(ctx: CanvasRenderingContext2D, which: 'back' | 'fro
   ctx.globalAlpha *= opts.alpha
   ctx.imageSmoothingEnabled = true
   ctx.imageSmoothingQuality = 'high'
-  ctx.translate(frame.ox * opts.facing, frame.oy)
-  ctx.scale(opts.facing * fit * frame.scaleX, fit * frame.scaleY)
+  // Pixels stay right-facing. The caller scales the body and both arm passes together.
+  ctx.translate(frame.ox, frame.oy)
+  ctx.scale(fit * frame.scaleX, fit * frame.scaleY)
   ctx.translate(-ax, -ay)
   const paint = (list: readonly Layer[]) => {
     const base = ctx.globalAlpha

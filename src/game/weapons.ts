@@ -517,6 +517,7 @@ export function updateWeapons(world: World, dt: number, ctx: SimCtx): void {
     const released = tickMultiArm(
       dt,
       player.weapons.map((w) => ({ uid: w.uid, id: w.id })),
+      player.character.species,
     )
     for (const uid of released) {
       const w = player.weapons.find((item) => item.uid === uid)

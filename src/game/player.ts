@@ -290,7 +290,7 @@ export function countSpecial(player: Player, special: ItemSpecial): number {
 function stepPlayerSheet(world: World, dt: number, ctx: SimCtx): void {
   const player = world.player
   const armed = potatoMultiArm(player.character.species)
-  const sheet = armed ? multiArmSheet() : resolveSheet(sheetKeysForPlayer(player.character.species, player.model))
+  const sheet = armed ? multiArmSheet(player.character.species) : resolveSheet(sheetKeysForPlayer(player.character.species, player.model))
   if (!sheet) return
   const anim = player.anim
   const swinging = player.weapons.some((w) => w.swingT >= 0)
