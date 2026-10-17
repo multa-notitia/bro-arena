@@ -10,7 +10,7 @@ export function applyChaosDemo(world: World): number {
   const farm = world.farm
   farm.seeds = { pea: 24, sprout: 24, carrot: 16, garlic: 12, pumpkin: 12, chili: 12 }
   farm.unlocked = [...CROP_IDS]
-  const cycle = CROP_IDS
+  const cycle = ['pea', 'sprout', 'carrot'] as const
   for (let i = 0; i < farm.plots.length; i++) {
     const plot = farm.plots[i]
     if (!plot) continue
@@ -34,6 +34,8 @@ export function applyChaosDemo(world: World): number {
     p.weapons.map((w) => ({ id: w.id, tier: w.tier })),
     p.form,
   )
+  p.stats = { ...p.stats, maxHp: Math.max(p.stats.maxHp, 72) }
   p.hp = p.stats.maxHp
+  p.invuln = 1.8
   return chaosDemoWave()
 }
