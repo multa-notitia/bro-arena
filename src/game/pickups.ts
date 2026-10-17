@@ -4,10 +4,11 @@ import { CROPS, cropByEnemy } from '../data/crops.ts'
 import { ITEM_LIST } from '../data/items.ts'
 import { harvestPayout, materialDropValue, tierOdds } from '../data/economy.ts'
 import { addSeed, harvestFarm, seedDropChance } from './farm.ts'
+import { CHAOS } from '../data/chaos.ts'
 import { addXp, countSpecial, extraState, healPlayer, recomputeStats } from './player.ts'
 import type { SimCtx } from './world.ts'
 
-const BASE_PICKUP_RANGE = 90
+const BASE_PICKUP_RANGE = CHAOS.pace.pickupRange
 
 export function spawnPickup(
   world: World,

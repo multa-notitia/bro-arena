@@ -1,4 +1,4 @@
-import { CHAOS, chaosOn } from '../data/chaos.ts'
+import { CHAOS, chaosOn, fxOn } from '../data/chaos.ts'
 import type { Enemy } from '../core/types.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
 import { hasClip, resolveEnemySheet } from '../render/chaosSheets.ts'
@@ -39,11 +39,12 @@ export function emergeEvents(e: Enemy, events: readonly string[], ctx: SimCtx): 
   if (events.includes('emerge_fx') && !erupted.has(e)) {
     erupted.add(e)
     const plant = e.kind === 'tomato' || e.kind === 'bean'
-    if (e.form === 'nightmare' || !plant) {
-      spawnFunnyClip(CHAOS.sheets.mudErupt, e.x, e.y + 6, { scale: CHAOS.sheets.drawScale })
-      if (e.form === 'nightmare') spawnFunnyClip('mud_hole', e.x, e.y + 4, { scale: CHAOS.sheets.drawScale })
-    } else {
-      spawnFunnyClip('dust', e.x, e.y + 6, { scale: CHAOS.sheets.drawScale })
+    if (fxOn('telegraphs')) {
+      if (e.form === 'nightmare' || !plant) {
+        spawnFunnyClip(CHAOS.sheets.mudErupt, e.x, e.y + 6, { scale: CHAOS.emerge.mudEruptScale })
+      } else {
+        spawnFunnyClip('dust', e.x, e.y + 6, { scale: CHAOS.emerge.mudEruptScale })
+      }
     }
     ctx.audio.play('mudRise', { gain: 0.55, pitch: plant ? 1.25 : 1.1 })
   }

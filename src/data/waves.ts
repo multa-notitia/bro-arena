@@ -1,4 +1,4 @@
-import { lerp } from '../core/math.ts'
+import { CHAOS } from './chaos.ts'
 import type { EnemyDef, EnemyKind, WaveDef } from '../core/types.ts'
 
 type Pool = { kind: EnemyKind; weight: number }[]
@@ -12,10 +12,10 @@ function w(
   pool: Pool,
   extras: { boss?: EnemyKind } = {},
 ): WaveDef {
-  const t = (index - 1) / 19
-  const duration = Math.round(lerp(20, 60, t))
-  const spawnInterval = Math.round(lerp(1.4, 0.32, t) * 100) / 100
-  const batch = Math.max(1, Math.round(lerp(1, 4, t)))
+  const slot = Math.max(0, Math.min(19, index - 1))
+  const duration = CHAOS.pace.waveSeconds[slot] ?? 20
+  const spawnInterval = CHAOS.pace.spawnInterval[slot] ?? 1.4
+  const batch = CHAOS.pace.batch[slot] ?? 1
   const elites = index < 6 ? 0 : index < 10 ? 1 : index < 16 ? 2 : 3
   const trees = index <= 5 ? 2 : index <= 12 ? 3 : 4
   const hordeCount = index < 3 ? 0 : index < 8 ? 1 : index < 14 ? 2 : 3

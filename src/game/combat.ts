@@ -102,7 +102,7 @@ export function dealDamageToEnemy(
   }
 
   const numOpts = opts.burnTick ? { burn: true } : crit ? { crit: true } : undefined
-  ctx.render.fx.damageNumber(enemy.x, enemy.y - enemy.r - 6, dmg, numOpts)
+  ctx.render.fx.damageNumber(enemy.x, enemy.y - enemy.r - 6, dmg, { ...numOpts, mergeId: enemy.uid })
   if (opts.burnTick) ctx.audio.play('burn', { gain: 0.45 })
   else if (crit) ctx.audio.play('crit')
   else ctx.audio.play('hit', { gain: 0.7 })

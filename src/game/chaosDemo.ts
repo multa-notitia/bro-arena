@@ -4,27 +4,34 @@ import { computeStats } from '../data/stats.ts'
 import { getLevelBonus, makeWeapon, syncWeaponSlots } from './player.ts'
 import { chaosDemoRequested, chaosDemoWave } from './chaosDirector.ts'
 
-/** Fill every bed and slap on a knife + hammer so death_slice / death_smash can fire. */
+/** Preview kit. Early waves stay a real garden; later waves add tools, not a soup. */
 export function applyChaosDemo(world: World): number {
   if (!chaosDemoRequested()) return 1
+  const wave = chaosDemoWave()
   const farm = world.farm
-  farm.seeds = { pea: 24, sprout: 24, carrot: 16, garlic: 12, pumpkin: 12, chili: 12 }
   farm.unlocked = [...CROP_IDS]
-  const cycle = ['pea', 'sprout', 'carrot'] as const
+  farm.seeds = { pea: 12, sprout: 8, carrot: 6, garlic: 4, pumpkin: 0, chili: 0 }
+  const early = wave <= 3
+  const cycle = early ? (['pea', 'pea', 'sprout'] as const) : (['pea', 'sprout', 'carrot'] as const)
+  const sow = early ? Math.min(4, farm.plots.length) : Math.min(8, farm.plots.length)
   for (let i = 0; i < farm.plots.length; i++) {
     const plot = farm.plots[i]
     if (!plot) continue
+    plot.crop = null
+    plot.growth = 0
+    if (i >= sow) continue
     const crop = cycle[i % cycle.length]
     if (!crop) continue
     plot.crop = crop
-    plot.growth = 0.85
+    plot.growth = 0.7
     farm.seeds[crop] = Math.max(0, farm.seeds[crop] - 1)
   }
   const p = world.player
   const have = new Set(p.weapons.map((w) => w.id))
-  for (const id of ['knife', 'hammer', 'stick'] as const) {
+  const kit = early ? (['knife'] as const) : (['knife', 'hammer'] as const)
+  for (const id of kit) {
     if (have.has(id) || p.weapons.length >= 6) continue
-    p.weapons.push(makeWeapon(id, 2, p.weapons.length))
+    p.weapons.push(makeWeapon(id, early ? 1 : 2, p.weapons.length))
   }
   syncWeaponSlots(p)
   p.stats = computeStats(
@@ -34,8 +41,9 @@ export function applyChaosDemo(world: World): number {
     p.weapons.map((w) => ({ id: w.id, tier: w.tier })),
     p.form,
   )
-  p.stats = { ...p.stats, maxHp: Math.max(p.stats.maxHp, 72) }
+  const floorHp = early ? 18 : 48
+  p.stats = { ...p.stats, maxHp: Math.max(p.stats.maxHp, floorHp) }
   p.hp = p.stats.maxHp
-  p.invuln = 1.8
-  return chaosDemoWave()
+  p.invuln = 1.2
+  return wave
 }

@@ -1,5 +1,5 @@
-import { TAU, clamp, ease, hashNoise } from '../core/math.ts'
-import { CHAOS, chaosJuiceOn, chaosOn } from '../data/chaos.ts'
+import { TAU, clamp, hashNoise } from '../core/math.ts'
+import { CHAOS, chaosJuiceOn, chaosOn, fxOn } from '../data/chaos.ts'
 import type { SpawnMarker } from '../core/types.ts'
 import { drawNamedClip, restartActorClip, resolveSheet, spawnInkClip } from './sheets.ts'
 
@@ -101,7 +101,7 @@ export function resetChaosFx(): void {
 }
 
 export function spawnSplatDecal(x: number, y: number, color: string, size: number): void {
-  if (!chaosJuiceOn()) return
+  if (!chaosJuiceOn() || !fxOn('telegraphs')) return
   const d = allocDecal()
   d.alive = true
   d.x = x
@@ -171,7 +171,7 @@ export function tickChaosFx(dt: number): void {
 }
 
 export function drawChaosFloor(ctx: CanvasRenderingContext2D): void {
-  if (!chaosOn()) return
+  if (!chaosOn() || !fxOn('telegraphs')) return
   ctx.save()
   ctx.globalCompositeOperation = 'multiply'
   for (let i = 0; i < decals.length; i++) {
@@ -192,31 +192,27 @@ export function drawChaosFloor(ctx: CanvasRenderingContext2D): void {
   ctx.restore()
 }
 
-export function drawChaosMarker(ctx: CanvasRenderingContext2D, m: SpawnMarker, time: number): void {
-  if (!chaosOn()) return
+export function drawChaosMarker(ctx: CanvasRenderingContext2D, m: SpawnMarker, _time: number): void {
+  if (!chaosOn() || !fxOn('telegraphs')) return
   const u = m.life > 0 ? clamp(m.t / m.life, 0, 1) : 1
-  const sheet = resolveSheet([CHAOS.sheets.funny])
-  const plant = m.style === 'patch' || m.style === 'ring'
+  const look = CHAOS.telegraphLook
+  const fade = Math.sin(u * Math.PI)
   ctx.save()
   ctx.translate(m.x, m.y)
-  if (sheet) {
-    const warn = plant ? (time % 0.7 < 0.35 ? 'rustle_a' : 'rustle_b') : 'mud_hole'
-    const clip = sheet.manifest.clips[warn] ?? sheet.manifest.clips.mud_hole
-    if (clip) {
-      ctx.globalAlpha = 0.35 + 0.55 * Math.sin(u * Math.PI)
-      drawNamedClip(ctx, sheet, `mark:${m.x}:${m.y}:${warn}`, warn, 0, {
-        scale: funnyScale(warn),
-      })
-      ctx.restore()
-      return
-    }
-  }
-  const pulse = 0.35 + 0.65 * Math.sin(u * Math.PI)
-  ctx.globalAlpha = pulse * 0.85
-  ctx.strokeStyle = m.style === 'ring' ? '#c45a32' : m.style === 'patch' ? '#6a8f3a' : '#5a3a22'
-  ctx.lineWidth = 2.2
+  ctx.globalAlpha = look.alpha * fade
+  ctx.strokeStyle = m.style === 'ring' ? '#8a4a2a' : m.style === 'patch' ? '#4a6230' : '#4a3424'
+  ctx.lineWidth = look.line
   ctx.beginPath()
-  ctx.ellipse(0, 4, 12 + u * 16, 6 + u * 8, 0, 0, TAU)
+  ctx.ellipse(0, 3, look.rx, look.ry, 0, 0, TAU)
+  ctx.stroke()
+  ctx.globalAlpha = look.alpha * fade * 0.85
+  ctx.beginPath()
+  const cracks = look.crack
+  for (let i = 0; i < cracks; i++) {
+    const a = (i / cracks) * TAU + u * 0.2
+    ctx.moveTo(Math.cos(a) * 2, Math.sin(a) * 1.1 + 3)
+    ctx.lineTo(Math.cos(a) * look.rx, Math.sin(a) * look.ry + 3)
+  }
   ctx.stroke()
   ctx.restore()
 }
@@ -244,6 +240,8 @@ export function drawFunnyBursts(ctx: CanvasRenderingContext2D, dt: number): void
   for (let i = 0; i < bursts.length; i++) {
     const b = bursts[i]
     if (!b || !b.alive) continue
+    const ground = b.clip.startsWith('splat') || b.clip.startsWith('veg_burst') || b.clip === 'mud_erupt' || b.clip === 'mud_hole' || b.clip.startsWith('rustle')
+    if (ground && !fxOn('telegraphs')) continue
     if (sheet?.manifest.clips[b.clip]) {
       ctx.save()
       ctx.translate(b.x, b.y)
@@ -251,12 +249,13 @@ export function drawFunnyBursts(ctx: CanvasRenderingContext2D, dt: number): void
       ctx.restore()
       if (painted) continue
     }
+    if (ground) continue
     const u = clamp(b.t / b.life, 0, 1)
     const fade = 1 - u
     ctx.save()
-    ctx.globalAlpha = fade * 0.85
+    ctx.globalAlpha = fade * 0.7
     ctx.fillStyle = b.color
-    const r = (18 + u * 28) * b.scale * 2
+    const r = 6 + u * 8
     ctx.beginPath()
     ctx.arc(b.x, b.y, r, 0, TAU)
     ctx.fill()
@@ -264,19 +263,17 @@ export function drawFunnyBursts(ctx: CanvasRenderingContext2D, dt: number): void
   }
 }
 
-export function drawComboHud(ctx: CanvasRenderingContext2D, w: number, h: number, n: number): void {
-  if (n < 2 || !chaosJuiceOn()) return
+export function drawComboHud(ctx: CanvasRenderingContext2D, w: number, _h: number, n: number): void {
+  if (n < 2 || !chaosJuiceOn() || !fxOn('combo')) return
   ctx.save()
-  ctx.translate(w * 0.5, h * 0.18)
-  const pop = 1 + ease.outBack(clamp(n / 20, 0, 1)) * 0.15
-  ctx.scale(pop, pop)
-  ctx.fillStyle = '#f4e8c8'
-  ctx.strokeStyle = 'rgba(24, 12, 8, 0.85)'
-  ctx.lineWidth = 6
+  ctx.translate(w - 18, 86)
+  ctx.fillStyle = '#efe4c8'
+  ctx.strokeStyle = 'rgba(24, 12, 8, 0.7)'
+  ctx.lineWidth = 3
   ctx.lineJoin = 'round'
-  ctx.font = `italic ${Math.round(28 + Math.min(22, n))}px Georgia, 'Palatino Linotype', serif`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
+  ctx.font = `italic 13px Georgia, 'Palatino Linotype', serif`
+  ctx.textAlign = 'right'
+  ctx.textBaseline = 'top'
   const label = `${n} chain`
   ctx.strokeText(label, 0, 0)
   ctx.fillText(label, 0, 0)

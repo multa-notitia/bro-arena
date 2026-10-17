@@ -85,7 +85,7 @@ function pickPool(world: World, ctx: SimCtx): EnemyKind {
 }
 
 function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LIFE): void {
-  if (world.enemies.length + world.markers.length >= maxEnemies()) return
+  if (world.enemies.length + world.markers.length >= maxEnemies(world.wave)) return
   const sown = plantedPlots(world.farm)
   const plot = sown.length > 0 ? ctx.rng.pick(sown) : ctx.rng.pick(world.farm.plots)
   const crop = plot.crop
@@ -181,7 +181,7 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
 
   if (!timeUp) {
     d.spawnAcc += dt
-    while (d.spawnAcc >= interval && world.enemies.length + world.markers.length < maxEnemies()) {
+    while (d.spawnAcc >= interval && world.enemies.length + world.markers.length < maxEnemies(world.wave)) {
       d.spawnAcc -= Math.max(0.08, interval)
       for (let i = 0; i < batch; i++) spawnFromBed(world, ctx)
     }

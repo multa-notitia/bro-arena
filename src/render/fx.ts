@@ -1,6 +1,6 @@
 import { TAU, clamp, ease, hashNoise, lerp } from '../core/math.ts'
 import type { DamageNumberOpts, FxApi } from '../core/types.ts'
-import { CHAOS, chaosJuiceOn } from '../data/chaos.ts'
+import { CHAOS, chaosJuiceOn, fxOn } from '../data/chaos.ts'
 import { FEEL, flashStrength } from '../feel.ts'
 import { drawInkClips, spawnInkClip, tickInkClips } from './sheets.ts'
 import { n01, parseRgb, wobbleBlob } from './watercolor.ts'
@@ -33,6 +33,8 @@ interface Particle {
   burn: boolean
   spin: number
   landed: boolean
+  mergeId: number
+  amount: number
 }
 
 interface WipeBlob {
@@ -76,6 +78,8 @@ function fresh(): Particle {
     burn: false,
     spin: 0,
     landed: false,
+    mergeId: 0,
+    amount: 0,
   }
 }
 
@@ -94,6 +98,8 @@ function reset(p: Particle): void {
   p.burn = false
   p.spin = 0
   p.landed = false
+  p.mergeId = 0
+  p.amount = 0
 }
 
 export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): void } {
@@ -289,6 +295,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.maxLife = 0.18
     },
     shockwave(x, y, radius, color) {
+      if (!fxOn('telegraphs')) return
       const p = alloc()
       p.kind = 'shock'
       p.x = x
@@ -299,24 +306,45 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.maxLife = 0.38
     },
     damageNumber(x, y, amount, opts?: DamageNumberOpts) {
+      if (!fxOn('damageNumbers') && !opts?.heal && !opts?.dodge) return
+      const value = Math.round(amount)
+      const mergeId = opts?.mergeId ?? 0
+      if (mergeId && !opts?.heal && !opts?.dodge) {
+        for (let i = 0; i < ps.length; i++) {
+          const live = ps[i]
+          if (!live || live.kind !== 'dmg' || live.mergeId !== mergeId || live.heal || live.dodge) continue
+          if (live.maxLife - live.life > CHAOS.juice.numberMerge) continue
+          live.amount += value
+          live.crit = live.crit || !!opts?.crit
+          live.burn = live.burn || !!opts?.burn
+          live.text = String(live.amount)
+          live.life = live.maxLife
+          live.y = y
+          live.x = x
+          live.size = live.crit ? CHAOS.juice.numberCritSize : CHAOS.juice.numberSize
+          return
+        }
+      }
       const p = alloc()
       p.kind = 'dmg'
-      p.x = x + (hashNoise(nextId, 20) - 0.5) * 10
+      p.x = x + (hashNoise(nextId, 20) - 0.5) * 4
       p.y = y
-      p.vy = -46 - (opts?.crit ? 12 : 0)
-      p.vx = (hashNoise(nextId, 21) - 0.5) * 18
-      p.color = '#2a221c'
-      p.life = 0.85
-      p.maxLife = 0.85
-      p.rot = ((hashNoise(nextId, 22) - 0.5) * 12 * Math.PI) / 180
+      p.vy = -38 - (opts?.crit ? 8 : 0)
+      p.vx = (hashNoise(nextId, 21) - 0.5) * 8
+      p.color = '#f4f0e6'
+      p.life = CHAOS.juice.numberLife
+      p.maxLife = CHAOS.juice.numberLife
+      p.rot = ((hashNoise(nextId, 22) - 0.5) * 6 * Math.PI) / 180
       p.crit = !!opts?.crit
       p.heal = !!opts?.heal
       p.dodge = !!opts?.dodge
       p.burn = !!opts?.burn
+      p.mergeId = mergeId
+      p.amount = value
       if (p.dodge) p.text = 'dodge'
-      else if (p.heal) p.text = `+${Math.round(amount)}`
-      else p.text = String(Math.round(amount))
-      p.size = p.crit ? 22 : p.dodge ? 14 : 15
+      else if (p.heal) p.text = `+${value}`
+      else p.text = String(value)
+      p.size = p.crit ? CHAOS.juice.numberCritSize : p.dodge ? 7 : CHAOS.juice.numberSize
     },
     text(x, y, text, color) {
       const p = alloc()
@@ -672,17 +700,17 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
             if (p.dodge) fill = '#7a7368'
             else if (p.heal) fill = '#3d7a48'
             else if (p.burn) fill = '#d06030'
-            else if (p.crit) fill = '#d45a28'
-            else fill = '#2a221c'
+            else if (p.crit) fill = '#ffe14a'
+            else fill = '#f4f0e6'
           }
           ctx.fillStyle = fill
-          ctx.font = `${p.crit ? 'bold ' : 'italic '}${p.size}px Georgia, 'Palatino Linotype', 'Times New Roman', serif`
+          ctx.font = `${p.crit ? 'bold ' : ''}${p.size}px Georgia, 'Palatino Linotype', 'Times New Roman', serif`
           ctx.textAlign = 'center'
           ctx.textBaseline = 'middle'
           ctx.lineJoin = 'round'
           ctx.miterLimit = 2
           ctx.strokeStyle = 'rgba(18, 12, 8, 0.88)'
-          ctx.lineWidth = p.crit ? 4.2 : 3.4
+          ctx.lineWidth = p.crit ? 2.4 : 2
           ctx.strokeText(p.text, 0, 0)
           ctx.fillText(p.text, 0, 0)
           ctx.restore()

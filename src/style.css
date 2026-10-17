@@ -280,6 +280,31 @@ button {
   width: 100%;
 }
 
+.options-panel {
+  margin: 14px 0 8px;
+  padding: 10px 12px 8px;
+  border: 1px solid var(--line, rgba(40, 24, 16, 0.22));
+  background: rgba(255, 248, 236, 0.45);
+}
+
+.options-panel legend {
+  padding: 0 4px;
+}
+
+.opt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  margin: 6px 0;
+  cursor: pointer;
+}
+
+.opt-row input {
+  width: 16px;
+  height: 16px;
+}
+
 .bag-count.is-pop {
   animation: bag-pop 0.28s ease-out;
 }

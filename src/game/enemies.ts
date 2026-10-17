@@ -14,14 +14,12 @@ import { farmHpMult, farmNightmareBonus } from './farm.ts'
 import { createAnim, tickFaceAnim } from './player.ts'
 import { spawnProjectile } from './projectiles.ts'
 import { addTrauma, FEEL, requestHitStop } from '../feel.ts'
-import { CHAOS, chaosJuiceOn, maxEnemies, walkPlaybackRate } from '../data/chaos.ts'
+import { CHAOS, chaosJuiceOn, maxEnemies, paceEnemySpeed, walkPlaybackRate } from '../data/chaos.ts'
 import {
   chainBurst,
   comboPitch,
   corpseClipName,
   deathClipName,
-  funnyBurstClip,
-  funnySplatClip,
   markKamikazeCorpse,
 } from './chaosJuice.ts'
 import { beginEmerge, collisionOn, emergeEvents, tickEmerge } from './emerge.ts'
@@ -127,13 +125,14 @@ export function spawnEnemy(
   parent?: Enemy,
   fromMarker = false,
 ): Enemy | null {
-  if (world.enemies.length >= maxEnemies()) return null
+  if (world.enemies.length >= maxEnemies(world.wave)) return null
   const def = ENEMIES[kind]
   if (!def) return null
   let hp = enemyHpAtWave(def, world.wave)
   let damage = enemyDamageAtWave(def, world.wave)
   let r = def.radius
-  let speed = def.speed
+  let speed = paceEnemySpeed(enemyFamily(kind), def.speed)
+  if (variantTone(kind) === 'mud') speed = Math.max(8, Math.round(speed * 0.9))
   const elite = def.rank === 'elite' || asElite
   const boss = def.rank === 'boss'
   if (asElite && def.rank === 'basic') {
@@ -772,8 +771,7 @@ function sheetEvents(world: World, e: Enemy, clip: string, events: readonly stri
   if (events.includes('takeoff') || events.includes('land')) leapEvents(e, events, ctx)
   if (events.includes('spawnFx')) {
     if (clip === 'death' || clip === 'death_slice' || clip === 'death_smash' || clip === 'attack') {
-      spawnFunnyClip(funnyBurstClip(e), e.x, e.y, { scale: CHAOS.sheets.drawScale })
-      spawnFunnyClip(funnySplatClip(e), e.x, e.y + 4, { scale: CHAOS.sheets.drawScale })
+      spawnFunnyClip(CHAOS.sheets.pop, e.x, e.y, { scale: CHAOS.sheets.popScale })
     } else if (clip.startsWith('death') || (events.includes('hit') && e.kind === 'eliteBlob')) {
       ctx.render.fx.inkBurst(e.x, e.y, e.r * (clip.startsWith('death') ? FEEL.kill.inkSize : 1.4))
     } else if (enemyFamily(e.kind) === 'charger') {
@@ -986,16 +984,16 @@ function separate(world: World): void {
       const b = list[j]
       if (!b || b.state === 'dying' || b.state === 'spawning' || isAirborne(b)) continue
       const dx = a.x - b.x
-      if (dx > 46 || dx < -46) continue
+      if (dx > CHAOS.pace.separateScan || dx < -CHAOS.pace.separateScan) continue
       const dy = a.y - b.y
-      if (dy > 46 || dy < -46) continue
-      const min = (a.r + b.r) * 0.82
+      if (dy > CHAOS.pace.separateScan || dy < -CHAOS.pace.separateScan) continue
+      const min = (a.r + b.r) * CHAOS.pace.separate
       const d2 = dx * dx + dy * dy
       if (d2 >= min * min || d2 < 0.01) continue
       const d = Math.sqrt(d2)
       const nx = dx / d
       const ny = dy / d
-      const push = (min - d) * 0.46
+      const push = (min - d) * CHAOS.pace.separatePush
       a.x += nx * push
       a.y += ny * push
       b.x -= nx * push

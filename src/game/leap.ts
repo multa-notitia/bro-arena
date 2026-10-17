@@ -2,7 +2,6 @@ import { dist, ease } from '../core/math.ts'
 import { CHAOS, chaosOn } from '../data/chaos.ts'
 import type { Enemy, World } from '../core/types.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
-import { funnySplatClip } from './chaosJuice.ts'
 import { hasClip, resolveEnemySheet } from '../render/chaosSheets.ts'
 import { actorClipDone, clipHasEvent, clipPlayhead, restartActorClip } from '../render/sheets.ts'
 import type { SimCtx } from './world.ts'
@@ -146,9 +145,8 @@ function land(e: Enemy, live: LeapLive, ctx: SimCtx): void {
   live.airborne = false
   e.x = live.toX
   e.y = live.toY
-  spawnFunnyClip('dust', e.x, e.y + 6, { scale: CHAOS.sheets.drawScale })
-  spawnFunnyClip(funnySplatClip(e), e.x, e.y + 4, { scale: CHAOS.sheets.drawScale * 0.85 })
-  ctx.render.fx.shockwave(e.x, e.y, 28 + e.r * 0.4, e.def.palette.shade)
+  spawnFunnyClip('dust', e.x, e.y + 6, { scale: CHAOS.emerge.mudEruptScale })
+  ctx.render.fx.shockwave(e.x, e.y, 22 + e.r * 0.25, e.def.palette.shade)
   ctx.audio.play('hit', { pitch: 0.55, gain: 0.45 })
   e.state = 'idle'
   const span = CHAOS.leap.cooldown

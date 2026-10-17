@@ -23,11 +23,6 @@ export function resetChaosDirector(): void {
   nextAmbush = CHAOS.director.ambushEvery[0]
   nextPatch = CHAOS.director.patchEvery[0]
   nextHop = CHAOS.director.hopPackEvery[0]
-  if (chaosDemoRequested()) {
-    nextAmbush = 2.4
-    nextPatch = 3.8
-    nextHop = 1.6
-  }
 }
 
 function pressure(world: World): number {
@@ -49,7 +44,7 @@ export function chaosBatch(base: number, world: World): number {
 }
 
 function room(world: World): boolean {
-  return world.enemies.length + world.markers.length < maxEnemies()
+  return world.enemies.length + world.markers.length < maxEnemies(world.wave)
 }
 
 function randomAway(world: World, ctx: SimCtx, minDist: number, margin = 48): { x: number; y: number } {
@@ -182,22 +177,22 @@ export function tickChaosDirector(world: World, dt: number, ctx: SimCtx): void {
   patchAcc += dt
   hopAcc += dt
   mixedAcc += dt
-  if (ambushAcc >= nextAmbush) {
+  if (world.wave >= CHAOS.director.ambushFromWave && ambushAcc >= nextAmbush) {
     ambushAcc = 0
-    nextAmbush = ctx.rng.range(CHAOS.director.ambushEvery[0], lerp(CHAOS.director.ambushEvery[1], 6, p))
+    nextAmbush = ctx.rng.range(CHAOS.director.ambushEvery[0], lerp(CHAOS.director.ambushEvery[1], 8, p))
     ambushRing(world, ctx)
   }
-  if (patchAcc >= nextPatch) {
+  if (world.wave >= CHAOS.director.patchFromWave && patchAcc >= nextPatch) {
     patchAcc = 0
-    nextPatch = ctx.rng.range(CHAOS.director.patchEvery[0], lerp(CHAOS.director.patchEvery[1], 7, p))
+    nextPatch = ctx.rng.range(CHAOS.director.patchEvery[0], lerp(CHAOS.director.patchEvery[1], 10, p))
     plantPatch(world, ctx)
   }
-  if (hopAcc >= nextHop) {
+  if (world.wave >= CHAOS.director.hopFromWave && hopAcc >= nextHop) {
     hopAcc = 0
-    nextHop = ctx.rng.range(CHAOS.director.hopPackEvery[0], lerp(CHAOS.director.hopPackEvery[1], 5, p))
+    nextHop = ctx.rng.range(CHAOS.director.hopPackEvery[0], lerp(CHAOS.director.hopPackEvery[1], 8, p))
     hopPack(world, ctx)
   }
-  if (mixedAcc >= lerp(3.2, 1.1, p) && ctx.rng.chance(CHAOS.director.mixedPackChance)) {
+  if (world.wave >= 3 && mixedAcc >= lerp(4.5, 2.2, p) && ctx.rng.chance(CHAOS.director.mixedPackChance)) {
     mixedAcc = 0
     mixedPack(world, ctx)
   }

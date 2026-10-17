@@ -1,5 +1,5 @@
 import { clamp, dist2 } from '../core/math.ts'
-import { CHAOS, chaosJuiceOn, type DeathStyle } from '../data/chaos.ts'
+import { CHAOS, chaosJuiceOn, fxOn, type DeathStyle } from '../data/chaos.ts'
 import type { Enemy, JuiceFamily, World } from '../core/types.ts'
 import { addTrauma, juiceScale, requestHitStopMs } from '../feel.ts'
 import { spawnFunnyClip, spawnSplatDecal } from '../render/chaosFx.ts'
@@ -118,9 +118,8 @@ export function juiceHitFeel(
   const j = CHAOS.juice
   enemy.anim.squash = Math.min(enemy.anim.squash, j.squash * (crit ? 0.88 : 1))
   const trauma = (crit ? j.traumaHit * 1.6 : j.traumaHit) * (0.55 + clamp(damage / 24, 0, 1) * 0.45)
-  addTrauma(world, trauma * 16, kx, ky)
-  spawnSplatDecal(enemy.x, enemy.y + 4, juiceColorOf(enemy), Math.min(16, 5 + damage * 0.35))
-  spawnFunnyClip(funnySplatClip(enemy), enemy.x, enemy.y + 4, { scale: CHAOS.sheets.drawScale * 0.7 })
+  addTrauma(world, trauma * 6, kx, ky)
+  spawnSplatDecal(enemy.x, enemy.y + 4, juiceColorOf(enemy), Math.min(CHAOS.juice.splatSize, 4 + damage * 0.12))
 }
 
 export function juiceOnKill(world: World, enemy: Enemy, ctx: SimCtx, damage: number): void {
@@ -131,17 +130,15 @@ export function juiceOnKill(world: World, enemy: Enemy, ctx: SimCtx, damage: num
   if (combo.count > combo.best) combo.best = combo.count
   const elite = enemy.elite || enemy.boss
   const trauma = enemy.boss ? j.traumaBoss : elite ? j.traumaElite : j.traumaKill
-  addTrauma(world, trauma * 16, enemy.x - world.player.x, enemy.y - world.player.y)
+  addTrauma(world, trauma * 6, enemy.x - world.player.x, enemy.y - world.player.y)
   const color = juiceColorOf(enemy)
-  spawnSplatDecal(enemy.x, enemy.y + 6, color, enemy.r * 1.4)
+  spawnSplatDecal(enemy.x, enemy.y + 6, color, Math.min(CHAOS.juice.splatSize, enemy.r * 0.35))
   spawnFunnyClip(CHAOS.sheets.pop, enemy.x, enemy.y, { scale: CHAOS.sheets.popScale, color })
-  spawnFunnyClip(funnyBurstClip(enemy), enemy.x, enemy.y, { scale: CHAOS.sheets.drawScale, color })
-  spawnFunnyClip(funnySplatClip(enemy), enemy.x, enemy.y + 4, { scale: CHAOS.sheets.drawScale, color })
   spawnFunnyClip('ghost', enemy.x, enemy.y - 4, { scale: CHAOS.sheets.drawScale, color })
   const big = elite || enemy.maxHp >= j.bigKillHp || damage >= 22
   if (big) {
     spawnFunnyClip('stars', enemy.x, enemy.y, { scale: CHAOS.sheets.drawScale, color })
-    ctx.render.fx.shockwave(enemy.x, enemy.y, j.bigKillRadius * (enemy.boss ? 1.4 : 1), color)
+    if (fxOn('telegraphs')) ctx.render.fx.shockwave(enemy.x, enemy.y, j.bigKillRadius * (enemy.boss ? 1.4 : 1), color)
   }
 }
 
@@ -154,10 +151,9 @@ export function chainBurst(world: World, enemy: Enemy, ctx: SimCtx, sourceDamage
   const radius = def?.radius ?? CHAOS.juice.chainRadius * (enemy.elite ? 1.35 : 1)
   const splash = Math.max(3, Math.round(sourceDamage * (def?.damageFrac ?? CHAOS.juice.chainFrac)))
   const color = juiceColorOf(enemy)
-  ctx.render.fx.shockwave(enemy.x, enemy.y, radius, color)
+  if (fxOn('telegraphs')) ctx.render.fx.shockwave(enemy.x, enemy.y, radius * 0.55, color)
   spawnFunnyClip(CHAOS.sheets.pop, enemy.x, enemy.y, { scale: CHAOS.sheets.popScale, color })
-  spawnFunnyClip(funnyBurstClip(enemy), enemy.x, enemy.y, { scale: CHAOS.sheets.drawScale, color })
-  spawnSplatDecal(enemy.x, enemy.y, color, radius * 0.22)
+  spawnSplatDecal(enemy.x, enemy.y, color, Math.min(CHAOS.juice.splatSize, radius * 0.08))
   ctx.audio.play('hit', { pitch: 0.62, gain: 0.85 })
   for (const other of world.enemies) {
     if (other === enemy || other.state === 'dying' || other.state === 'spawning') continue

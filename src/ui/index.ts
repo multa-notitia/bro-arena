@@ -7,6 +7,7 @@ import type {
   ItemPaint,
   LevelUpOption,
   ModelDir,
+  FxToggle,
   PaintStyle,
   PlantHandlers,
   PlantView,
@@ -294,6 +295,14 @@ const SKELETON = `
       <div id="pause-paint" class="paint-row"></div>
       <button id="btn-pause-juice" class="btn ghost juice-btn" type="button" aria-pressed="false">Ease the shake</button>
     </div>
+    <fieldset class="options-panel" id="pause-options">
+      <legend class="paint-kicker">Options</legend>
+      <label class="opt-row"><input type="checkbox" id="opt-telegraphs" /> Ground marks</label>
+      <label class="opt-row"><input type="checkbox" id="opt-nums" /> Damage numbers</label>
+      <label class="opt-row"><input type="checkbox" id="opt-combo" /> Chain text</label>
+      <label class="opt-row"><input type="checkbox" id="opt-shake" /> Screen shake</label>
+      <label class="opt-row"><input type="checkbox" id="opt-hitstop" /> Hit-stop</label>
+    </fieldset>
     <div class="actions">
       <button id="btn-resume" class="btn primary" type="button">Keep going</button>
       <button id="btn-quit" class="btn ghost" type="button">Walk off</button>
@@ -449,6 +458,11 @@ export function createUi(
   const btnQuit = must<HTMLButtonElement>('#btn-quit')
   const btnPauseMute = must<HTMLButtonElement>('#btn-pause-mute')
   const btnPauseJuice = must<HTMLButtonElement>('#btn-pause-juice')
+  const optTelegraphs = must<HTMLInputElement>('#opt-telegraphs')
+  const optNums = must<HTMLInputElement>('#opt-nums')
+  const optCombo = must<HTMLInputElement>('#opt-combo')
+  const optShake = must<HTMLInputElement>('#opt-shake')
+  const optHitstop = must<HTMLInputElement>('#opt-hitstop')
   const overLede = must<HTMLElement>('#over-lede')
   const overHero = must<HTMLDivElement>('#over-hero')
   const overSummary = must<HTMLUListElement>('#over-summary')
@@ -621,6 +635,8 @@ export function createUi(
     setPaintStyle(style: PaintStyle): void
     reducedJuice: boolean
     setReducedJuice(v: boolean): void
+    fx: Record<FxToggle, boolean>
+    setFx(flag: FxToggle, value: boolean): void
   } | null = null
   let shopHandlers: ShopHandlers | null = null
   let plantHandlers: PlantHandlers | null = null
@@ -863,6 +879,12 @@ export function createUi(
   btnPauseJuice.addEventListener('click', () => {
     pauseHandlers?.setReducedJuice(!juiceUi)
   })
+
+  optTelegraphs.addEventListener('change', () => pauseHandlers?.setFx('telegraphs', optTelegraphs.checked))
+  optNums.addEventListener('change', () => pauseHandlers?.setFx('damageNumbers', optNums.checked))
+  optCombo.addEventListener('change', () => pauseHandlers?.setFx('combo', optCombo.checked))
+  optShake.addEventListener('change', () => pauseHandlers?.setFx('shake', optShake.checked))
+  optHitstop.addEventListener('change', () => pauseHandlers?.setFx('hitStop', optHitstop.checked))
 
   shopReroll.addEventListener('click', () => {
     shopHandlers?.reroll()
@@ -1470,6 +1492,8 @@ export function createUi(
         setPaintStyle(style: PaintStyle): void
         reducedJuice: boolean
         setReducedJuice(v: boolean): void
+        fx: Record<FxToggle, boolean>
+        setFx(flag: FxToggle, value: boolean): void
       },
     ): void {
       pauseHandlers = handlers
@@ -1477,6 +1501,11 @@ export function createUi(
       setMutedUi(handlers.muted)
       setJuiceUi(handlers.reducedJuice)
       fillPaintRow(pausePaint, handlers.paintStyle, handlers.setPaintStyle)
+      optTelegraphs.checked = handlers.fx.telegraphs
+      optNums.checked = handlers.fx.damageNumbers
+      optCombo.checked = handlers.fx.combo
+      optShake.checked = handlers.fx.shake
+      optHitstop.checked = handlers.fx.hitStop
     },
 
     renderGameOver(summary: RunSummary, handlers: { retry(): void; title(): void }): void {

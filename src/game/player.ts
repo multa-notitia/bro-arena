@@ -1,6 +1,6 @@
 import { clamp, damp, ease, uid, wrapAngle } from '../core/math.ts'
 import { FEEL } from '../feel.ts'
-import { walkPlaybackRate } from '../data/chaos.ts'
+import { CHAOS, walkPlaybackRate } from '../data/chaos.ts'
 import type {
   AnimState,
   CharacterDef,
@@ -32,9 +32,6 @@ import {
 } from '../render/sheets.ts'
 
 const START_RICH = 40
-const MOVE_ACCEL = 2100
-const MOVE_FRICTION = 11
-const BASE_SPEED = 210
 const SQUASH_TIME = 0.22
 
 export interface PlayerExtra {
@@ -334,7 +331,7 @@ function stepPlayerSheet(world: World, dt: number, ctx: SimCtx): void {
   if (clip) {
     presentActorClip('player', clip, dt)
     const spd = Math.hypot(player.vx, player.vy)
-    const rate = clip === 'walk' ? walkPlaybackRate(spd, BASE_SPEED) : 1
+    const rate = clip === 'walk' ? walkPlaybackRate(spd, CHAOS.pace.playerSpeed) : 1
     const ev = advanceActorSheet('player', sheet, clip, dt, rate)
     flash(ev, clip)
     if (clip === 'attack' && ev.includes('release')) notePlayerRelease()
@@ -370,13 +367,13 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
   player.invuln = Math.max(0, player.invuln - dt)
   anim.hitFlash = Math.max(0, anim.hitFlash - dt * 4)
 
-  const maxSpeed = BASE_SPEED * (1 + player.stats.speed / 100)
+  const maxSpeed = CHAOS.pace.playerSpeed * (1 + player.stats.speed / 100)
   const mag = Math.hypot(move.x, move.y)
   if (mag > 0.08) {
     const nx = move.x / mag
     const ny = move.y / mag
-    player.vx += nx * MOVE_ACCEL * dt
-    player.vy += ny * MOVE_ACCEL * dt
+    player.vx += nx * CHAOS.pace.playerAccel * dt
+    player.vy += ny * CHAOS.pace.playerAccel * dt
     const spd = Math.hypot(player.vx, player.vy)
     if (spd > maxSpeed) {
       const s = maxSpeed / spd
@@ -384,8 +381,8 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
       player.vy *= s
     }
   } else {
-    player.vx = damp(player.vx, 0, MOVE_FRICTION, dt)
-    player.vy = damp(player.vy, 0, MOVE_FRICTION, dt)
+    player.vx = damp(player.vx, 0, CHAOS.pace.playerFriction, dt)
+    player.vy = damp(player.vy, 0, CHAOS.pace.playerFriction, dt)
   }
 
   player.x += player.vx * dt

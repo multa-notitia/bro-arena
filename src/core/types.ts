@@ -927,6 +927,8 @@ export interface UiApi {
       setPaintStyle(style: PaintStyle): void
       reducedJuice: boolean
       setReducedJuice(v: boolean): void
+      fx: Record<FxToggle, boolean>
+      setFx(flag: FxToggle, value: boolean): void
     },
   ): void
   renderGameOver(summary: RunSummary, handlers: { retry(): void; title(): void }): void
@@ -962,11 +964,14 @@ export interface InputApi {
 // Render
 // ---------------------------------------------------------------------------
 
+export type FxToggle = 'telegraphs' | 'damageNumbers' | 'combo' | 'shake' | 'hitStop'
+
 export interface DamageNumberOpts {
   crit?: boolean
   heal?: boolean
   dodge?: boolean
   burn?: boolean
+  mergeId?: number
 }
 
 /** Implemented by src/render/fx.ts. World-space coordinates unless noted. */
