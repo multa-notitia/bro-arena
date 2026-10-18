@@ -1,4 +1,5 @@
 import { TAU, clamp, dist, ease, hashNoise, lerp } from '../core/math.ts'
+import { fxOn } from '../data/chaos.ts'
 import { comboCount, corpseClipName, deathClipName } from '../game/chaosJuice.ts'
 import { vineOf } from '../game/emerge.ts'
 import { hopHeight, isLeaping } from '../game/leap.ts'
@@ -140,8 +141,9 @@ function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, footpri
 
 /** Faint warm pool so painted figures separate from the soil. */
 function drawReadHalo(ctx: CanvasRenderingContext2D, x: number, y: number, footprint: number, strength = 1): void {
-  const rx = Math.max(8, footprint * 1.15)
-  const peak = 0.28 * clamp(strength, 0, 1)
+  if (!fxOn('telegraphs')) return
+  const rx = Math.max(6, footprint * 0.42)
+  const peak = 0.12 * clamp(strength, 0, 1)
   if (peak < 0.02) return
   ctx.save()
   ctx.translate(x, y)
@@ -158,7 +160,8 @@ function drawReadHalo(ctx: CanvasRenderingContext2D, x: number, y: number, footp
 
 /** Screen-blend pool around the hero so the night edge stays dark and the figure stays warm. */
 function drawWarmPool(ctx: CanvasRenderingContext2D, x: number, y: number): void {
-  const r = 220
+  if (!fxOn('telegraphs')) return
+  const r = 72
   const g = ctx.createRadialGradient(x, y + 8, 16, x, y, r)
   g.addColorStop(0, 'rgba(255, 198, 120, 0.42)')
   g.addColorStop(0.38, 'rgba(255, 156, 72, 0.16)')
