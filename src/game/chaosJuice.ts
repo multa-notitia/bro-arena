@@ -134,7 +134,11 @@ export function juiceOnKill(world: World, enemy: Enemy, ctx: SimCtx, damage: num
   const color = juiceColorOf(enemy)
   spawnSplatDecal(enemy.x, enemy.y + 6, color, Math.min(CHAOS.juice.splatSize, enemy.r * 0.35))
   spawnFunnyClip(CHAOS.sheets.pop, enemy.x, enemy.y, { scale: CHAOS.sheets.popScale, color })
-  spawnFunnyClip('ghost', enemy.x, enemy.y - 4, { scale: CHAOS.sheets.drawScale, color })
+  spawnFunnyClip('ghost', enemy.x, enemy.y - 4, {
+    scale: CHAOS.sheets.drawScale * CHAOS.read.ghostScale,
+    color,
+    loopLife: CHAOS.read.ghostLife,
+  })
   const big = elite || enemy.maxHp >= j.bigKillHp || damage >= 22
   if (big) {
     spawnFunnyClip('stars', enemy.x, enemy.y, { scale: CHAOS.sheets.drawScale, color })

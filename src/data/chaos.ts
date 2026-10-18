@@ -82,6 +82,11 @@ export const CHAOS = {
     /** Melee swing smear. Real seconds; a curved stroke, not a pill. */
     smearLife: 0.09,
     smearWidth: 3.2,
+    smearSpan: 0.9,
+    /** Kill ghost clip. Was a 0.7s white veggie capsule. */
+    ghostLife: 0.16,
+    ghostScale: 0.55,
+    ghostAlpha: 0.42,
     /** Multiplier on contact-shadow strength (not a disc). */
     heroShadow: 1.32,
     /** Separation radius as a fraction of each hit radius. */

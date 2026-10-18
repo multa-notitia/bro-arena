@@ -819,19 +819,13 @@ function drawPlayerWeapons(
       ctx.lineWidth = CHAOS.read.smearWidth
       ctx.lineCap = 'round'
       ctx.beginPath()
-      if (behavior.type === 'sweep') {
-        const arc = pose.smear ?? {
-          a0: w.angle - behavior.arc * 0.5,
-          a1: pose.rot,
-          r: Math.hypot(off.x, off.y) + 10,
-        }
-        ctx.arc(cx, cy, arc.r, arc.a0, arc.a1)
-      } else {
-        const half = 0.62
-        const r = player.r + 12 + behavior.reach * 0.4
-        const span = half * (1 - fade * 0.15)
-        ctx.arc(cx, cy, r, w.angle - span, w.angle + span)
-      }
+      const tip = behavior.type === 'sweep' ? pose.rot : w.angle
+      const span = CHAOS.read.smearSpan
+      const r =
+        behavior.type === 'sweep'
+          ? (pose.smear?.r ?? Math.hypot(off.x, off.y) + 10)
+          : player.r + 12 + behavior.reach * 0.4
+      ctx.arc(cx, cy, r, tip - span, tip)
       ctx.stroke()
       ctx.restore()
     }

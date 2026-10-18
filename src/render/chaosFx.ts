@@ -2,7 +2,7 @@ import { TAU, clamp, hashNoise } from '../core/math.ts'
 import { CHAOS, chaosJuiceOn, chaosOn, fxOn } from '../data/chaos.ts'
 import type { SpawnMarker, Vec } from '../core/types.ts'
 import { drawNamedClip, restartActorClip, resolveSheet, spawnInkClip } from './sheets.ts'
-import { heroBurstAlpha, isSparkClip, nearHeroFx, registerSparkCounter, sparksFull } from './sparkBudget.ts'
+import { heroBurstAlpha, isSparkClip, nearHeroFx, registerSparkCounter, sparksFull, underHeroClip } from './sparkBudget.ts'
 
 interface Decal {
   alive: boolean
@@ -267,9 +267,10 @@ export function drawFunnyBursts(
     const b = bursts[i]
     if (!b || !b.alive) continue
     const spark = isSparkClip(b.clip)
+    const under = underHeroClip(b.clip)
     if (hero && layer) {
       const close = nearHeroFx(b.x, b.y, hero.x, hero.y)
-      if (spark) {
+      if (under) {
         if (layer === 'near' && !close) continue
         if (layer === 'far' && close) continue
       } else if (layer === 'near') {
@@ -278,7 +279,8 @@ export function drawFunnyBursts(
     }
     const ground = b.clip.startsWith('splat') || b.clip.startsWith('veg_burst') || b.clip === 'mud_erupt' || b.clip === 'mud_hole' || b.clip.startsWith('rustle')
     if (ground && !fxOn('telegraphs')) continue
-    const dim = hero && spark ? heroBurstAlpha(b.x, b.y, hero.x, hero.y) : 1
+    let dim = hero && spark ? heroBurstAlpha(b.x, b.y, hero.x, hero.y) : 1
+    if (b.clip === 'ghost') dim *= CHAOS.read.ghostAlpha
     const step = spark ? dt / Math.max(0.2, CHAOS.read.sparkLife) : dt
     if (sheet?.manifest.clips[b.clip]) {
       ctx.save()

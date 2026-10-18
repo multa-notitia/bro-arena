@@ -6,6 +6,10 @@ export function isSparkClip(name: string): boolean {
   return name === 'hitSpark' || name === 'stars' || name === 'spark'
 }
 
+export function underHeroClip(name: string): boolean {
+  return isSparkClip(name) || name === 'ghost'
+}
+
 export function registerSparkCounter(fn: () => number): void {
   counters.push(fn)
 }
