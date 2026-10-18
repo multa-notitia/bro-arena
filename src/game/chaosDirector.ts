@@ -209,6 +209,12 @@ export function tickChaosDirector(world: World, dt: number, ctx: SimCtx): void {
   }
 }
 
+/** `?ai=1` draws each enemy's state and a line to the player. Off by default. */
+export function aiOverlayOn(): boolean {
+  if (typeof location === 'undefined') return false
+  return new URLSearchParams(location.search).get('ai') === '1'
+}
+
 export function chaosDemoRequested(): boolean {
   if (typeof location === 'undefined') return false
   const q = new URLSearchParams(location.search)

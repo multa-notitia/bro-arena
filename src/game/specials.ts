@@ -128,11 +128,25 @@ function faceX(e: Enemy, dx: number): void {
   if (Math.abs(dx) > 4) e.anim.facing = dx > 0 ? 1 : -1
 }
 
+function predictedHero(world: World): { x: number; y: number } {
+  const p = world.player
+  let lx = p.vx * 0.16
+  let ly = p.vy * 0.16
+  const mag = Math.hypot(lx, ly)
+  if (mag > 28) {
+    const s = 28 / mag
+    lx *= s
+    ly *= s
+  }
+  return { x: p.x + lx, y: p.y + ly }
+}
+
 function lockLanding(world: World, e: Enemy, row: Live): void {
+  const t = predictedHero(world)
   row.fromX = e.x
   row.fromY = e.y
-  row.toX = world.player.x
-  row.toY = world.player.y
+  row.toX = t.x
+  row.toY = t.y
   faceX(e, row.toX - e.x)
 }
 
@@ -143,6 +157,7 @@ function release(e: Enemy): void {
   const span = row.row.cooldown
   cooldown.set(e, span[0] + Math.random() * (span[1] - span[0]))
   lives.delete(e)
+  if (e.state !== 'dying' && e.state !== 'spawning' && e.hp > 0) e.state = 'chase'
 }
 
 function cancel(e: Enemy): void {
@@ -160,11 +175,11 @@ function startAction(world: World, e: Enemy, row: Live): void {
     return
   }
   row.phase = 'bite'
-  const p = world.player
-  const dx = p.x - e.x
-  const dy = p.y - e.y
+  const aim = predictedHero(world)
+  const dx = aim.x - e.x
+  const dy = aim.y - e.y
   const d = Math.hypot(dx, dy) || 1
-  const step = clamp(d - (e.r + p.r + 6), 0, 52)
+  const step = clamp(d - (e.r + world.player.r + 6), 0, 52)
   row.dashing = step > 2
   row.dashT = 0
   row.dashDur = 0.12
@@ -248,7 +263,7 @@ function pickRow(e: Enemy, d: number): SpecialRow | null {
 }
 
 /** Advance or start a special. True while it owns locomotion. */
-export function tickSpecial(world: World, e: Enemy, dt: number): boolean {
+export function tickSpecial(world: World, e: Enemy, dt: number, ctx?: SimCtx): boolean {
   if (e.state === 'dying' || e.hp <= 0) {
     cancel(e)
     return false
@@ -286,8 +301,8 @@ export function tickSpecial(world: World, e: Enemy, dt: number): boolean {
     e.vy = 0
     row.introT += dt
     const clip = row.introClip
-    const capped = row.row.introSec > 0 && row.introT >= row.row.introSec
-    const done = !clip || capped || actorClipDone(playKey(e), clip)
+    const cap = row.row.introSec > 0 ? row.row.introSec : 0.38
+    const done = !clip || row.introT >= cap || actorClipDone(playKey(e), clip)
     if (done) startAction(world, e, row)
     return true
   }
@@ -308,6 +323,11 @@ export function tickSpecial(world: World, e: Enemy, dt: number): boolean {
     e.knock.x = 0
     e.knock.y = 0
     faceX(e, row.toX - row.fromX)
+    if (row.flightT >= row.flightDur + 0.38) {
+      if (!row.landed && ctx) land(world, e, row, ctx)
+      release(e)
+      return false
+    }
     return true
   }
 
@@ -323,6 +343,15 @@ export function tickSpecial(world: World, e: Enemy, dt: number): boolean {
   } else {
     e.vx = 0
     e.vy = 0
+    row.flightT += dt
+    if (row.flightT >= 0.38) {
+      if (!row.hit && ctx) {
+        row.hit = true
+        biteHit(world, e, ctx)
+      }
+      release(e)
+      return false
+    }
   }
   if (actorClipDone(playKey(e), 'bite')) release(e)
   return lives.has(e)
@@ -337,6 +366,10 @@ export function onSpecialEvents(world: World, e: Enemy, events: readonly string[
     row.flightT = 0
     row.fromX = e.x
     row.fromY = e.y
+    const aim = predictedHero(world)
+    row.toX = aim.x
+    row.toY = aim.y
+    faceX(e, row.toX - e.x)
     row.flightDur = flightSeconds(sheetOf(e))
     spawnFunnyClip('dust', e.x, e.y + 6, { scale: CHAOS.sheets.drawScale * 0.7 })
   }
@@ -380,8 +413,8 @@ function biteHit(world: World, e: Enemy, ctx: SimCtx): void {
 }
 
 /** @deprecated The old bean/pea hop. Kept so call sites read as one entry. */
-export function maybeLeap(world: World, e: Enemy, dt: number, _ctx: SimCtx): boolean {
-  return tickSpecial(world, e, dt)
+export function maybeLeap(world: World, e: Enemy, dt: number, ctx: SimCtx): boolean {
+  return tickSpecial(world, e, dt, ctx)
 }
 
 export function leapEvents(e: Enemy, events: readonly string[], ctx: SimCtx, world?: World): void {

@@ -27,8 +27,8 @@ import {
   familyClip,
   consumeGasMudTick,
   familyEvents,
+  armOnionGas,
   familyHidden,
-  familyUntargetable,
   takeFamilyHit,
   tickFamily,
   tickGas,
@@ -59,8 +59,6 @@ export { maxEnemies }
 const DEATH_TIME = 0.45
 const DEATH_FADE = 0.4
 const CONTACT_IFRAMES = 0.5
-const SEE_RANGE = 260
-
 interface EnemyExtra {
   burnAcc: number
   parentUid: number | null
@@ -337,19 +335,27 @@ export function beginDeath(world: World, enemy: Enemy, ctx: SimCtx, magnet = fal
 }
 
 /** Spawn clip finished (or the old timed pop, when the sheet has no emerge). */
-function leaveSpawn(world: World, e: Enemy, ctx: SimCtx): void {
-  e.state = 'idle'
+function leaveSpawn(_world: World, e: Enemy, _ctx: SimCtx): void {
+  e.state = 'chase'
   e.anim.spawnT = 1
-  if (e.kind === 'tomato' || e.kind === 'bean') return
-  const tone = variantTone(e.kind)
-  if (tone === 'mud') {
-    // charger-mud's attack clip already screams. A scream clip in front of it
-    // would play the mouth twice.
-    if (enemyFamily(e.kind) !== 'charger') beginPerform(e, 'scream')
-    if (dist(e.x, e.y, world.player.x, world.player.y) < SEE_RANGE) extra(e).sawHero = true
-  } else if (tone === 'light') {
-    extra(e).tauntCd = ctx.rng.range(2.4, 4.8)
+}
+
+const LEAD_S = 0.16
+const LEAD_CAP = 28
+/** Charge / bite / leap stand-still after the hit. The next chase starts inside this. */
+const RECOVER_CAP = 0.38
+
+function predictPlayer(world: World): { x: number; y: number } {
+  const p = world.player
+  let lx = p.vx * LEAD_S
+  let ly = p.vy * LEAD_S
+  const mag = Math.hypot(lx, ly)
+  if (mag > LEAD_CAP) {
+    const s = LEAD_CAP / mag
+    lx *= s
+    ly *= s
   }
+  return { x: p.x + lx, y: p.y + ly }
 }
 
 function steerToward(e: Enemy, tx: number, ty: number, spd: number): void {
@@ -358,6 +364,58 @@ function steerToward(e: Enemy, tx: number, ty: number, spd: number): void {
   e.vy = Math.sin(ang) * spd
   e.aim.x = Math.cos(ang)
   e.aim.y = Math.sin(ang)
+}
+
+function steerAtPlayer(world: World, e: Enemy, spd: number): void {
+  const t = predictPlayer(world)
+  steerToward(e, t.x, t.y, spd)
+}
+
+function clampVel(e: Enemy, spd: number): void {
+  const m = Math.hypot(e.vx, e.vy)
+  if (m > spd && m > 0.001) {
+    e.vx = (e.vx / m) * spd
+    e.vy = (e.vy / m) * spd
+  }
+}
+
+/**
+ * Hold 60–80% of attack range. Outside the band, close. Inside it, a small
+ * radial correction plus a light strafe — not a full-speed orbit.
+ */
+function steerRanged(world: World, e: Enemy, spd: number, range: number): void {
+  const p = world.player
+  const dx = p.x - e.x
+  const dy = p.y - e.y
+  const d = Math.hypot(dx, dy) || 1
+  const near = range * 0.6
+  const far = range * 0.8
+  const mid = range * 0.7
+  const ang = Math.atan2(dy, dx)
+  const side = (e.uid & 1) === 0 ? 1 : -1
+  const tx = Math.cos(ang + Math.PI / 2) * side
+  const ty = Math.sin(ang + Math.PI / 2) * side
+  let radial = 1
+  let strafe = 0.08
+  if (d < near) {
+    radial = -0.35
+    strafe = 0.16
+  } else if (d <= far) {
+    radial = Math.max(-0.4, Math.min(0.55, (d - mid) / Math.max(8, (far - near) * 0.5)))
+    strafe = 0.18
+  }
+  e.vx = Math.cos(ang) * spd * radial + tx * spd * strafe
+  e.vy = Math.sin(ang) * spd * radial + ty * spd * strafe
+  clampVel(e, spd)
+  const aim = predictPlayer(world)
+  const a = Math.atan2(aim.y - e.y, aim.x - e.x)
+  e.aim.x = Math.cos(a)
+  e.aim.y = Math.sin(a)
+}
+
+/** Onion gas sits on the body. 80% of this range is still inside the cloud. */
+function onionRange(p: { r: number }): number {
+  return (CHAOS.families.onion.gasR + p.r + 4) / 0.8
 }
 
 function currentSpeed(e: Enemy): number {
@@ -374,7 +432,7 @@ function enemySheet(e: Enemy): LoadedSheet | null {
 }
 
 function fireAtPlayer(world: World, e: Enemy, proj: ProjectileDef, ctx: SimCtx, silent = false): void {
-  const p = world.player
+  const p = predictPlayer(world)
   const ang = Math.atan2(p.y - e.y, p.x - e.x)
   const muzzle = e.r + 6
   e.aim.x = Math.cos(ang)
@@ -436,21 +494,27 @@ function fireSpiral(world: World, e: Enemy, proj: ProjectileDef, ctx: SimCtx): v
   ctx.audio.play('shoot', { pitch: 1.1, gain: 0.4 })
 }
 
+function aimCharge(e: Enemy, world: World): void {
+  const t = predictPlayer(world)
+  const ang = Math.atan2(t.y - e.y, t.x - e.x)
+  e.aim.x = Math.cos(ang)
+  e.aim.y = Math.sin(ang)
+}
+
 function beginCharge(e: Enemy, world: World, ctx: SimCtx, windup: number): void {
   e.state = 'windup'
   e.stateT = windup
-  const ang = Math.atan2(world.player.y - e.y, world.player.x - e.x)
-  e.aim.x = Math.cos(ang)
-  e.aim.y = Math.sin(ang)
+  aimCharge(e, world)
   e.vx = 0
   e.vy = 0
   if (enemySheet(e)?.manifest.clips.attack) beginAuthoredAttack(e, windup)
   ctx.audio.play('charge', { gain: e.boss ? 1 : 0.7 })
 }
 
-function startDash(e: Enemy): void {
+function startDash(e: Enemy, world: World): void {
   if (e.state !== 'windup') return
   e.state = 'charging'
+  aimCharge(e, world)
   extra(e).chargeLeft = 0.48 + (e.boss ? 0.18 : 0)
   e.anim.kick.x = 0
   e.anim.kick.y = 0
@@ -462,7 +526,7 @@ function startDash(e: Enemy): void {
 }
 
 function tickCharge(
-  _world: World,
+  world: World,
   e: Enemy,
   dt: number,
   ctx: SimCtx,
@@ -472,18 +536,19 @@ function tickCharge(
   const ex = extra(e)
   const sheeted = !!enemySheet(e)?.manifest.clips.attack
   if (e.state === 'windup') {
+    aimCharge(e, world)
     e.vx = 0
     e.vy = 0
     if (sheeted) {
       // The attack clip is the telegraph. The dash starts on its release frame.
       e.anim.kick.x = 0
       e.anim.kick.y = 0
-      if (ex.attackHold <= 0 && !ex.attackFired && actorClipDone(enemyKey(e), 'attack')) startDash(e)
+      if (ex.attackHold <= 0 && !ex.attackFired && actorClipDone(enemyKey(e), 'attack')) startDash(e, world)
     } else {
       e.stateT -= dt
       e.anim.kick.x = (ctx.rng.next() - 0.5) * 8
       e.anim.kick.y = (ctx.rng.next() - 0.5) * 8
-      if (e.stateT <= 0) startDash(e)
+      if (e.stateT <= 0) startDash(e, world)
     }
     return
   }
@@ -494,18 +559,15 @@ function tickCharge(
     ex.chargeLeft -= dt
     if (ex.chargeLeft <= 0) {
       e.state = 'recover'
-      e.stateT = cooldown * 0.45
-      e.vx *= 0.2
-      e.vy *= 0.2
+      e.stateT = Math.min(RECOVER_CAP, cooldown)
     }
     return
   }
   if (e.state === 'recover') {
     e.stateT -= dt
-    e.vx = damp(e.vx, 0, 6, dt)
-    e.vy = damp(e.vy, 0, 6, dt)
+    steerAtPlayer(world, e, currentSpeed(e))
     if (e.stateT <= 0) {
-      e.state = 'idle'
+      e.state = 'chase'
       e.cooldown = cooldown
     }
   }
@@ -536,7 +598,7 @@ function updateBoss(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
     return
   }
 
-  steerToward(e, world.player.x, world.player.y, currentSpeed(e) * (phase.pattern === 'chase' ? 1 : 0.72))
+  steerAtPlayer(world, e, currentSpeed(e))
   e.cooldown -= dt
   if (e.cooldown > 0) return
   e.cooldown = phase.interval
@@ -563,7 +625,7 @@ function fireBossPattern(world: World, e: Enemy, ctx: SimCtx): void {
     }
     ctx.render.fx.shockwave(e.x, e.y, 70, e.def.palette.shade)
   } else {
-    steerToward(e, world.player.x, world.player.y, currentSpeed(e))
+    steerAtPlayer(world, e, currentSpeed(e))
   }
 }
 
@@ -615,7 +677,7 @@ function updateKamikaze(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
     }
     return
   }
-  steerToward(e, p.x, p.y, currentSpeed(e))
+  steerAtPlayer(world, e, currentSpeed(e))
   e.state = 'chase'
   e.cooldown -= dt
   if (e.cooldown <= 0 && dist(e.x, e.y, p.x, p.y) < b.range) {
@@ -644,12 +706,15 @@ function beginAuthoredScream(e: Enemy): void {
   if (hasClip(enemySheet(e), 'scream')) restartActorClip(enemyKey(e), 'scream')
 }
 
-function tickAuthoredScream(e: Enemy): void {
-  e.vx = 0
-  e.vy = 0
+function tickAuthoredScream(e: Enemy, dt: number): void {
+  e.stateT += dt
   const sheet = enemySheet(e)
-  const done = !hasClip(sheet, 'scream') || actorClipDone(enemyKey(e), 'scream')
-  if (!done) return
+  const done = e.stateT >= RECOVER_CAP || !hasClip(sheet, 'scream') || actorClipDone(enemyKey(e), 'scream')
+  if (!done) {
+    e.vx = 0
+    e.vy = 0
+    return
+  }
   const ex = extra(e)
   ex.authoredScream = false
   e.anim.scream = -1
@@ -661,7 +726,7 @@ function tickAuthoredScream(e: Enemy): void {
     beginAuthoredAttack(e)
     return
   }
-  e.state = 'idle'
+  e.state = 'chase'
 }
 
 function updateTomatoMud(world: World, e: Enemy, dt: number, _ctx: SimCtx): void {
@@ -673,10 +738,12 @@ function updateTomatoMud(world: World, e: Enemy, dt: number, _ctx: SimCtx): void
     const ang = Math.atan2(p.y - e.y, p.x - e.x)
     e.aim.x = Math.cos(ang)
     e.aim.y = Math.sin(ang)
-    if (actorClipDone(enemyKey(e), 'attack')) e.state = 'chase'
+    if (actorClipDone(enemyKey(e), 'attack') || e.stateT > 0.45) e.state = 'chase'
+    else e.stateT += dt
     return
   }
-  steerToward(e, p.x, p.y, spd)
+  e.stateT = 0
+  steerAtPlayer(world, e, spd)
   e.state = 'chase'
   e.cooldown -= dt
   const reach = e.r + p.r + 28
@@ -708,20 +775,50 @@ function updateBlobMelee(world: World, e: Enemy, dt: number, _ctx: SimCtx): void
   const p = world.player
   const spd = currentSpeed(e)
   if (e.state === 'windup') {
+    const t = predictPlayer(world)
+    const ang = Math.atan2(t.y - e.y, t.x - e.x)
+    e.aim.x = Math.cos(ang)
+    e.aim.y = Math.sin(ang)
     e.vx = 0
     e.vy = 0
-    if (actorClipDone(enemyKey(e), 'attack')) e.state = 'chase'
+    if (actorClipDone(enemyKey(e), 'attack') || e.stateT > 0.45) e.state = 'chase'
+    else e.stateT += dt
     return
   }
-  steerToward(e, p.x, p.y, spd)
+  e.stateT = 0
+  steerAtPlayer(world, e, spd)
   e.state = 'chase'
   e.cooldown -= dt
   const reach = e.r + p.r + BLOB_REACH
   if (e.cooldown <= 0 && dist(e.x, e.y, p.x, p.y) <= reach + 8) {
     e.state = 'windup'
+    e.stateT = 0
     e.cooldown = 0.72
     e.vx = 0
     e.vy = 0
+    beginAuthoredAttack(e)
+  }
+}
+
+function updateOnion(world: World, e: Enemy, dt: number, _ctx: SimCtx): void {
+  const p = world.player
+  const spd = currentSpeed(e)
+  const range = onionRange(p)
+  const d = dist(e.x, e.y, p.x, p.y)
+  steerRanged(world, e, spd, range)
+  if (e.state === 'windup') {
+    if (actorClipDone(enemyKey(e), 'attack') || e.stateT > 0.45) e.state = 'chase'
+    else e.stateT += dt
+    return
+  }
+  e.state = 'chase'
+  e.stateT = 0
+  e.cooldown -= dt
+  if (e.cooldown <= 0 && d <= range) {
+    e.state = 'windup'
+    e.stateT = 0
+    e.cooldown = 0.85
+    armOnionGas(e)
     beginAuthoredAttack(e)
   }
 }
@@ -741,7 +838,7 @@ function updateEliteSlam(world: World, e: Enemy, dt: number, ctx: SimCtx): void 
     }
     return
   }
-  steerToward(e, p.x, p.y, currentSpeed(e))
+  steerAtPlayer(world, e, currentSpeed(e))
   e.state = 'chase'
   e.cooldown -= dt
   if (e.cooldown <= 0 && dist(e.x, e.y, p.x, p.y) < ELITE_SLAM_RANGE) {
@@ -765,15 +862,6 @@ function mudRumble(world: World, e: Enemy, ctx: SimCtx): void {
   ctx.audio.play('mudSquelch', { pitch: 0.62, gain: 0.7 })
 }
 
-function beginPerform(e: Enemy, name: 'taunt' | 'scream'): void {
-  const sheet = enemySheet(e)
-  if (!sheet?.manifest.clips[name]) return
-  e.perform = name
-  e.vx = 0
-  e.vy = 0
-  restartActorClip(enemyKey(e), name)
-}
-
 function sheetEvents(world: World, e: Enemy, clip: string, events: readonly string[], ctx: SimCtx): void {
   if (!events.length) return
   const ex = extra(e)
@@ -785,7 +873,7 @@ function sheetEvents(world: World, e: Enemy, clip: string, events: readonly stri
       fireAtPlayer(world, e, b.projectile, ctx, true)
     } else if (b.type === 'charge' && e.state === 'windup') {
       ex.attackFired = true
-      startDash(e)
+      startDash(e, world)
     } else if (b.type === 'kamikaze' && e.form !== 'nightmare') {
       ex.attackFired = true
       popKamikaze(world, e, ctx)
@@ -811,7 +899,7 @@ function sheetEvents(world: World, e: Enemy, clip: string, events: readonly stri
       blobMelee(world, e, ctx)
     } else if (b.type === 'charge' && e.state === 'windup') {
       ex.attackFired = true
-      startDash(e)
+      startDash(e, world)
     }
   }
   if (events.includes('release') && !ex.attackFired && enemyFamily(e.kind) === 'onion' && e.state === 'windup') {
@@ -953,33 +1041,21 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
       return
     }
     const fam = enemyFamily(e.kind)
-    if ((fam === 'blob' || fam === 'beetle' || fam === 'beetroot' || fam === 'onion') && enemySheet(e)?.manifest.clips.attack) {
+    if (fam === 'onion') {
+      updateOnion(world, e, dt, ctx)
+      return
+    }
+    if ((fam === 'blob' || fam === 'beetle' || fam === 'beetroot') && enemySheet(e)?.manifest.clips.attack) {
       updateBlobMelee(world, e, dt, ctx)
       return
     }
-    steerToward(e, p.x, p.y, spd)
+    steerAtPlayer(world, e, spd)
     e.state = 'chase'
     return
   }
   if (b.type === 'wander') {
-    e.stateT -= dt
-    if (e.stateT <= 0) {
-      if (ctx.rng.chance(0.4)) {
-        e.state = 'chase'
-        e.stateT = ctx.rng.range(0.5, 1.4)
-      } else {
-        e.state = 'idle'
-        const a = ctx.rng.range(0, Math.PI * 2)
-        e.aim.x = Math.cos(a)
-        e.aim.y = Math.sin(a)
-        e.stateT = ctx.rng.range(0.7, 1.8)
-      }
-    }
-    if (e.state === 'chase') steerToward(e, p.x, p.y, spd)
-    else {
-      e.vx = e.aim.x * spd * b.drift
-      e.vy = e.aim.y * spd * b.drift
-    }
+    steerAtPlayer(world, e, spd)
+    e.state = 'chase'
     return
   }
   if (b.type === 'charge') {
@@ -990,46 +1066,34 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
     e.cooldown -= dt
     const d = dist(e.x, e.y, p.x, p.y)
     if (e.cooldown <= 0 && d < b.range) beginCharge(e, world, ctx, b.windup)
-    else steerToward(e, p.x, p.y, spd)
+    else {
+      steerAtPlayer(world, e, spd)
+      e.state = 'chase'
+    }
     return
   }
   if (b.type === 'shoot') {
     const sheeted = !!enemySheet(e)?.manifest.clips.attack
     const d = dist(e.x, e.y, p.x, p.y)
+    steerRanged(world, e, spd, b.range)
     if (e.state === 'shooting' && sheeted) {
-      e.vx = damp(e.vx, 0, 8, dt)
-      e.vy = damp(e.vy, 0, 8, dt)
-      const ang = Math.atan2(p.y - e.y, p.x - e.x)
-      e.aim.x = Math.cos(ang)
-      e.aim.y = Math.sin(ang)
-      if (actorClipDone(enemyKey(e), 'attack')) {
+      if (actorClipDone(enemyKey(e), 'attack') || e.stateT > 0.45) {
         if (!extra(e).attackFired) {
           extra(e).attackFired = true
           fireAtPlayer(world, e, b.projectile, ctx, false)
         }
-        e.state = 'idle'
-      }
+        e.state = 'chase'
+        e.stateT = 0
+      } else e.stateT += dt
       return
     }
-    if (d < b.keepDistance * 0.82) {
-      const ang = Math.atan2(e.y - p.y, e.x - p.x)
-      e.vx = Math.cos(ang) * spd
-      e.vy = Math.sin(ang) * spd
-    } else if (d > b.range * 0.92) {
-      steerToward(e, p.x, p.y, spd)
-    } else {
-      const side = Math.atan2(p.y - e.y, p.x - e.x) + Math.PI / 2
-      e.vx = Math.cos(side) * spd * 0.55
-      e.vy = Math.sin(side) * spd * 0.55
-    }
+    e.state = 'chase'
     e.cooldown -= dt
-    if (e.cooldown <= 0 && d < b.range * 1.05) {
+    if (e.cooldown <= 0 && d < b.range) {
       e.cooldown = b.cooldown
-      e.state = 'shooting'
       if (sheeted) {
-        const ang = Math.atan2(p.y - e.y, p.x - e.x)
-        e.aim.x = Math.cos(ang)
-        e.aim.y = Math.sin(ang)
+        e.state = 'shooting'
+        e.stateT = 0
         beginAuthoredAttack(e)
       } else {
         fireAtPlayer(world, e, b.projectile, ctx)
@@ -1038,7 +1102,8 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
     return
   }
   if (b.type === 'spawner') {
-    steerToward(e, p.x, p.y, spd * 0.55)
+    steerAtPlayer(world, e, spd)
+    e.state = 'chase'
     e.cooldown -= dt
     if (e.cooldown <= 0 && e.children < b.max) {
       e.cooldown = b.interval
@@ -1061,6 +1126,8 @@ function cellKey(cx: number, cy: number): number {
 }
 
 const sepBuckets = new Map<number, number[]>()
+let sepX = new Float64Array(0)
+let sepY = new Float64Array(0)
 
 export function overlappingEnemyPairs(world: World, frac: number): number {
   const list = world.enemies
@@ -1127,6 +1194,13 @@ function separate(world: World): void {
   overlapProbe.preSep += overlappingEnemyPairs(world, hitFrac)
   overlapProbe.preStack += overlappingEnemyPairs(world, 0.35)
 
+  if (sepX.length < n) {
+    sepX = new Float64Array(n)
+    sepY = new Float64Array(n)
+  } else {
+    sepX.fill(0, 0, n)
+    sepY.fill(0, 0, n)
+  }
   sepBuckets.clear()
   const active: number[] = []
   for (let i = 0; i < n; i++) {
@@ -1164,13 +1238,42 @@ function separate(world: World): void {
           const d = Math.sqrt(d2)
           const push = Math.min(cap, (min - d) * pushK)
           const inv = push / d
-          ea.x += dx * inv
-          ea.y += dy * inv
-          eb.x -= dx * inv
-          eb.y -= dy * inv
+          sepX[i] = (sepX[i] ?? 0) + dx * inv
+          sepY[i] = (sepY[i] ?? 0) + dy * inv
+          sepX[j] = (sepX[j] ?? 0) - dx * inv
+          sepY[j] = (sepY[j] ?? 0) - dy * inv
         }
       }
     }
+  }
+
+  const hero = world.player
+  const ring = hero.r + CHAOS.read.heroClear
+  for (let a = 0; a < active.length; a++) {
+    const i = active[a]!
+    const ea = list[i]
+    if (!ea) continue
+    let px = sepX[i] ?? 0
+    let py = sepY[i] ?? 0
+    const hx = ea.x - hero.x
+    const hy = ea.y - hero.y
+    const hd = Math.hypot(hx, hy)
+    if (hd > ring && hd > 0.001) {
+      const radial = (px * hx + py * hy) / hd
+      if (radial > 0) {
+        const cut = radial * 0.85
+        px -= (hx / hd) * cut
+        py -= (hy / hd) * cut
+      }
+    }
+    const mag = Math.hypot(px, py)
+    if (mag > 1.6) {
+      const s = 1.6 / mag
+      px *= s
+      py *= s
+    }
+    ea.x += px
+    ea.y += py
   }
 
   overlapProbe.postSep += overlappingEnemyPairs(world, hitFrac)
@@ -1210,25 +1313,11 @@ function pushFromHero(world: World): void {
   }
 }
 
-const SCREAM_WINDUP = 0.35
-const SCREAM_HOLD = 0.8
-const SCREAM_TOTAL = SCREAM_WINDUP + SCREAM_HOLD
-
 function canScream(e: Enemy): boolean {
   if (e.form !== 'nightmare') return false
   if (e.kind === 'tomato' || e.kind === 'bean') return false
   if (e.state === 'spawning' || e.state === 'dying' || e.state === 'charging' || e.state === 'windup') return false
   return true
-}
-
-function startScream(e: Enemy): void {
-  e.state = 'screaming'
-  e.stateT = 0
-  e.vx = 0
-  e.vy = 0
-  e.anim.scream = 0
-  e.anim.mouth = 0.35
-  extra(e).screamBurst = false
 }
 
 function fireScreamBurst(world: World, e: Enemy, ctx: SimCtx): void {
@@ -1240,37 +1329,9 @@ function fireScreamBurst(world: World, e: Enemy, ctx: SimCtx): void {
   ctx.audio.play(e.boss ? 'screamBig' : 'scream')
 }
 
-function poseScream(e: Enemy, ctx: SimCtx): void {
-  const t = e.stateT
-  if (t < SCREAM_WINDUP) {
-    const u = t / SCREAM_WINDUP
-    e.anim.scream = u * 0.3
-    e.anim.mouth = 0.35 + u * 0.45
-    e.anim.kick.x = (ctx.rng.next() - 0.5) * 6
-    e.anim.kick.y = (ctx.rng.next() - 0.5) * 6
-  } else {
-    const u = Math.min(1, (t - SCREAM_WINDUP) / SCREAM_HOLD)
-    e.anim.scream = 0.3 + u * 0.7
-    e.anim.mouth = 1
-    e.anim.kick.x = 0
-    e.anim.kick.y = 0
-  }
-}
-
-function tickScream(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
-  e.stateT += dt
-  e.vx = 0
-  e.vy = 0
-  if (e.stateT >= SCREAM_WINDUP && !extra(e).screamBurst) {
-    extra(e).screamBurst = true
-    fireScreamBurst(world, e, ctx)
-  }
-  poseScream(e, ctx)
-  if (e.stateT >= SCREAM_TOTAL) finishScream(world, e, ctx)
-}
-
 function finishScream(world: World, e: Enemy, ctx: SimCtx): void {
-  e.state = 'idle'
+  fireScreamBurst(world, e, ctx)
+  e.state = 'chase'
   e.anim.scream = -1
   e.anim.squash = 1.12
   e.anim.kick.x = 0
@@ -1305,6 +1366,75 @@ export function nightmaresAlive(world: World): number {
     if (e.form === 'nightmare' && e.state !== 'dying') n += 1
   }
   return n
+}
+
+export function aiOverlayOn(): boolean {
+  if (typeof location === 'undefined') return false
+  return new URLSearchParams(location.search).get('ai') === '1'
+}
+
+export function aiOverlayText(e: Enemy): string {
+  if (specialOwns(e)) return specialClip(e) || 'special'
+  if (familyHidden(e)) return 'burrow'
+  return e.state
+}
+
+interface StallHit {
+  kind: string
+  state: string
+  dist: number
+  wave: number
+}
+
+const stallRows = new WeakMap<Enemy, { best: number; since: number; logged: boolean }>()
+const stallHits: StallHit[] = []
+
+function inStrikeBand(e: Enemy, d: number, p: World['player']): boolean {
+  const b = e.def.behavior
+  if (b.type === 'shoot') return d <= b.range * 0.85
+  if (b.type === 'charge') return d <= b.range
+  if (b.type === 'kamikaze') return d <= b.range + 8
+  if (enemyFamily(e.kind) === 'onion') return d <= onionRange(p)
+  return d <= e.r + p.r + 36
+}
+
+function stallExempt(e: Enemy, d: number, p: World['player']): boolean {
+  if (e.state === 'dying' || e.state === 'spawning') return true
+  if (e.state === 'windup' || e.state === 'charging' || e.state === 'shooting') return true
+  if (e.state === 'burrowing' || e.state === 'resurfacing' || e.state === 'peeling' || e.state === 'screaming') return true
+  if (specialOwns(e) || isAirborne(e) || familyHidden(e)) return true
+  return inStrikeBand(e, d, p)
+}
+
+function noteStall(world: World, e: Enemy, dt: number): void {
+  if (!import.meta.env.DEV) return
+  const p = world.player
+  const d = dist(e.x, e.y, p.x, p.y)
+  let row = stallRows.get(e)
+  if (!row) {
+    row = { best: d, since: 0, logged: false }
+    stallRows.set(e, row)
+  }
+  if (stallExempt(e, d, p)) {
+    row.best = d
+    row.since = 0
+    return
+  }
+  if (d < row.best - 6) {
+    row.best = d
+    row.since = 0
+    row.logged = false
+    return
+  }
+  row.since += dt
+  if (row.since < 3 || row.logged) return
+  row.logged = true
+  const hit: StallHit = { kind: e.kind, state: aiOverlayText(e), dist: Math.round(d), wave: world.wave }
+  stallHits.push(hit)
+  console.warn(`[ai] ${hit.kind} stalled ${row.since.toFixed(1)}s at ${hit.dist}px state=${hit.state} wave=${hit.wave}`)
+  if (typeof window !== 'undefined') {
+    ;(window as unknown as { __aiStalls?: StallHit[] }).__aiStalls = stallHits
+  }
 }
 
 export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
@@ -1356,7 +1486,8 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     if (e.state === 'spawning') {
       const still = tickEmerge(e, dt, ctx)
       if (enemySheet(e)) stepEnemySheet(world, e, dt, ctx)
-      if (still && e.state === 'spawning' && !actorClipDone(enemyKey(e), 'emerge')) {
+      const emergeStuck = e.stateT > 3.2
+      if (still && e.state === 'spawning' && !actorClipDone(enemyKey(e), 'emerge') && !emergeStuck) {
         tickFaceAnim(e.anim, dt, ex, {
           moving: false,
           speed: 0,
@@ -1388,40 +1519,21 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
       }
     }
 
-    const tone = variantTone(e.kind)
-    if (!e.perform && tone === 'mud' && !ex.sawHero && dist(e.x, e.y, player.x, player.y) < SEE_RANGE && !familyUntargetable(e)) {
-      ex.sawHero = true
-      // charger-mud's attack clip already contains the scream. Don't play one in front of it.
-      if (enemyFamily(e.kind) !== 'charger' && e.kind !== 'tomato' && e.kind !== 'bean') beginPerform(e, 'scream')
-    }
-    if (
-      !e.perform &&
-      tone === 'light' &&
-      e.state !== 'windup' &&
-      e.state !== 'charging' &&
-      e.state !== 'shooting'
-    ) {
-      ex.tauntCd -= dt
-      if (ex.tauntCd <= 0) {
-        ex.tauntCd = ctx.rng.range(4.2, 7.5)
-        if (ctx.rng.chance(0.7)) beginPerform(e, 'taunt')
-      }
-    }
+    if (e.perform) e.perform = undefined
 
-    if (e.state === 'screaming') {
-      if (ex.authoredScream) tickAuthoredScream(e)
-      else tickScream(world, e, dt, ctx)
-    } else if (canScream(e)) {
-      e.screamCooldown -= dt
-      if (e.screamCooldown <= 0) startScream(e)
-    }
-
-    if (e.perform || e.state === 'screaming') {
-      e.vx = 0
-      e.vy = 0
+    if (e.state === 'screaming' && ex.authoredScream) {
+      tickAuthoredScream(e, dt)
     } else {
+      if (e.state === 'screaming') {
+        e.state = 'chase'
+        e.anim.scream = -1
+      } else if (canScream(e) && !specialOwns(e)) {
+        e.screamCooldown -= dt
+        if (e.screamCooldown <= 0) finishScream(world, e, ctx)
+      }
       updateBehavior(world, e, dt, ctx)
     }
+    noteStall(world, e, dt)
     if (enemySheet(e)) {
       const attackAim =
         !specialOwns(e) && (e.state === 'windup' || e.state === 'shooting' || e.state === 'charging')
@@ -1470,7 +1582,6 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
       flinchT: 0,
       nextBlink: () => ctx.rng.range(3, 6),
     })
-    if (e.state === 'screaming' && !ex.authoredScream) poseScream(e, ctx)
     if (posed) {
       e.anim.kick.x = 0
       e.anim.kick.y = 0
@@ -1504,6 +1615,13 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
   separate(world)
 
   world.boss = null
+  if (import.meta.env.DEV && typeof window !== 'undefined') {
+    const p = world.player
+    ;(window as unknown as { __aiSnap?: { kind: string; state: string; d: number }[] }).__aiSnap = world.enemies
+      .filter((e) => e.state !== 'dying')
+      .slice(0, 24)
+      .map((e) => ({ kind: e.kind, state: aiOverlayText(e), d: Math.round(dist(e.x, e.y, p.x, p.y)) }))
+  }
   for (const e of world.enemies) {
     if (e.boss) {
       world.boss = e

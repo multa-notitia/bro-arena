@@ -10,6 +10,7 @@ import {
   familyHidden,
 } from '../game/families.ts'
 import { frontWaddle, motionTilt, turnClip } from '../game/facing.ts'
+import { aiOverlayOn } from '../game/chaosDirector.ts'
 import { hopHeight, isLeaping, landingShadow, pinLeapSquash, specialClip } from '../game/leap.ts'
 import { cameraShakeOffset, FEEL } from '../feel.ts'
 import type {
@@ -589,6 +590,27 @@ function drawEmbers(ctx: CanvasRenderingContext2D, x: number, y: number, r: numb
 
 function foeModel(form: Form): ModelDir {
   return form === 'nightmare' ? 'b' : getPaintStyle()
+}
+
+function drawAiOverlay(ctx: CanvasRenderingContext2D, e: Enemy, player: Player): void {
+  if (e.state === 'dying' || e.anim.deathT >= 0) return
+  const clip = specialClip(e)
+  const label = isLeaping(e) ? 'leap' : clip || e.state
+  ctx.save()
+  ctx.strokeStyle = 'rgba(255, 214, 90, 0.8)'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(e.x, e.y)
+  ctx.lineTo(player.x, player.y)
+  ctx.stroke()
+  ctx.font = '9px sans-serif'
+  ctx.textAlign = 'center'
+  ctx.lineWidth = 3
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)'
+  ctx.strokeText(label, e.x, e.y - e.r - 16)
+  ctx.fillStyle = '#ffe27a'
+  ctx.fillText(label, e.x, e.y - e.r - 16)
+  ctx.restore()
 }
 
 function drawEnemy(
@@ -1334,6 +1356,7 @@ export function drawWorld(
   const list = cmds.slice(0, cmdN)
   list.sort((a, b) => a.y - b.y)
 
+  const showAi = aiOverlayOn()
   let playerDrawn = false
   for (let i = 0; i < list.length; i++) {
     const c = list[i]
@@ -1351,6 +1374,7 @@ export function drawWorld(
       const e = world.enemies[c.idx]
       if (e) {
         if (!familyHidden(e)) drawEnemy(ctx, e, cache, world.time)
+        if (showAi) drawAiOverlay(ctx, e, world.player)
       }
     } else if (c.kind === 4 && !playerDrawn) {
       playerDrawn = true

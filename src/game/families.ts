@@ -132,6 +132,10 @@ export function familyClip(e: Enemy, clip: string | null): string | null {
   return clip
 }
 
+export function armOnionGas(e: Enemy): void {
+  fam(e).gasFired = false
+}
+
 export function maybePeel(e: Enemy): void {
   if (enemyFamily(e.kind) !== 'onion') return
   if (variantTone(e.kind) !== 'light') return
@@ -145,6 +149,7 @@ export function maybePeel(e: Enemy): void {
     return
   }
   x.phase = 'peel'
+  x.tickAcc = 0
   e.state = 'peeling'
   e.vx = 0
   e.vy = 0
@@ -167,10 +172,6 @@ export function familyEvents(_world: World, e: Enemy, clip: string, events: read
       x.untargetable = false
       x.phase = 'none'
       e.state = 'chase'
-      if (variantTone(e.kind) === 'mud') {
-        e.perform = 'scream'
-        restartActorClip(`e:${e.uid}`, 'scream')
-      }
     }
   }
   if (family === 'onion') {
@@ -207,12 +208,14 @@ export function tickFamily(world: World, e: Enemy, dt: number, ctx: SimCtx): boo
     if (x.bush.a <= 0) x.bush = null
   }
   if (family === 'onion' && x.phase === 'peel') {
+    x.tickAcc += dt
     e.vx = 0
     e.vy = 0
     e.state = 'peeling'
-    if (actorClipDone(`e:${e.uid}`, 'peel')) {
+    if (actorClipDone(`e:${e.uid}`, 'peel') || x.tickAcc > 0.9) {
       x.phase = 'none'
       x.peeled = true
+      x.tickAcc = 0
       e.state = 'chase'
       e.speed = CHAOS.pace.enemy.onionPeeled ?? 100
     }
@@ -220,20 +223,24 @@ export function tickFamily(world: World, e: Enemy, dt: number, ctx: SimCtx): boo
   }
   if (family !== 'beetroot') return false
   if (e.state === 'spawning' || e.state === 'dying' || e.state === 'screaming') return false
-  if (e.perform) return false
+  if (e.state === 'windup' || e.state === 'charging' || e.state === 'shooting') return false
 
   const p = world.player
   const cfg = CHAOS.families.beetroot
   if (x.phase === 'burrow') {
+    x.tickAcc += dt
     e.vx = 0
     e.vy = 0
-    if (actorClipDone(`e:${e.uid}`, 'burrow') && x.phase === 'burrow') {
+    if ((actorClipDone(`e:${e.uid}`, 'burrow') && x.phase === 'burrow') || x.tickAcc > 1.1) {
       x.hidden = true
+      x.untargetable = true
       x.phase = 'under'
+      x.tickAcc = 0
     }
     return true
   }
   if (x.phase === 'under') {
+    x.tickAcc += dt
     const ang = Math.atan2(p.y - e.y, p.x - e.x)
     const spd = cfg.underSpeed
     e.x += Math.cos(ang) * spd * dt
@@ -244,11 +251,13 @@ export function tickFamily(world: World, e: Enemy, dt: number, ctx: SimCtx): boo
     if (x.trail.length > 18) x.trail.shift()
     for (const puff of x.trail) puff.a -= dt * 1.4
     x.trail = x.trail.filter((t) => t.a > 0)
-    if (dist(e.x, e.y, p.x, p.y) < 18) {
+    const close = dist(e.x, e.y, p.x, p.y) < 22
+    if (close || x.tickAcc > 2.4) {
       x.phase = 'warn'
-      x.warnT = cfg.warn
-      x.warnX = p.x + (ctx.rng.next() - 0.5) * 16
-      x.warnY = p.y + (ctx.rng.next() - 0.5) * 16
+      x.warnT = close ? cfg.warn : Math.min(0.35, cfg.warn)
+      x.warnX = p.x
+      x.warnY = p.y
+      x.tickAcc = 0
     }
     return true
   }
@@ -263,19 +272,22 @@ export function tickFamily(world: World, e: Enemy, dt: number, ctx: SimCtx): boo
       e.y = x.warnY
       x.hidden = false
       x.phase = 'rise'
+      x.tickAcc = 0
       e.state = 'resurfacing'
       restartActorClip(`e:${e.uid}`, 'resurface')
     }
     return true
   }
   if (x.phase === 'rise') {
+    x.tickAcc += dt
     e.vx = 0
     e.vy = 0
     e.state = 'resurfacing'
-    if (actorClipDone(`e:${e.uid}`, 'resurface')) {
+    if (actorClipDone(`e:${e.uid}`, 'resurface') || x.tickAcc > 1.2) {
       x.phase = 'none'
       x.hidden = false
       x.untargetable = false
+      x.tickAcc = 0
       e.state = 'chase'
       x.burrowCd = ctx.rng.range(cfg.interval[0], cfg.interval[1])
     }
@@ -283,11 +295,12 @@ export function tickFamily(world: World, e: Enemy, dt: number, ctx: SimCtx): boo
   }
 
   x.burrowCd -= dt
-  const far = dist(e.x, e.y, p.x, p.y) > cfg.range
-  if (x.burrowCd <= 0 || far) {
+  const melee = dist(e.x, e.y, p.x, p.y) <= e.r + p.r + 28
+  if (!melee && x.burrowCd <= 0) {
     const sheet = resolveEnemySheet(e.kind, e.form)
     if (hasClip(sheet, 'burrow')) {
       x.phase = 'burrow'
+      x.tickAcc = 0
       x.burrowCd = ctx.rng.range(cfg.interval[0], cfg.interval[1])
       e.state = 'burrowing'
       e.vx = 0
