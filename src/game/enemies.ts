@@ -1132,8 +1132,38 @@ function separate(world: World): void {
 
   overlapProbe.postSep += overlappingEnemyPairs(world, hitFrac)
   overlapProbe.postStack += overlappingEnemyPairs(world, 0.35)
+  pushFromHero(world)
   if (typeof window !== 'undefined') {
     ;(window as unknown as { __overlap?: ReturnType<typeof overlapAverages> }).__overlap = overlapAverages()
+  }
+}
+
+/** Soft ring so a pack cannot sit on the potato. Dying / airborne stay put. */
+function pushFromHero(world: World): void {
+  const p = world.player
+  const min = p.r + CHAOS.read.heroClear
+  const min2 = min * min
+  const cap = CHAOS.read.heroClearCap
+  const k = CHAOS.read.heroClearPush
+  for (let i = 0; i < world.enemies.length; i++) {
+    const e = world.enemies[i]
+    if (!e || e.state === 'dying') continue
+    if (isAirborne(e) || isLeaping(e)) continue
+    let dx = e.x - p.x
+    let dy = e.y - p.y
+    let d2 = dx * dx + dy * dy
+    if (d2 >= min2) continue
+    if (d2 < 0.0001) {
+      dx = e.uid % 2 === 0 ? 1 : -1
+      dy = 0.15
+      d2 = dx * dx + dy * dy
+    }
+    const d = Math.sqrt(d2)
+    const push = Math.min(cap, (min - d) * k)
+    const inv = push / d
+    const pos = clampToArena(world, e.x + dx * inv, e.y + dy * inv, e.r)
+    e.x = pos.x
+    e.y = pos.y
   }
 }
 

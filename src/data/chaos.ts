@@ -96,6 +96,23 @@ export const CHAOS = {
     ghostAlpha: 0,
     /** Multiplier on contact-shadow strength (not a disc). */
     heroShadow: 1.32,
+    /** Hero shadow width vs an enemy of the same footprint. */
+    heroShadowScale: 1.22,
+    /** Warm brown peak; not a coloured ring. */
+    heroShadowWarm: 0.4,
+    /**
+     * Soft keep-out around the potato. Enemy centres stay at least
+     * `player.r + heroClear` away so the body is never fully covered.
+     */
+    heroClear: 10,
+    heroClearPush: 0.85,
+    heroClearCap: 4.5,
+    /** Foot-y band (world px) where the potato always paints on top. */
+    heroCrowdY: 40,
+    /** Paint scale for common carrots / beetroots / mud blobs. Elites stay 1. */
+    commonScale: 0.88,
+    commonFamilies: ['charger', 'beetroot'] as const,
+    commonKinds: ['blob-mud'] as const,
     /** Separation radius as a fraction of each hit radius. */
     separateHit: 0.8,
     separatePush: 0.55,
@@ -489,6 +506,17 @@ export function paceEnemySpeed(family: string, fallback: number): number {
 export function weaponDrawScale(weaponClass: string): number {
   if (weaponClass === 'melee') return CHAOS.read.weaponMelee
   return CHAOS.read.weaponRanged
+}
+
+/** Paint size for packed commons. Hit radius stays; elites/bosses stay 1. */
+export function crowdPaintScale(kind: string, elite: boolean, boss: boolean): number {
+  if (elite || boss) return 1
+  const kinds = CHAOS.read.commonKinds as readonly string[]
+  if (kinds.includes(kind)) return CHAOS.read.commonScale
+  const fam = kind.replace(/-(light|mud)$/, '')
+  const families = CHAOS.read.commonFamilies as readonly string[]
+  if (families.includes(fam)) return CHAOS.read.commonScale
+  return 1
 }
 
 applyFxFromEnvironment()

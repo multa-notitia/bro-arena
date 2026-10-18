@@ -1,5 +1,5 @@
 import { TAU, clamp, dist, ease, hashNoise, lerp } from '../core/math.ts'
-import { CHAOS, fxOn } from '../data/chaos.ts'
+import { CHAOS, crowdPaintScale, fxOn } from '../data/chaos.ts'
 import { comboCount, corpseClipName, deathClipName } from '../game/chaosJuice.ts'
 import { vineOf } from '../game/emerge.ts'
 import {
@@ -254,6 +254,26 @@ function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, footpri
   g.addColorStop(0, `rgba(58, 36, 22, ${peak.toFixed(3)})`)
   g.addColorStop(0.62, `rgba(58, 36, 22, ${(peak * 0.4).toFixed(3)})`)
   g.addColorStop(1, 'rgba(58, 36, 22, 0)')
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.arc(0, 0, radius, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
+/** Warm ellipse under the potato. Larger than a common enemy shadow; not a ring. */
+function drawHeroShadow(ctx: CanvasRenderingContext2D, x: number, y: number, footprint: number): void {
+  const width = Math.max(6, footprint * FEEL.shadow.footprint * CHAOS.read.heroShadowScale)
+  const peak = CHAOS.read.heroShadowWarm * clamp(CHAOS.read.heroShadow, 0, 1.8)
+  if (peak < 0.02) return
+  const radius = width * 0.5
+  ctx.save()
+  ctx.translate(x, y + 1)
+  ctx.scale(1, 0.4)
+  const g = ctx.createRadialGradient(0, 0, radius * 0.06, 0, 0, radius)
+  g.addColorStop(0, `rgba(86, 48, 20, ${peak.toFixed(3)})`)
+  g.addColorStop(0.55, `rgba(86, 48, 20, ${(peak * 0.38).toFixed(3)})`)
+  g.addColorStop(1, 'rgba(86, 48, 20, 0)')
   ctx.fillStyle = g
   ctx.beginPath()
   ctx.arc(0, 0, radius, 0, TAU)
@@ -554,7 +574,8 @@ function drawEnemy(
   const form: Form = e.form ?? e.def.form ?? 'normal'
   const model = foeModel(form)
   const pal = e.def.palette ?? SPECIES_PALETTES[species]
-  const artR = sizeBucket(e.r)
+  const paintR = e.r * crowdPaintScale(e.kind, e.elite, e.boss)
+  const artR = sizeBucket(paintR)
   const sheet = resolveEnemySheet(e.kind, form)
   // A killing slash used to hide the body and leave watercolor chunks.
   // Authored deaths play the sheet instead; that clip is the corpse.
@@ -590,7 +611,7 @@ function drawEnemy(
     ox += (hashNoise(Math.floor(time * 48), e.uid) - 0.5) * mag * 2
     oy += (hashNoise(Math.floor(time * 48), e.uid + 9) - 0.5) * mag * 2
   }
-  const foot = sheet ? actorFootprint(sheet, e.r) : e.r * 1.7
+  const foot = sheet ? actorFootprint(sheet, paintR) : paintR * 1.7
   const shade = shadowIn * (1 - death)
   const hop = hopHeight(e)
   if (sheet) drawReadHalo(ctx, ox, e.y, foot, shade)
@@ -633,7 +654,7 @@ function drawEnemy(
     ctx.scale(squash, 1 / squash)
     if (clip) {
       drawActorSheet(ctx, sheet, playKey, clip, {
-        r: e.r,
+        r: paintR,
         facing,
         alpha: 1,
       })
@@ -659,7 +680,7 @@ function drawEnemy(
     ctx.fill()
     ctx.restore()
   }
-  const sc = e.r / artR
+  const sc = paintR / artR
   ctx.save()
   ctx.scale(facing, 1)
   blit(ctx, spr, sc)
@@ -996,7 +1017,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     const body = arms ?? sheet
     const swinging = !arms && p.weapons.some((w) => w.swingT >= 0)
     const foot = actorFootprint(body, drawR)
-    drawShadow(ctx, x, p.y, foot, CHAOS.read.heroShadow)
+    drawHeroShadow(ctx, x, p.y, foot)
     drawPlayerWeapons(ctx, world, cache, true, held, true)
     const clip = pickClip(body, p.anim, { swinging, hurt: actorClipActive('player', 'hurt') })
     const paintFacing: 1 | -1 = arms ? 1 : facing
@@ -1081,7 +1102,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     return
   }
 
-  drawShadow(ctx, x, p.y + drawR * 0.45, drawR * 1.7, CHAOS.read.heroShadow)
+  drawHeroShadow(ctx, x, p.y + drawR * 0.45, drawR * 1.7)
   drawPlayerWeapons(ctx, world, cache, true, held)
   ctx.save()
   ctx.translate(x, y)
@@ -1216,11 +1237,17 @@ export function drawWorld(
     const m = world.markers[i]
     if (m) pushCmd(m.y, 0, 2, i)
   }
+  const heroY = world.player.y
+  const crowdY = CHAOS.read.heroCrowdY
   for (let i = 0; i < world.enemies.length; i++) {
     const e = world.enemies[i]
-    if (e) pushCmd(e.y, 3, 3, i)
+    if (!e) continue
+    // In a close pack the potato paints on top, even if the foe's foot is a few px lower.
+    const dy = e.y - heroY
+    const sortY = Math.abs(dy) <= crowdY ? heroY - 0.5 + dy * 0.01 : e.y
+    pushCmd(sortY, 3, 3, i)
   }
-  pushCmd(world.player.y, 4, 4, 0)
+  pushCmd(heroY, 4, 4, 0)
   for (let i = 0; i < world.farm.plots.length; i++) {
     const plot = world.farm.plots[i]
     if (plot?.crop) pushCmd(plot.y, 2, 5, i)
