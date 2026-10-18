@@ -116,6 +116,7 @@ export const SHEET_PRELOAD: string[] = [
   'pickups',
   'prop-furrow',
   'prop-bed',
+  'props-garden',
 ]
 
 const cache = new Map<string, LoadedSheet>()
@@ -668,6 +669,13 @@ export function restartActorClip(playKey: string, clipName: string): void {
   } else {
     head.clips.set(clipName, { elapsed: 0, index: -1, duration: 0, loop: false })
   }
+}
+
+/** Jump a clip's playhead (ms). Used to desync garden sway per bed. */
+export function seekActorClip(playKey: string, clipName: string, elapsedMs: number): void {
+  restartActorClip(playKey, clipName)
+  const slot = actor(playKey).clips.get(clipName)
+  if (slot) slot.elapsed = Math.max(0, elapsedMs)
 }
 
 export function forgetActor(playKey: string): void {

@@ -5,6 +5,7 @@ import { enemyFamily, variantTone } from '../data/enemies.ts'
 import { hasClip, resolveEnemySheet } from '../render/chaosSheets.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
 import { actorClipDone, drawNamedClip, restartActorClip, resolveSheet } from '../render/sheets.ts'
+import { drawGardenPeaBush } from './garden.ts'
 import type { SimCtx } from './world.ts'
 
 type BurrowPhase = 'none' | 'burrow' | 'under' | 'warn' | 'rise' | 'peel'
@@ -122,6 +123,11 @@ export function familyClip(e: Enemy, clip: string | null): string | null {
     if (clip === 'idle') return 'idle_peeled'
     if (clip === 'walk') return 'walk_peeled'
     if (clip === 'hurt') return 'hurt_peeled'
+    if (clip === 'death' || clip === 'death_slice' || clip === 'death_smash') {
+      const peeled = `${clip}_peeled`
+      const sheet = resolveEnemySheet(e.kind, e.form)
+      if (hasClip(sheet, peeled)) return peeled
+    }
   }
   return clip
 }
@@ -340,37 +346,61 @@ export function drawFamilyGround(ctx: CanvasRenderingContext2D, e: Enemy, time: 
   const x = live.get(e)
   if (!x) return
   if (x.bush && x.bush.a > 0.02) {
-    const sheet = resolveEnemySheet(e.kind, e.form)
-    if (sheet && hasClip(sheet, 'prop_bush')) {
+    if (!drawGardenPeaBush(ctx, x.bush.x, x.bush.y, x.bush.a, e.uid)) {
+      const sheet = resolveEnemySheet(e.kind, e.form)
+      if (sheet && hasClip(sheet, 'prop_bush')) {
+        ctx.save()
+        ctx.translate(x.bush.x, x.bush.y)
+        ctx.globalAlpha = x.bush.a
+        drawNamedClip(ctx, sheet, `bush:${e.uid}`, 'prop_bush', 0, { scale: 0.25, alpha: 1 })
+        ctx.restore()
+      }
+    }
+  }
+  const moundSheet = resolveEnemySheet(e.kind, e.form)
+  const mound = moundSheet && hasClip(moundSheet, 'prop_mound')
+  for (const puff of x.trail) {
+    if (mound && moundSheet) {
       ctx.save()
-      ctx.translate(x.bush.x, x.bush.y)
-      ctx.globalAlpha = x.bush.a
-      drawNamedClip(ctx, sheet, `bush:${e.uid}`, 'prop_bush', 0, { scale: 0.25, alpha: 1 })
+      ctx.translate(puff.x, puff.y + 4)
+      ctx.globalAlpha = 0.55 * puff.a
+      drawNamedClip(ctx, moundSheet, `mound:${e.uid}:${Math.round(puff.x)}:${Math.round(puff.y)}`, 'prop_mound', 0, {
+        scale: 0.25,
+        alpha: 1,
+      })
+      ctx.restore()
+    } else {
+      ctx.save()
+      ctx.globalAlpha = 0.28 * puff.a
+      ctx.fillStyle = '#5a3a22'
+      ctx.beginPath()
+      ctx.ellipse(puff.x, puff.y + 4, 9 + puff.a * 4, 4.2, 0, 0, Math.PI * 2)
+      ctx.fill()
       ctx.restore()
     }
   }
-  for (const puff of x.trail) {
-    ctx.save()
-    ctx.globalAlpha = 0.28 * puff.a
-    ctx.fillStyle = '#5a3a22'
-    ctx.beginPath()
-    ctx.ellipse(puff.x, puff.y + 4, 9 + puff.a * 4, 4.2, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.restore()
-  }
   if (x.phase === 'warn' || (x.phase === 'rise' && x.warnT > -0.2)) {
-    const pulse = 0.45 + 0.25 * Math.sin(time * 14)
-    ctx.save()
-    ctx.globalAlpha = 0.55 * pulse
-    ctx.fillStyle = '#6a4424'
-    ctx.beginPath()
-    ctx.ellipse(x.warnX, x.warnY + 6, 14, 6.5, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.strokeStyle = '#c4a070'
-    ctx.lineWidth = 1.2
-    ctx.globalAlpha = 0.7 * pulse
-    ctx.stroke()
-    ctx.restore()
+    if (mound && moundSheet) {
+      const pulse = 0.7 + 0.3 * Math.sin(time * 14)
+      ctx.save()
+      ctx.translate(x.warnX, x.warnY + 6)
+      ctx.globalAlpha = 0.85 * pulse
+      drawNamedClip(ctx, moundSheet, `mound-warn:${e.uid}`, 'prop_mound', 0, { scale: 0.25, alpha: 1 })
+      ctx.restore()
+    } else {
+      const pulse = 0.45 + 0.25 * Math.sin(time * 14)
+      ctx.save()
+      ctx.globalAlpha = 0.55 * pulse
+      ctx.fillStyle = '#6a4424'
+      ctx.beginPath()
+      ctx.ellipse(x.warnX, x.warnY + 6, 14, 6.5, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.strokeStyle = '#c4a070'
+      ctx.lineWidth = 1.2
+      ctx.globalAlpha = 0.7 * pulse
+      ctx.stroke()
+      ctx.restore()
+    }
   }
 }
 

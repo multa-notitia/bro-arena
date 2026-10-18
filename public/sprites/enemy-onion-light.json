@@ -1,11 +1,11 @@
 {
  "image": "enemy-onion-light.webp",
- "frameWidth": 186,
- "frameHeight": 204,
- "columns": 11,
+ "frameWidth": 170,
+ "frameHeight": 196,
+ "columns": 12,
  "anchor": {
   "x": 0.5,
-  "y": 0.76
+  "y": 0.7502
  },
  "clips": {
   "idle": {
@@ -187,6 +187,45 @@
     { "i": 108, "ms": 260 },
     { "i": 109, "ms": 300 }
    ]
+  },
+  "death_peeled": {
+   "loop": false,
+   "frames": [
+    { "i": 110, "ms": 60 },
+    { "i": 111, "ms": 70 },
+    { "i": 36, "ms": 45, "events": [ "spawnFx", "gas" ] },
+    { "i": 37, "ms": 50 },
+    { "i": 38, "ms": 55 },
+    { "i": 39, "ms": 65 },
+    { "i": 40, "ms": 75 },
+    { "i": 41, "ms": 85 },
+    { "i": 42, "ms": 950 }
+   ]
+  },
+  "death_smash_peeled": {
+   "loop": false,
+   "frames": [
+    { "i": 112, "ms": 40 },
+    { "i": 113, "ms": 50 },
+    { "i": 63, "ms": 50, "events": [ "spawnFx", "gas" ] },
+    { "i": 64, "ms": 55 },
+    { "i": 65, "ms": 65 },
+    { "i": 66, "ms": 75 },
+    { "i": 67, "ms": 85 },
+    { "i": 68, "ms": 950 }
+   ]
+  },
+  "death_slice_peeled": {
+   "loop": false,
+   "frames": [
+    { "i": 114, "ms": 45 },
+    { "i": 55, "ms": 55, "events": [ "spawnFx", "gas" ] },
+    { "i": 56, "ms": 60 },
+    { "i": 57, "ms": 65 },
+    { "i": 58, "ms": 70 },
+    { "i": 59, "ms": 75 },
+    { "i": 60, "ms": 950 }
+   ]
   }
  },
  "meta": {
@@ -302,9 +341,14 @@
    "gas_cloud4",
    "gas_cloud5",
    "gas_cloud6",
-   "gas_cloud7"
+   "gas_cloud7",
+   "death_peeled0",
+   "death_peeled1",
+   "death_smash_peeled0",
+   "death_smash_peeled1",
+   "death_slice_peeled0"
   ],
-  "feetY": 192.16,
+  "feetY": 184.16,
   "gameRadius": 15,
   "gameFit": 0.25,
   "rig": "figures/enemy-onion-light/rig.py (cut-out animation, tools/rig)",
@@ -315,8 +359,8 @@
     256,
     256
    ],
-   "x0": 35,
-   "y0": 28,
+   "x0": 43,
+   "y0": 36,
    "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
   }
  }

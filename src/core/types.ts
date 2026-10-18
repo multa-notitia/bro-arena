@@ -968,6 +968,7 @@ export interface UiApi {
   /** Transient banner in the HUD layer ("Wave 4", "Boss incoming"). */
   banner(text: string, sub?: string, ms?: number): void
   toast(text: string): void
+  seedPop(crop: CropId, count?: number): void
   setJoystickVisible(visible: boolean): void
   /** Called by main to bind title buttons. */
   onTitle(handlers: {

@@ -163,7 +163,7 @@ export function buyFarmOffer(world: World, ctx: SimCtx, session: FarmShopSession
   if (offer.kind === 'seed' && offer.crop) {
     addSeed(world.farm, offer.crop, offer.count)
     unlockCrop(world.farm, offer.crop)
-    ctx.ui.toast(`${CROPS[offer.crop].seedName} ×${offer.count}`)
+    ctx.ui.seedPop(offer.crop, offer.count)
   } else if (offer.kind === 'fertilizer') {
     world.farm.fertilizer += 1
     ctx.ui.toast('Fertilizer on the row.')

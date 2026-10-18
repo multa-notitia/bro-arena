@@ -1,11 +1,11 @@
 {
  "image": "enemy-pea-mud.webp",
  "frameWidth": 204,
- "frameHeight": 227,
+ "frameHeight": 204,
  "columns": 10,
  "anchor": {
   "x": 0.5,
-  "y": 0.7341
+  "y": 0.7041
  },
  "clips": {
   "idle": {
@@ -63,101 +63,105 @@
    "frames": [
     { "i": 30, "ms": 60 },
     { "i": 31, "ms": 70 },
-    { "i": 32, "ms": 45, "event": "spawnFx" },
-    { "i": 33, "ms": 50 },
-    { "i": 34, "ms": 55 },
-    { "i": 35, "ms": 65 },
-    { "i": 36, "ms": 75 },
-    { "i": 37, "ms": 85 },
-    { "i": 38, "ms": 950 }
+    { "i": 32, "ms": 38, "event": "spawnFx" },
+    { "i": 33, "ms": 38 },
+    { "i": 34, "ms": 38 },
+    { "i": 35, "ms": 38 },
+    { "i": 36, "ms": 38 },
+    { "i": 37, "ms": 38 },
+    { "i": 38, "ms": 38 },
+    { "i": 39, "ms": 38 },
+    { "i": 40, "ms": 38 },
+    { "i": 41, "ms": 38 },
+    { "i": 42, "ms": 950 }
    ]
   },
   "scream": {
    "loop": false,
    "frames": [
-    { "i": 39, "ms": 120 },
-    { "i": 40, "ms": 100 },
-    { "i": 41, "ms": 60, "event": "scream" },
-    { "i": 42, "ms": 70 },
-    { "i": 43, "ms": 70 },
-    { "i": 44, "ms": 70 },
-    { "i": 45, "ms": 70 },
+    { "i": 43, "ms": 120 },
+    { "i": 44, "ms": 100 },
+    { "i": 45, "ms": 60, "event": "scream" },
     { "i": 46, "ms": 70 },
     { "i": 47, "ms": 70 },
-    { "i": 48, "ms": 80 },
-    { "i": 49, "ms": 70 }
+    { "i": 48, "ms": 70 },
+    { "i": 49, "ms": 70 },
+    { "i": 50, "ms": 70 },
+    { "i": 51, "ms": 70 },
+    { "i": 52, "ms": 80 },
+    { "i": 53, "ms": 70 }
    ]
   },
   "death_slice": {
    "loop": false,
    "frames": [
-    { "i": 50, "ms": 45 },
-    { "i": 51, "ms": 55, "event": "spawnFx" },
-    { "i": 52, "ms": 60 },
-    { "i": 53, "ms": 65 },
-    { "i": 54, "ms": 70 },
-    { "i": 55, "ms": 75 },
-    { "i": 56, "ms": 950 }
+    { "i": 54, "ms": 45 },
+    { "i": 55, "ms": 55, "event": "spawnFx" },
+    { "i": 56, "ms": 60 },
+    { "i": 57, "ms": 65 },
+    { "i": 58, "ms": 70 },
+    { "i": 59, "ms": 75 },
+    { "i": 60, "ms": 950 }
    ]
   },
   "death_smash": {
    "loop": false,
    "frames": [
-    { "i": 57, "ms": 40 },
-    { "i": 58, "ms": 50 },
-    { "i": 59, "ms": 50, "event": "spawnFx" },
-    { "i": 60, "ms": 55 },
-    { "i": 61, "ms": 65 },
-    { "i": 62, "ms": 75 },
-    { "i": 63, "ms": 85 },
-    { "i": 64, "ms": 950 }
+    { "i": 61, "ms": 40 },
+    { "i": 62, "ms": 50 },
+    { "i": 63, "ms": 50, "event": "spawnFx" },
+    { "i": 64, "ms": 55 },
+    { "i": 65, "ms": 65 },
+    { "i": 66, "ms": 75 },
+    { "i": 67, "ms": 85 },
+    { "i": 68, "ms": 950 }
    ]
   },
   "emerge": {
    "loop": false,
    "frames": [
-    { "i": 65, "ms": 100 },
-    { "i": 66, "ms": 90 },
-    { "i": 67, "ms": 80 },
-    { "i": 68, "ms": 60, "event": "emerge_fx" },
-    { "i": 69, "ms": 70 },
-    { "i": 70, "ms": 70 },
-    { "i": 71, "ms": 60 },
-    { "i": 72, "ms": 80 },
+    { "i": 69, "ms": 100 },
+    { "i": 70, "ms": 90 },
+    { "i": 71, "ms": 80 },
+    { "i": 72, "ms": 60, "event": "emerge_fx" },
     { "i": 73, "ms": 70 },
     { "i": 74, "ms": 70 },
-    { "i": 75, "ms": 80, "event": "emerged" }
+    { "i": 75, "ms": 60 },
+    { "i": 76, "ms": 80 },
+    { "i": 77, "ms": 70 },
+    { "i": 78, "ms": 70 },
+    { "i": 79, "ms": 80, "event": "emerged" }
    ]
   },
   "leap": {
    "loop": false,
    "frames": [
-    { "i": 76, "ms": 110 },
-    { "i": 77, "ms": 100 },
-    { "i": 78, "ms": 60, "event": "takeoff" },
-    { "i": 79, "ms": 70 },
-    { "i": 80, "ms": 80 },
-    { "i": 81, "ms": 80 },
-    { "i": 82, "ms": 70 },
-    { "i": 83, "ms": 60 },
-    { "i": 77, "ms": 80, "event": "land" },
-    { "i": 73, "ms": 70 },
-    { "i": 74, "ms": 60 },
-    { "i": 75, "ms": 60 }
+    { "i": 80, "ms": 110 },
+    { "i": 81, "ms": 100 },
+    { "i": 82, "ms": 60, "event": "takeoff" },
+    { "i": 83, "ms": 70 },
+    { "i": 84, "ms": 80 },
+    { "i": 85, "ms": 80 },
+    { "i": 86, "ms": 70 },
+    { "i": 87, "ms": 60 },
+    { "i": 81, "ms": 80, "event": "land" },
+    { "i": 88, "ms": 70 },
+    { "i": 89, "ms": 60 },
+    { "i": 90, "ms": 60 }
    ]
   },
   "pea": {
    "loop": true,
    "frames": [
-    { "i": 84, "ms": 60 },
-    { "i": 85, "ms": 60 },
-    { "i": 86, "ms": 60 }
+    { "i": 91, "ms": 60 },
+    { "i": 92, "ms": 60 },
+    { "i": 93, "ms": 60 }
    ]
   },
   "prop_bush": {
    "loop": false,
    "frames": [
-    { "i": 87, "ms": 1000 }
+    { "i": 94, "ms": 1000 }
    ]
   }
  },
@@ -204,6 +208,10 @@
    "death6",
    "death7",
    "death8",
+   "death9",
+   "death10",
+   "death11",
+   "death12",
    "scream0",
    "scream1",
    "scream2",
@@ -249,12 +257,15 @@
    "leap5",
    "leap6",
    "leap7",
+   "leap9",
+   "leap10",
+   "leap11",
    "pea0",
    "pea1",
    "pea2",
    "prop_bush0"
   ],
-  "feetY": 208.68,
+  "feetY": 185.68,
   "gameRadius": 17,
   "gameFit": 0.25,
   "rig": "figures/enemy-pea-mud/rig.py (cut-out animation, tools/rig)",
@@ -283,7 +294,7 @@
     288
    ],
    "x0": 42,
-   "y0": 39,
+   "y0": 62,
    "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
   }
  }

@@ -1,0 +1,1220 @@
+{
+ "image": "props-garden.webp",
+ "frameWidth": 224,
+ "frameHeight": 192,
+ "columns": 9,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.875
+ },
+ "clips": {
+  "pea_stage1": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "pea_stage2": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 1,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "pea_stage3": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 2,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "pea_sway": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 4,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 5,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 6,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 7,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "pea_burst": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 2,
+     "ms": 40,
+     "scaleX": 1.08,
+     "scaleY": 0.9,
+     "events": [
+      "burst_windup"
+     ]
+    },
+    {
+     "i": 3,
+     "ms": 50,
+     "scaleX": 0.86,
+     "scaleY": 0.86,
+     "events": [
+      "burst"
+     ]
+    },
+    {
+     "i": 3,
+     "ms": 70,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    },
+    {
+     "i": 3,
+     "ms": 110,
+     "scaleX": 1.06,
+     "scaleY": 1.04
+    },
+    {
+     "i": 3,
+     "ms": 140,
+     "scaleX": 1.1,
+     "scaleY": 1.06,
+     "events": [
+      "burst_done"
+     ]
+    }
+   ]
+  },
+  "sprout_stage1": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 8,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "sprout_stage2": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 9,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "sprout_stage3": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 10,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "sprout_sway": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 12,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 13,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 14,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 15,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "sprout_burst": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 10,
+     "ms": 40,
+     "scaleX": 1.08,
+     "scaleY": 0.9,
+     "events": [
+      "burst_windup"
+     ]
+    },
+    {
+     "i": 11,
+     "ms": 50,
+     "scaleX": 0.86,
+     "scaleY": 0.86,
+     "events": [
+      "burst"
+     ]
+    },
+    {
+     "i": 11,
+     "ms": 70,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    },
+    {
+     "i": 11,
+     "ms": 110,
+     "scaleX": 1.06,
+     "scaleY": 1.04
+    },
+    {
+     "i": 11,
+     "ms": 140,
+     "scaleX": 1.1,
+     "scaleY": 1.06,
+     "events": [
+      "burst_done"
+     ]
+    }
+   ]
+  },
+  "carrot_stage1": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 16,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "carrot_stage2": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 17,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "carrot_stage3": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 18,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "carrot_sway": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 20,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 21,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 22,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 23,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "carrot_burst": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 18,
+     "ms": 40,
+     "scaleX": 1.08,
+     "scaleY": 0.9,
+     "events": [
+      "burst_windup"
+     ]
+    },
+    {
+     "i": 19,
+     "ms": 50,
+     "scaleX": 0.86,
+     "scaleY": 0.86,
+     "events": [
+      "burst"
+     ]
+    },
+    {
+     "i": 19,
+     "ms": 70,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    },
+    {
+     "i": 19,
+     "ms": 110,
+     "scaleX": 1.06,
+     "scaleY": 1.04
+    },
+    {
+     "i": 19,
+     "ms": 140,
+     "scaleX": 1.1,
+     "scaleY": 1.06,
+     "events": [
+      "burst_done"
+     ]
+    }
+   ]
+  },
+  "garlic_stage1": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 24,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "garlic_stage2": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 25,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "garlic_stage3": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 26,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "garlic_sway": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 28,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 29,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 30,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 31,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "garlic_burst": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 26,
+     "ms": 40,
+     "scaleX": 1.08,
+     "scaleY": 0.9,
+     "events": [
+      "burst_windup"
+     ]
+    },
+    {
+     "i": 27,
+     "ms": 50,
+     "scaleX": 0.86,
+     "scaleY": 0.86,
+     "events": [
+      "burst"
+     ]
+    },
+    {
+     "i": 27,
+     "ms": 70,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    },
+    {
+     "i": 27,
+     "ms": 110,
+     "scaleX": 1.06,
+     "scaleY": 1.04
+    },
+    {
+     "i": 27,
+     "ms": 140,
+     "scaleX": 1.1,
+     "scaleY": 1.06,
+     "events": [
+      "burst_done"
+     ]
+    }
+   ]
+  },
+  "pumpkin_stage1": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 32,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "pumpkin_stage2": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 33,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "pumpkin_stage3": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 34,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "pumpkin_sway": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 36,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 37,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 38,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 39,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "pumpkin_burst": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 34,
+     "ms": 40,
+     "scaleX": 1.08,
+     "scaleY": 0.9,
+     "events": [
+      "burst_windup"
+     ]
+    },
+    {
+     "i": 35,
+     "ms": 50,
+     "scaleX": 0.86,
+     "scaleY": 0.86,
+     "events": [
+      "burst"
+     ]
+    },
+    {
+     "i": 35,
+     "ms": 70,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    },
+    {
+     "i": 35,
+     "ms": 110,
+     "scaleX": 1.06,
+     "scaleY": 1.04
+    },
+    {
+     "i": 35,
+     "ms": 140,
+     "scaleX": 1.1,
+     "scaleY": 1.06,
+     "events": [
+      "burst_done"
+     ]
+    }
+   ]
+  },
+  "chili_stage1": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 40,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "chili_stage2": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 41,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "chili_stage3": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 42,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "chili_sway": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 44,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 45,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 46,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 47,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "chili_burst": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 42,
+     "ms": 40,
+     "scaleX": 1.08,
+     "scaleY": 0.9,
+     "events": [
+      "burst_windup"
+     ]
+    },
+    {
+     "i": 43,
+     "ms": 50,
+     "scaleX": 0.86,
+     "scaleY": 0.86,
+     "events": [
+      "burst"
+     ]
+    },
+    {
+     "i": 43,
+     "ms": 70,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    },
+    {
+     "i": 43,
+     "ms": 110,
+     "scaleX": 1.06,
+     "scaleY": 1.04
+    },
+    {
+     "i": 43,
+     "ms": 140,
+     "scaleX": 1.1,
+     "scaleY": 1.06,
+     "events": [
+      "burst_done"
+     ]
+    }
+   ]
+  },
+  "tomato_stage1": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 48,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tomato_stage2": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 49,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tomato_stage3": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 50,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tomato_sway": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 52,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 53,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 54,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 55,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tomato_burst": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 50,
+     "ms": 40,
+     "scaleX": 1.08,
+     "scaleY": 0.9,
+     "events": [
+      "burst_windup"
+     ]
+    },
+    {
+     "i": 51,
+     "ms": 50,
+     "scaleX": 0.86,
+     "scaleY": 0.86,
+     "events": [
+      "burst"
+     ]
+    },
+    {
+     "i": 51,
+     "ms": 70,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    },
+    {
+     "i": 51,
+     "ms": 110,
+     "scaleX": 1.06,
+     "scaleY": 1.04
+    },
+    {
+     "i": 51,
+     "ms": 140,
+     "scaleX": 1.1,
+     "scaleY": 1.06,
+     "events": [
+      "burst_done"
+     ]
+    }
+   ]
+  },
+  "bean_stage1": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 56,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "bean_stage2": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 57,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "bean_stage3": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 58,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "bean_sway": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 60,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 61,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 62,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 63,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "bean_burst": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 58,
+     "ms": 40,
+     "scaleX": 1.08,
+     "scaleY": 0.9,
+     "events": [
+      "burst_windup"
+     ]
+    },
+    {
+     "i": 59,
+     "ms": 50,
+     "scaleX": 0.86,
+     "scaleY": 0.86,
+     "events": [
+      "burst"
+     ]
+    },
+    {
+     "i": 59,
+     "ms": 70,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    },
+    {
+     "i": 59,
+     "ms": 110,
+     "scaleX": 1.06,
+     "scaleY": 1.04
+    },
+    {
+     "i": 59,
+     "ms": 140,
+     "scaleX": 1.1,
+     "scaleY": 1.06,
+     "events": [
+      "burst_done"
+     ]
+    }
+   ]
+  },
+  "beetroot_stage1": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 64,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "beetroot_stage2": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 65,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "beetroot_stage3": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 66,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "beetroot_sway": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 68,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 69,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 70,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 71,
+     "ms": 200,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "beetroot_burst": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 66,
+     "ms": 40,
+     "scaleX": 1.08,
+     "scaleY": 0.9,
+     "events": [
+      "burst_windup"
+     ]
+    },
+    {
+     "i": 67,
+     "ms": 50,
+     "scaleX": 0.86,
+     "scaleY": 0.86,
+     "events": [
+      "burst"
+     ]
+    },
+    {
+     "i": 67,
+     "ms": 70,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    },
+    {
+     "i": 67,
+     "ms": 110,
+     "scaleX": 1.06,
+     "scaleY": 1.04
+    },
+    {
+     "i": 67,
+     "ms": 140,
+     "scaleX": 1.1,
+     "scaleY": 1.06,
+     "events": [
+      "burst_done"
+     ]
+    }
+   ]
+  },
+  "seed_pea": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 72,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "seed_sprout": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 73,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "seed_carrot": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 74,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "seed_garlic": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 75,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "seed_pumpkin": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 76,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "seed_chili": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 77,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "seed_tomato": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 78,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "seed_bean": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 79,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "seed_beetroot": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 80,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "coin_leaf": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 81,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Garden crop plants + seed icons",
+  "source": "garden_plants_{a,b,c}_v1.jpg, garden_seeds_v1.jpg",
+  "drawScale": 0.25,
+  "iconDrawScale": 0.14,
+  "soilLineY": 168,
+  "pngFallback": "props-garden.png",
+  "cells": [
+   "pea_stage1",
+   "pea_stage2",
+   "pea_stage3",
+   "pea_burst",
+   "pea_sway0",
+   "pea_sway1",
+   "pea_sway2",
+   "pea_sway3",
+   "sprout_stage1",
+   "sprout_stage2",
+   "sprout_stage3",
+   "sprout_burst",
+   "sprout_sway0",
+   "sprout_sway1",
+   "sprout_sway2",
+   "sprout_sway3",
+   "carrot_stage1",
+   "carrot_stage2",
+   "carrot_stage3",
+   "carrot_burst",
+   "carrot_sway0",
+   "carrot_sway1",
+   "carrot_sway2",
+   "carrot_sway3",
+   "garlic_stage1",
+   "garlic_stage2",
+   "garlic_stage3",
+   "garlic_burst",
+   "garlic_sway0",
+   "garlic_sway1",
+   "garlic_sway2",
+   "garlic_sway3",
+   "pumpkin_stage1",
+   "pumpkin_stage2",
+   "pumpkin_stage3",
+   "pumpkin_burst",
+   "pumpkin_sway0",
+   "pumpkin_sway1",
+   "pumpkin_sway2",
+   "pumpkin_sway3",
+   "chili_stage1",
+   "chili_stage2",
+   "chili_stage3",
+   "chili_burst",
+   "chili_sway0",
+   "chili_sway1",
+   "chili_sway2",
+   "chili_sway3",
+   "tomato_stage1",
+   "tomato_stage2",
+   "tomato_stage3",
+   "tomato_burst",
+   "tomato_sway0",
+   "tomato_sway1",
+   "tomato_sway2",
+   "tomato_sway3",
+   "bean_stage1",
+   "bean_stage2",
+   "bean_stage3",
+   "bean_burst",
+   "bean_sway0",
+   "bean_sway1",
+   "bean_sway2",
+   "bean_sway3",
+   "beetroot_stage1",
+   "beetroot_stage2",
+   "beetroot_stage3",
+   "beetroot_burst",
+   "beetroot_sway0",
+   "beetroot_sway1",
+   "beetroot_sway2",
+   "beetroot_sway3",
+   "seed_pea",
+   "seed_sprout",
+   "seed_carrot",
+   "seed_garlic",
+   "seed_pumpkin",
+   "seed_chili",
+   "seed_tomato",
+   "seed_bean",
+   "seed_beetroot",
+   "coin_leaf"
+  ],
+  "plants": [
+   "pea",
+   "sprout",
+   "carrot",
+   "garlic",
+   "pumpkin",
+   "chili",
+   "tomato",
+   "bean",
+   "beetroot"
+  ],
+  "note": "anchor = soil line (bottom of the painted soil clump) at bed centre; icons use their own centre anchor. See NOTES.md."
+ }
+}

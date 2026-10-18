@@ -128,6 +128,7 @@ const SKELETON = `
   <p id="banner-sub" class="banner-sub" hidden></p>
 </div>
 <div id="toasts" class="toasts" aria-live="polite"></div>
+<div id="seed-pops" class="seed-pops" aria-live="polite"></div>
 
 <div id="screen-boot" class="overlay cover" hidden>
   <div class="cover-inner">
@@ -442,6 +443,8 @@ export function createUi(
   const bannerText = must<HTMLElement>('#banner-text')
   const bannerSub = must<HTMLElement>('#banner-sub')
   const toastsEl = must<HTMLDivElement>('#toasts')
+  const seedPopsEl = must<HTMLDivElement>('#seed-pops')
+  const seedPopLive = new Map<CropId, { el: HTMLElement; count: number; timer: number }>
 
   const bootCopy = must<HTMLElement>('#boot-copy')
   const errorCopy = must<HTMLElement>('#error-copy')
@@ -1614,6 +1617,34 @@ export function createUi(
         el.classList.add('is-out')
         window.setTimeout(() => el.remove(), reduceMotion.matches ? 0 : 300)
       }, 2600)
+    },
+
+    seedPop(crop: CropId, count = 1): void {
+      const add = Math.max(1, count)
+      const rec = seedPopLive.get(crop)
+      if (rec) {
+        rec.count += add
+        const n = rec.el.querySelector('.seed-pop-n')
+        if (n) n.textContent = `+${rec.count}`
+        window.clearTimeout(rec.timer)
+        rec.timer = window.setTimeout(() => {
+          rec.el.classList.add('is-out')
+          window.setTimeout(() => rec.el.remove(), 220)
+          seedPopLive.delete(crop)
+        }, 1400)
+        rec.el.classList.remove('is-out')
+        return
+      }
+      const el = h('div', { className: `seed-pop crop-${crop}` })
+      el.append(img(seedIconDataUrl(crop, 48), CROPS[crop].seedName, 28, 28))
+      el.append(h('span', { className: 'seed-pop-n', text: `+${add}` }))
+      seedPopsEl.append(el)
+      const timer = window.setTimeout(() => {
+        el.classList.add('is-out')
+        window.setTimeout(() => el.remove(), 220)
+        seedPopLive.delete(crop)
+      }, 1400)
+      seedPopLive.set(crop, { el, count: add, timer })
     },
 
     setJoystickVisible(visible: boolean): void {

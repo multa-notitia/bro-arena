@@ -151,6 +151,12 @@
     { "i": 87, "ms": 80 },
     { "i": 88, "ms": 150, "event": "emerged" }
    ]
+  },
+  "prop_mound": {
+   "loop": false,
+   "frames": [
+    { "i": 81, "ms": 300 }
+   ]
   }
  },
  "meta": {

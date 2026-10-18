@@ -2,6 +2,7 @@ import { clamp, dist, lerp } from '../core/math.ts'
 import type { EnemyKind, SpawnMarker, World } from '../core/types.ts'
 import { CHAOS, chaosDirectorOn, maxEnemies, telegraphLife } from '../data/chaos.ts'
 import { plantedPlots } from './farm.ts'
+import { beginPlantBurst, gardenPending } from './garden.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
 import type { SimCtx } from './world.ts'
 
@@ -44,7 +45,7 @@ export function chaosBatch(base: number, world: World): number {
 }
 
 function room(world: World): boolean {
-  return world.enemies.length + world.markers.length < maxEnemies(world.wave)
+  return world.enemies.length + world.markers.length + gardenPending() < maxEnemies(world.wave)
 }
 
 function randomAway(world: World, ctx: SimCtx, minDist: number, margin = 48): { x: number; y: number } {
@@ -136,13 +137,20 @@ function tomatoSwarm(world: World, ctx: SimCtx, x: number, y: number): void {
   ctx.audio.play('spawn', { pitch: 0.78, gain: 0.85 })
   spawnFunnyClip('rustle_a', x, y, { scale: CHAOS.sheets.drawScale })
   spawnFunnyClip('rustle_b', x + 8, y + 4, { scale: CHAOS.sheets.drawScale })
+  const spawns: { kind: EnemyKind; elite: boolean; x: number; y: number }[] = []
   for (let i = 0; i < n; i++) {
     const a = ctx.rng.range(0, Math.PI * 2)
     const d = ctx.rng.range(10, 40)
-    queueCrack(world, 'tomato', x + Math.cos(a) * d, y + Math.sin(a) * d, {
-      style: 'patch',
-      life: 0.55 + i * 0.08,
+    spawns.push({
+      kind: 'tomato',
+      elite: false,
+      x: x + Math.cos(a) * d,
+      y: y + Math.sin(a) * d,
     })
+  }
+  if (beginPlantBurst({ plant: 'tomato', x, y, spawns })) return
+  for (const s of spawns) {
+    queueCrack(world, s.kind, s.x, s.y, { style: 'patch', life: 0.55 })
   }
 }
 
@@ -153,7 +161,10 @@ function hopPack(world: World, ctx: SimCtx): void {
   const sown = plantedPlots(world.farm)
   for (let i = 0; i < n; i++) {
     const plot = sown.length ? ctx.rng.pick(sown) : ctx.rng.pick(world.farm.plots)
-    queueCrack(world, 'bean', plot.x + ctx.rng.range(-28, 28), plot.y + ctx.rng.range(-16, 18), {
+    const x = plot.x + ctx.rng.range(-28, 28)
+    const y = plot.y + ctx.rng.range(-16, 18)
+    if (beginPlantBurst({ plant: 'bean', x, y, spawns: [{ kind: 'bean', elite: false, x, y }] })) continue
+    queueCrack(world, 'bean', x, y, {
       style: 'crack',
       life: 0.55,
     })

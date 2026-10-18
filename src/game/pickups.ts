@@ -1,6 +1,6 @@
 import { clamp, dist2, uid } from '../core/math.ts'
 import type { CropId, Enemy, EnemyDef, Pickup, PickupType, Tree, World } from '../core/types.ts'
-import { CROPS, cropByEnemy } from '../data/crops.ts'
+import { cropByEnemy } from '../data/crops.ts'
 import { ITEM_LIST } from '../data/items.ts'
 import { harvestPayout, materialDropValue, tierOdds } from '../data/economy.ts'
 import { addSeed, harvestFarm, seedDropChance } from './farm.ts'
@@ -178,7 +178,7 @@ function collectPickup(world: World, pickup: Pickup, ctx: SimCtx): void {
     const crop = pickup.crop
     if (crop) {
       addSeed(world.farm, crop, 1)
-      ctx.ui.toast(crop ? CROPS[crop].seedName : 'Seed')
+      ctx.ui.seedPop(crop, 1)
     }
     ctx.audio.play('pickup')
     ctx.render.fx.sparkle(pickup.x, pickup.y, '#c4a050')

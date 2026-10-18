@@ -12,6 +12,14 @@ import type { SimCtx } from './world.ts'
 import { chaosBatch, chaosInterval, onHorde, resetChaosDirector, tickChaosDirector } from './chaosDirector.ts'
 import { resetEmerge } from './emerge.ts'
 import { resetFamilies } from './families.ts'
+import {
+  beginPlantBurst,
+  cropToPlant,
+  gardenPending,
+  gardenSheet,
+  resetGardenPlants,
+  tickGardenPlants,
+} from './garden.ts'
 import { telegraphLife } from '../data/chaos.ts'
 
 const MARKER_LIFE = 1
@@ -86,7 +94,7 @@ function pickPool(world: World, ctx: SimCtx): EnemyKind {
 }
 
 function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LIFE): void {
-  if (world.enemies.length + world.markers.length >= maxEnemies(world.wave)) return
+  if (world.enemies.length + world.markers.length + gardenPending() >= maxEnemies(world.wave)) return
   const sown = plantedPlots(world.farm)
   const plot = sown.length > 0 ? ctx.rng.pick(sown) : ctx.rng.pick(world.farm.plots)
   const crop = plot.crop
@@ -95,10 +103,28 @@ function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LI
   if (crop && ctx.rng.chance(0.25)) kind = pickPool(world, ctx)
   kind = rollMud(kind, ctx)
   const jitter = 22
+  const x = plot.x + ctx.rng.range(-jitter, jitter)
+  const y = plot.y + ctx.rng.range(-10, 16)
+  const fam = kind.replace(/-(light|mud)$/, '')
+  const plant =
+    fam === 'beetroot' || fam === 'tomato' || fam === 'bean' || fam === 'pea'
+      ? fam
+      : crop
+        ? cropToPlant(crop)
+        : null
+  if (plant && gardenSheet() && beginPlantBurst({
+    plant,
+    x: plot.x,
+    y: plot.y,
+    plotUid: plot.uid,
+    spawns: [{ kind, elite, x, y }],
+  })) {
+    return
+  }
   const marker: SpawnMarker = {
     kind,
-    x: plot.x + ctx.rng.range(-jitter, jitter),
-    y: plot.y + ctx.rng.range(-10, 16),
+    x,
+    y,
     t: 0,
     life: life === MARKER_LIFE ? telegraphLife() : life,
     style: 'crack',
@@ -143,6 +169,7 @@ export function beginWave(world: World, ctx: SimCtx, index: number): void {
   resetChaosDirector()
   resetEmerge()
   resetFamilies()
+  resetGardenPlants()
   director = makeDirector(world)
   placeTrees(world, ctx)
   for (const w of world.player.weapons) {
@@ -178,12 +205,15 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
   }
   world.markers = markers
   tickChaosDirector(world, dt, ctx)
+  tickGardenPlants(world, dt, (kind, x, y, elite) => {
+    spawnEnemy(world, kind, x, y, ctx, elite, undefined, true)
+  })
 
   const bossAlive = !!(world.boss && world.boss.state !== 'dying' && world.boss.hp > 0)
 
   if (!timeUp) {
     d.spawnAcc += dt
-    while (d.spawnAcc >= interval && world.enemies.length + world.markers.length < maxEnemies(world.wave)) {
+    while (d.spawnAcc >= interval && world.enemies.length + world.markers.length + gardenPending() < maxEnemies(world.wave)) {
       d.spawnAcc -= Math.max(0.08, interval)
       for (let i = 0; i < batch; i++) spawnFromBed(world, ctx)
     }

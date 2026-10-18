@@ -100,13 +100,13 @@
    "loop": false,
    "frames": [
     { "i": 58, "ms": 45 },
-    { "i": 59, "ms": 50, "event": "spawnFx" },
-    { "i": 60, "ms": 55 },
-    { "i": 61, "ms": 55 },
-    { "i": 62, "ms": 60 },
-    { "i": 63, "ms": 65 },
-    { "i": 64, "ms": 70 },
-    { "i": 65, "ms": 950 }
+    { "i": 59, "ms": 55, "event": "spawnFx" },
+    { "i": 60, "ms": 60 },
+    { "i": 61, "ms": 65 },
+    { "i": 62, "ms": 70 },
+    { "i": 63, "ms": 75 },
+    { "i": 64, "ms": 80 },
+    { "i": 65, "ms": 900 }
    ]
   },
   "death_smash": {
@@ -162,9 +162,17 @@
     { "i": 98, "ms": 60, "event": "hit" },
     { "i": 99, "ms": 70 },
     { "i": 100, "ms": 70 },
-    { "i": 83, "ms": 80 },
+    { "i": 101, "ms": 80 },
     { "i": 84, "ms": 80 },
     { "i": 85, "ms": 70, "event": "emerged" }
+   ]
+  },
+  "prop_mound": {
+   "loop": false,
+   "frames": [
+    { "i": 102, "ms": 100 },
+    { "i": 103, "ms": 100 },
+    { "i": 104, "ms": 100 }
    ]
   }
  },
@@ -272,7 +280,11 @@
    "resurface1",
    "resurface2",
    "resurface3",
-   "resurface4"
+   "resurface4",
+   "resurface5",
+   "prop_mound0",
+   "prop_mound1",
+   "prop_mound2"
   ],
   "feetY": 186.16,
   "gameRadius": 19,

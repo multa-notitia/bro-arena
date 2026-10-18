@@ -45,6 +45,7 @@ import {
 import { boardKnifeSlash, getPaintStyle, proceduralModel, usesBoardArt, usesPaintedArt } from './look.ts'
 import { drawPaintedChili } from './conceptA.ts'
 import { drawBoard, drawBoardShadow, poseBoard, boardHeld, type BoardHero } from './board.ts'
+import { ambushGardenJobs, drawGardenJob } from '../game/garden.ts'
 import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { drawPaddock } from './ground.ts'
 import { paperColor } from './paintLang.ts'
@@ -1233,6 +1234,11 @@ export function drawWorld(
     const plot = world.farm.plots[i]
     if (plot?.crop) pushCmd(plot.y, 2, 5, i)
   }
+  const ambush = ambushGardenJobs()
+  for (let i = 0; i < ambush.length; i++) {
+    const j = ambush[i]
+    if (j) pushCmd(j.y, 2, 6, i)
+  }
 
   const list = cmds.slice(0, cmdN)
   list.sort((a, b) => a.y - b.y)
@@ -1263,7 +1269,10 @@ export function drawWorld(
       drawPlayer(ctx, world, cache)
     } else if (c.kind === 5) {
       const plot = world.farm.plots[c.idx]
-      if (plot) drawFarmPlant(ctx, plot)
+      if (plot) drawFarmPlant(ctx, plot, world.time)
+    } else if (c.kind === 6) {
+      const job = ambush[c.idx]
+      if (job) drawGardenJob(ctx, job)
     }
   }
 
