@@ -71,6 +71,10 @@ export interface SheetManifest {
   drawScale?: number
   /** Per-clip visual Y offsets (leap arc). Negative is up. */
   airOffsetY?: Record<string, number[]>
+  /** Ground splat group on vfx-splat (`green` / `orange` / `red` / `purple` / `mud`). */
+  splat?: string
+  /** World-px jet origin from the body anchor (onion gas_puff). */
+  mouth?: { x: number; y: number }
 }
 
 export interface LoadedSheet {
@@ -115,6 +119,8 @@ export const SHEET_PRELOAD: string[] = [
   'enemy-pea-mud',
   'fx-ink',
   'fx-funny',
+  'vfx-splat',
+  'vfx-gas-puff',
   'pickups',
   'prop-furrow',
   'prop-bed',
@@ -303,6 +309,13 @@ function parseManifest(raw: unknown): SheetManifest | null {
       airOffsetY[name] = list.map((v) => (typeof v === 'number' ? v : 0))
     }
   }
+  let splat: string | undefined
+  if (meta && typeof meta.splat === 'string' && meta.splat) splat = meta.splat
+  let mouth: { x: number; y: number } | undefined
+  if (meta && meta.mouth && typeof meta.mouth === 'object') {
+    const m = meta.mouth as Record<string, unknown>
+    if (typeof m.x === 'number' && typeof m.y === 'number') mouth = { x: m.x, y: m.y }
+  }
   return {
     image: o.image,
     frameWidth: o.frameWidth,
@@ -314,6 +327,8 @@ function parseManifest(raw: unknown): SheetManifest | null {
     pngFallback,
     drawScale,
     airOffsetY,
+    splat,
+    mouth,
   }
 }
 

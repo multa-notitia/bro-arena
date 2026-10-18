@@ -35,6 +35,7 @@ import {
 } from './families.ts'
 import { isAirborne, isLeaping, leapEvents, maybeLeap } from './leap.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
+import { spawnOnionPuff, spawnSmashSplat } from '../render/smashVfx.ts'
 import {
   actorClipDone,
   actorClipFraction,
@@ -69,6 +70,8 @@ interface EnemyExtra {
   screamBurst: boolean
   /** The attack clip's release/hit has already fired this swing. */
   attackFired: boolean
+  /** Seconds of idle before the attack clip, so attack_hit lands on the AI windup. */
+  attackHold: number
   footAcc: number
   kamikazePopped: boolean
   authoredScream: boolean
@@ -99,6 +102,7 @@ function extra(e: Enemy): EnemyExtra {
       surgeT: 0,
       screamBurst: false,
       attackFired: false,
+      attackHold: 0,
       footAcc: 0,
       kamikazePopped: false,
       authoredScream: false,
@@ -231,6 +235,7 @@ export function spawnEnemy(
     surgeT: 0,
     screamBurst: false,
     attackFired: false,
+    attackHold: 0,
     footAcc: 0,
     kamikazePopped: false,
     authoredScream: false,
@@ -438,11 +443,7 @@ function beginCharge(e: Enemy, world: World, ctx: SimCtx, windup: number): void 
   e.aim.y = Math.sin(ang)
   e.vx = 0
   e.vy = 0
-  const sheet = enemySheet(e)
-  if (sheet?.manifest.clips.attack) {
-    extra(e).attackFired = false
-    restartActorClip(enemyKey(e), 'attack')
-  }
+  if (enemySheet(e)?.manifest.clips.attack) beginAuthoredAttack(e, windup)
   ctx.audio.play('charge', { gain: e.boss ? 1 : 0.7 })
 }
 
@@ -476,7 +477,7 @@ function tickCharge(
       // The attack clip is the telegraph. The dash starts on its release frame.
       e.anim.kick.x = 0
       e.anim.kick.y = 0
-      if (!ex.attackFired && actorClipDone(enemyKey(e), 'attack')) startDash(e)
+      if (ex.attackHold <= 0 && !ex.attackFired && actorClipDone(enemyKey(e), 'attack')) startDash(e)
     } else {
       e.stateT -= dt
       e.anim.kick.x = (ctx.rng.next() - 0.5) * 8
@@ -570,10 +571,14 @@ const ELITE_SLAM_RANGE = 220
 /** Telegraph plus slam. The v3 clip is 885 ms; the windup holds the last cell out to this. */
 const ELITE_SLAM_WINDUP = 0.975
 const ELITE_SLAM_GAP = 3.6
+/** attack_hit is 165 ms into the painted lunge. */
+const ATTACK_HIT_AT = 0.165
 
-function beginAuthoredAttack(e: Enemy): void {
-  extra(e).attackFired = false
-  restartActorClip(enemyKey(e), 'attack')
+function beginAuthoredAttack(e: Enemy, windup = 0): void {
+  const ex = extra(e)
+  ex.attackFired = false
+  ex.attackHold = Math.max(0, windup - ATTACK_HIT_AT)
+  if (ex.attackHold <= 0) restartActorClip(enemyKey(e), 'attack')
 }
 
 function popKamikaze(world: World, e: Enemy, ctx: SimCtx): void {
@@ -746,7 +751,7 @@ function updateEliteSlam(world: World, e: Enemy, dt: number, ctx: SimCtx): void 
     e.stateT = ELITE_SLAM_WINDUP
     e.vx = 0
     e.vy = 0
-    beginAuthoredAttack(e)
+    beginAuthoredAttack(e, ELITE_SLAM_WINDUP)
     ctx.audio.play('charge', { gain: 0.85, pitch: 0.7 })
   }
 }
@@ -772,6 +777,7 @@ function sheetEvents(world: World, e: Enemy, clip: string, events: readonly stri
   if (!events.length) return
   const ex = extra(e)
   const b = e.def.behavior
+  const strike = events.includes('attack_hit') || events.includes('hit')
   if (events.includes('release') && !ex.attackFired) {
     if (b.type === 'shoot' && e.state === 'shooting') {
       ex.attackFired = true
@@ -789,7 +795,7 @@ function sheetEvents(world: World, e: Enemy, clip: string, events: readonly stri
     fireScreamBurst(world, e, ctx)
     mudRumble(world, e, ctx)
   }
-  if (events.includes('hit') && !ex.attackFired) {
+  if (strike && !ex.attackFired) {
     const fam = enemyFamily(e.kind)
     if ((fam === 'blob' || fam === 'beetle' || fam === 'beetroot' || fam === 'onion') && e.state === 'windup') {
       ex.attackFired = true
@@ -802,12 +808,19 @@ function sheetEvents(world: World, e: Enemy, clip: string, events: readonly stri
     } else if (e.kind === 'bean' && e.state === 'windup') {
       ex.attackFired = true
       blobMelee(world, e, ctx)
+    } else if (b.type === 'charge' && e.state === 'windup') {
+      ex.attackFired = true
+      startDash(e)
     }
   }
   if (events.includes('release') && !ex.attackFired && enemyFamily(e.kind) === 'onion' && e.state === 'windup') {
     ex.attackFired = true
     blobMelee(world, e, ctx)
   }
+  if (events.includes('splat') && (clip === 'death_smash' || clip.startsWith('death_smash'))) {
+    spawnSmashSplat(e, ctx.rng.int(0, 1e6))
+  }
+  if (events.includes('gas_puff')) spawnOnionPuff(e)
   if (events.includes('emerge_fx') || events.includes('emerged')) emergeEvents(e, events, ctx)
   if (events.includes('takeoff') || events.includes('land')) leapEvents(e, events, ctx)
   if (events.includes('spawnFx')) {
@@ -831,6 +844,14 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const dead = e.state === 'dying' || e.anim.deathT >= 0
   const attacking = e.state === 'windup' || e.state === 'charging' || e.state === 'shooting'
   const key = enemyKey(e)
+  const ex = extra(e)
+  if (ex.attackHold > 0 && attacking && !dead) {
+    ex.attackHold -= dt
+    if (ex.attackHold <= 0) {
+      ex.attackHold = 0
+      if (sheet.manifest.clips.attack) restartActorClip(key, 'attack')
+    }
+  }
   // Cream hurt cells are a solid pale fill. Never play them as the body.
   consumeHurtKick(key)
   const corpseName = dead ? corpseClipName(e) ?? (e.corpse && sheet.manifest.clips[e.corpse] ? e.corpse : 'death') : null
@@ -838,6 +859,7 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const leaping = isLeaping(e) && hasClip(sheet, 'leap')
   const screamingClip = e.state === 'screaming' && hasClip(sheet, 'scream')
   const performing = !dead && e.perform && sheet.manifest.clips[e.perform] ? e.perform : ''
+  const playAttack = attacking && sheet.manifest.clips.attack && ex.attackHold <= 0
   const clipRaw = dead
     ? corpseName && sheet.manifest.clips[corpseName]
       ? corpseName
@@ -850,7 +872,7 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
           ? 'scream'
           : performing
             ? performing
-            : attacking && sheet.manifest.clips.attack
+            : playAttack
               ? 'attack'
               : e.anim.moving && sheet.manifest.clips.walk
                 ? 'walk'

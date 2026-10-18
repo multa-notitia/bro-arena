@@ -11,125 +11,369 @@
   "idle": {
    "loop": true,
    "frames": [
-    { "i": 0, "ms": 69 },
-    { "i": 1, "ms": 69 },
-    { "i": 2, "ms": 69 },
-    { "i": 3, "ms": 69 },
-    { "i": 4, "ms": 69 },
-    { "i": 5, "ms": 69 },
-    { "i": 6, "ms": 69 },
-    { "i": 7, "ms": 69 },
-    { "i": 8, "ms": 68 },
-    { "i": 9, "ms": 90 },
-    { "i": 10, "ms": 75 },
-    { "i": 11, "ms": 75 }
+    {
+     "i": 0,
+     "ms": 69
+    },
+    {
+     "i": 1,
+     "ms": 69
+    },
+    {
+     "i": 2,
+     "ms": 69
+    },
+    {
+     "i": 3,
+     "ms": 69
+    },
+    {
+     "i": 4,
+     "ms": 69
+    },
+    {
+     "i": 5,
+     "ms": 69
+    },
+    {
+     "i": 6,
+     "ms": 69
+    },
+    {
+     "i": 7,
+     "ms": 69
+    },
+    {
+     "i": 8,
+     "ms": 68
+    },
+    {
+     "i": 9,
+     "ms": 90
+    },
+    {
+     "i": 10,
+     "ms": 75
+    },
+    {
+     "i": 11,
+     "ms": 75
+    }
    ]
   },
   "walk": {
    "loop": true,
    "frames": [
-    { "i": 12, "ms": 40 },
-    { "i": 13, "ms": 70 },
-    { "i": 14, "ms": 60 },
-    { "i": 15, "ms": 40 },
-    { "i": 16, "ms": 50 },
-    { "i": 17, "ms": 60 },
-    { "i": 18, "ms": 50 },
-    { "i": 19, "ms": 40 },
-    { "i": 20, "ms": 60 },
-    { "i": 21, "ms": 50 },
-    { "i": 22, "ms": 50 },
-    { "i": 23, "ms": 50 }
+    {
+     "i": 12,
+     "ms": 40
+    },
+    {
+     "i": 13,
+     "ms": 70
+    },
+    {
+     "i": 14,
+     "ms": 60
+    },
+    {
+     "i": 15,
+     "ms": 40
+    },
+    {
+     "i": 16,
+     "ms": 50
+    },
+    {
+     "i": 17,
+     "ms": 60
+    },
+    {
+     "i": 18,
+     "ms": 50
+    },
+    {
+     "i": 19,
+     "ms": 40
+    },
+    {
+     "i": 20,
+     "ms": 60
+    },
+    {
+     "i": 21,
+     "ms": 50
+    },
+    {
+     "i": 22,
+     "ms": 50
+    },
+    {
+     "i": 23,
+     "ms": 50
+    }
    ]
   },
   "hurt": {
    "loop": false,
    "frames": [
-    { "i": 24, "ms": 40, "event": "hurt" },
-    { "i": 25, "ms": 60 },
-    { "i": 26, "ms": 80 }
+    {
+     "i": 24,
+     "ms": 40,
+     "event": "hurt"
+    },
+    {
+     "i": 25,
+     "ms": 60
+    },
+    {
+     "i": 26,
+     "ms": 80
+    }
    ]
   },
   "attack": {
    "loop": false,
    "frames": [
-    { "i": 27, "ms": 60 },
-    { "i": 28, "ms": 45, "event": "hit" },
-    { "i": 29, "ms": 35 },
-    { "i": 30, "ms": 35 },
-    { "i": 31, "ms": 80 }
+    {
+     "i": 27,
+     "ms": 60,
+     "event": "attack_windup"
+    },
+    {
+     "i": 28,
+     "ms": 45,
+     "events": [
+      "hit",
+      "attack_hit"
+     ]
+    },
+    {
+     "i": 29,
+     "ms": 35
+    },
+    {
+     "i": 30,
+     "ms": 35
+    },
+    {
+     "i": 31,
+     "ms": 80,
+     "event": "attack_done"
+    }
    ]
   },
   "death": {
    "loop": false,
    "frames": [
-    { "i": 32, "ms": 50 },
-    { "i": 33, "ms": 60 },
-    { "i": 34, "ms": 50, "event": "spawnFx" },
-    { "i": 35, "ms": 30 },
-    { "i": 36, "ms": 30 },
-    { "i": 37, "ms": 35 },
-    { "i": 38, "ms": 35 },
-    { "i": 39, "ms": 40 },
-    { "i": 40, "ms": 40 },
-    { "i": 41, "ms": 900 }
+    {
+     "i": 32,
+     "ms": 50
+    },
+    {
+     "i": 33,
+     "ms": 60
+    },
+    {
+     "i": 34,
+     "ms": 50,
+     "event": "spawnFx"
+    },
+    {
+     "i": 35,
+     "ms": 30
+    },
+    {
+     "i": 36,
+     "ms": 30
+    },
+    {
+     "i": 37,
+     "ms": 35
+    },
+    {
+     "i": 38,
+     "ms": 35
+    },
+    {
+     "i": 39,
+     "ms": 40
+    },
+    {
+     "i": 40,
+     "ms": 40
+    },
+    {
+     "i": 41,
+     "ms": 900
+    }
    ]
   },
   "taunt": {
    "loop": false,
    "frames": [
-    { "i": 42, "ms": 80 },
-    { "i": 43, "ms": 80 },
-    { "i": 44, "ms": 70 },
-    { "i": 45, "ms": 90 },
-    { "i": 46, "ms": 80 }
+    {
+     "i": 42,
+     "ms": 80
+    },
+    {
+     "i": 43,
+     "ms": 80
+    },
+    {
+     "i": 44,
+     "ms": 70
+    },
+    {
+     "i": 45,
+     "ms": 90
+    },
+    {
+     "i": 46,
+     "ms": 80
+    }
    ]
   },
   "death_slice": {
    "loop": false,
    "frames": [
-    { "i": 47, "ms": 45 },
-    { "i": 48, "ms": 50, "event": "spawnFx" },
-    { "i": 49, "ms": 28 },
-    { "i": 50, "ms": 27 },
-    { "i": 51, "ms": 28 },
-    { "i": 52, "ms": 27 },
-    { "i": 53, "ms": 30 },
-    { "i": 53, "ms": 30 },
-    { "i": 54, "ms": 35 },
-    { "i": 55, "ms": 35 },
-    { "i": 56, "ms": 30 },
-    { "i": 57, "ms": 30 },
-    { "i": 58, "ms": 900 }
+    {
+     "i": 47,
+     "ms": 45
+    },
+    {
+     "i": 48,
+     "ms": 50,
+     "event": "spawnFx"
+    },
+    {
+     "i": 49,
+     "ms": 28
+    },
+    {
+     "i": 50,
+     "ms": 27
+    },
+    {
+     "i": 51,
+     "ms": 28
+    },
+    {
+     "i": 52,
+     "ms": 27
+    },
+    {
+     "i": 53,
+     "ms": 30
+    },
+    {
+     "i": 53,
+     "ms": 30
+    },
+    {
+     "i": 54,
+     "ms": 35
+    },
+    {
+     "i": 55,
+     "ms": 35
+    },
+    {
+     "i": 56,
+     "ms": 30
+    },
+    {
+     "i": 57,
+     "ms": 30
+    },
+    {
+     "i": 58,
+     "ms": 900
+    }
    ]
   },
   "death_smash": {
    "loop": false,
    "frames": [
-    { "i": 59, "ms": 40 },
-    { "i": 60, "ms": 50 },
-    { "i": 61, "ms": 50, "event": "spawnFx" },
-    { "i": 62, "ms": 30 },
-    { "i": 63, "ms": 30 },
-    { "i": 64, "ms": 35 },
-    { "i": 65, "ms": 35 },
-    { "i": 66, "ms": 40 },
-    { "i": 67, "ms": 40 },
-    { "i": 68, "ms": 900 }
+    {
+     "i": 59,
+     "ms": 40
+    },
+    {
+     "i": 60,
+     "ms": 45
+    },
+    {
+     "i": 61,
+     "ms": 45
+    },
+    {
+     "i": 62,
+     "ms": 65,
+     "events": [
+      "spawnFx",
+      "splat"
+     ]
+    },
+    {
+     "i": 63,
+     "ms": 75
+    },
+    {
+     "i": 64,
+     "ms": 300
+    },
+    {
+     "i": 65,
+     "ms": 110
+    },
+    {
+     "i": 66,
+     "ms": 110
+    }
    ]
   },
   "emerge": {
    "loop": false,
    "frames": [
-    { "i": 69, "ms": 60, "event": "emerge_fx" },
-    { "i": 70, "ms": 70 },
-    { "i": 71, "ms": 60 },
-    { "i": 72, "ms": 60 },
-    { "i": 73, "ms": 70 },
-    { "i": 74, "ms": 70 },
-    { "i": 75, "ms": 70 },
-    { "i": 76, "ms": 70 },
-    { "i": 0, "ms": 90, "event": "emerged" }
+    {
+     "i": 69,
+     "ms": 60,
+     "event": "emerge_fx"
+    },
+    {
+     "i": 70,
+     "ms": 70
+    },
+    {
+     "i": 71,
+     "ms": 60
+    },
+    {
+     "i": 72,
+     "ms": 60
+    },
+    {
+     "i": 73,
+     "ms": 70
+    },
+    {
+     "i": 74,
+     "ms": 70
+    },
+    {
+     "i": 75,
+     "ms": 70
+    },
+    {
+     "i": 76,
+     "ms": 70
+    },
+    {
+     "i": 0,
+     "ms": 90,
+     "event": "emerged"
+    }
    ]
   }
  },
@@ -198,14 +442,14 @@
    "death_slice12",
    "death_smash0",
    "death_smash1",
-   "death_smash2",
-   "death_smash3",
-   "death_smash4",
-   "death_smash5",
-   "death_smash6",
-   "death_smash7",
-   "death_smash8",
-   "death_smash9",
+   "death_smash_v2_flatten",
+   "death_smash_v2_mash",
+   "death_smash_v2_spread",
+   "death_smash_v2_settle",
+   "death_smash_v2_fade1",
+   "death_smash_v2_fade2",
+   "",
+   "",
    "emerge0",
    "emerge1",
    "emerge2",
@@ -221,6 +465,15 @@
   "rig": "figures/enemy-blob-light/rig.py (cut-out animation, tools/rig)",
   "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
   "pngFallback": "enemy-blob-light.png",
-  "emerge": "emerge (light): 620 ms spawn clip, plays once before AI. `emerge_fx` on f0 (spawn fx-funny mud_erupt at the feet), `emerged` on the last frame (= idle f0; AI + collisions on). ox/oy are world px (shake / hop beyond the cell). Built by figures/fx-funny/src/emerge.py, appended after all other cells (indices of every other clip unchanged)."
+  "emerge": "emerge (light): 620 ms spawn clip, plays once before AI. `emerge_fx` on f0 (spawn fx-funny mud_erupt at the feet), `emerged` on the last frame (= idle f0; AI + collisions on). ox/oy are world px (shake / hop beyond the cell). Built by figures/fx-funny/src/emerge.py, appended after all other cells (indices of every other clip unchanged).",
+  "splat": "green",
+  "attacksSmash": {
+   "version": 1,
+   "date": "2026-10-18",
+   "attack": "events",
+   "death_smash": "v2",
+   "splat": "green",
+   "tool": "tools/attacks_smash/apply.py"
+  }
  }
 }

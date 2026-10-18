@@ -1,4 +1,5 @@
 import type { EnemyDef, EnemyKind, Palette, ProjectileDef, WeaponId } from '../core/types.ts'
+import { deathStyleForWeapon } from './chaos.ts'
 
 const SPIT: ProjectileDef = {
   speed: 230,
@@ -599,14 +600,12 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   'pea-mud': { ...variant(PEA_SPROUT, 'pea-mud', 'mud', 17, 'Mud Pea Sprout'), speed: 95 },
 }
 
-const SLICE_WEAPONS = new Set<WeaponId>(['knife', 'sword', 'scythe'])
-const SMASH_WEAPONS = new Set<WeaponId>(['stick', 'hammer'])
-
-/** blades / knife / melee-slash → death_slice, club / hammer → death_smash, anything else → death. */
+/** blades → death_slice, club / hammer / other smash paints → death_smash, else death. */
 export function corpseClipFor(weapon: WeaponId | undefined): 'death' | 'death_slice' | 'death_smash' {
   if (!weapon) return 'death'
-  if (SLICE_WEAPONS.has(weapon)) return 'death_slice'
-  if (SMASH_WEAPONS.has(weapon)) return 'death_smash'
+  const style = deathStyleForWeapon(weapon)
+  if (style === 'slice') return 'death_slice'
+  if (style === 'smash') return 'death_smash'
   return 'death'
 }
 

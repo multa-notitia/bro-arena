@@ -1,0 +1,747 @@
+{
+ "image": "vfx-splat.webp",
+ "frameWidth": 224,
+ "frameHeight": 128,
+ "columns": 6,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.5
+ },
+ "clips": {
+  "orange_0": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 0,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 0,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "orange_1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 1,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 1,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 1,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "orange_2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 2,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 2,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 2,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "orange_drip_0": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 3,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 3,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 3,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "orange_drip_1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 4,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 4,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 4,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "orange_drip_2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 5,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 5,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 5,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "red_0": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 6,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 6,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 6,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "red_1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 7,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 7,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 7,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "red_2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 8,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 8,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 8,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "red_drip_0": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 9,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 9,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 9,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "red_drip_1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 10,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 10,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 10,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "red_drip_2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 11,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 11,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 11,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "green_0": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 12,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 12,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 12,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "green_1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 13,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 13,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 13,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "green_2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 14,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 14,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 14,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "green_drip_0": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 15,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 15,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 15,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "green_drip_1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 16,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 16,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 16,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "green_drip_2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 17,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 17,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 17,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "purple_0": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 18,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 18,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 18,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "purple_1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 19,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 19,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 19,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "purple_2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 20,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 20,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 20,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "purple_drip_0": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 21,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 21,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 21,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "purple_drip_1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 22,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 22,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 22,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "purple_drip_2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 23,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 23,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 23,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "mud_0": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 24,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 24,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 24,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "mud_1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 25,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 25,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 25,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "mud_2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 26,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 26,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 26,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "mud_drip_0": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 27,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 27,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 27,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "mud_drip_1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 28,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 28,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 28,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  },
+  "mud_drip_2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 29,
+     "ms": 40,
+     "scaleX": 0.45,
+     "scaleY": 0.45
+    },
+    {
+     "i": 29,
+     "ms": 60,
+     "scaleX": 1.12,
+     "scaleY": 1.06
+    },
+    {
+     "i": 29,
+     "ms": 90,
+     "scaleX": 1.0,
+     "scaleY": 1.0
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Painted juice splat ground decals (GenerateImage 2026-10-18), 5 colour groups x 3 big + 3 drip variants",
+  "groups": [
+   "orange",
+   "red",
+   "green",
+   "purple",
+   "mud"
+  ],
+  "cells": [
+   "orange_0",
+   "orange_1",
+   "orange_2",
+   "orange_drip_0",
+   "orange_drip_1",
+   "orange_drip_2",
+   "red_0",
+   "red_1",
+   "red_2",
+   "red_drip_0",
+   "red_drip_1",
+   "red_drip_2",
+   "green_0",
+   "green_1",
+   "green_2",
+   "green_drip_0",
+   "green_drip_1",
+   "green_drip_2",
+   "purple_0",
+   "purple_1",
+   "purple_2",
+   "purple_drip_0",
+   "purple_drip_1",
+   "purple_drip_2",
+   "mud_0",
+   "mud_1",
+   "mud_2",
+   "mud_drip_0",
+   "mud_drip_1",
+   "mud_drip_2"
+  ],
+  "drawScale": 0.25,
+  "usage": "Ground layer under actors. Spawn <group>_<0..2> (random) at the enemy's feet (x, y + 0.62r) on the death_smash 'splat' event; scale = r/18 * drawScale; random flipX; hold the last frame, fade alpha to 0 over 4 s; keep max 40 (drop the oldest). Drips: optional smaller decals for juicy hits.",
+  "pngFallback": "vfx-splat.png"
+ }
+}

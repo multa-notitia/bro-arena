@@ -68,6 +68,7 @@ import {
 } from './sheets.ts'
 import { hasClip, resolveEnemySheet } from './chaosSheets.ts'
 import { drawChaosFloor, drawChaosMarker, drawComboHud, drawFunnyBursts, drawLeapShadow, tickChaosFx } from './chaosFx.ts'
+import { drawGasPuffs, drawSmashSplats } from './smashVfx.ts'
 import {
   markerSprite,
   pickupSprite,
@@ -1224,6 +1225,7 @@ export function drawWorld(
   fx.drawFloor(ctx)
   drawChaosFloor(ctx)
   darkenGround(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
+  drawSmashSplats(ctx, dt)
   if (night) drawWarmPool(ctx, world.player.x, world.player.y)
   drawGasClouds(ctx, dt, world.player.x, world.player.y)
   for (let i = 0; i < world.enemies.length; i++) {
@@ -1332,6 +1334,7 @@ export function drawWorld(
   }
 
   tickChaosFx(dt)
+  drawGasPuffs(ctx, dt)
   drawFunnyBursts(ctx, dt, world.player, 'far')
   fx.drawWorld(ctx, world.player, 'far')
   ctx.restore()

@@ -1,0 +1,112 @@
+{
+ "image": "vfx-gas-puff.webp",
+ "frameWidth": 168,
+ "frameHeight": 152,
+ "columns": 8,
+ "anchor": {
+  "x": 0.07142857142857142,
+  "y": 0.5
+ },
+ "clips": {
+  "puff_light": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 45,
+     "event": "puff"
+    },
+    {
+     "i": 1,
+     "ms": 50
+    },
+    {
+     "i": 2,
+     "ms": 60
+    },
+    {
+     "i": 3,
+     "ms": 70
+    },
+    {
+     "i": 4,
+     "ms": 80
+    },
+    {
+     "i": 5,
+     "ms": 90
+    },
+    {
+     "i": 6,
+     "ms": 100
+    },
+    {
+     "i": 7,
+     "ms": 110
+    }
+   ]
+  },
+  "puff_mud": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 8,
+     "ms": 45,
+     "event": "puff"
+    },
+    {
+     "i": 9,
+     "ms": 50
+    },
+    {
+     "i": 10,
+     "ms": 60
+    },
+    {
+     "i": 11,
+     "ms": 70
+    },
+    {
+     "i": 12,
+     "ms": 80
+    },
+    {
+     "i": 13,
+     "ms": 90
+    },
+    {
+     "i": 14,
+     "ms": 100
+    },
+    {
+     "i": 15,
+     "ms": 110
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Painted onion gas puff (GenerateImage 2026-10-18): puff_light = cream tear gas with tear drops, puff_mud = neon toxic green",
+  "cells": [
+   "puff_light0",
+   "puff_light1",
+   "puff_light2",
+   "puff_light3",
+   "puff_light4",
+   "puff_light5",
+   "puff_light6",
+   "puff_light7",
+   "puff_mud0",
+   "puff_mud1",
+   "puff_mud2",
+   "puff_mud3",
+   "puff_mud4",
+   "puff_mud5",
+   "puff_mud6",
+   "puff_mud7"
+  ],
+  "drawScale": 0.25,
+  "usage": "Anchor = the jet origin (left edge); the puff blows toward +x. Spawn at the onion's mouth (meta.mouth of the onion sheet, world px from the body anchor, x mirrored with facing) on the attack 'gas_puff' event; flipX when the onion faces left; scale = r/18 * drawScale; draw above the enemy layer; remove after the clip (605 ms).",
+  "pngFallback": "vfx-gas-puff.png"
+ }
+}

@@ -2,6 +2,7 @@ import { TAU, clamp, hashNoise } from '../core/math.ts'
 import { CHAOS, chaosJuiceOn, chaosOn, fxOn } from '../data/chaos.ts'
 import type { SpawnMarker, Vec } from '../core/types.ts'
 import { drawNamedClip, restartActorClip, resolveSheet, spawnInkClip } from './sheets.ts'
+import { resetSmashVfx, tickSmashVfx } from './smashVfx.ts'
 import { dustFull, heroBurstAlpha, isSparkClip, nearHeroFx, registerDustCounter, registerSparkCounter, sparksFull, underHeroClip } from './sparkBudget.ts'
 
 interface Decal {
@@ -117,6 +118,7 @@ function allocBurst(): FunnyBurst {
 export function resetChaosFx(): void {
   for (const d of decals) d.alive = false
   for (const b of bursts) b.alive = false
+  resetSmashVfx()
 }
 
 export function spawnSplatDecal(x: number, y: number, color: string, size: number): void {
@@ -222,6 +224,7 @@ export function spawnFunnyClip(
 }
 
 export function tickChaosFx(dt: number): void {
+  tickSmashVfx(dt)
   const dlt = Math.min(0.05, Math.max(0, dt))
   for (let i = 0; i < decals.length; i++) {
     const d = decals[i]

@@ -11,116 +11,363 @@
   "idle": {
    "loop": true,
    "frames": [
-    { "i": 0, "ms": 230, "ox": -0.5 },
-    { "i": 1, "ms": 200, "ox": 0.5 },
-    { "i": 2, "ms": 200, "ox": -0.5 },
-    { "i": 3, "ms": 230, "ox": 0.5 },
-    { "i": 4, "ms": 210, "ox": -0.5 },
-    { "i": 5, "ms": 220, "ox": 0.5 }
+    {
+     "i": 0,
+     "ms": 230,
+     "ox": -0.5
+    },
+    {
+     "i": 1,
+     "ms": 200,
+     "ox": 0.5
+    },
+    {
+     "i": 2,
+     "ms": 200,
+     "ox": -0.5
+    },
+    {
+     "i": 3,
+     "ms": 230,
+     "ox": 0.5
+    },
+    {
+     "i": 4,
+     "ms": 210,
+     "ox": -0.5
+    },
+    {
+     "i": 5,
+     "ms": 220,
+     "ox": 0.5
+    }
    ]
   },
   "walk": {
    "loop": true,
    "frames": [
-    { "i": 6, "ms": 80 },
-    { "i": 7, "ms": 80 },
-    { "i": 8, "ms": 80 },
-    { "i": 9, "ms": 80 },
-    { "i": 10, "ms": 80 },
-    { "i": 11, "ms": 80 },
-    { "i": 12, "ms": 80 },
-    { "i": 13, "ms": 80 },
-    { "i": 14, "ms": 80 },
-    { "i": 15, "ms": 80 }
+    {
+     "i": 6,
+     "ms": 80
+    },
+    {
+     "i": 7,
+     "ms": 80
+    },
+    {
+     "i": 8,
+     "ms": 80
+    },
+    {
+     "i": 9,
+     "ms": 80
+    },
+    {
+     "i": 10,
+     "ms": 80
+    },
+    {
+     "i": 11,
+     "ms": 80
+    },
+    {
+     "i": 12,
+     "ms": 80
+    },
+    {
+     "i": 13,
+     "ms": 80
+    },
+    {
+     "i": 14,
+     "ms": 80
+    },
+    {
+     "i": 15,
+     "ms": 80
+    }
    ]
   },
   "hurt": {
    "loop": false,
    "frames": [
-    { "i": 16, "ms": 40, "ox": -2.5, "event": "hurt" },
-    { "i": 17, "ms": 60, "ox": -2.0 },
-    { "i": 18, "ms": 80, "ox": -1.0 }
+    {
+     "i": 16,
+     "ms": 40,
+     "ox": -2.5,
+     "event": "hurt"
+    },
+    {
+     "i": 17,
+     "ms": 60,
+     "ox": -2.0
+    },
+    {
+     "i": 18,
+     "ms": 80,
+     "ox": -1.0
+    }
    ]
   },
   "attack": {
    "loop": false,
    "frames": [
-    { "i": 19, "ms": 70 },
-    { "i": 20, "ms": 60, "ox": -1.0 },
-    { "i": 21, "ms": 45, "ox": 1.8, "events": [ "release", "spawnFx" ] },
-    { "i": 22, "ms": 70, "ox": 0.6 },
-    { "i": 23, "ms": 80 }
+    {
+     "i": 19,
+     "ms": 70,
+     "event": "attack_windup"
+    },
+    {
+     "i": 20,
+     "ms": 60,
+     "ox": -1.0
+    },
+    {
+     "i": 21,
+     "ms": 45,
+     "ox": 1.8,
+     "events": [
+      "release",
+      "spawnFx",
+      "attack_hit"
+     ]
+    },
+    {
+     "i": 22,
+     "ms": 70,
+     "ox": 0.6
+    },
+    {
+     "i": 23,
+     "ms": 80,
+     "event": "attack_done"
+    }
    ]
   },
   "scream": {
    "loop": false,
    "frames": [
-    { "i": 24, "ms": 110 },
-    { "i": 25, "ms": 90, "ox": -0.8 },
-    { "i": 26, "ms": 50, "ox": 2.0, "event": "scream" },
-    { "i": 27, "ms": 70, "ox": 1.0 },
-    { "i": 28, "ms": 70, "ox": -1.4 },
-    { "i": 29, "ms": 70, "ox": 1.4 },
-    { "i": 30, "ms": 70, "ox": -1.2 },
-    { "i": 31, "ms": 70, "ox": 1.0 },
-    { "i": 32, "ms": 90 },
-    { "i": 33, "ms": 80 }
+    {
+     "i": 24,
+     "ms": 110
+    },
+    {
+     "i": 25,
+     "ms": 90,
+     "ox": -0.8
+    },
+    {
+     "i": 26,
+     "ms": 50,
+     "ox": 2.0,
+     "event": "scream"
+    },
+    {
+     "i": 27,
+     "ms": 70,
+     "ox": 1.0
+    },
+    {
+     "i": 28,
+     "ms": 70,
+     "ox": -1.4
+    },
+    {
+     "i": 29,
+     "ms": 70,
+     "ox": 1.4
+    },
+    {
+     "i": 30,
+     "ms": 70,
+     "ox": -1.2
+    },
+    {
+     "i": 31,
+     "ms": 70,
+     "ox": 1.0
+    },
+    {
+     "i": 32,
+     "ms": 90
+    },
+    {
+     "i": 33,
+     "ms": 80
+    }
    ]
   },
   "death": {
    "loop": false,
    "frames": [
-    { "i": 34, "ms": 50 },
-    { "i": 35, "ms": 60 },
-    { "i": 36, "ms": 50, "event": "spawnFx" },
-    { "i": 37, "ms": 70 },
-    { "i": 38, "ms": 90 },
-    { "i": 39, "ms": 1000 }
+    {
+     "i": 34,
+     "ms": 50
+    },
+    {
+     "i": 35,
+     "ms": 60
+    },
+    {
+     "i": 36,
+     "ms": 50,
+     "event": "spawnFx"
+    },
+    {
+     "i": 37,
+     "ms": 70
+    },
+    {
+     "i": 38,
+     "ms": 90
+    },
+    {
+     "i": 39,
+     "ms": 1000
+    }
    ]
   },
   "death_slice": {
    "loop": false,
    "frames": [
-    { "i": 40, "ms": 40, "ox": -1.5 },
-    { "i": 41, "ms": 60, "event": "spawnFx" },
-    { "i": 42, "ms": 70 },
-    { "i": 43, "ms": 80 },
-    { "i": 44, "ms": 90 },
-    { "i": 45, "ms": 1000 }
+    {
+     "i": 40,
+     "ms": 40,
+     "ox": -1.5
+    },
+    {
+     "i": 41,
+     "ms": 60,
+     "event": "spawnFx"
+    },
+    {
+     "i": 42,
+     "ms": 70
+    },
+    {
+     "i": 43,
+     "ms": 80
+    },
+    {
+     "i": 44,
+     "ms": 90
+    },
+    {
+     "i": 45,
+     "ms": 1000
+    }
    ]
   },
   "death_smash": {
    "loop": false,
    "frames": [
-    { "i": 46, "ms": 40 },
-    { "i": 47, "ms": 50, "event": "spawnFx" },
-    { "i": 48, "ms": 60 },
-    { "i": 49, "ms": 80 },
-    { "i": 50, "ms": 1000 }
+    {
+     "i": 46,
+     "ms": 40
+    },
+    {
+     "i": 47,
+     "ms": 45
+    },
+    {
+     "i": 48,
+     "ms": 45
+    },
+    {
+     "i": 49,
+     "ms": 65,
+     "events": [
+      "spawnFx",
+      "splat"
+     ]
+    },
+    {
+     "i": 50,
+     "ms": 75
+    },
+    {
+     "i": 64,
+     "ms": 300
+    },
+    {
+     "i": 65,
+     "ms": 110
+    },
+    {
+     "i": 66,
+     "ms": 110
+    }
    ]
   },
   "glob": {
    "loop": true,
    "frames": [
-    { "i": 51, "ms": 70 },
-    { "i": 52, "ms": 70 },
-    { "i": 53, "ms": 70 }
+    {
+     "i": 51,
+     "ms": 70
+    },
+    {
+     "i": 52,
+     "ms": 70
+    },
+    {
+     "i": 53,
+     "ms": 70
+    }
    ]
   },
   "emerge": {
    "loop": false,
    "frames": [
-    { "i": 54, "ms": 70, "event": "emerge_fx" },
-    { "i": 55, "ms": 70 },
-    { "i": 56, "ms": 90 },
-    { "i": 57, "ms": 80 },
-    { "i": 58, "ms": 70 },
-    { "i": 59, "ms": 60 },
-    { "i": 60, "ms": 70 },
-    { "i": 61, "ms": 60, "ox": 1.6 },
-    { "i": 62, "ms": 60, "ox": -1.6 },
-    { "i": 63, "ms": 60, "ox": 0.8 },
-    { "i": 0, "ms": 100, "event": "emerged" }
+    {
+     "i": 54,
+     "ms": 70,
+     "event": "emerge_fx"
+    },
+    {
+     "i": 55,
+     "ms": 70
+    },
+    {
+     "i": 56,
+     "ms": 90
+    },
+    {
+     "i": 57,
+     "ms": 80
+    },
+    {
+     "i": 58,
+     "ms": 70
+    },
+    {
+     "i": 59,
+     "ms": 60
+    },
+    {
+     "i": 60,
+     "ms": 70
+    },
+    {
+     "i": 61,
+     "ms": 60,
+     "ox": 1.6
+    },
+    {
+     "i": 62,
+     "ms": 60,
+     "ox": -1.6
+    },
+    {
+     "i": 63,
+     "ms": 60,
+     "ox": 0.8
+    },
+    {
+     "i": 0,
+     "ms": 100,
+     "event": "emerged"
+    }
    ]
   }
  },
@@ -176,9 +423,9 @@
    "death_slice5",
    "death_smash0",
    "death_smash1",
-   "death_smash2",
-   "death_smash3",
-   "death_smash4",
+   "death_smash_v2_flatten",
+   "death_smash_v2_mash",
+   "death_smash_v2_spread",
    "glob0",
    "glob1",
    "glob2",
@@ -191,7 +438,10 @@
    "emerge6",
    "emerge7",
    "emerge8",
-   "emerge9"
+   "emerge9",
+   "death_smash_v2_settle",
+   "death_smash_v2_fade1",
+   "death_smash_v2_fade2"
   ],
   "feetY": 230.4,
   "gameRadius": 19,
@@ -199,6 +449,15 @@
   "rig": "figures/enemy-spitter-mud/rig.py (upright spine warp, figures/enemy-spitter-mud/src/vworm.py)",
   "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r); ox/oy are world px. 'scream' (event scream on the snap frame) plays on spawn and before the attack. Clip 'glob' = projectile art (clip anchor = glob centre, flies toward +x). Deaths end on a remains cell held ~1 s.",
   "pngFallback": "enemy-spitter-mud.png",
-  "emerge": "emerge (mud): 790 ms spawn clip, plays once before AI. `emerge_fx` on f0 (spawn fx-funny mud_erupt at the feet), `emerged` on the last frame (= idle f0; AI + collisions on). ox/oy are world px (shake / hop beyond the cell). Built by figures/fx-funny/src/emerge.py, appended after all other cells (indices of every other clip unchanged)."
+  "emerge": "emerge (mud): 790 ms spawn clip, plays once before AI. `emerge_fx` on f0 (spawn fx-funny mud_erupt at the feet), `emerged` on the last frame (= idle f0; AI + collisions on). ox/oy are world px (shake / hop beyond the cell). Built by figures/fx-funny/src/emerge.py, appended after all other cells (indices of every other clip unchanged).",
+  "splat": "mud",
+  "attacksSmash": {
+   "version": 1,
+   "date": "2026-10-18",
+   "attack": "events",
+   "death_smash": "v2",
+   "splat": "mud",
+   "tool": "tools/attacks_smash/apply.py"
+  }
  }
 }
