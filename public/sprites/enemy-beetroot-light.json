@@ -12,10 +12,6 @@
    "loop": true,
    "frames": [
     {
-     "i": 0,
-     "ms": 84
-    },
-    {
      "i": 1,
      "ms": 84
     },
@@ -29,7 +25,7 @@
     },
     {
      "i": 4,
-     "ms": 83
+     "ms": 84
     },
     {
      "i": 5,
@@ -58,16 +54,16 @@
     {
      "i": 11,
      "ms": 83
+    },
+    {
+     "i": 12,
+     "ms": 83
     }
    ]
   },
   "walk": {
    "loop": true,
    "frames": [
-    {
-     "i": 12,
-     "ms": 64
-    },
     {
      "i": 13,
      "ms": 64
@@ -82,7 +78,7 @@
     },
     {
      "i": 16,
-     "ms": 63
+     "ms": 64
     },
     {
      "i": 17,
@@ -111,6 +107,10 @@
     {
      "i": 23,
      "ms": 63
+    },
+    {
+     "i": 24,
+     "ms": 63
     }
    ]
   },
@@ -118,16 +118,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 24,
+     "i": 25,
      "ms": 40,
      "event": "hurt"
     },
     {
-     "i": 25,
+     "i": 26,
      "ms": 60
     },
     {
-     "i": 26,
+     "i": 27,
      "ms": 80
     }
    ]
@@ -136,23 +136,23 @@
    "loop": false,
    "frames": [
     {
-     "i": 27,
+     "i": 52,
      "ms": 60,
      "ox": -1.0,
      "event": "attack_windup"
     },
     {
-     "i": 28,
+     "i": 53,
      "ms": 60,
      "ox": -2.0
     },
     {
-     "i": 29,
+     "i": 54,
      "ms": 45,
      "ox": 4.0
     },
     {
-     "i": 30,
+     "i": 55,
      "ms": 65,
      "ox": 11.0,
      "events": [
@@ -161,22 +161,22 @@
      ]
     },
     {
-     "i": 31,
+     "i": 56,
      "ms": 50,
      "ox": 10.0
     },
     {
-     "i": 32,
+     "i": 57,
      "ms": 70,
      "ox": 6.0
     },
     {
-     "i": 33,
+     "i": 58,
      "ms": 70,
      "ox": 2.5
     },
     {
-     "i": 36,
+     "i": 66,
      "ms": 60,
      "event": "attack_done"
     }
@@ -186,11 +186,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 37,
+     "i": 72,
      "ms": 60
     },
     {
-     "i": 38,
+     "i": 73,
      "ms": 70
     },
     {
@@ -232,47 +232,47 @@
    "loop": false,
    "frames": [
     {
-     "i": 47,
+     "i": 31,
      "ms": 35
+    },
+    {
+     "i": 32,
+     "ms": 35
+    },
+    {
+     "i": 33,
+     "ms": 40
+    },
+    {
+     "i": 36,
+     "ms": 40
+    },
+    {
+     "i": 37,
+     "ms": 30
+    },
+    {
+     "i": 38,
+     "ms": 30
+    },
+    {
+     "i": 47,
+     "ms": 30
     },
     {
      "i": 48,
-     "ms": 35
+     "ms": 30
     },
     {
      "i": 49,
-     "ms": 40
+     "ms": 30
     },
     {
      "i": 50,
-     "ms": 40
+     "ms": 30
     },
     {
      "i": 51,
-     "ms": 30
-    },
-    {
-     "i": 52,
-     "ms": 30
-    },
-    {
-     "i": 53,
-     "ms": 30
-    },
-    {
-     "i": 54,
-     "ms": 30
-    },
-    {
-     "i": 55,
-     "ms": 30
-    },
-    {
-     "i": 56,
-     "ms": 30
-    },
-    {
-     "i": 57,
      "ms": 70
     }
    ]
@@ -281,7 +281,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 58,
+     "i": 74,
      "ms": 45
     },
     {
@@ -319,7 +319,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 66,
+     "i": 78,
      "ms": 40
     },
     {
@@ -373,16 +373,12 @@
      "ms": 90
     },
     {
-     "i": 78,
+     "i": 79,
      "ms": 80
     },
     {
-     "i": 79,
-     "ms": 70
-    },
-    {
      "i": 80,
-     "ms": 60
+     "ms": 70
     },
     {
      "i": 81,
@@ -394,7 +390,7 @@
     },
     {
      "i": 83,
-     "ms": 80
+     "ms": 60
     },
     {
      "i": 84,
@@ -402,6 +398,10 @@
     },
     {
      "i": 85,
+     "ms": 80
+    },
+    {
+     "i": 1,
      "ms": 90,
      "event": "emerged"
     }
@@ -484,11 +484,11 @@
      "ms": 80
     },
     {
-     "i": 84,
+     "i": 105,
      "ms": 80
     },
     {
-     "i": 85,
+     "i": 1,
      "ms": 70,
      "event": "emerged"
     }
@@ -510,51 +510,74 @@
      "ms": 100
     }
    ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 28,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 0,
+     "ms": 55
+    },
+    {
+     "i": 29,
+     "ms": 40
+    },
+    {
+     "i": 30,
+     "ms": 45,
+     "event": "turn_done"
+    }
+   ]
   }
  },
  "meta": {
-  "title": "Garden beetroot (light): stompy tank, headbutt, burrows + resurfaces under the hero; nfvar layers",
+  "title": "Garden beetroot (light): stompy tank, headbutt, burrows + resurfaces under the hero; nfvar layers | side view v1",
   "source": "derived_light.png",
   "cells": [
    "idle0",
-   "idle1",
-   "idle2",
-   "idle3",
-   "idle4",
-   "idle5",
-   "idle6",
-   "idle7",
-   "idle8",
-   "idle9",
-   "idle10",
-   "idle11",
-   "walk0",
-   "walk1",
-   "walk2",
-   "walk3",
-   "walk4",
-   "walk5",
-   "walk6",
-   "walk7",
-   "walk8",
-   "walk9",
-   "walk10",
-   "walk11",
-   "hurt0",
-   "hurt1",
-   "hurt2",
-   "attack_v2_0",
-   "attack_v2_1",
-   "attack_v2_2",
-   "attack_v2_3",
-   "attack_v2_4",
-   "attack_v2_5",
-   "attack_v2_6",
+   "sv_idle_0",
+   "sv_idle_1",
+   "sv_idle_2",
+   "sv_idle_3",
+   "sv_idle_4",
+   "sv_idle_5",
+   "sv_idle_6",
+   "sv_idle_7",
+   "sv_idle_8",
+   "sv_idle_9",
+   "sv_idle_10",
+   "sv_idle_11",
+   "sv_walk_0",
+   "sv_walk_1",
+   "sv_walk_2",
+   "sv_walk_3",
+   "sv_walk_4",
+   "sv_walk_5",
+   "sv_walk_6",
+   "sv_walk_7",
+   "sv_walk_8",
+   "sv_walk_9",
+   "sv_walk_10",
+   "sv_walk_11",
+   "sv_hurt_0",
+   "sv_hurt_1",
+   "sv_hurt_2",
+   "sv_turn_0",
+   "sv_turn_2",
+   "sv_turn_3",
+   "sv_taunt_0",
+   "sv_taunt_1",
+   "sv_taunt_2",
    "death_smash_v2_flatten",
    "death_smash_v2_mash",
-   "attack9",
-   "death0",
-   "death1",
+   "sv_taunt_3",
+   "sv_taunt_4",
+   "sv_taunt_5",
    "death2",
    "death3",
    "death4",
@@ -563,18 +586,18 @@
    "death7",
    "death8",
    "death9",
-   "taunt0",
-   "taunt1",
-   "taunt2",
-   "taunt3",
-   "taunt4",
-   "taunt5",
-   "taunt6",
-   "taunt7",
-   "taunt8",
-   "taunt9",
-   "taunt10",
-   "death_slice0",
+   "sv_taunt_6",
+   "sv_taunt_7",
+   "sv_taunt_8",
+   "sv_taunt_9",
+   "sv_taunt_10",
+   "sv_attack_0",
+   "sv_attack_1",
+   "sv_attack_2",
+   "sv_attack_3",
+   "sv_attack_4",
+   "sv_attack_5",
+   "sv_attack_6",
    "death_slice1",
    "death_slice2",
    "death_slice3",
@@ -582,29 +605,29 @@
    "death_slice5",
    "death_slice6",
    "death_slice7",
-   "death_smash0",
+   "sv_attack_7",
    "death_smash1",
    "death_smash_v2_spread",
    "death_smash_v2_settle",
    "death_smash_v2_fade1",
    "death_smash_v2_fade2",
-   "",
-   "",
-   "",
+   "sv_death_0",
+   "sv_death_1",
+   "sv_death_slice_0",
    "emerge0",
    "emerge1",
    "emerge2",
-   "emerge3",
-   "emerge4",
-   "emerge5",
-   "emerge6",
-   "emerge7",
-   "emerge8",
-   "emerge9",
-   "emerge10",
-   "burrow0",
-   "burrow1",
-   "burrow2",
+   "sv_death_smash_0",
+   "sv_emerge_3",
+   "sv_emerge_4",
+   "sv_emerge_5",
+   "sv_emerge_6",
+   "sv_emerge_7",
+   "sv_emerge_8",
+   "sv_emerge_9",
+   "sv_burrow_0",
+   "sv_burrow_1",
+   "sv_burrow_2",
    "burrow3",
    "burrow4",
    "burrow5",
@@ -614,13 +637,14 @@
    "burrow9",
    "resurface0",
    "resurface1",
-   "resurface2",
-   "resurface3",
-   "resurface4",
-   "resurface5",
+   "sv_resurface_2",
+   "sv_resurface_3",
+   "sv_resurface_4",
+   "sv_resurface_5",
    "prop_mound0",
    "prop_mound1",
-   "prop_mound2"
+   "prop_mound2",
+   "sv_resurface_6"
   ],
   "feetY": 186.16,
   "gameRadius": 19,
@@ -646,14 +670,23 @@
    "splat": "purple",
    "tool": "tools/attacks_smash/apply.py"
   },
-  "facing": "front",
+  "facing": "right",
   "behaviors": {
    "version": 1,
    "date": "2026-10-18",
    "tool": "tools/behaviors/apply.py",
-   "facing": "front",
-   "specials": [],
+   "facing": "right",
+   "specials": [
+    "turn"
+   ],
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "sideview": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/sideview/build.py",
+   "src": "tools/sideview/src/beetroot_light_side_v1.jpg",
+   "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
   }
  }
 }

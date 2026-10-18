@@ -12,10 +12,6 @@
    "loop": true,
    "frames": [
     {
-     "i": 0,
-     "ms": 110
-    },
-    {
      "i": 1,
      "ms": 110
     },
@@ -50,16 +46,16 @@
     {
      "i": 9,
      "ms": 110
+    },
+    {
+     "i": 10,
+     "ms": 110
     }
    ]
   },
   "walk": {
    "loop": true,
    "frames": [
-    {
-     "i": 10,
-     "ms": 64
-    },
     {
      "i": 11,
      "ms": 64
@@ -95,6 +91,10 @@
     {
      "i": 19,
      "ms": 64
+    },
+    {
+     "i": 20,
+     "ms": 64
     }
    ]
   },
@@ -102,16 +102,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 20,
+     "i": 21,
      "ms": 40,
      "event": "hurt"
     },
     {
-     "i": 21,
+     "i": 22,
      "ms": 60
     },
     {
-     "i": 22,
+     "i": 23,
      "ms": 80
     }
    ]
@@ -120,20 +120,20 @@
    "loop": false,
    "frames": [
     {
-     "i": 23,
+     "i": 77,
      "ms": 80,
      "event": "attack_windup"
     },
     {
-     "i": 24,
+     "i": 78,
      "ms": 80
     },
     {
-     "i": 25,
+     "i": 79,
      "ms": 80
     },
     {
-     "i": 26,
+     "i": 80,
      "ms": 60,
      "events": [
       "release",
@@ -142,15 +142,15 @@
      ]
     },
     {
-     "i": 27,
+     "i": 81,
      "ms": 70
     },
     {
-     "i": 28,
+     "i": 82,
      "ms": 70
     },
     {
-     "i": 29,
+     "i": 83,
      "ms": 70,
      "event": "attack_done"
     }
@@ -160,11 +160,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 30,
+     "i": 84,
      "ms": 60
     },
     {
-     "i": 31,
+     "i": 85,
      "ms": 70
     },
     {
@@ -218,55 +218,55 @@
    "loop": false,
    "frames": [
     {
-     "i": 43,
+     "i": 27,
      "ms": 120,
      "event": "scream_windup"
     },
     {
-     "i": 44,
+     "i": 28,
      "ms": 100
     },
     {
-     "i": 45,
+     "i": 29,
      "ms": 60,
      "event": "scream"
     },
     {
-     "i": 46,
+     "i": 30,
      "ms": 70,
      "ox": 1.6
     },
     {
-     "i": 47,
+     "i": 31,
      "ms": 70,
      "ox": -1.6
     },
     {
-     "i": 48,
+     "i": 43,
      "ms": 70,
      "ox": 1.4
     },
     {
-     "i": 49,
+     "i": 44,
      "ms": 70,
      "ox": -1.4
     },
     {
-     "i": 50,
+     "i": 45,
      "ms": 70,
      "ox": 1.0
     },
     {
-     "i": 51,
+     "i": 46,
      "ms": 70,
      "ox": -0.8
     },
     {
-     "i": 52,
+     "i": 47,
      "ms": 80
     },
     {
-     "i": 53,
+     "i": 48,
      "ms": 70,
      "event": "scream_done"
     }
@@ -276,7 +276,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 54,
+     "i": 86,
      "ms": 45
     },
     {
@@ -310,7 +310,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 61,
+     "i": 87,
      "ms": 40
     },
     {
@@ -363,13 +363,88 @@
      "ms": 80
     },
     {
-     "i": 72,
+     "i": 88,
      "ms": 60,
      "event": "emerge_fx"
     },
     {
-     "i": 73,
+     "i": 89,
      "ms": 70
+    },
+    {
+     "i": 90,
+     "ms": 70
+    },
+    {
+     "i": 95,
+     "ms": 60
+    },
+    {
+     "i": 96,
+     "ms": 80
+    },
+    {
+     "i": 97,
+     "ms": 70
+    },
+    {
+     "i": 98,
+     "ms": 70
+    },
+    {
+     "i": 1,
+     "ms": 80,
+     "event": "emerged"
+    }
+   ]
+  },
+  "leap": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 49,
+     "ms": 150,
+     "event": "leap_windup"
+    },
+    {
+     "i": 50,
+     "ms": 100
+    },
+    {
+     "i": 51,
+     "ms": 60,
+     "events": [
+      "takeoff",
+      "leap_takeoff"
+     ]
+    },
+    {
+     "i": 52,
+     "ms": 70
+    },
+    {
+     "i": 53,
+     "ms": 80
+    },
+    {
+     "i": 54,
+     "ms": 80
+    },
+    {
+     "i": 61,
+     "ms": 70
+    },
+    {
+     "i": 72,
+     "ms": 60
+    },
+    {
+     "i": 73,
+     "ms": 80,
+     "events": [
+      "leap_land",
+      "land"
+     ]
     },
     {
      "i": 74,
@@ -381,81 +456,6 @@
     },
     {
      "i": 76,
-     "ms": 80
-    },
-    {
-     "i": 77,
-     "ms": 70
-    },
-    {
-     "i": 78,
-     "ms": 70
-    },
-    {
-     "i": 79,
-     "ms": 80,
-     "event": "emerged"
-    }
-   ]
-  },
-  "leap": {
-   "loop": false,
-   "frames": [
-    {
-     "i": 80,
-     "ms": 150,
-     "event": "leap_windup"
-    },
-    {
-     "i": 81,
-     "ms": 100
-    },
-    {
-     "i": 82,
-     "ms": 60,
-     "events": [
-      "takeoff",
-      "leap_takeoff"
-     ]
-    },
-    {
-     "i": 83,
-     "ms": 70
-    },
-    {
-     "i": 84,
-     "ms": 80
-    },
-    {
-     "i": 85,
-     "ms": 80
-    },
-    {
-     "i": 86,
-     "ms": 70
-    },
-    {
-     "i": 87,
-     "ms": 60
-    },
-    {
-     "i": 81,
-     "ms": 80,
-     "events": [
-      "leap_land",
-      "land"
-     ]
-    },
-    {
-     "i": 88,
-     "ms": 70
-    },
-    {
-     "i": 89,
-     "ms": 60
-    },
-    {
-     "i": 90,
      "ms": 60,
      "event": "leap_done"
     }
@@ -486,44 +486,67 @@
      "ms": 1000
     }
    ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 24,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 0,
+     "ms": 55
+    },
+    {
+     "i": 25,
+     "ms": 40
+    },
+    {
+     "i": 26,
+     "ms": 45,
+     "event": "turn_done"
+    }
+   ]
   }
  },
  "meta": {
-  "title": "Mud pea (scary): leaps from a thorn bush, leap (takeoff/land), HARD-snap scream, slime-pea spit; nfvar layers",
+  "title": "Mud pea (scary): leaps from a thorn bush, leap (takeoff/land), HARD-snap scream, slime-pea spit; nfvar layers | side view v1",
   "source": "derived_mud.png",
   "cells": [
    "idle0",
-   "idle1",
-   "idle2",
-   "idle3",
-   "idle4",
-   "idle5",
-   "idle6",
-   "idle7",
-   "idle8",
-   "idle9",
-   "walk0",
-   "walk1",
-   "walk2",
-   "walk3",
-   "walk4",
-   "walk5",
-   "walk6",
-   "walk7",
-   "walk8",
-   "walk9",
-   "hurt0",
-   "hurt1",
-   "hurt2",
-   "attack0",
-   "attack1",
-   "attack2",
-   "attack3",
-   "attack4",
-   "attack5",
-   "attack6",
-   "death0",
-   "death1",
+   "sv_idle_0",
+   "sv_idle_1",
+   "sv_idle_2",
+   "sv_idle_3",
+   "sv_idle_4",
+   "sv_idle_5",
+   "sv_idle_6",
+   "sv_idle_7",
+   "sv_idle_8",
+   "sv_idle_9",
+   "sv_walk_0",
+   "sv_walk_1",
+   "sv_walk_2",
+   "sv_walk_3",
+   "sv_walk_4",
+   "sv_walk_5",
+   "sv_walk_6",
+   "sv_walk_7",
+   "sv_walk_8",
+   "sv_walk_9",
+   "sv_hurt_0",
+   "sv_hurt_1",
+   "sv_hurt_2",
+   "sv_turn_0",
+   "sv_turn_2",
+   "sv_turn_3",
+   "sv_scream_0",
+   "sv_scream_1",
+   "sv_scream_2",
+   "sv_scream_3",
+   "sv_scream_4",
    "death2",
    "death3",
    "death4",
@@ -535,25 +558,25 @@
    "death10",
    "death11",
    "death12",
-   "scream0",
-   "scream1",
-   "scream2",
-   "scream3",
-   "scream4",
-   "scream5",
-   "scream6",
-   "scream7",
-   "scream8",
-   "scream9",
-   "scream10",
-   "death_slice0",
+   "sv_scream_5",
+   "sv_scream_6",
+   "sv_scream_7",
+   "sv_scream_8",
+   "sv_scream_9",
+   "sv_scream_10",
+   "sv_leap_0",
+   "sv_leap_1",
+   "sv_leap_2",
+   "sv_leap_3",
+   "sv_leap_4",
+   "sv_leap_5",
    "death_slice1",
    "death_slice2",
    "death_slice3",
    "death_slice4",
    "death_slice5",
    "death_slice6",
-   "death_smash0",
+   "sv_leap_6",
    "death_smash1",
    "death_smash_v2_flatten",
    "death_smash_v2_mash",
@@ -564,29 +587,33 @@
    "emerge0",
    "emerge1",
    "emerge2",
-   "emerge3",
-   "emerge4",
-   "emerge5",
-   "emerge6",
-   "emerge7",
-   "emerge8",
-   "emerge9",
-   "emerge10",
-   "leap0",
-   "leap1",
-   "leap2",
-   "leap3",
-   "leap4",
-   "leap5",
-   "leap6",
-   "leap7",
-   "leap9",
-   "leap10",
-   "leap11",
+   "sv_leap_7",
+   "sv_leap_8",
+   "sv_leap_9",
+   "sv_leap_10",
+   "sv_leap_11",
+   "sv_attack_0",
+   "sv_attack_1",
+   "sv_attack_2",
+   "sv_attack_3",
+   "sv_attack_4",
+   "sv_attack_5",
+   "sv_attack_6",
+   "sv_death_0",
+   "sv_death_1",
+   "sv_death_slice_0",
+   "sv_death_smash_0",
+   "sv_emerge_3",
+   "sv_emerge_4",
+   "sv_emerge_5",
    "pea0",
    "pea1",
    "pea2",
-   "prop_bush0"
+   "prop_bush0",
+   "sv_emerge_6",
+   "sv_emerge_7",
+   "sv_emerge_8",
+   "sv_emerge_9"
   ],
   "feetY": 185.68,
   "gameRadius": 17,
@@ -629,17 +656,25 @@
    "splat": "mud",
    "tool": "tools/attacks_smash/apply.py"
   },
-  "facing": "front",
+  "facing": "right",
   "behaviors": {
    "version": 1,
    "date": "2026-10-18",
    "tool": "tools/behaviors/apply.py",
-   "facing": "front",
+   "facing": "right",
    "specials": [
     "leap",
-    "scream"
+    "scream",
+    "turn"
    ],
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "sideview": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/sideview/build.py",
+   "src": "tools/sideview/src/pea_mud_side_v1.jpg",
+   "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
   }
  }
 }

@@ -12,10 +12,6 @@
    "loop": true,
    "frames": [
     {
-     "i": 0,
-     "ms": 69
-    },
-    {
      "i": 1,
      "ms": 69
     },
@@ -45,18 +41,22 @@
     },
     {
      "i": 8,
-     "ms": 68
+     "ms": 69
     },
     {
      "i": 9,
-     "ms": 90
+     "ms": 68
     },
     {
      "i": 10,
-     "ms": 75
+     "ms": 90
     },
     {
      "i": 11,
+     "ms": 75
+    },
+    {
+     "i": 12,
      "ms": 75
     }
    ]
@@ -65,44 +65,40 @@
    "loop": true,
    "frames": [
     {
-     "i": 12,
-     "ms": 40
-    },
-    {
      "i": 13,
-     "ms": 70
+     "ms": 40
     },
     {
      "i": 14,
-     "ms": 60
+     "ms": 70
     },
     {
      "i": 15,
-     "ms": 40
+     "ms": 60
     },
     {
      "i": 16,
-     "ms": 50
-    },
-    {
-     "i": 17,
-     "ms": 60
-    },
-    {
-     "i": 18,
-     "ms": 50
-    },
-    {
-     "i": 19,
      "ms": 40
     },
     {
-     "i": 20,
+     "i": 17,
+     "ms": 50
+    },
+    {
+     "i": 18,
      "ms": 60
     },
     {
-     "i": 21,
+     "i": 19,
      "ms": 50
+    },
+    {
+     "i": 20,
+     "ms": 40
+    },
+    {
+     "i": 21,
+     "ms": 60
     },
     {
      "i": 22,
@@ -111,6 +107,10 @@
     {
      "i": 23,
      "ms": 50
+    },
+    {
+     "i": 24,
+     "ms": 50
     }
    ]
   },
@@ -118,16 +118,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 24,
+     "i": 25,
      "ms": 40,
      "event": "hurt"
     },
     {
-     "i": 25,
+     "i": 26,
      "ms": 60
     },
     {
-     "i": 26,
+     "i": 27,
      "ms": 80
     }
    ]
@@ -136,12 +136,12 @@
    "loop": false,
    "frames": [
     {
-     "i": 27,
+     "i": 44,
      "ms": 60,
      "event": "attack_windup"
     },
     {
-     "i": 28,
+     "i": 45,
      "ms": 45,
      "events": [
       "hit",
@@ -149,15 +149,15 @@
      ]
     },
     {
-     "i": 29,
+     "i": 46,
      "ms": 35
     },
     {
-     "i": 30,
+     "i": 47,
      "ms": 35
     },
     {
-     "i": 31,
+     "i": 59,
      "ms": 80,
      "event": "attack_done"
     }
@@ -167,11 +167,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 32,
+     "i": 67,
      "ms": 50
     },
     {
-     "i": 33,
+     "i": 68,
      "ms": 60
     },
     {
@@ -213,23 +213,23 @@
    "loop": false,
    "frames": [
     {
-     "i": 42,
+     "i": 31,
      "ms": 80
     },
     {
-     "i": 43,
+     "i": 32,
      "ms": 80
     },
     {
-     "i": 44,
+     "i": 33,
      "ms": 70
     },
     {
-     "i": 45,
+     "i": 42,
      "ms": 90
     },
     {
-     "i": 46,
+     "i": 43,
      "ms": 80
     }
    ]
@@ -238,7 +238,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 47,
+     "i": 71,
      "ms": 45
     },
     {
@@ -296,7 +296,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 59,
+     "i": 72,
      "ms": 40
     },
     {
@@ -346,20 +346,12 @@
      "ms": 70
     },
     {
-     "i": 71,
-     "ms": 60
-    },
-    {
-     "i": 72,
-     "ms": 60
-    },
-    {
      "i": 73,
-     "ms": 70
+     "ms": 60
     },
     {
      "i": 74,
-     "ms": 70
+     "ms": 60
     },
     {
      "i": 75,
@@ -370,51 +362,82 @@
      "ms": 70
     },
     {
-     "i": 0,
+     "i": 77,
+     "ms": 70
+    },
+    {
+     "i": 78,
+     "ms": 70
+    },
+    {
+     "i": 1,
      "ms": 90,
      "event": "emerged"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 28,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 0,
+     "ms": 55
+    },
+    {
+     "i": 29,
+     "ms": 40
+    },
+    {
+     "i": 30,
+     "ms": 45,
+     "event": "turn_done"
     }
    ]
   }
  },
  "meta": {
-  "title": "Garden blob (light variant), blobvar layers + warp.py",
+  "title": "Garden blob (light variant), blobvar layers + warp.py | side view v1",
   "source": "derived_light.png",
   "cells": [
    "idle0",
-   "idle1",
-   "idle2",
-   "idle3",
-   "idle4",
-   "idle5",
-   "idle6",
-   "idle7",
-   "idle8",
-   "idle9",
-   "idle10",
-   "idle11",
-   "walk0",
-   "walk1",
-   "walk2",
-   "walk3",
-   "walk4",
-   "walk5",
-   "walk6",
-   "walk7",
-   "walk8",
-   "walk9",
-   "walk10",
-   "walk11",
-   "hurt0",
-   "hurt1",
-   "hurt2",
-   "attack0",
-   "attack1",
-   "attack2",
-   "attack3",
-   "attack4",
-   "death0",
-   "death1",
+   "sv_idle_0",
+   "sv_idle_1",
+   "sv_idle_2",
+   "sv_idle_3",
+   "sv_idle_4",
+   "sv_idle_5",
+   "sv_idle_6",
+   "sv_idle_7",
+   "sv_idle_8",
+   "sv_idle_9",
+   "sv_idle_10",
+   "sv_idle_11",
+   "sv_walk_0",
+   "sv_walk_1",
+   "sv_walk_2",
+   "sv_walk_3",
+   "sv_walk_4",
+   "sv_walk_5",
+   "sv_walk_6",
+   "sv_walk_7",
+   "sv_walk_8",
+   "sv_walk_9",
+   "sv_walk_10",
+   "sv_walk_11",
+   "sv_hurt_0",
+   "sv_hurt_1",
+   "sv_hurt_2",
+   "sv_turn_0",
+   "sv_turn_2",
+   "sv_turn_3",
+   "sv_taunt_0",
+   "sv_taunt_1",
+   "sv_taunt_2",
    "death2",
    "death3",
    "death4",
@@ -423,12 +446,12 @@
    "death7",
    "death8",
    "death9",
-   "taunt0",
-   "taunt1",
-   "taunt2",
-   "taunt3",
-   "taunt4",
-   "death_slice0",
+   "sv_taunt_3",
+   "sv_taunt_4",
+   "sv_attack_0",
+   "sv_attack_1",
+   "sv_attack_2",
+   "sv_attack_3",
    "death_slice1",
    "death_slice2",
    "death_slice3",
@@ -440,7 +463,7 @@
    "death_slice10",
    "death_slice11",
    "death_slice12",
-   "death_smash0",
+   "sv_attack_4",
    "death_smash1",
    "death_smash_v2_flatten",
    "death_smash_v2_mash",
@@ -448,16 +471,18 @@
    "death_smash_v2_settle",
    "death_smash_v2_fade1",
    "death_smash_v2_fade2",
-   "",
-   "",
+   "sv_death_0",
+   "sv_death_1",
    "emerge0",
    "emerge1",
-   "emerge2",
-   "emerge3",
-   "emerge4",
-   "emerge5",
-   "emerge6",
-   "emerge7"
+   "sv_death_slice_0",
+   "sv_death_smash_0",
+   "sv_emerge_2",
+   "sv_emerge_3",
+   "sv_emerge_4",
+   "sv_emerge_5",
+   "sv_emerge_6",
+   "sv_emerge_7"
   ],
   "feetY": 178.88,
   "gameRadius": 14,
@@ -475,14 +500,23 @@
    "splat": "green",
    "tool": "tools/attacks_smash/apply.py"
   },
-  "facing": "front",
+  "facing": "right",
   "behaviors": {
    "version": 1,
    "date": "2026-10-18",
    "tool": "tools/behaviors/apply.py",
-   "facing": "front",
-   "specials": [],
+   "facing": "right",
+   "specials": [
+    "turn"
+   ],
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "sideview": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/sideview/build.py",
+   "src": "tools/sideview/src/blob_light_side_v1.jpg",
+   "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
   }
  }
 }

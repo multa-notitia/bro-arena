@@ -12,10 +12,6 @@
    "loop": true,
    "frames": [
     {
-     "i": 0,
-     "ms": 69
-    },
-    {
      "i": 1,
      "ms": 69
     },
@@ -45,18 +41,22 @@
     },
     {
      "i": 8,
-     "ms": 68
+     "ms": 69
     },
     {
      "i": 9,
-     "ms": 90
+     "ms": 68
     },
     {
      "i": 10,
-     "ms": 75
+     "ms": 90
     },
     {
      "i": 11,
+     "ms": 75
+    },
+    {
+     "i": 12,
      "ms": 75
     }
    ]
@@ -64,10 +64,6 @@
   "walk": {
    "loop": true,
    "frames": [
-    {
-     "i": 12,
-     "ms": 50
-    },
     {
      "i": 13,
      "ms": 50
@@ -111,6 +107,10 @@
     {
      "i": 23,
      "ms": 50
+    },
+    {
+     "i": 24,
+     "ms": 50
     }
    ]
   },
@@ -118,16 +118,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 24,
+     "i": 25,
      "ms": 40,
      "event": "hurt"
     },
     {
-     "i": 25,
+     "i": 26,
      "ms": 60
     },
     {
-     "i": 26,
+     "i": 27,
      "ms": 80
     }
    ]
@@ -136,36 +136,36 @@
    "loop": false,
    "frames": [
     {
-     "i": 27,
+     "i": 76,
      "ms": 60,
      "event": "attack_windup"
     },
     {
-     "i": 28,
+     "i": 77,
      "ms": 55
     },
     {
-     "i": 29,
+     "i": 78,
      "ms": 55
     },
     {
-     "i": 30,
+     "i": 79,
      "ms": 55
     },
     {
-     "i": 31,
+     "i": 80,
      "ms": 50
     },
     {
-     "i": 32,
+     "i": 81,
      "ms": 50
     },
     {
-     "i": 33,
+     "i": 82,
      "ms": 45
     },
     {
-     "i": 34,
+     "i": 83,
      "ms": 50
     },
     {
@@ -216,11 +216,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 44,
+     "i": 84,
      "ms": 50
     },
     {
-     "i": 45,
+     "i": 85,
      "ms": 60
     },
     {
@@ -266,47 +266,47 @@
    "loop": false,
    "frames": [
     {
-     "i": 46,
+     "i": 31,
      "ms": 35
+    },
+    {
+     "i": 32,
+     "ms": 35
+    },
+    {
+     "i": 33,
+     "ms": 40
+    },
+    {
+     "i": 34,
+     "ms": 40
+    },
+    {
+     "i": 44,
+     "ms": 30
+    },
+    {
+     "i": 45,
+     "ms": 30
+    },
+    {
+     "i": 46,
+     "ms": 30
     },
     {
      "i": 47,
-     "ms": 35
+     "ms": 30
     },
     {
      "i": 48,
-     "ms": 40
+     "ms": 30
     },
     {
      "i": 49,
-     "ms": 40
+     "ms": 30
     },
     {
      "i": 50,
-     "ms": 30
-    },
-    {
-     "i": 51,
-     "ms": 30
-    },
-    {
-     "i": 52,
-     "ms": 30
-    },
-    {
-     "i": 53,
-     "ms": 30
-    },
-    {
-     "i": 54,
-     "ms": 30
-    },
-    {
-     "i": 55,
-     "ms": 30
-    },
-    {
-     "i": 56,
      "ms": 70
     }
    ]
@@ -315,7 +315,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 57,
+     "i": 86,
      "ms": 45
     },
     {
@@ -353,7 +353,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 65,
+     "i": 87,
      "ms": 40
     },
     {
@@ -394,74 +394,74 @@
    "loop": false,
    "frames": [
     {
-     "i": 74,
+     "i": 89,
      "ms": 70,
      "oy": -14.88
     },
     {
-     "i": 75,
+     "i": 90,
      "ms": 70,
      "oy": -14.88
     },
     {
-     "i": 76,
+     "i": 91,
      "ms": 55,
      "oy": -14.88
     },
     {
-     "i": 77,
+     "i": 92,
      "ms": 55,
      "oy": -14.88
     },
     {
-     "i": 78,
+     "i": 93,
      "ms": 50,
      "oy": -14.88
     },
     {
-     "i": 78,
+     "i": 94,
      "ms": 50,
      "oy": -14.26
     },
     {
-     "i": 79,
+     "i": 95,
      "ms": 90,
      "oy": -13.64
     },
     {
-     "i": 80,
+     "i": 96,
      "ms": 50,
      "oy": -13.64
     },
     {
-     "i": 81,
+     "i": 97,
      "ms": 60,
      "oy": -9.3
     },
     {
-     "i": 82,
+     "i": 98,
      "ms": 50,
      "oy": -4.34
     },
     {
-     "i": 83,
+     "i": 99,
      "ms": 70,
      "event": "emerge_fx"
     },
     {
-     "i": 84,
+     "i": 100,
      "ms": 70
     },
     {
-     "i": 85,
+     "i": 101,
      "ms": 40
     },
     {
-     "i": 86,
+     "i": 102,
      "ms": 40
     },
     {
-     "i": 87,
+     "i": 1,
      "ms": 90,
      "event": "emerged"
     }
@@ -483,17 +483,17 @@
    "loop": false,
    "frames": [
     {
-     "i": 73,
+     "i": 51,
      "ms": 120,
      "event": "leap_windup"
     },
     {
-     "i": 89,
+     "i": 52,
      "ms": 130,
      "ox": -0.6
     },
     {
-     "i": 90,
+     "i": 53,
      "ms": 50,
      "events": [
       "leap_takeoff",
@@ -502,32 +502,32 @@
      "oy": -3
     },
     {
-     "i": 91,
+     "i": 54,
      "ms": 60,
      "oy": -12
     },
     {
-     "i": 92,
+     "i": 55,
      "ms": 60,
      "oy": -20
     },
     {
-     "i": 93,
+     "i": 56,
      "ms": 60,
      "oy": -23
     },
     {
-     "i": 94,
+     "i": 57,
      "ms": 60,
      "oy": -19
     },
     {
-     "i": 95,
+     "i": 65,
      "ms": 60,
      "oy": -10
     },
     {
-     "i": 96,
+     "i": 73,
      "ms": 70,
      "events": [
       "leap_land",
@@ -535,56 +535,79 @@
      ]
     },
     {
-     "i": 97,
+     "i": 74,
      "ms": 70
     },
     {
-     "i": 98,
+     "i": 75,
      "ms": 90,
      "event": "leap_done"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 28,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 0,
+     "ms": 55
+    },
+    {
+     "i": 29,
+     "ms": 40
+    },
+    {
+     "i": 30,
+     "ms": 45,
+     "event": "turn_done"
     }
    ]
   }
  },
  "meta": {
-  "title": "Garden tomato (light variant): kamikaze pop, drops from the vine; tomvar layers + warp.py",
+  "title": "Garden tomato (light variant): kamikaze pop, drops from the vine; tomvar layers + warp.py | side view v1",
   "source": "derived_light.png",
   "cells": [
    "idle0",
-   "idle1",
-   "idle2",
-   "idle3",
-   "idle4",
-   "idle5",
-   "idle6",
-   "idle7",
-   "idle8",
-   "idle9",
-   "idle10",
-   "idle11",
-   "walk0",
-   "walk1",
-   "walk2",
-   "walk3",
-   "walk4",
-   "walk5",
-   "walk6",
-   "walk7",
-   "walk8",
-   "walk9",
-   "walk10",
-   "walk11",
-   "hurt0",
-   "hurt1",
-   "hurt2",
-   "attack0",
-   "attack1",
-   "attack2",
-   "attack3",
-   "attack4",
-   "attack5",
-   "attack6",
-   "attack7",
+   "sv_idle_0",
+   "sv_idle_1",
+   "sv_idle_2",
+   "sv_idle_3",
+   "sv_idle_4",
+   "sv_idle_5",
+   "sv_idle_6",
+   "sv_idle_7",
+   "sv_idle_8",
+   "sv_idle_9",
+   "sv_idle_10",
+   "sv_idle_11",
+   "sv_walk_0",
+   "sv_walk_1",
+   "sv_walk_2",
+   "sv_walk_3",
+   "sv_walk_4",
+   "sv_walk_5",
+   "sv_walk_6",
+   "sv_walk_7",
+   "sv_walk_8",
+   "sv_walk_9",
+   "sv_walk_10",
+   "sv_walk_11",
+   "sv_hurt_0",
+   "sv_hurt_1",
+   "sv_hurt_2",
+   "sv_turn_0",
+   "sv_turn_2",
+   "sv_turn_3",
+   "sv_taunt_0",
+   "sv_taunt_1",
+   "sv_taunt_2",
+   "sv_taunt_3",
    "attack8",
    "attack9",
    "attack10",
@@ -594,20 +617,20 @@
    "attack14",
    "attack15",
    "attack16",
-   "death0",
-   "death1",
-   "taunt0",
-   "taunt1",
-   "taunt2",
-   "taunt3",
-   "taunt4",
-   "taunt5",
-   "taunt6",
-   "taunt7",
-   "taunt8",
-   "taunt9",
-   "taunt10",
-   "death_slice0",
+   "sv_taunt_4",
+   "sv_taunt_5",
+   "sv_taunt_6",
+   "sv_taunt_7",
+   "sv_taunt_8",
+   "sv_taunt_9",
+   "sv_taunt_10",
+   "sv_leap_0",
+   "sv_leap_1",
+   "sv_leap_2",
+   "sv_leap_3",
+   "sv_leap_4",
+   "sv_leap_5",
+   "sv_leap_6",
    "death_slice1",
    "death_slice2",
    "death_slice3",
@@ -615,7 +638,7 @@
    "death_slice5",
    "death_slice6",
    "death_slice7",
-   "death_smash0",
+   "sv_leap_7",
    "death_smash1",
    "death_smash_v2_flatten",
    "death_smash_v2_mash",
@@ -623,32 +646,36 @@
    "death_smash_v2_settle",
    "death_smash_v2_fade1",
    "death_smash_v2_fade2",
-   "leap_0",
-   "emerge0",
-   "emerge1",
-   "emerge2",
-   "emerge3",
-   "emerge4",
-   "emerge6",
-   "emerge7",
-   "emerge8",
-   "emerge9",
-   "emerge10",
-   "emerge11",
-   "emerge12",
-   "emerge13",
-   "emerge14",
+   "sv_leap_8",
+   "sv_leap_9",
+   "sv_leap_10",
+   "sv_attack_0",
+   "sv_attack_1",
+   "sv_attack_2",
+   "sv_attack_3",
+   "sv_attack_4",
+   "sv_attack_5",
+   "sv_attack_6",
+   "sv_attack_7",
+   "sv_death_0",
+   "sv_death_1",
+   "sv_death_slice_0",
+   "sv_death_smash_0",
    "prop_vine0",
-   "leap_1",
-   "leap_2",
-   "leap_3",
-   "leap_4",
-   "leap_5",
-   "leap_6",
-   "leap_7",
-   "leap_8",
-   "leap_9",
-   "leap_10"
+   "sv_emerge_0",
+   "sv_emerge_1",
+   "sv_emerge_2",
+   "sv_emerge_3",
+   "sv_emerge_4",
+   "sv_emerge_5",
+   "sv_emerge_6",
+   "sv_emerge_7",
+   "sv_emerge_8",
+   "sv_emerge_9",
+   "sv_emerge_10",
+   "sv_emerge_11",
+   "sv_emerge_12",
+   "sv_emerge_13"
   ],
   "feetY": 193.6,
   "gameRadius": 14,
@@ -674,16 +701,24 @@
    "splat": "red",
    "tool": "tools/attacks_smash/apply.py"
   },
-  "facing": "front",
+  "facing": "right",
   "behaviors": {
    "version": 1,
    "date": "2026-10-18",
    "tool": "tools/behaviors/apply.py",
-   "facing": "front",
+   "facing": "right",
    "specials": [
-    "leap"
+    "leap",
+    "turn"
    ],
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "sideview": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/sideview/build.py",
+   "src": "tools/sideview/src/tomato_light_side_v1.jpg",
+   "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
   }
  }
 }

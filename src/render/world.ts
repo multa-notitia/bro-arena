@@ -58,6 +58,7 @@ import {
   actorClipActive,
   actorFootprint,
   drawActorSheet,
+  drawCreamHurt,
   clipDrawScale,
   drawNamedClip,
   gardenGround,
@@ -676,7 +677,7 @@ function drawEnemy(
                 ? e.perform
                 : pickClip(sheet, e.anim, {
                   attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
-                  // Cream hurt cells are solid pale fills. Recoil is squash; keep idle/walk.
+                  // Cream hurt cells stay an overlay. Never the body.
                   hurt: false,
                 })
     const clip = familyClip(e, clipRaw)
@@ -685,11 +686,22 @@ function drawEnemy(
     ctx.scale(squash, 1 / squash)
     if (clip) {
       const smash = clip === 'death_smash' || clip.startsWith('death_smash')
+      const bodyR = paintR * (smash ? CHAOS.read.smashDeathScale : 1)
       drawActorSheet(ctx, sheet, playKey, clip, {
-        r: paintR * (smash ? CHAOS.read.smashDeathScale : 1),
+        r: bodyR,
         facing,
         alpha: 1,
       })
+      if (!dyingSheet && e.anim.hitFlash > 0.02) {
+        const flash = familyClip(e, 'hurt')
+        if (flash) {
+          drawCreamHurt(ctx, sheet, flash, {
+            r: bodyR,
+            facing,
+            alpha: e.anim.hitFlash * 0.62,
+          })
+        }
+      }
     }
     ctx.restore()
     if (e.burn > 0) drawEmbers(ctx, ox, oy, e.r, time, e.uid)

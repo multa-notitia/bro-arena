@@ -12,10 +12,6 @@
    "loop": true,
    "frames": [
     {
-     "i": 0,
-     "ms": 120
-    },
-    {
      "i": 1,
      "ms": 120
     },
@@ -50,16 +46,16 @@
     {
      "i": 9,
      "ms": 120
+    },
+    {
+     "i": 10,
+     "ms": 120
     }
    ]
   },
   "walk": {
    "loop": true,
    "frames": [
-    {
-     "i": 10,
-     "ms": 80
-    },
     {
      "i": 11,
      "ms": 80
@@ -95,6 +91,10 @@
     {
      "i": 19,
      "ms": 80
+    },
+    {
+     "i": 20,
+     "ms": 80
     }
    ]
   },
@@ -102,16 +102,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 20,
+     "i": 21,
      "ms": 40,
      "event": "hurt"
     },
     {
-     "i": 21,
+     "i": 22,
      "ms": 60
     },
     {
-     "i": 22,
+     "i": 23,
      "ms": 80
     }
    ]
@@ -120,23 +120,23 @@
    "loop": false,
    "frames": [
     {
-     "i": 23,
+     "i": 57,
      "ms": 60,
      "ox": -1.2,
      "event": "attack_windup"
     },
     {
-     "i": 24,
+     "i": 68,
      "ms": 60,
      "ox": -2.4
     },
     {
-     "i": 25,
+     "i": 69,
      "ms": 45,
      "ox": 4.8
     },
     {
-     "i": 26,
+     "i": 70,
      "ms": 65,
      "ox": 13.3,
      "events": [
@@ -145,22 +145,22 @@
      ]
     },
     {
-     "i": 27,
+     "i": 71,
      "ms": 50,
      "ox": 12.1
     },
     {
-     "i": 28,
+     "i": 72,
      "ms": 70,
      "ox": 7.3
     },
     {
-     "i": 29,
+     "i": 73,
      "ms": 70,
      "ox": 3.0
     },
     {
-     "i": 30,
+     "i": 74,
      "ms": 60,
      "event": "attack_done"
     }
@@ -170,11 +170,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 31,
+     "i": 75,
      "ms": 60
     },
     {
-     "i": 32,
+     "i": 76,
      "ms": 70
     },
     {
@@ -212,50 +212,50 @@
    "loop": false,
    "frames": [
     {
-     "i": 40,
+     "i": 27,
      "ms": 120,
      "event": "scream_windup"
     },
     {
-     "i": 41,
+     "i": 28,
      "ms": 100
     },
     {
-     "i": 42,
+     "i": 29,
      "ms": 60,
      "event": "scream"
     },
     {
-     "i": 43,
+     "i": 30,
      "ms": 85,
      "ox": 1.6
     },
     {
-     "i": 44,
+     "i": 31,
      "ms": 85,
      "ox": -1.6
     },
     {
-     "i": 45,
+     "i": 32,
      "ms": 85,
      "ox": 1.4
     },
     {
-     "i": 46,
+     "i": 40,
      "ms": 85,
      "ox": -1.4
     },
     {
-     "i": 47,
+     "i": 41,
      "ms": 70,
      "ox": 1.0
     },
     {
-     "i": 48,
+     "i": 42,
      "ms": 80
     },
     {
-     "i": 49,
+     "i": 43,
      "ms": 70,
      "event": "scream_done"
     }
@@ -265,7 +265,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 50,
+     "i": 77,
      "ms": 45
     },
     {
@@ -299,7 +299,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 57,
+     "i": 84,
      "ms": 40
     },
     {
@@ -353,27 +353,27 @@
      "ms": 100
     },
     {
-     "i": 68,
+     "i": 85,
      "ms": 150
     },
     {
-     "i": 69,
+     "i": 86,
      "ms": 80
     },
     {
-     "i": 70,
+     "i": 87,
      "ms": 70
     },
     {
-     "i": 71,
+     "i": 88,
      "ms": 60
     },
     {
-     "i": 72,
+     "i": 89,
      "ms": 60
     },
     {
-     "i": 73,
+     "i": 1,
      "ms": 120,
      "event": "emerged"
     }
@@ -383,19 +383,19 @@
    "loop": false,
    "frames": [
     {
-     "i": 74,
+     "i": 90,
      "ms": 90
     },
     {
-     "i": 75,
+     "i": 91,
      "ms": 70
     },
     {
-     "i": 76,
+     "i": 92,
      "ms": 70
     },
     {
-     "i": 77,
+     "i": 93,
      "ms": 80,
      "event": "burrow"
     },
@@ -431,24 +431,24 @@
      "ms": 60
     },
     {
-     "i": 84,
+     "i": 94,
      "ms": 60,
      "event": "hit"
     },
     {
-     "i": 85,
+     "i": 95,
      "ms": 70
     },
     {
-     "i": 86,
+     "i": 96,
      "ms": 70
     },
     {
-     "i": 87,
+     "i": 97,
      "ms": 80
     },
     {
-     "i": 88,
+     "i": 1,
      "ms": 150,
      "event": "emerged"
     }
@@ -467,17 +467,17 @@
    "loop": false,
    "frames": [
     {
-     "i": 89,
+     "i": 44,
      "ms": 50,
      "event": "bite_windup"
     },
     {
-     "i": 90,
+     "i": 45,
      "ms": 70,
      "ox": -1.0
     },
     {
-     "i": 91,
+     "i": 46,
      "ms": 40,
      "events": [
       "bite_hit",
@@ -487,65 +487,88 @@
      "ox": 3.5
     },
     {
-     "i": 92,
+     "i": 47,
      "ms": 40,
      "ox": 2.6
     },
     {
-     "i": 93,
+     "i": 48,
      "ms": 60,
      "ox": 0.8
     },
     {
-     "i": 94,
+     "i": 49,
      "ms": 60,
      "ox": 0.2
     },
     {
-     "i": 95,
+     "i": 50,
      "ms": 80,
      "event": "bite_done"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 24,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 0,
+     "ms": 55
+    },
+    {
+     "i": 25,
+     "ms": 40
+    },
+    {
+     "i": 26,
+     "ms": 45,
+     "event": "turn_done"
     }
    ]
   }
  },
  "meta": {
-  "title": "Mud beetroot (scary): lava-crust tank, HARD-snap scream, burrows + resurfaces; nfvar layers",
+  "title": "Mud beetroot (scary): lava-crust tank, HARD-snap scream, burrows + resurfaces; nfvar layers | side view v1",
   "source": "derived_mud.png",
   "cells": [
    "idle0",
-   "idle1",
-   "idle2",
-   "idle3",
-   "idle4",
-   "idle5",
-   "idle6",
-   "idle7",
-   "idle8",
-   "idle9",
-   "walk0",
-   "walk1",
-   "walk2",
-   "walk3",
-   "walk4",
-   "walk5",
-   "walk6",
-   "walk7",
-   "walk8",
-   "walk9",
-   "hurt0",
-   "hurt1",
-   "hurt2",
-   "attack_v2_0",
-   "attack_v2_1",
-   "attack_v2_2",
-   "attack_v2_3",
-   "attack_v2_4",
-   "attack_v2_5",
-   "attack_v2_6",
-   "attack7",
-   "death0",
-   "death1",
+   "sv_idle_0",
+   "sv_idle_1",
+   "sv_idle_2",
+   "sv_idle_3",
+   "sv_idle_4",
+   "sv_idle_5",
+   "sv_idle_6",
+   "sv_idle_7",
+   "sv_idle_8",
+   "sv_idle_9",
+   "sv_walk_0",
+   "sv_walk_1",
+   "sv_walk_2",
+   "sv_walk_3",
+   "sv_walk_4",
+   "sv_walk_5",
+   "sv_walk_6",
+   "sv_walk_7",
+   "sv_walk_8",
+   "sv_walk_9",
+   "sv_hurt_0",
+   "sv_hurt_1",
+   "sv_hurt_2",
+   "sv_turn_0",
+   "sv_turn_2",
+   "sv_turn_3",
+   "sv_scream_0",
+   "sv_scream_1",
+   "sv_scream_2",
+   "sv_scream_3",
+   "sv_scream_4",
+   "sv_scream_5",
    "death2",
    "death3",
    "death4",
@@ -553,24 +576,24 @@
    "death6",
    "death7",
    "death8",
-   "scream0",
-   "scream1",
-   "scream2",
-   "scream3",
-   "scream4",
-   "scream5",
-   "scream6",
-   "scream7",
-   "scream8",
-   "scream9",
-   "death_slice0",
+   "sv_scream_6",
+   "sv_scream_7",
+   "sv_scream_8",
+   "sv_scream_9",
+   "sv_bite_0",
+   "sv_bite_1",
+   "sv_bite_2",
+   "sv_bite_3",
+   "sv_bite_4",
+   "sv_bite_5",
+   "sv_bite_6",
    "death_slice1",
    "death_slice2",
    "death_slice3",
    "death_slice4",
    "death_slice5",
    "death_slice6",
-   "death_smash0",
+   "sv_attack_0",
    "death_smash1",
    "death_smash_v2_flatten",
    "death_smash_v2_mash",
@@ -581,34 +604,36 @@
    "emerge0",
    "emerge1",
    "emerge2",
-   "emerge3",
-   "emerge4",
-   "emerge5",
-   "emerge6",
-   "emerge7",
-   "emerge8",
-   "burrow0",
-   "burrow1",
-   "burrow2",
-   "burrow3",
+   "sv_attack_1",
+   "sv_attack_2",
+   "sv_attack_3",
+   "sv_attack_4",
+   "sv_attack_5",
+   "sv_attack_6",
+   "sv_attack_7",
+   "sv_death_0",
+   "sv_death_1",
+   "sv_death_slice_0",
    "burrow4",
    "burrow5",
    "burrow6",
    "burrow7",
    "resurface0",
    "resurface1",
-   "resurface2",
-   "resurface3",
-   "resurface4",
-   "resurface5",
-   "resurface6",
-   "bite_0",
-   "bite_1",
-   "bite_2",
-   "bite_3",
-   "bite_4",
-   "bite_5",
-   "bite_6"
+   "sv_death_smash_0",
+   "sv_emerge_3",
+   "sv_emerge_4",
+   "sv_emerge_5",
+   "sv_emerge_6",
+   "sv_emerge_7",
+   "sv_burrow_0",
+   "sv_burrow_1",
+   "sv_burrow_2",
+   "sv_burrow_3",
+   "sv_resurface_2",
+   "sv_resurface_3",
+   "sv_resurface_4",
+   "sv_resurface_5"
   ],
   "feetY": 208.68,
   "gameRadius": 23,
@@ -634,17 +659,25 @@
    "splat": "mud",
    "tool": "tools/attacks_smash/apply.py"
   },
-  "facing": "front",
+  "facing": "right",
   "behaviors": {
    "version": 1,
    "date": "2026-10-18",
    "tool": "tools/behaviors/apply.py",
-   "facing": "front",
+   "facing": "right",
    "specials": [
     "bite",
-    "scream"
+    "scream",
+    "turn"
    ],
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "sideview": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/sideview/build.py",
+   "src": "tools/sideview/src/beetroot_mud_side_v1.jpg",
+   "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
   }
  }
 }

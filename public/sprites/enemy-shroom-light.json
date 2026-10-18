@@ -12,10 +12,6 @@
    "loop": true,
    "frames": [
     {
-     "i": 0,
-     "ms": 69
-    },
-    {
      "i": 1,
      "ms": 69
     },
@@ -45,18 +41,22 @@
     },
     {
      "i": 8,
-     "ms": 68
+     "ms": 69
     },
     {
      "i": 9,
-     "ms": 90
+     "ms": 68
     },
     {
      "i": 10,
-     "ms": 75
+     "ms": 90
     },
     {
      "i": 11,
+     "ms": 75
+    },
+    {
+     "i": 12,
      "ms": 75
     }
    ]
@@ -64,10 +64,6 @@
   "walk": {
    "loop": true,
    "frames": [
-    {
-     "i": 12,
-     "ms": 54
-    },
     {
      "i": 13,
      "ms": 54
@@ -82,7 +78,7 @@
     },
     {
      "i": 16,
-     "ms": 53
+     "ms": 54
     },
     {
      "i": 17,
@@ -111,6 +107,10 @@
     {
      "i": 23,
      "ms": 53
+    },
+    {
+     "i": 24,
+     "ms": 53
     }
    ]
   },
@@ -118,23 +118,23 @@
    "loop": false,
    "frames": [
     {
-     "i": 24,
+     "i": 25,
      "ms": 40,
      "ox": -2.5,
      "event": "hurt"
     },
     {
-     "i": 25,
+     "i": 26,
      "ms": 30,
      "ox": -2.0
     },
     {
-     "i": 26,
+     "i": 27,
      "ms": 30,
      "ox": -1.5
     },
     {
-     "i": 27,
+     "i": 28,
      "ms": 80,
      "ox": -1.0
     }
@@ -144,18 +144,18 @@
    "loop": false,
    "frames": [
     {
-     "i": 28,
+     "i": 39,
      "ms": 110,
      "ox": -0.8,
      "event": "attack_windup"
     },
     {
-     "i": 29,
+     "i": 40,
      "ms": 70,
      "ox": -1.2
     },
     {
-     "i": 30,
+     "i": 41,
      "ms": 45,
      "ox": 1.2,
      "events": [
@@ -165,12 +165,12 @@
      ]
     },
     {
-     "i": 31,
+     "i": 46,
      "ms": 80,
      "ox": 0.6
     },
     {
-     "i": 32,
+     "i": 52,
      "ms": 90,
      "event": "attack_done"
     }
@@ -180,12 +180,16 @@
    "loop": false,
    "frames": [
     {
+     "i": 32,
+     "ms": 40
+    },
+    {
      "i": 33,
      "ms": 40
     },
     {
      "i": 34,
-     "ms": 40
+     "ms": 55
     },
     {
      "i": 35,
@@ -193,7 +197,7 @@
     },
     {
      "i": 36,
-     "ms": 55
+     "ms": 45
     },
     {
      "i": 37,
@@ -201,10 +205,6 @@
     },
     {
      "i": 38,
-     "ms": 45
-    },
-    {
-     "i": 39,
      "ms": 120
     }
    ]
@@ -213,11 +213,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 40,
+     "i": 71,
      "ms": 50
     },
     {
-     "i": 41,
+     "i": 72,
      "ms": 50
     },
     {
@@ -243,7 +243,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 46,
+     "i": 73,
      "ms": 40
     },
     {
@@ -273,7 +273,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 52,
+     "i": 74,
      "ms": 40
     },
     {
@@ -385,100 +385,123 @@
      "event": "emerge_fx"
     },
     {
-     "i": 71,
-     "ms": 70
-    },
-    {
-     "i": 72,
-     "ms": 60
-    },
-    {
-     "i": 73,
-     "ms": 60,
-     "oy": -2.7
-    },
-    {
-     "i": 74,
-     "ms": 70,
-     "oy": -1.99
-    },
-    {
      "i": 75,
      "ms": 70
     },
     {
      "i": 76,
-     "ms": 70
+     "ms": 60
     },
     {
      "i": 77,
+     "ms": 60,
+     "oy": -2.7
+    },
+    {
+     "i": 80,
+     "ms": 70,
+     "oy": -1.99
+    },
+    {
+     "i": 81,
      "ms": 70
     },
     {
-     "i": 0,
+     "i": 82,
+     "ms": 70
+    },
+    {
+     "i": 83,
+     "ms": 70
+    },
+    {
+     "i": 1,
      "ms": 90,
      "event": "emerged"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 29,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 0,
+     "ms": 55
+    },
+    {
+     "i": 30,
+     "ms": 40
+    },
+    {
+     "i": 31,
+     "ms": 45,
+     "event": "turn_done"
     }
    ]
   }
  },
  "meta": {
-  "title": "Toadstool (light shroom, spore caster)",
+  "title": "Toadstool (light shroom, spore caster) | side view v1",
   "source": "parts/shroom_variants_v1.jpg",
   "cells": [
    "idle0",
-   "idle1",
-   "idle2",
-   "idle3",
-   "idle4",
-   "idle5",
-   "idle6",
-   "idle7",
-   "idle8",
-   "idle9",
-   "idle10",
-   "idle11",
-   "walk0",
-   "walk1",
-   "walk2",
-   "walk3",
-   "walk4",
-   "walk5",
-   "walk6",
-   "walk7",
-   "walk8",
-   "walk9",
-   "walk10",
-   "walk11",
-   "hurt0",
-   "hurt1",
-   "hurt2",
-   "hurt3",
-   "attack0",
-   "attack1",
-   "attack2",
-   "attack3",
-   "attack4",
-   "taunt0",
-   "taunt1",
-   "taunt2",
-   "taunt3",
-   "taunt4",
-   "taunt5",
-   "taunt6",
-   "death0",
-   "death1",
+   "sv_idle_0",
+   "sv_idle_1",
+   "sv_idle_2",
+   "sv_idle_3",
+   "sv_idle_4",
+   "sv_idle_5",
+   "sv_idle_6",
+   "sv_idle_7",
+   "sv_idle_8",
+   "sv_idle_9",
+   "sv_idle_10",
+   "sv_idle_11",
+   "sv_walk_0",
+   "sv_walk_1",
+   "sv_walk_2",
+   "sv_walk_3",
+   "sv_walk_4",
+   "sv_walk_5",
+   "sv_walk_6",
+   "sv_walk_7",
+   "sv_walk_8",
+   "sv_walk_9",
+   "sv_walk_10",
+   "sv_walk_11",
+   "sv_hurt_0",
+   "sv_hurt_1",
+   "sv_hurt_2",
+   "sv_hurt_3",
+   "sv_turn_0",
+   "sv_turn_2",
+   "sv_turn_3",
+   "sv_taunt_0",
+   "sv_taunt_1",
+   "sv_taunt_2",
+   "sv_taunt_3",
+   "sv_taunt_4",
+   "sv_taunt_5",
+   "sv_taunt_6",
+   "sv_attack_0",
+   "sv_attack_1",
+   "sv_attack_2",
    "death2",
    "death3",
    "death4",
    "death5",
-   "death_slice0",
+   "sv_attack_3",
    "death_slice1",
    "death_slice2",
    "death_slice3",
    "death_slice4",
    "death_slice5",
-   "death_smash0",
+   "sv_attack_4",
    "death_smash1",
    "death_smash_v2_flatten",
    "death_smash_v2_mash",
@@ -497,15 +520,19 @@
    "fx_cloud6",
    "fx_cloud7",
    "emerge0",
-   "emerge1",
-   "emerge2",
-   "emerge3",
-   "emerge4",
-   "emerge5",
-   "emerge6",
-   "emerge7",
+   "sv_death_0",
+   "sv_death_1",
+   "sv_death_slice_0",
+   "sv_death_smash_0",
+   "sv_emerge_1",
+   "sv_emerge_2",
+   "sv_emerge_3",
    "death_smash_v2_fade1",
-   "death_smash_v2_fade2"
+   "death_smash_v2_fade2",
+   "sv_emerge_4",
+   "sv_emerge_5",
+   "sv_emerge_6",
+   "sv_emerge_7"
   ],
   "feetY": 163.68,
   "gameRadius": 14,
@@ -523,14 +550,23 @@
    "splat": "red",
    "tool": "tools/attacks_smash/apply.py"
   },
-  "facing": "front",
+  "facing": "right",
   "behaviors": {
    "version": 1,
    "date": "2026-10-18",
    "tool": "tools/behaviors/apply.py",
-   "facing": "front",
-   "specials": [],
+   "facing": "right",
+   "specials": [
+    "turn"
+   ],
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "sideview": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/sideview/build.py",
+   "src": "tools/sideview/src/shroom_light_side_v1.jpg",
+   "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
   }
  }
 }

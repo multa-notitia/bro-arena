@@ -865,7 +865,7 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
       if (sheet.manifest.clips.attack) restartActorClip(key, 'attack')
     }
   }
-  // Cream hurt cells are a solid pale fill. Never play them as the body.
+  // Hurt frame 0 is a cream flash drawn over the body. Never play the clip.
   consumeHurtKick(key)
   const corpseName = dead ? corpseClipName(e) ?? (e.corpse && sheet.manifest.clips[e.corpse] ? e.corpse : 'death') : null
   const emerging = e.state === 'spawning' && hasClip(sheet, 'emerge')

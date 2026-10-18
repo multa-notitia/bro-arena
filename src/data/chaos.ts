@@ -67,13 +67,15 @@ export const CHAOS = {
       peaMud: 95,
     } as Record<string, number>,
     /**
-     * Front-painted families lean and waddle for direction. Beetle is a
-     * side-view crawl now, so it is not in this list. Mud pea is front via
-     * `meta.facing`, not this list.
+     * Families that still lean and waddle. Tomato, pea, beetroot, onion,
+     * shroom, and blob are side-view now (`meta.facing: "right"`), and their
+     * walk already bakes bob and lean. Legacy `enemy-blob`, `enemy-charger`,
+     * and `enemy-eliteBlob` have no facing flag; those sheet ids lean in
+     * `sheetIsFront`.
      */
-    frontFamilies: ['tomato', 'beetroot', 'onion', 'shroom', 'blob'] as const,
+    frontFamilies: [] as const,
     /** Horizontal px/s that does not flip facing. */
-    faceDead: 16,
+    faceDead: 8,
     /** Seconds a new travel sign must hold before the flip. */
     faceHold: 0.12,
     /** Radians of lean into horizontal velocity. Front sheets lean harder. */

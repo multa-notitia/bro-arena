@@ -915,6 +915,25 @@ export function drawActorSheet(
 }
 
 /**
+ * Hurt frame 0 is a cream flash. Paint that cell over the live body.
+ * Later hurt frames are a wince; they must not replace the walk.
+ */
+export function drawCreamHurt(
+  ctx: CanvasRenderingContext2D,
+  sheet: LoadedSheet,
+  clipName: string,
+  opts: { r: number; facing: 1 | -1; alpha: number },
+): void {
+  const clip = sheet.manifest.clips[clipName]
+  const frame = clip?.frames[0]
+  if (!clip || !frame || opts.alpha <= 0) return
+  const fw = sheet.manifest.frameWidth
+  const fh = sheet.manifest.frameHeight
+  const fit = snapScale((opts.r * 2.35) / Math.max(fw, fh))
+  paintFrame(ctx, sheet, clip, frame, { fit, facing: opts.facing, alpha: opts.alpha })
+}
+
+/**
  * Step and paint a clip by name. Used for sheets whose clip names are not the
  * actor set (pickups: coin, heart, chest, …). `scale` is world px per image px.
  */

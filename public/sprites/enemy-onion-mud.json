@@ -12,10 +12,6 @@
    "loop": true,
    "frames": [
     {
-     "i": 0,
-     "ms": 115
-    },
-    {
      "i": 1,
      "ms": 115
     },
@@ -50,16 +46,16 @@
     {
      "i": 9,
      "ms": 115
+    },
+    {
+     "i": 10,
+     "ms": 115
     }
    ]
   },
   "walk": {
    "loop": true,
    "frames": [
-    {
-     "i": 10,
-     "ms": 64
-    },
     {
      "i": 11,
      "ms": 64
@@ -74,7 +70,7 @@
     },
     {
      "i": 14,
-     "ms": 63
+     "ms": 64
     },
     {
      "i": 15,
@@ -103,6 +99,10 @@
     {
      "i": 21,
      "ms": 63
+    },
+    {
+     "i": 22,
+     "ms": 63
     }
    ]
   },
@@ -110,16 +110,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 22,
+     "i": 23,
      "ms": 40,
      "event": "hurt"
     },
     {
-     "i": 23,
+     "i": 24,
      "ms": 60
     },
     {
-     "i": 24,
+     "i": 25,
      "ms": 80
     }
    ]
@@ -128,23 +128,23 @@
    "loop": false,
    "frames": [
     {
-     "i": 25,
+     "i": 60,
      "ms": 60,
      "ox": -0.9,
      "event": "attack_windup"
     },
     {
-     "i": 26,
+     "i": 70,
      "ms": 60,
      "ox": -1.9
     },
     {
-     "i": 27,
+     "i": 71,
      "ms": 45,
      "ox": 3.8
     },
     {
-     "i": 28,
+     "i": 72,
      "ms": 65,
      "ox": 10.4,
      "events": [
@@ -154,22 +154,22 @@
      ]
     },
     {
-     "i": 29,
+     "i": 73,
      "ms": 50,
      "ox": 9.5
     },
     {
-     "i": 30,
+     "i": 74,
      "ms": 70,
      "ox": 5.7
     },
     {
-     "i": 31,
+     "i": 75,
      "ms": 70,
      "ox": 2.4
     },
     {
-     "i": 32,
+     "i": 76,
      "ms": 60,
      "event": "attack_done"
     }
@@ -179,11 +179,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 33,
+     "i": 77,
      "ms": 60
     },
     {
-     "i": 34,
+     "i": 86,
      "ms": 70
     },
     {
@@ -224,55 +224,55 @@
    "loop": false,
    "frames": [
     {
-     "i": 42,
+     "i": 29,
      "ms": 120,
      "event": "scream_windup"
     },
     {
-     "i": 43,
+     "i": 30,
      "ms": 100
     },
     {
-     "i": 44,
+     "i": 31,
      "ms": 60,
      "event": "scream"
     },
     {
-     "i": 45,
+     "i": 32,
      "ms": 70,
      "ox": 1.6
     },
     {
-     "i": 46,
+     "i": 33,
      "ms": 70,
      "ox": -1.6
     },
     {
-     "i": 47,
+     "i": 34,
      "ms": 70,
      "ox": 1.4
     },
     {
-     "i": 48,
+     "i": 42,
      "ms": 70,
      "ox": -1.4
     },
     {
-     "i": 49,
+     "i": 43,
      "ms": 70,
      "ox": 1.0
     },
     {
-     "i": 50,
+     "i": 44,
      "ms": 70,
      "ox": -0.8
     },
     {
-     "i": 51,
+     "i": 45,
      "ms": 80
     },
     {
-     "i": 52,
+     "i": 46,
      "ms": 70,
      "event": "scream_done"
     }
@@ -282,7 +282,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 53,
+     "i": 87,
      "ms": 45
     },
     {
@@ -319,7 +319,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 60,
+     "i": 88,
      "ms": 40
     },
     {
@@ -370,35 +370,35 @@
      "ms": 100
     },
     {
-     "i": 70,
+     "i": 89,
      "ms": 90
     },
     {
-     "i": 71,
+     "i": 90,
      "ms": 80
     },
     {
-     "i": 72,
+     "i": 91,
      "ms": 70
     },
     {
-     "i": 73,
+     "i": 92,
      "ms": 70
     },
     {
-     "i": 74,
+     "i": 93,
      "ms": 70
     },
     {
-     "i": 75,
+     "i": 94,
      "ms": 60
     },
     {
-     "i": 76,
+     "i": 95,
      "ms": 60
     },
     {
-     "i": 77,
+     "i": 1,
      "ms": 70,
      "event": "emerged"
     }
@@ -445,17 +445,17 @@
    "loop": false,
    "frames": [
     {
-     "i": 86,
+     "i": 47,
      "ms": 50,
      "event": "bite_windup"
     },
     {
-     "i": 87,
+     "i": 48,
      "ms": 70,
      "ox": -1.0
     },
     {
-     "i": 88,
+     "i": 49,
      "ms": 40,
      "events": [
       "bite_hit",
@@ -465,67 +465,90 @@
      "ox": 3.5
     },
     {
-     "i": 89,
+     "i": 50,
      "ms": 40,
      "ox": 2.6
     },
     {
-     "i": 90,
+     "i": 51,
      "ms": 60,
      "ox": 0.8
     },
     {
-     "i": 91,
+     "i": 52,
      "ms": 60,
      "ox": 0.2
     },
     {
-     "i": 92,
+     "i": 53,
      "ms": 80,
      "event": "bite_done"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 26,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 0,
+     "ms": 55
+    },
+    {
+     "i": 27,
+     "ms": 40
+    },
+    {
+     "i": 28,
+     "ms": 45,
+     "event": "turn_done"
     }
    ]
   }
  },
  "meta": {
-  "title": "Mud onion (scary): slimy layer per hit, HARD-snap scream, pops into toxic gas; nfvar layers",
+  "title": "Mud onion (scary): slimy layer per hit, HARD-snap scream, pops into toxic gas; nfvar layers | side view v1",
   "source": "derived_mud.png",
   "cells": [
    "idle0",
-   "idle1",
-   "idle2",
-   "idle3",
-   "idle4",
-   "idle5",
-   "idle6",
-   "idle7",
-   "idle8",
-   "idle9",
-   "walk0",
-   "walk1",
-   "walk2",
-   "walk3",
-   "walk4",
-   "walk5",
-   "walk6",
-   "walk7",
-   "walk8",
-   "walk9",
-   "walk10",
-   "walk11",
-   "hurt0",
-   "hurt1",
-   "hurt2",
-   "attack_v2_0",
-   "attack_v2_1",
-   "attack_v2_2",
-   "attack_v2_3",
-   "attack_v2_4",
-   "attack_v2_5",
-   "attack_v2_6",
-   "attack7",
-   "death0",
-   "death1",
+   "sv_idle_0",
+   "sv_idle_1",
+   "sv_idle_2",
+   "sv_idle_3",
+   "sv_idle_4",
+   "sv_idle_5",
+   "sv_idle_6",
+   "sv_idle_7",
+   "sv_idle_8",
+   "sv_idle_9",
+   "sv_walk_0",
+   "sv_walk_1",
+   "sv_walk_2",
+   "sv_walk_3",
+   "sv_walk_4",
+   "sv_walk_5",
+   "sv_walk_6",
+   "sv_walk_7",
+   "sv_walk_8",
+   "sv_walk_9",
+   "sv_walk_10",
+   "sv_walk_11",
+   "sv_hurt_0",
+   "sv_hurt_1",
+   "sv_hurt_2",
+   "sv_turn_0",
+   "sv_turn_2",
+   "sv_turn_3",
+   "sv_scream_0",
+   "sv_scream_1",
+   "sv_scream_2",
+   "sv_scream_3",
+   "sv_scream_4",
+   "sv_scream_5",
    "death2",
    "death3",
    "death4",
@@ -533,25 +556,25 @@
    "death6",
    "death7",
    "death8",
-   "scream0",
-   "scream1",
-   "scream2",
-   "scream3",
-   "scream4",
-   "scream5",
-   "scream6",
-   "scream7",
-   "scream8",
-   "scream9",
-   "scream10",
-   "death_slice0",
+   "sv_scream_6",
+   "sv_scream_7",
+   "sv_scream_8",
+   "sv_scream_9",
+   "sv_scream_10",
+   "sv_bite_0",
+   "sv_bite_1",
+   "sv_bite_2",
+   "sv_bite_3",
+   "sv_bite_4",
+   "sv_bite_5",
+   "sv_bite_6",
    "death_slice1",
    "death_slice2",
    "death_slice3",
    "death_slice4",
    "death_slice5",
    "death_slice6",
-   "death_smash0",
+   "sv_attack_0",
    "death_smash1",
    "death_smash_v2_flatten",
    "death_smash_v2_mash",
@@ -561,14 +584,14 @@
    "death_smash_v2_fade2",
    "emerge0",
    "emerge1",
-   "emerge2",
-   "emerge3",
-   "emerge4",
-   "emerge5",
-   "emerge6",
-   "emerge7",
-   "emerge8",
-   "emerge9",
+   "sv_attack_1",
+   "sv_attack_2",
+   "sv_attack_3",
+   "sv_attack_4",
+   "sv_attack_5",
+   "sv_attack_6",
+   "sv_attack_7",
+   "sv_death_0",
    "gas_cloud0",
    "gas_cloud1",
    "gas_cloud2",
@@ -577,13 +600,16 @@
    "gas_cloud5",
    "gas_cloud6",
    "gas_cloud7",
-   "bite_0",
-   "bite_1",
-   "bite_2",
-   "bite_3",
-   "bite_4",
-   "bite_5",
-   "bite_6"
+   "sv_death_1",
+   "sv_death_slice_0",
+   "sv_death_smash_0",
+   "sv_emerge_2",
+   "sv_emerge_3",
+   "sv_emerge_4",
+   "sv_emerge_5",
+   "sv_emerge_6",
+   "sv_emerge_7",
+   "sv_emerge_8"
   ],
   "feetY": 214.68,
   "gameRadius": 18,
@@ -609,17 +635,25 @@
    "splat": "purple",
    "tool": "tools/attacks_smash/apply.py"
   },
-  "facing": "front",
+  "facing": "right",
   "behaviors": {
    "version": 1,
    "date": "2026-10-18",
    "tool": "tools/behaviors/apply.py",
-   "facing": "front",
+   "facing": "right",
    "specials": [
     "bite",
-    "scream"
+    "scream",
+    "turn"
    ],
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "sideview": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/sideview/build.py",
+   "src": "tools/sideview/src/onion_mud_side_v1.jpg",
+   "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
   }
  }
 }

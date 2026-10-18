@@ -12,10 +12,6 @@
    "loop": true,
    "frames": [
     {
-     "i": 0,
-     "ms": 90
-    },
-    {
      "i": 1,
      "ms": 90
     },
@@ -50,16 +46,16 @@
     {
      "i": 9,
      "ms": 90
+    },
+    {
+     "i": 10,
+     "ms": 90
     }
    ]
   },
   "walk": {
    "loop": true,
    "frames": [
-    {
-     "i": 10,
-     "ms": 47
-    },
     {
      "i": 11,
      "ms": 47
@@ -90,7 +86,7 @@
     },
     {
      "i": 18,
-     "ms": 46
+     "ms": 47
     },
     {
      "i": 19,
@@ -103,6 +99,10 @@
     {
      "i": 21,
      "ms": 46
+    },
+    {
+     "i": 22,
+     "ms": 46
     }
    ]
   },
@@ -110,16 +110,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 22,
+     "i": 23,
      "ms": 40,
      "event": "hurt"
     },
     {
-     "i": 23,
+     "i": 24,
      "ms": 60
     },
     {
-     "i": 24,
+     "i": 25,
      "ms": 80
     }
    ]
@@ -128,23 +128,23 @@
    "loop": false,
    "frames": [
     {
-     "i": 25,
+     "i": 48,
      "ms": 60,
      "ox": -0.8,
      "event": "attack_windup"
     },
     {
-     "i": 26,
+     "i": 49,
      "ms": 60,
      "ox": -1.6
     },
     {
-     "i": 27,
+     "i": 50,
      "ms": 45,
      "ox": 3.2
     },
     {
-     "i": 28,
+     "i": 51,
      "ms": 65,
      "ox": 8.7,
      "events": [
@@ -155,22 +155,22 @@
      ]
     },
     {
-     "i": 29,
+     "i": 52,
      "ms": 50,
      "ox": 7.9
     },
     {
-     "i": 30,
+     "i": 53,
      "ms": 70,
      "ox": 4.7
     },
     {
-     "i": 31,
+     "i": 54,
      "ms": 70,
      "ox": 2.0
     },
     {
-     "i": 33,
+     "i": 61,
      "ms": 60,
      "event": "attack_done"
     }
@@ -180,11 +180,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 34,
+     "i": 71,
      "ms": 60
     },
     {
-     "i": 35,
+     "i": 72,
      "ms": 70
     },
     {
@@ -225,47 +225,47 @@
    "loop": false,
    "frames": [
     {
-     "i": 43,
+     "i": 29,
      "ms": 35
+    },
+    {
+     "i": 30,
+     "ms": 35
+    },
+    {
+     "i": 31,
+     "ms": 40
+    },
+    {
+     "i": 33,
+     "ms": 40
+    },
+    {
+     "i": 34,
+     "ms": 30
+    },
+    {
+     "i": 35,
+     "ms": 30
+    },
+    {
+     "i": 43,
+     "ms": 30
     },
     {
      "i": 44,
-     "ms": 35
+     "ms": 30
     },
     {
      "i": 45,
-     "ms": 40
+     "ms": 30
     },
     {
      "i": 46,
-     "ms": 40
+     "ms": 30
     },
     {
      "i": 47,
-     "ms": 30
-    },
-    {
-     "i": 48,
-     "ms": 30
-    },
-    {
-     "i": 49,
-     "ms": 30
-    },
-    {
-     "i": 50,
-     "ms": 30
-    },
-    {
-     "i": 51,
-     "ms": 30
-    },
-    {
-     "i": 52,
-     "ms": 30
-    },
-    {
-     "i": 53,
      "ms": 70
     }
    ]
@@ -274,7 +274,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 54,
+     "i": 73,
      "ms": 45
     },
     {
@@ -311,7 +311,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 61,
+     "i": 74,
      "ms": 40
     },
     {
@@ -362,31 +362,31 @@
      "ms": 80
     },
     {
-     "i": 71,
+     "i": 111,
      "ms": 70
     },
     {
-     "i": 72,
+     "i": 112,
      "ms": 60
     },
     {
-     "i": 73,
+     "i": 114,
      "ms": 60
     },
     {
-     "i": 74,
+     "i": 120,
      "ms": 60
     },
     {
-     "i": 75,
+     "i": 121,
      "ms": 70
     },
     {
-     "i": 76,
+     "i": 122,
      "ms": 70
     },
     {
-     "i": 77,
+     "i": 1,
      "ms": 80,
      "event": "emerged"
     }
@@ -396,32 +396,32 @@
    "loop": false,
    "frames": [
     {
-     "i": 78,
+     "i": 96,
      "ms": 80
     },
     {
-     "i": 79,
+     "i": 97,
      "ms": 70
     },
     {
-     "i": 80,
+     "i": 98,
      "ms": 60,
      "event": "peel"
     },
     {
-     "i": 81,
+     "i": 99,
      "ms": 60
     },
     {
-     "i": 82,
+     "i": 100,
      "ms": 70
     },
     {
-     "i": 83,
+     "i": 101,
      "ms": 80
     },
     {
-     "i": 84,
+     "i": 110,
      "ms": 80
     }
    ]
@@ -430,27 +430,27 @@
    "loop": true,
    "frames": [
     {
-     "i": 85,
+     "i": 75,
      "ms": 127
     },
     {
-     "i": 86,
+     "i": 76,
      "ms": 127
     },
     {
-     "i": 87,
+     "i": 77,
      "ms": 127
     },
     {
-     "i": 88,
+     "i": 78,
      "ms": 127
     },
     {
-     "i": 89,
+     "i": 79,
      "ms": 126
     },
     {
-     "i": 90,
+     "i": 80,
      "ms": 126
     }
    ]
@@ -459,35 +459,35 @@
    "loop": true,
    "frames": [
     {
-     "i": 91,
+     "i": 81,
      "ms": 65
     },
     {
-     "i": 92,
+     "i": 82,
      "ms": 65
     },
     {
-     "i": 93,
+     "i": 83,
      "ms": 65
     },
     {
-     "i": 94,
+     "i": 84,
      "ms": 65
     },
     {
-     "i": 95,
+     "i": 85,
      "ms": 65
     },
     {
-     "i": 96,
+     "i": 86,
      "ms": 65
     },
     {
-     "i": 97,
+     "i": 87,
      "ms": 65
     },
     {
-     "i": 98,
+     "i": 88,
      "ms": 65
     }
    ]
@@ -496,16 +496,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 99,
+     "i": 89,
      "ms": 40,
      "event": "hurt"
     },
     {
-     "i": 100,
+     "i": 90,
      "ms": 60
     },
     {
-     "i": 101,
+     "i": 91,
      "ms": 80
     }
    ]
@@ -551,11 +551,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 110,
+     "i": 92,
      "ms": 60
     },
     {
-     "i": 111,
+     "i": 93,
      "ms": 70
     },
     {
@@ -596,7 +596,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 112,
+     "i": 95,
      "ms": 40
     },
     {
@@ -637,7 +637,7 @@
    "loop": false,
    "frames": [
     {
-     "i": 114,
+     "i": 94,
      "ms": 45
     },
     {
@@ -669,48 +669,71 @@
      "ms": 950
     }
    ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 26,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 0,
+     "ms": 55
+    },
+    {
+     "i": 27,
+     "ms": 40
+    },
+    {
+     "i": 28,
+     "ms": 45,
+     "event": "turn_done"
+    }
+   ]
   }
  },
  "meta": {
-  "title": "Garden onion (light): peels a layer per hit, big peel at half hp, pops into a tear-gas cloud; nfvar layers",
+  "title": "Garden onion (light): peels a layer per hit, big peel at half hp, pops into a tear-gas cloud; nfvar layers | side view v1",
   "source": "derived_light.png",
   "cells": [
    "idle0",
-   "idle1",
-   "idle2",
-   "idle3",
-   "idle4",
-   "idle5",
-   "idle6",
-   "idle7",
-   "idle8",
-   "idle9",
-   "walk0",
-   "walk1",
-   "walk2",
-   "walk3",
-   "walk4",
-   "walk5",
-   "walk6",
-   "walk7",
-   "walk8",
-   "walk9",
-   "walk10",
-   "walk11",
-   "hurt0",
-   "hurt1",
-   "hurt2",
-   "attack_v2_0",
-   "attack_v2_1",
-   "attack_v2_2",
-   "attack_v2_3",
-   "attack_v2_4",
-   "attack_v2_5",
-   "attack_v2_6",
+   "sv_idle_0",
+   "sv_idle_1",
+   "sv_idle_2",
+   "sv_idle_3",
+   "sv_idle_4",
+   "sv_idle_5",
+   "sv_idle_6",
+   "sv_idle_7",
+   "sv_idle_8",
+   "sv_idle_9",
+   "sv_walk_0",
+   "sv_walk_1",
+   "sv_walk_2",
+   "sv_walk_3",
+   "sv_walk_4",
+   "sv_walk_5",
+   "sv_walk_6",
+   "sv_walk_7",
+   "sv_walk_8",
+   "sv_walk_9",
+   "sv_walk_10",
+   "sv_walk_11",
+   "sv_hurt_0",
+   "sv_hurt_1",
+   "sv_hurt_2",
+   "sv_turn_0",
+   "sv_turn_2",
+   "sv_turn_3",
+   "sv_taunt_0",
+   "sv_taunt_1",
+   "sv_taunt_2",
    "death_smash_v2_flatten",
-   "attack8",
-   "death0",
-   "death1",
+   "sv_taunt_3",
+   "sv_taunt_4",
+   "sv_taunt_5",
    "death2",
    "death3",
    "death4",
@@ -718,25 +741,25 @@
    "death6",
    "death7",
    "death8",
-   "taunt0",
-   "taunt1",
-   "taunt2",
-   "taunt3",
-   "taunt4",
-   "taunt5",
-   "taunt6",
-   "taunt7",
-   "taunt8",
-   "taunt9",
-   "taunt10",
-   "death_slice0",
+   "sv_taunt_6",
+   "sv_taunt_7",
+   "sv_taunt_8",
+   "sv_taunt_9",
+   "sv_taunt_10",
+   "sv_attack_0",
+   "sv_attack_1",
+   "sv_attack_2",
+   "sv_attack_3",
+   "sv_attack_4",
+   "sv_attack_5",
+   "sv_attack_6",
    "death_slice1",
    "death_slice2",
    "death_slice3",
    "death_slice4",
    "death_slice5",
    "death_slice6",
-   "death_smash0",
+   "sv_attack_7",
    "death_smash1",
    "death_smash2",
    "death_smash3",
@@ -746,37 +769,37 @@
    "death_smash7",
    "emerge0",
    "emerge1",
-   "emerge2",
-   "emerge3",
-   "emerge4",
-   "emerge5",
-   "emerge6",
-   "emerge7",
-   "emerge8",
-   "peel0",
-   "peel1",
-   "peel2",
-   "peel3",
-   "peel4",
-   "peel5",
-   "peel6",
-   "idle_peeled0",
-   "idle_peeled1",
-   "idle_peeled2",
-   "idle_peeled3",
-   "idle_peeled4",
-   "idle_peeled5",
-   "walk_peeled0",
-   "walk_peeled1",
-   "walk_peeled2",
-   "walk_peeled3",
-   "walk_peeled4",
-   "walk_peeled5",
-   "walk_peeled6",
-   "walk_peeled7",
-   "hurt_peeled0",
-   "hurt_peeled1",
-   "hurt_peeled2",
+   "sv_death_0",
+   "sv_death_1",
+   "sv_death_slice_0",
+   "sv_death_smash_0",
+   "sv_idle_peeled_0",
+   "sv_idle_peeled_1",
+   "sv_idle_peeled_2",
+   "sv_idle_peeled_3",
+   "sv_idle_peeled_4",
+   "sv_idle_peeled_5",
+   "sv_walk_peeled_0",
+   "sv_walk_peeled_1",
+   "sv_walk_peeled_2",
+   "sv_walk_peeled_3",
+   "sv_walk_peeled_4",
+   "sv_walk_peeled_5",
+   "sv_walk_peeled_6",
+   "sv_walk_peeled_7",
+   "sv_hurt_peeled_0",
+   "sv_hurt_peeled_1",
+   "sv_hurt_peeled_2",
+   "sv_death_peeled_0",
+   "sv_death_peeled_1",
+   "sv_death_slice_peeled_0",
+   "sv_death_smash_peeled_0",
+   "sv_peel_0",
+   "sv_peel_1",
+   "sv_peel_2",
+   "sv_peel_3",
+   "sv_peel_4",
+   "sv_peel_5",
    "gas_cloud0",
    "gas_cloud1",
    "gas_cloud2",
@@ -785,16 +808,19 @@
    "gas_cloud5",
    "gas_cloud6",
    "gas_cloud7",
-   "death_peeled0",
-   "death_peeled1",
-   "death_smash_peeled0",
+   "sv_peel_6",
+   "sv_emerge_2",
+   "sv_emerge_3",
    "death_smash_peeled1",
-   "death_slice_peeled0",
+   "sv_emerge_4",
    "death_smash_v2_mash",
    "death_smash_v2_spread",
    "death_smash_v2_settle",
    "death_smash_v2_fade1",
-   "death_smash_v2_fade2"
+   "death_smash_v2_fade2",
+   "sv_emerge_5",
+   "sv_emerge_6",
+   "sv_emerge_7"
   ],
   "feetY": 184.16,
   "gameRadius": 15,
@@ -825,14 +851,23 @@
    "splat": "orange",
    "tool": "tools/attacks_smash/apply.py"
   },
-  "facing": "front",
+  "facing": "right",
   "behaviors": {
    "version": 1,
    "date": "2026-10-18",
    "tool": "tools/behaviors/apply.py",
-   "facing": "front",
-   "specials": [],
+   "facing": "right",
+   "specials": [
+    "turn"
+   ],
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "sideview": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/sideview/build.py",
+   "src": "tools/sideview/src/onion_light_side_v1.jpg",
+   "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
   }
  }
 }

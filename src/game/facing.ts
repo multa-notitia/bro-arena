@@ -1,6 +1,6 @@
 import { clamp } from '../core/math.ts'
 import { CHAOS } from '../data/chaos.ts'
-import { enemyFamily, variantTone } from '../data/enemies.ts'
+import { enemyFamily } from '../data/enemies.ts'
 import type { Enemy } from '../core/types.ts'
 import { hasClip, resolveEnemySheet } from '../render/chaosSheets.ts'
 import { actorClipDone, restartActorClip } from '../render/sheets.ts'
@@ -26,15 +26,17 @@ function playKey(e: Enemy): string {
   return `e:${e.uid}`
 }
 
-/** Front-painted bodies lean. Side-view sheets (beetle included) mirror. */
+/** Legacy front sheets with no `meta.facing`. Painted side views are not in here. */
+const LEGACY_FRONT_SHEETS = new Set(['enemy-blob', 'enemy-charger', 'enemy-eliteBlob'])
+
+/** Front-painted bodies lean. Side-view sheets mirror and play `turn`. */
 export function sheetIsFront(e: Enemy): boolean {
   const sheet = resolveEnemySheet(e.kind, e.form)
   const authored = sheet?.manifest.facing
   if (authored === 'front') return true
   if (authored === 'right') return false
-  const fam = enemyFamily(e.kind)
-  if (fam === 'pea') return variantTone(e.kind) === 'mud'
-  return (CHAOS.pace.frontFamilies as readonly string[]).includes(fam)
+  if (sheet && LEGACY_FRONT_SHEETS.has(sheet.id)) return true
+  return (CHAOS.pace.frontFamilies as readonly string[]).includes(enemyFamily(e.kind))
 }
 
 /**
