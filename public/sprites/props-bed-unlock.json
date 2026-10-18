@@ -61,7 +61,7 @@
    "loop": false,
    "anchor": {
     "x": 0.5,
-    "y": 0.0625
+    "y": 0.22395833333333334
    },
    "frames": [
     {
@@ -158,7 +158,7 @@
    "loop": false,
    "anchor": {
     "x": 0.5,
-    "y": 0
+    "y": 0.22395833333333334
    },
    "frames": [
     {
@@ -236,11 +236,11 @@
   }
  },
  "meta": {
-  "title": "Bed unlock: gate bursts open, hedge collapses, dust, soil fluff",
+  "title": "Bed unlock: padlock pops, gate swings open, inner fence boards fall flat, dust",
   "drawScale": 0.5,
   "pngFallback": "props-bed-unlock.png",
-  "source": "tools/beds/src/*.jpg (GenerateImage, magenta keyed)",
-  "tool": "tools/beds/build.py",
+  "source": "tools/garden/src/*.jpg (GenerateImage, magenta keyed)",
+  "tool": "tools/garden/build_garden.py",
   "date": "2026-10-18",
   "cells": [
    "gate_unlock_0",
@@ -279,12 +279,12 @@
    "hedge_v_collapse_5",
    "hedge_v_collapse_6",
    "hedge_v_collapse_7",
-   "soil_fluff_0",
-   "soil_fluff_1",
-   "soil_fluff_2",
-   "soil_fluff_3",
-   "soil_fluff_4",
-   "soil_fluff_5"
+   "soil_fluff",
+   "soil_fluff",
+   "soil_fluff",
+   "soil_fluff",
+   "soil_fluff",
+   "soil_fluff"
   ],
   "groundLineY": 280,
   "drawScaleByClip": {
@@ -297,6 +297,6 @@
    "hedge_v_collapse": "600 ms; open f2, collapse_done f7",
    "soil_fluff": "500 ms; fluff f0, fluff_done f5"
   },
-  "note": "On unlock: play gate_unlock on the gate; on its `open` event start hedge_*_collapse on every hedge segment, staggered 30-40 ms per segment outward from the gate, spawn 3-5 soil_fluff bursts across the bed (staggered 60 ms) and fade the locked shade + overgrowth out over ~400 ms. Clear the collision on `open`."
+  "note": "On unlock: play gate_unlock on the gate; on its `open` event start hedge_*_collapse on every hedge segment, staggered 30-40 ms per segment outward from the gate, spawn 3-5 soil_fluff bursts across the bed (staggered 60 ms) and fade the locked shade + overgrowth out over ~400 ms. Clear the collision on `open`. garden v1: same clips/timing/events; the gate leaf swings open toward the viewer, the padlock is flung to +x, the chain whips to -x, and the inner fence bays fall flat with dust and wood chips."
  }
 }

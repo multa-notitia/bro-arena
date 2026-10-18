@@ -8,6 +8,7 @@ import {
   bedById,
   bedMouth,
   boundsOf,
+  plotBounds,
   type BedBounds,
   type BedDef,
   type BedId,
@@ -123,9 +124,13 @@ export function tickBeds(world: World, dt: number): boolean {
   return true
 }
 
+/** How far the camera may look past an open outer edge, so the wooden fence stays in frame. */
+const FENCE_PEEK = 100
+
 /**
  * Walkable rect plus a short peek into any neighbour that is still shut,
- * so the hedge and a strip of locked soil stay in frame.
+ * so the hedge and a strip of locked soil stay in frame. An edge that already
+ * sits on the outer plot also peeks far enough to show the perimeter fence.
  */
 export function cameraLimits(world: World): BedBounds {
   let minX = world.arenaMinX
@@ -154,6 +159,11 @@ export function cameraLimits(world: World): BedBounds {
     if (xOverlap && Math.abs(bottom - minY) < 1.5) minY -= Math.min(BED_PEEK, bed.h)
     if (xOverlap && Math.abs(bed.y - maxY) < 1.5) maxY += Math.min(BED_PEEK, bed.h)
   }
+  const plot = plotBounds()
+  if (minX <= plot.minX + 0.5) minX = plot.minX - FENCE_PEEK
+  if (maxX >= plot.maxX - 0.5) maxX = plot.maxX + FENCE_PEEK
+  if (minY <= plot.minY + 0.5) minY = plot.minY - FENCE_PEEK
+  if (maxY >= plot.maxY - 0.5) maxY = plot.maxY + FENCE_PEEK
   return { minX, maxX, minY, maxY }
 }
 

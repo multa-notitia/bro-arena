@@ -53,6 +53,7 @@ import {
 import { hasClip, resolveEnemySheet } from '../render/chaosSheets.ts'
 import { retainSpawned } from './roster.ts'
 import { clampToArena } from './world.ts'
+import { pushGardenSolids } from './gardenSolids.ts'
 import type { SimCtx } from './world.ts'
 
 export { maxEnemies }
@@ -1475,6 +1476,9 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
       e.vy = damp(e.vy, 0, 8, dt)
       e.x += (e.vx + e.knock.x) * dt
       e.y += (e.vy + e.knock.y) * dt
+      const corpse = pushGardenSolids(e.x, e.y, e.r)
+      e.x = corpse.x
+      e.y = corpse.y
       if (keepAttack || e.stateT < deathDur + fade) keep.push(e)
       else {
         forgetActor(enemyKey(e))
@@ -1548,7 +1552,8 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
       e.x += (e.vx + e.knock.x) * dt
       e.y += (e.vy + e.knock.y) * dt
     }
-    const c = clampToArena(world, e.x, e.y, e.r)
+    const nudged = pushGardenSolids(e.x, e.y, e.r)
+    const c = clampToArena(world, nudged.x, nudged.y, e.r)
     e.x = c.x
     e.y = c.y
     e.anim.moving = Math.hypot(e.vx, e.vy) > 8

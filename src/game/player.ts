@@ -20,6 +20,7 @@ import { ITEMS } from '../data/items.ts'
 import { computeStats } from '../data/stats.ts'
 import { xpForLevel } from '../data/economy.ts'
 import type { SimCtx } from './world.ts'
+import { pushGardenSolids } from './gardenSolids.ts'
 import { debugHeroWeapons, multiArmSheet, potatoMultiArm, resetMultiArm } from '../render/multiarm.ts'
 import {
   actorClipActive,
@@ -393,8 +394,9 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
 
   player.x += player.vx * dt
   player.y += player.vy * dt
-  player.x = clamp(player.x, world.arenaMinX + player.r, world.arenaMaxX - player.r)
-  player.y = clamp(player.y, world.arenaMinY + player.r, world.arenaMaxY - player.r)
+  const nudged = pushGardenSolids(player.x, player.y, player.r)
+  player.x = clamp(nudged.x, world.arenaMinX + player.r, world.arenaMaxX - player.r)
+  player.y = clamp(nudged.y, world.arenaMinY + player.r, world.arenaMaxY - player.r)
 
   const spd = Math.hypot(player.vx, player.vy)
   anim.moving = spd > 18

@@ -5,6 +5,16 @@ import { bedById } from '../data/beds.ts'
 import { CROPS, CROP_LIST, cropByEnemy, cropUnlockedAt, GARDEN_COL_COUNT, GARDEN_ROW_COUNT, GARDEN_ROWS } from '../data/crops.ts'
 import { FEEL } from '../feel.ts'
 
+/**
+ * Where sown crops come up. Straight, and not a raised bed: the centre
+ * lawn stays clear of furrow props. `bedById('C')` has no rows.
+ */
+const LAWN_ROWS = [
+  { x: 0, y: -64 },
+  { x: 0, y: 0 },
+  { x: 0, y: 64 },
+] as const
+
 export const COL_COUNT = GARDEN_COL_COUNT
 export const ROW_COUNT = GARDEN_ROW_COUNT
 export const PLOT_COUNT = COL_COUNT * ROW_COUNT
@@ -25,7 +35,7 @@ export function starterSeeds(): Record<CropId, number> {
 
 export function createFarm(): Farm {
   const plots: Plot[] = []
-  const rows = bedById('C')?.rows ?? []
+  const rows = bedById('C')?.rows.length ? bedById('C')!.rows : LAWN_ROWS
   for (let r = 0; r < ROW_COUNT; r++) {
     const origin = rows[r] ?? { x: 0, y: 0 }
     for (let c = 0; c < COL_COUNT; c++) {

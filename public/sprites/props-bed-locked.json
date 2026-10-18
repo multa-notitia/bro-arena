@@ -25,7 +25,7 @@
    "loop": true,
    "anchor": {
     "x": 0.5,
-    "y": 0
+    "y": 0.16796875
    },
    "frames": [
     {
@@ -56,7 +56,7 @@
    "loop": true,
    "anchor": {
     "x": 0.5,
-    "y": 0
+    "y": 0.16796875
    },
    "frames": [
     {
@@ -137,11 +137,11 @@
   }
  },
  "meta": {
-  "title": "Locked garden bed: overgrown bramble hedge, padlocked gate, sign, overgrowth overlay",
+  "title": "Locked garden bed: low old wooden inner fence, padlocked gate, sign, overgrowth overlay",
   "drawScale": 0.5,
   "pngFallback": "props-bed-locked.png",
-  "source": "tools/beds/src/*.jpg (GenerateImage, magenta keyed)",
-  "tool": "tools/beds/build.py",
+  "source": "tools/garden/src/*.jpg (GenerateImage, magenta keyed)",
+  "tool": "tools/garden/build_garden.py",
   "date": "2026-10-18",
   "cells": [
    "hedge_h",
@@ -170,6 +170,6 @@
    "overgrowth_q11": 0.5
   },
   "overgrowthHiRes": "overgrowth_q{x}{y}: the same 512 world px tile at 2 cell px/world px, split into 4 cells of 256 world px; tile them as a 2x2 block (x,y in 0..1) or compose once into a 1024 px offscreen canvas and createPattern at 0.5. `overgrowth` is the same tile at 1 px/world px.",
-  "note": "Locked bed = its soil tile darkened (multiply ~0.62, slight blue) + the seamless `overgrowth` tile on top (ground layer) + hedge_h/hedge_v around the perimeter (same anchor conventions as plank_h/plank_v, steps in tileWorldPx; draw over the planks; leave a gap of ~80 world px for the gate) + `gate` (front-on view, so put it on a horizontal edge, preferably the bottom/front edge nearest the open bed) + `sign` beside it. `gate_side` (beds v2) is the same padlocked gate seen edge-on for the LEFT/RIGHT (vertical) edges: anchor = top centre like hedge_v, it spans tileWorldPx.gate_side world px down the edge (post to post), padlock hangs on its +x side; mirror it (scale x -1) on a left edge so the lock faces the bed opening/player side as you prefer. The hedge is ~48 world px tall, so the bed beyond stays visible."
+  "note": "garden v1: hedge_h/hedge_v/gate/gate_side now hold the low old wooden inner fence (40 world px tall) and its padlocked gate; same clip names, same steps (hedge_h 256, hedge_v 174 world px). hedge_v/gate_side anchor = ground base of the TOP post (y=86/512), so the pickets stand up from the edge; the gate is 136 world px wide (fills GATE_GAP) and stands on the ground line. sign and overgrowth* are unchanged."
  }
 }

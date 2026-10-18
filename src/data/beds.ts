@@ -1,17 +1,20 @@
 /**
- * Walkable regions in world px. Origin is the centre of the starting green.
+ * Walkable regions in world px. Origin is the centre of the starting lawn.
  *
- * Starting green C, 1024×768 at (-512, -384). Its three garden rows are
- * spread across that rect (see `rows` on C). You sow those.
+ * Centre C, 1024×768 at (-512, -384), is open lawn. The run starts there.
+ * It is not a garden bed.
  *
- * Six extra beds, each a patch of the same furrow and bed props:
+ * Six beds, each one raised rectangle with three straight rows, centred in
+ * its unlock region. The regions (costs, gates, order) are unchanged:
  *   L1 560×768 at (-1072, -384)     L2 560×768 at (-1632, -384)
  *   R1 560×768 at (512, -384)       R2 560×768 at (1072, -384)
  *   N  1024×448 at (-512, -832)     S  1024×448 at (-512, 384)
  *
- * All seven together span x -1632..1632 and y -832..832.
- * Locked extras use props-bed-locked / props-bed-unlock. N and S use the
+ * Raised beds are 400×240. East mirrors west, south mirrors north.
+ * All seven regions together span x -1632..1632 and y -832..832.
+ * Locked beds use props-bed-locked / props-bed-unlock. N and S use the
  * face-on gate. L and R use gate_side on the inner vertical edge.
+ * A later garden_layout_v2 replaces the raised rectangles.
  */
 
 export type BedId = 'C' | 'L1' | 'L2' | 'R1' | 'R2' | 'N' | 'S'
@@ -22,11 +25,19 @@ export interface GardenRow {
   y: number
 }
 
+export interface RaisedBed {
+  /** Top-left of the soil rectangle, world px. */
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
 export interface BedDef {
   id: BedId
   /** Short label on the shop row. */
   label: string
-  /** Top-left corner, world px. */
+  /** Top-left of the unlockable area, world px. Centre is the open lawn. */
   x: number
   y: number
   w: number
@@ -42,8 +53,28 @@ export interface BedDef {
    * are `gate_side` on a vertical seam (anchor at the top of the gap).
    */
   gate: 'top' | 'bottom' | 'left' | 'right' | null
-  /** Furrow centres. C is the sown rows. The extras are the same props. */
+  /** Soil rectangle. Null on the centre lawn. */
+  raised: RaisedBed | null
+  /** Centres of the straight rows inside `raised`. Empty on the centre lawn. */
   rows: readonly GardenRow[]
+}
+
+const RAISED_W = 400
+const RAISED_H = 240
+
+function raisedIn(x: number, y: number, w: number, h: number): RaisedBed {
+  return {
+    x: x + Math.round((w - RAISED_W) / 2),
+    y: y + Math.round((h - RAISED_H) / 2),
+    w: RAISED_W,
+    h: RAISED_H,
+  }
+}
+
+/** Three horizontal rows, evenly spaced, sharing the bed's centre x. */
+function straightRows(box: RaisedBed): GardenRow[] {
+  const x = box.x + box.w / 2
+  return [1, 2, 3].map((i) => ({ x, y: box.y + Math.round((box.h * i) / 4) }))
 }
 
 /** How far the camera may look into a still-locked neighbour, world px. */
@@ -74,11 +105,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 0,
     gated: '',
     gate: null,
-    rows: [
-      { x: -220, y: -230 },
-      { x: 80, y: 10 },
-      { x: -40, y: 250 },
-    ],
+    raised: null,
+    rows: [],
   },
   {
     id: 'L1',
@@ -91,10 +119,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 12,
     gated: '',
     gate: 'right',
-    rows: [
-      { x: -860, y: -150 },
-      { x: -720, y: 170 },
-    ],
+    raised: raisedIn(-1072, -384, 560, 768),
+    rows: straightRows(raisedIn(-1072, -384, 560, 768)),
   },
   {
     id: 'L2',
@@ -107,10 +133,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 36,
     gated: 'Open the west bed first',
     gate: 'right',
-    rows: [
-      { x: -1420, y: -160 },
-      { x: -1280, y: 150 },
-    ],
+    raised: raisedIn(-1632, -384, 560, 768),
+    rows: straightRows(raisedIn(-1632, -384, 560, 768)),
   },
   {
     id: 'R1',
@@ -123,10 +147,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 12,
     gated: '',
     gate: 'left',
-    rows: [
-      { x: 720, y: -150 },
-      { x: 860, y: 170 },
-    ],
+    raised: raisedIn(512, -384, 560, 768),
+    rows: straightRows(raisedIn(512, -384, 560, 768)),
   },
   {
     id: 'R2',
@@ -139,10 +161,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 36,
     gated: 'Open the east bed first',
     gate: 'left',
-    rows: [
-      { x: 1280, y: -160 },
-      { x: 1420, y: 150 },
-    ],
+    raised: raisedIn(1072, -384, 560, 768),
+    rows: straightRows(raisedIn(1072, -384, 560, 768)),
   },
   {
     id: 'N',
@@ -155,10 +175,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 18,
     gated: '',
     gate: 'bottom',
-    rows: [
-      { x: -240, y: -680 },
-      { x: 220, y: -520 },
-    ],
+    raised: raisedIn(-512, -832, 1024, 448),
+    rows: straightRows(raisedIn(-512, -832, 1024, 448)),
   },
   {
     id: 'S',
@@ -171,10 +189,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 18,
     gated: '',
     gate: 'top',
-    rows: [
-      { x: -200, y: 520 },
-      { x: 240, y: 700 },
-    ],
+    raised: raisedIn(-512, 384, 1024, 448),
+    rows: straightRows(raisedIn(-512, 384, 1024, 448)),
   },
 ]
 

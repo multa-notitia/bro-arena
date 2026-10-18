@@ -1,9 +1,9 @@
 import { clamp } from '../core/math.ts'
 import type { World } from '../core/types.ts'
 import { BEDS, BED_OPEN_AT, BED_SHEET, bedMouth, plotBounds, type BedDef, type BedId } from '../data/beds.ts'
-import { cameraShakeOffset, FEEL } from '../feel.ts'
+import { cameraShakeOffset } from '../feel.ts'
 import { bedPhase, bedRevealAge } from '../game/beds.ts'
-import { cellOrigin, clipDrawScale, clipTileWorldPx, drawNamedClip, drawProp, frameCell, resolveSheet, seekActorClip } from './sheets.ts'
+import { cellOrigin, clipDrawScale, clipTileWorldPx, drawNamedClip, frameCell, resolveSheet, seekActorClip } from './sheets.ts'
 import { BARRIER_CLIPS, BED_BARRIER } from './barrierArt.ts'
 
 /** Used only until the locked sheet has loaded. The live step comes from meta.tileWorldPx. */
@@ -167,14 +167,34 @@ function paint(
   })
 }
 
-function drawStrip(ctx: CanvasRenderingContext2D, x: number, y: number, hi: boolean): void {
-  const scale = FEEL.garden.scale
-  const furrowW = Math.round(613 * scale)
-  const bedW = Math.round(118 * scale)
-  drawProp(ctx, 'prop-furrow', x, y + 6, { width: furrowW, hi })
-  for (const raw of [-210, -70, 70, 210]) {
-    drawProp(ctx, 'prop-bed', x + Math.round(raw * scale), y + 4, { width: bedW, hi })
+/** One soil rectangle and three straight rows. No scattered furrow props. */
+function drawRaised(ctx: CanvasRenderingContext2D, bed: BedDef, hi: boolean): void {
+  const box = bed.raised
+  if (!box) return
+  ctx.save()
+  ctx.fillStyle = 'rgba(36, 22, 12, 0.28)'
+  ctx.fillRect(box.x + 5, box.y + 7, box.w, box.h)
+  ctx.fillStyle = hi ? '#8d6238' : '#7a5230'
+  ctx.fillRect(box.x, box.y, box.w, box.h)
+  ctx.fillStyle = '#8b6240'
+  ctx.fillRect(box.x + 8, box.y + 8, box.w - 16, box.h - 16)
+  ctx.strokeStyle = '#3a2414'
+  ctx.lineWidth = 4
+  ctx.strokeRect(box.x + 2, box.y + 2, box.w - 4, box.h - 4)
+  ctx.strokeStyle = '#cbb892'
+  ctx.lineWidth = 2
+  ctx.strokeRect(box.x + 7, box.y + 7, box.w - 14, box.h - 14)
+  ctx.strokeStyle = 'rgba(48, 28, 14, 0.9)'
+  ctx.lineWidth = 3
+  ctx.lineCap = 'round'
+  const inset = 28
+  for (const row of bed.rows) {
+    ctx.beginPath()
+    ctx.moveTo(box.x + inset, row.y)
+    ctx.lineTo(box.x + box.w - inset, row.y)
+    ctx.stroke()
   }
+  ctx.restore()
 }
 
 function paintShade(ctx: CanvasRenderingContext2D, bed: BedDef): void {
@@ -329,7 +349,7 @@ function hedgeSegs(bed: BedDef): Seg[] {
         collapse: BARRIER_CLIPS.vCollapse,
         x,
         y: tileY,
-        rect: partial ? { x: x - 80, y: a, w: 160, h: Math.max(1, b - a) } : null,
+        rect: partial ? { x: x - 80, y: a - 48, w: 160, h: Math.max(1, b - a) + 48 } : null,
         dist: Math.hypot(x - mouth.x, b - mouth.y),
         sortY: b,
       })
@@ -411,7 +431,7 @@ function drawFluff(bed: BedDef): void {
   }
 }
 
-/** Extra-bed rows, then the hedge around any that are still shut. Centre rows are the farm. */
+/** Raised beds, then the wooden fence around any that are still shut. The centre is lawn. */
 export function drawGardenBeds(ctx: CanvasRenderingContext2D, hi = false): void {
   depth.length = 0
   const plot = plotBounds()
@@ -425,7 +445,7 @@ export function drawGardenBeds(ctx: CanvasRenderingContext2D, hi = false): void 
 
   for (const bed of BEDS) {
     if (bed.cost <= 0) continue
-    for (const row of bed.rows) drawStrip(ctx, row.x, row.y, hi)
+    drawRaised(ctx, bed, hi)
   }
   for (const bed of BEDS) {
     if (bed.cost <= 0) continue

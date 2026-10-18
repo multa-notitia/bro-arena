@@ -144,6 +144,9 @@ export const SHEET_PRELOAD: string[] = [
   'props-bed-locked',
   'props-bed-unlock',
   'props-ground-decals',
+  'props-fence',
+  'props-garden-decor',
+  'props-garden-ground',
 ]
 
 const cache = new Map<string, LoadedSheet>()
@@ -233,6 +236,11 @@ const variantGround: { lo: HTMLImageElement | null; hi: HTMLImageElement | null 
   { lo: null, hi: null },
   { lo: null, hi: null },
 ]
+const lawn: { lo: HTMLImageElement | null; hi: HTMLImageElement | null }[] = [
+  { lo: null, hi: null },
+  { lo: null, hi: null },
+]
+let lawnMown: { lo: HTMLImageElement | null; hi: HTMLImageElement | null } | null = null
 
 let bootDone = false
 
@@ -493,12 +501,18 @@ async function loadGroundPair(id: string): Promise<{ lo: HTMLImageElement | null
 }
 
 async function loadGround(): Promise<void> {
-  const [legacy, ...variants] = await Promise.all([
+  const [legacy, a, b, mown, ...variants] = await Promise.all([
     loadGroundPair('ground-garden'),
+    loadGroundPair('ground-lawn-a'),
+    loadGroundPair('ground-lawn-b'),
+    loadGroundPair('ground-lawn-mown'),
     ...GROUND_VARIANTS.map((name) => loadGroundPair(`ground-garden-${name}`)),
   ])
   ground.lo = legacy?.lo ?? null
   ground.hi = legacy?.hi ?? null
+  lawn[0] = a ?? { lo: null, hi: null }
+  lawn[1] = b ?? { lo: null, hi: null }
+  lawnMown = mown ?? null
   for (let i = 0; i < GROUND_VARIANTS.length; i++) {
     const slot = variants[i]
     if (!slot) continue
@@ -549,6 +563,21 @@ export function gardenGroundVariant(hi: boolean, index: number): HTMLImageElemen
     if (slot.lo) return slot.lo
   }
   return gardenGround(hi)
+}
+
+/** Lawn a (0) or b (1). The live scatter mixes only these two. */
+export function gardenLawn(hi: boolean, variant: 0 | 1): HTMLImageElement | null {
+  const slot = lawn[variant]
+  if (!slot) return null
+  if (hi && slot.hi) return slot.hi
+  return slot.lo
+}
+
+/** Striped lawn for a whole-arena swap. Not mixed into the a/b scatter. */
+export function gardenLawnMown(hi: boolean): HTMLImageElement | null {
+  if (!lawnMown) return null
+  if (hi && lawnMown.hi) return lawnMown.hi
+  return lawnMown.lo
 }
 
 export function chooseClip(

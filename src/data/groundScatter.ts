@@ -29,6 +29,12 @@ export const REFERENCE_PUDDLES = { out: 0.25, inn: 0.2 } as const
  */
 export const LIVE_PUDDLES = { out: 0.2, inn: 0.16 } as const
 
+/**
+ * Tidy garden: the scatter stays, and nothing from it is drawn.
+ * Turn this back on to restore grass, moss, puddles, and the worn path.
+ */
+export const GROUND_DECALS_ON = false
+
 const OUT_SEED = 7919
 const CELL = 130
 const FOOT = 0.42

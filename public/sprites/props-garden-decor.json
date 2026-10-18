@@ -1,0 +1,222 @@
+{
+ "image": "props-garden-decor.webp",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "columns": 6,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.921875
+ },
+ "clips": {
+  "wheelbarrow": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 1000
+    }
+   ]
+  },
+  "compost_bin": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 1,
+     "ms": 1000
+    }
+   ]
+  },
+  "rain_barrel": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 2,
+     "ms": 1000
+    }
+   ]
+  },
+  "watering_can": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 3,
+     "ms": 1000
+    }
+   ]
+  },
+  "birdbath": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 4,
+     "ms": 1000
+    }
+   ]
+  },
+  "shed_corner": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 5,
+     "ms": 1000
+    }
+   ]
+  },
+  "tomato_cage": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 6,
+     "ms": 1000
+    }
+   ]
+  },
+  "bean_teepee": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 7,
+     "ms": 1000
+    }
+   ]
+  },
+  "pot_geranium": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 8,
+     "ms": 1000
+    }
+   ]
+  },
+  "pot_stack": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 9,
+     "ms": 1000
+    }
+   ]
+  },
+  "flower_border": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 10,
+     "ms": 1000
+    }
+   ]
+  },
+  "flower_clump_a": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 11,
+     "ms": 1000
+    }
+   ]
+  },
+  "flower_clump_b": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 12,
+     "ms": 1000
+    }
+   ]
+  },
+  "flower_clump_c": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 13,
+     "ms": 1000
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Garden decor props: wheelbarrow, watering can, compost bin, shed corner, birdbath, tomato cage, bean teepee, rain barrel, flower borders, pots",
+  "drawScale": 0.5,
+  "pngFallback": "props-garden-decor.png",
+  "source": "tools/garden/src/*.jpg (GenerateImage, magenta keyed)",
+  "tool": "tools/garden/build_garden.py",
+  "date": "2026-10-18",
+  "cells": [
+   "wheelbarrow",
+   "compost_bin",
+   "rain_barrel",
+   "watering_can",
+   "birdbath",
+   "shed_corner",
+   "tomato_cage",
+   "bean_teepee",
+   "pot_geranium",
+   "pot_stack",
+   "flower_border",
+   "flower_clump_a",
+   "flower_clump_b",
+   "flower_clump_c"
+  ],
+  "groundLineY": 236,
+  "sizeWorldPx": {
+   "wheelbarrow": [
+    62,
+    54
+   ],
+   "compost_bin": [
+    46,
+    52
+   ],
+   "rain_barrel": [
+    30,
+    46
+   ],
+   "watering_can": [
+    24,
+    22
+   ],
+   "birdbath": [
+    35,
+    44
+   ],
+   "shed_corner": [
+    96,
+    112
+   ],
+   "tomato_cage": [
+    37,
+    50
+   ],
+   "bean_teepee": [
+    58,
+    76
+   ],
+   "pot_geranium": [
+    18,
+    24
+   ],
+   "pot_stack": [
+    18,
+    26
+   ],
+   "flower_border": [
+    120,
+    52
+   ],
+   "flower_clump_a": [
+    46,
+    44
+   ],
+   "flower_clump_b": [
+    46,
+    55
+   ],
+   "flower_clump_c": [
+    46,
+    55
+   ]
+  },
+  "note": "Each clip is one still; anchor = foot of the prop, y-sort by world y. Place on lawn (see garden_layout.json)."
+ }
+}

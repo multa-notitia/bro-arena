@@ -3,7 +3,7 @@
  * frame is a handful of blits under the furrows, hedges, and actors.
  */
 import { BEDS, type BedId } from '../data/beds.ts'
-import { bedAt, scatterDecals, type GroundDecal } from '../data/groundScatter.ts'
+import { bedAt, GROUND_DECALS_ON, scatterDecals, type GroundDecal } from '../data/groundScatter.ts'
 import { clipDrawScale, drawNamedClip, resolveSheet } from './sheets.ts'
 
 const PAD = 160
@@ -105,6 +105,7 @@ export function drawGroundDecals(
   viewW: number,
   viewH: number,
 ): void {
+  if (!GROUND_DECALS_ON) return
   const sheet = resolveSheet([SHEET])
   if (!sheet || sheet.img.naturalWidth < 1) return
   const stamp = sheet.img.naturalWidth + sheet.img.naturalHeight * 4096
