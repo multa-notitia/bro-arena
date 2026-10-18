@@ -122,24 +122,67 @@ function blit(
   ctx.restore()
 }
 
-/** Tight cream outline: dilate sprite alpha in 16 directions, no blur. */
-function paintWithRim(ctx: CanvasRenderingContext2D, paint: () => void): void {
-  const rim = CHAOS.read.heroRimPx
+let rimBake: HTMLCanvasElement | null = null
+let rimBakeCtx: CanvasRenderingContext2D | null = null
+const RIM_BAKE = 384
+
+function rimLayer(): CanvasRenderingContext2D | null {
+  if (!rimBake) {
+    rimBake = document.createElement('canvas')
+    rimBake.width = RIM_BAKE
+    rimBake.height = RIM_BAKE
+    rimBakeCtx = rimBake.getContext('2d')
+  }
+  return rimBakeCtx
+}
+
+/** Tight cream outline: dilate sprite alpha, no blur. */
+function paintWithRim(
+  ctx: CanvasRenderingContext2D,
+  originX: number,
+  originY: number,
+  paint: (c: CanvasRenderingContext2D) => void,
+): void {
+  const g = rimLayer()
+  const bake = rimBake
+  if (!g || !bake) {
+    paint(ctx)
+    return
+  }
   const m = ctx.getTransform()
   const zoom = (Math.hypot(m.a, m.b) + Math.hypot(m.c, m.d)) * 0.5 || 1
-  const o = rim * zoom
-  const col = rgba(CHAOS.read.heroRim, CHAOS.read.heroRimAlpha)
-  const bits: string[] = []
-  const steps = 16
+  const o = CHAOS.read.heroRimPx * zoom
+  const mid = RIM_BAKE * 0.5
+  g.setTransform(1, 0, 0, 1, 0, 0)
+  g.clearRect(0, 0, RIM_BAKE, RIM_BAKE)
+  g.setTransform(
+    m.a,
+    m.b,
+    m.c,
+    m.d,
+    mid - (m.a * originX + m.c * originY),
+    mid - (m.b * originX + m.d * originY),
+  )
+  paint(g)
+  g.setTransform(1, 0, 0, 1, 0, 0)
+  g.globalCompositeOperation = 'source-in'
+  g.fillStyle = CHAOS.read.heroRim
+  g.fillRect(0, 0, RIM_BAKE, RIM_BAKE)
+  g.globalCompositeOperation = 'source-over'
+
+  const sx = m.a * originX + m.c * originY + m.e
+  const sy = m.b * originX + m.d * originY + m.f
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.imageSmoothingEnabled = false
+  ctx.globalAlpha *= CHAOS.read.heroRimAlpha
+  const steps = 8
   for (let i = 0; i < steps; i++) {
     const a = (i / steps) * TAU
-    bits.push(`drop-shadow(${(Math.cos(a) * o).toFixed(2)}px ${(Math.sin(a) * o).toFixed(2)}px 0 ${col})`)
+    ctx.drawImage(bake, sx - mid + Math.cos(a) * o, sy - mid + Math.sin(a) * o)
   }
-  ctx.save()
-  ctx.filter = bits.join(' ')
-  paint()
   ctx.restore()
-  paint()
+  paint(ctx)
 }
 
 function smearTint(id: WeaponId, fallback: string): string {
@@ -922,13 +965,13 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     const clip = pickClip(body, p.anim, { swinging, hurt: actorClipActive('player', 'hurt') })
     const paintFacing: 1 | -1 = arms ? 1 : facing
     const blend = clip && (clip === 'idle' || clip === 'walk') ? locomotionBlend('player') : null
-    const paintHero = () => {
-      ctx.save()
-      ctx.translate(x, y)
-      ctx.rotate(bodyRot)
+    const paintHero = (c: CanvasRenderingContext2D) => {
+      c.save()
+      c.translate(x, y)
+      c.rotate(bodyRot)
       // Side-facing heroes are authored facing right. One scale flips the body
       // and every arm together, so near arms stay in front and far arms stay behind.
-      if (arms) ctx.scale(facing, 1)
+      if (arms) c.scale(facing, 1)
       const paintArms = (which: 'back' | 'front') => {
         if (!arms || !clip) return
         const base = {
@@ -941,18 +984,18 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
           bodyRot,
         }
         if (blend && blend.from !== clip) {
-          drawMultiArm(ctx, which, { ...base, clip: blend.from, alpha: alpha * blend.old })
-          drawMultiArm(ctx, which, { ...base, clip, alpha: alpha * blend.neu })
+          drawMultiArm(c, which, { ...base, clip: blend.from, alpha: alpha * blend.old })
+          drawMultiArm(c, which, { ...base, clip, alpha: alpha * blend.neu })
           return
         }
-        drawMultiArm(ctx, which, { ...base, clip, alpha })
+        drawMultiArm(c, which, { ...base, clip, alpha })
       }
       paintArms('back')
-      if (clip) drawActorSheet(ctx, body, 'player', clip, { r: drawR, facing: paintFacing, alpha })
+      if (clip) drawActorSheet(c, body, 'player', clip, { r: drawR, facing: paintFacing, alpha })
       paintArms('front')
-      ctx.restore()
+      c.restore()
     }
-    paintWithRim(ctx, paintHero)
+    paintWithRim(ctx, x, y, paintHero)
     drawPlayerWeapons(ctx, world, cache, false, held, true)
     drawOrbitWeapons(ctx, world, cache)
     return
