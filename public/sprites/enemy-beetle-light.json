@@ -12,52 +12,52 @@
    "loop": true,
    "frames": [
     {
-     "i": 0,
-     "ms": 69
+     "i": 80,
+     "ms": 80
     },
     {
-     "i": 1,
-     "ms": 69
+     "i": 81,
+     "ms": 80
     },
     {
-     "i": 2,
-     "ms": 69
+     "i": 82,
+     "ms": 80
     },
     {
-     "i": 3,
-     "ms": 69
+     "i": 83,
+     "ms": 80
     },
     {
-     "i": 4,
-     "ms": 69
+     "i": 84,
+     "ms": 80
     },
     {
-     "i": 5,
-     "ms": 69
+     "i": 85,
+     "ms": 80
     },
     {
-     "i": 6,
-     "ms": 69
+     "i": 86,
+     "ms": 80
     },
     {
-     "i": 7,
-     "ms": 69
+     "i": 87,
+     "ms": 80
     },
     {
-     "i": 8,
-     "ms": 68
+     "i": 88,
+     "ms": 60
     },
     {
-     "i": 9,
-     "ms": 90
+     "i": 89,
+     "ms": 60
     },
     {
-     "i": 10,
-     "ms": 75
+     "i": 90,
+     "ms": 80
     },
     {
-     "i": 11,
-     "ms": 75
+     "i": 91,
+     "ms": 80
     }
    ]
   },
@@ -65,52 +65,52 @@
    "loop": true,
    "frames": [
     {
-     "i": 12,
-     "ms": 50
+     "i": 68,
+     "ms": 34
     },
     {
-     "i": 13,
-     "ms": 50
+     "i": 69,
+     "ms": 34
     },
     {
-     "i": 14,
-     "ms": 50
+     "i": 70,
+     "ms": 34
     },
     {
-     "i": 15,
-     "ms": 50
+     "i": 71,
+     "ms": 34
     },
     {
-     "i": 16,
-     "ms": 50
+     "i": 72,
+     "ms": 34
     },
     {
-     "i": 17,
-     "ms": 50
+     "i": 73,
+     "ms": 34
     },
     {
-     "i": 18,
-     "ms": 50
+     "i": 74,
+     "ms": 34
     },
     {
-     "i": 19,
-     "ms": 50
+     "i": 75,
+     "ms": 34
     },
     {
-     "i": 20,
-     "ms": 50
+     "i": 76,
+     "ms": 34
     },
     {
-     "i": 21,
-     "ms": 50
+     "i": 77,
+     "ms": 34
     },
     {
-     "i": 22,
-     "ms": 50
+     "i": 78,
+     "ms": 34
     },
     {
-     "i": 23,
-     "ms": 50
+     "i": 79,
+     "ms": 34
     }
    ]
   },
@@ -118,23 +118,23 @@
    "loop": false,
    "frames": [
     {
-     "i": 24,
+     "i": 96,
      "ms": 40,
      "ox": -2.5,
      "event": "hurt"
     },
     {
-     "i": 25,
+     "i": 97,
      "ms": 30,
      "ox": -2.0
     },
     {
-     "i": 26,
+     "i": 98,
      "ms": 30,
      "ox": -1.5
     },
     {
-     "i": 27,
+     "i": 99,
      "ms": 80,
      "ox": -1.0
     }
@@ -144,18 +144,18 @@
    "loop": false,
    "frames": [
     {
-     "i": 28,
+     "i": 12,
      "ms": 130,
      "ox": -1.5,
      "event": "attack_windup"
     },
     {
-     "i": 29,
+     "i": 13,
      "ms": 90,
      "ox": -3.0
     },
     {
-     "i": 30,
+     "i": 14,
      "ms": 45,
      "ox": 6.0,
      "events": [
@@ -164,12 +164,12 @@
      ]
     },
     {
-     "i": 31,
+     "i": 15,
      "ms": 80,
      "ox": 3.0
     },
     {
-     "i": 32,
+     "i": 16,
      "ms": 110,
      "ox": 1.0,
      "event": "attack_done"
@@ -180,42 +180,42 @@
    "loop": false,
    "frames": [
     {
-     "i": 33,
+     "i": 27,
      "ms": 35
     },
     {
-     "i": 34,
+     "i": 28,
      "ms": 35,
      "oy": -3.0
     },
     {
-     "i": 35,
+     "i": 29,
      "ms": 45,
      "oy": -6.0
     },
     {
-     "i": 36,
+     "i": 30,
      "ms": 45,
      "oy": -3.0
     },
     {
-     "i": 37,
+     "i": 31,
      "ms": 40
     },
     {
-     "i": 38,
+     "i": 32,
      "ms": 40
     },
     {
-     "i": 39,
+     "i": 42,
      "ms": 35
     },
     {
-     "i": 40,
+     "i": 43,
      "ms": 35
     },
     {
-     "i": 41,
+     "i": 44,
      "ms": 90
     }
    ]
@@ -224,25 +224,25 @@
    "loop": false,
    "frames": [
     {
-     "i": 42,
+     "i": 1,
      "ms": 60,
      "ox": -1.0
     },
     {
-     "i": 43,
+     "i": 2,
      "ms": 70
     },
     {
-     "i": 44,
+     "i": 3,
      "ms": 90,
      "event": "spawnFx"
     },
     {
-     "i": 45,
+     "i": 4,
      "ms": 100
     },
     {
-     "i": 46,
+     "i": 5,
      "ms": 1000
     }
    ]
@@ -318,44 +318,107 @@
    "loop": false,
    "frames": [
     {
-     "i": 58,
+     "i": 6,
      "ms": 60,
      "event": "emerge_fx"
     },
     {
-     "i": 59,
+     "i": 7,
      "ms": 70
     },
     {
-     "i": 60,
+     "i": 8,
      "ms": 60
     },
     {
-     "i": 61,
+     "i": 9,
      "ms": 60,
      "oy": -6.3
     },
     {
-     "i": 62,
+     "i": 10,
      "ms": 70,
      "oy": -4.99
     },
     {
-     "i": 63,
+     "i": 11,
      "ms": 70
     },
     {
-     "i": 64,
+     "i": 24,
      "ms": 70
     },
     {
-     "i": 65,
+     "i": 25,
      "ms": 70
     },
     {
-     "i": 0,
+     "i": 26,
      "ms": 90,
      "event": "emerged"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 92,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 93,
+     "ms": 55
+    },
+    {
+     "i": 94,
+     "ms": 40
+    },
+    {
+     "i": 95,
+     "ms": 45,
+     "event": "turn_done"
+    }
+   ]
+  },
+  "bite": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 17,
+     "ms": 50,
+     "event": "bite_windup"
+    },
+    {
+     "i": 18,
+     "ms": 70
+    },
+    {
+     "i": 19,
+     "ms": 40,
+     "events": [
+      "bite_hit",
+      "attack_hit",
+      "hit"
+     ]
+    },
+    {
+     "i": 20,
+     "ms": 40
+    },
+    {
+     "i": 21,
+     "ms": 60
+    },
+    {
+     "i": 22,
+     "ms": 60
+    },
+    {
+     "i": 23,
+     "ms": 80,
+     "event": "bite_done"
     }
    ]
   }
@@ -364,53 +427,53 @@
   "title": "Garden beetle (light, rigged)",
   "source": "parts/beetle_variants_v1.jpg",
   "cells": [
-   "idle0",
-   "idle1",
-   "idle2",
-   "idle3",
-   "idle4",
-   "idle5",
-   "idle6",
-   "idle7",
-   "idle8",
-   "idle9",
-   "idle10",
-   "idle11",
-   "walk0",
-   "walk1",
-   "walk2",
-   "walk3",
-   "walk4",
-   "walk5",
-   "walk6",
-   "walk7",
-   "walk8",
-   "walk9",
-   "walk10",
-   "walk11",
-   "hurt0",
-   "hurt1",
-   "hurt2",
-   "hurt3",
-   "attack0",
-   "attack1",
-   "attack2",
-   "attack3",
-   "attack4",
-   "taunt0",
-   "taunt1",
-   "taunt2",
-   "taunt3",
-   "taunt4",
-   "taunt5",
-   "taunt6",
-   "taunt7",
-   "taunt8",
-   "death0",
-   "death1",
-   "death2",
-   "death3",
-   "death4",
+   "",
+   "death_0",
+   "death_1",
+   "death_2",
+   "death_3",
+   "death_4",
+   "emerge_0",
+   "emerge_1",
+   "emerge_2",
+   "emerge_3",
+   "emerge_4",
+   "emerge_5",
+   "attack_0",
+   "attack_1",
+   "attack_2",
+   "attack_3",
+   "attack_4",
+   "bite_0",
+   "bite_1",
+   "bite_2",
+   "bite_3",
+   "bite_4",
+   "bite_5",
+   "bite_6",
+   "emerge_6",
+   "emerge_7",
+   "emerge_8",
+   "taunt_0",
+   "taunt_1",
+   "taunt_2",
+   "taunt_3",
+   "taunt_4",
+   "taunt_5",
+   "",
+   "",
+   "",
+   "",
+   "",
+   "",
+   "",
+   "",
+   "",
+   "taunt_6",
+   "taunt_7",
+   "taunt_8",
+   "",
+   "",
    "death_slice0",
    "death_slice1",
    "death_slice2",
@@ -422,16 +485,48 @@
    "death_smash_v2_mash",
    "death_smash_v2_spread",
    "death_smash_v2_settle",
-   "emerge0",
-   "emerge1",
-   "emerge2",
-   "emerge3",
-   "emerge4",
-   "emerge5",
-   "emerge6",
-   "emerge7",
+   "",
+   "",
+   "",
+   "",
+   "",
+   "",
+   "",
+   "",
    "death_smash_v2_fade1",
-   "death_smash_v2_fade2"
+   "death_smash_v2_fade2",
+   "walk_0",
+   "walk_1",
+   "walk_2",
+   "walk_3",
+   "walk_4",
+   "walk_5",
+   "walk_6",
+   "walk_7",
+   "walk_8",
+   "walk_9",
+   "walk_10",
+   "walk_11",
+   "idle_0",
+   "idle_1",
+   "idle_2",
+   "idle_3",
+   "idle_4",
+   "idle_5",
+   "idle_6",
+   "idle_7",
+   "idle_8",
+   "idle_9",
+   "idle_10",
+   "idle_11",
+   "turn_0",
+   "turn_1",
+   "turn_2",
+   "turn_3",
+   "hurt_0",
+   "hurt_1",
+   "hurt_2",
+   "hurt_3"
   ],
   "feetY": 117.0,
   "gameRadius": 17,
@@ -448,6 +543,18 @@
    "death_smash": "v2",
    "splat": "red",
    "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "right",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "right",
+   "specials": [
+    "bite",
+    "turn"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   }
  }
 }

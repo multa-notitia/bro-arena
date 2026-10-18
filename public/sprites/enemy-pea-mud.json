@@ -219,7 +219,8 @@
    "frames": [
     {
      "i": 43,
-     "ms": 120
+     "ms": 120,
+     "event": "scream_windup"
     },
     {
      "i": 44,
@@ -232,27 +233,33 @@
     },
     {
      "i": 46,
-     "ms": 70
+     "ms": 70,
+     "ox": 1.6
     },
     {
      "i": 47,
-     "ms": 70
+     "ms": 70,
+     "ox": -1.6
     },
     {
      "i": 48,
-     "ms": 70
+     "ms": 70,
+     "ox": 1.4
     },
     {
      "i": 49,
-     "ms": 70
+     "ms": 70,
+     "ox": -1.4
     },
     {
      "i": 50,
-     "ms": 70
+     "ms": 70,
+     "ox": 1.0
     },
     {
      "i": 51,
-     "ms": 70
+     "ms": 70,
+     "ox": -0.8
     },
     {
      "i": 52,
@@ -260,7 +267,8 @@
     },
     {
      "i": 53,
-     "ms": 70
+     "ms": 70,
+     "event": "scream_done"
     }
    ]
   },
@@ -395,7 +403,8 @@
    "frames": [
     {
      "i": 80,
-     "ms": 110
+     "ms": 150,
+     "event": "leap_windup"
     },
     {
      "i": 81,
@@ -404,7 +413,10 @@
     {
      "i": 82,
      "ms": 60,
-     "event": "takeoff"
+     "events": [
+      "takeoff",
+      "leap_takeoff"
+     ]
     },
     {
      "i": 83,
@@ -429,7 +441,10 @@
     {
      "i": 81,
      "ms": 80,
-     "event": "land"
+     "events": [
+      "leap_land",
+      "land"
+     ]
     },
     {
      "i": 88,
@@ -441,7 +456,8 @@
     },
     {
      "i": 90,
-     "ms": 60
+     "ms": 60,
+     "event": "leap_done"
     }
    ]
   },
@@ -612,6 +628,18 @@
    "death_smash": "v2",
    "splat": "mud",
    "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "front",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "front",
+   "specials": [
+    "leap",
+    "scream"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   }
  }
 }

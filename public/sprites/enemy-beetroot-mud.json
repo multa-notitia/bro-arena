@@ -213,7 +213,8 @@
    "frames": [
     {
      "i": 40,
-     "ms": 120
+     "ms": 120,
+     "event": "scream_windup"
     },
     {
      "i": 41,
@@ -226,23 +227,28 @@
     },
     {
      "i": 43,
-     "ms": 85
+     "ms": 85,
+     "ox": 1.6
     },
     {
      "i": 44,
-     "ms": 85
+     "ms": 85,
+     "ox": -1.6
     },
     {
      "i": 45,
-     "ms": 85
+     "ms": 85,
+     "ox": 1.4
     },
     {
      "i": 46,
-     "ms": 85
+     "ms": 85,
+     "ox": -1.4
     },
     {
      "i": 47,
-     "ms": 70
+     "ms": 70,
+     "ox": 1.0
     },
     {
      "i": 48,
@@ -250,7 +256,8 @@
     },
     {
      "i": 49,
-     "ms": 70
+     "ms": 70,
+     "event": "scream_done"
     }
    ]
   },
@@ -455,6 +462,51 @@
      "ms": 300
     }
    ]
+  },
+  "bite": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 89,
+     "ms": 50,
+     "event": "bite_windup"
+    },
+    {
+     "i": 90,
+     "ms": 70,
+     "ox": -1.0
+    },
+    {
+     "i": 91,
+     "ms": 40,
+     "events": [
+      "bite_hit",
+      "attack_hit",
+      "hit"
+     ],
+     "ox": 3.5
+    },
+    {
+     "i": 92,
+     "ms": 40,
+     "ox": 2.6
+    },
+    {
+     "i": 93,
+     "ms": 60,
+     "ox": 0.8
+    },
+    {
+     "i": 94,
+     "ms": 60,
+     "ox": 0.2
+    },
+    {
+     "i": 95,
+     "ms": 80,
+     "event": "bite_done"
+    }
+   ]
   }
  },
  "meta": {
@@ -549,7 +601,14 @@
    "resurface3",
    "resurface4",
    "resurface5",
-   "resurface6"
+   "resurface6",
+   "bite_0",
+   "bite_1",
+   "bite_2",
+   "bite_3",
+   "bite_4",
+   "bite_5",
+   "bite_6"
   ],
   "feetY": 208.68,
   "gameRadius": 23,
@@ -574,6 +633,18 @@
    "death_smash": "v2",
    "splat": "mud",
    "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "front",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "front",
+   "specials": [
+    "bite",
+    "scream"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   }
  }
 }

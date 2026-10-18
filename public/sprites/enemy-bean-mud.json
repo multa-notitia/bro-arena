@@ -126,7 +126,8 @@
    "frames": [
     {
      "i": 10,
-     "ms": 140
+     "ms": 160,
+     "event": "leap_windup"
     },
     {
      "i": 21,
@@ -136,7 +137,10 @@
     {
      "i": 11,
      "ms": 50,
-     "event": "takeoff"
+     "events": [
+      "takeoff",
+      "leap_takeoff"
+     ]
     },
     {
      "i": 12,
@@ -166,7 +170,10 @@
      "i": 18,
      "ms": 80,
      "ox": -1.6,
-     "event": "land"
+     "events": [
+      "leap_land",
+      "land"
+     ]
     },
     {
      "i": 19,
@@ -175,7 +182,8 @@
     },
     {
      "i": 20,
-     "ms": 90
+     "ms": 90,
+     "event": "leap_done"
     }
    ]
   },
@@ -357,7 +365,8 @@
    "frames": [
     {
      "i": 53,
-     "ms": 140
+     "ms": 140,
+     "event": "scream_windup"
     },
     {
      "i": 54,
@@ -400,7 +409,8 @@
     },
     {
      "i": 59,
-     "ms": 120
+     "ms": 120,
+     "event": "scream_done"
     }
    ]
   },
@@ -456,6 +466,29 @@
      "i": 0,
      "ms": 60,
      "event": "emerged"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 71,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 72,
+     "ms": 40
+    },
+    {
+     "i": 73,
+     "ms": 45
+    },
+    {
+     "i": 74,
+     "ms": 50,
+     "event": "turn_done"
     }
    ]
   }
@@ -534,7 +567,11 @@
    "emerge7",
    "emerge8",
    "emerge9",
-   "death_smash_v2_fade2"
+   "death_smash_v2_fade2",
+   "turn_0",
+   "turn_1",
+   "turn_2",
+   "turn_3"
   ],
   "feetY": 215.28,
   "gameRadius": 19,
@@ -577,6 +614,19 @@
    "death_smash": "v2",
    "splat": "mud",
    "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "right",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "right",
+   "specials": [
+    "leap",
+    "scream",
+    "turn"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   }
  }
 }

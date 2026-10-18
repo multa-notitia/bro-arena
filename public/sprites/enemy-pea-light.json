@@ -414,7 +414,8 @@
    "frames": [
     {
      "i": 86,
-     "ms": 110
+     "ms": 150,
+     "event": "leap_windup"
     },
     {
      "i": 87,
@@ -423,7 +424,10 @@
     {
      "i": 88,
      "ms": 60,
-     "event": "takeoff"
+     "events": [
+      "takeoff",
+      "leap_takeoff"
+     ]
     },
     {
      "i": 89,
@@ -448,7 +452,10 @@
     {
      "i": 94,
      "ms": 80,
-     "event": "land"
+     "events": [
+      "leap_land",
+      "land"
+     ]
     },
     {
      "i": 95,
@@ -460,7 +467,8 @@
     },
     {
      "i": 97,
-     "ms": 60
+     "ms": 60,
+     "event": "leap_done"
     }
    ]
   },
@@ -487,6 +495,29 @@
     {
      "i": 101,
      "ms": 1000
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 74,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 102,
+     "ms": 40
+    },
+    {
+     "i": 103,
+     "ms": 45
+    },
+    {
+     "i": 104,
+     "ms": 50,
+     "event": "turn_done"
     }
    ]
   }
@@ -569,7 +600,7 @@
    "death_smash_v2_settle",
    "death_smash_v2_fade1",
    "death_smash_v2_fade2",
-   "",
+   "turn_0",
    "emerge0",
    "emerge1",
    "emerge2",
@@ -596,7 +627,10 @@
    "pea0",
    "pea1",
    "pea2",
-   "prop_bush0"
+   "prop_bush0",
+   "turn_1",
+   "turn_2",
+   "turn_3"
   ],
   "feetY": 192.16,
   "gameRadius": 14,
@@ -638,6 +672,18 @@
    "death_smash": "v2",
    "splat": "green",
    "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "right",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "right",
+   "specials": [
+    "leap",
+    "turn"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   }
  }
 }

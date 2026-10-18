@@ -218,7 +218,8 @@
    "frames": [
     {
      "i": 43,
-     "ms": 110
+     "ms": 110,
+     "event": "scream_windup"
     },
     {
      "i": 44,
@@ -231,27 +232,33 @@
     },
     {
      "i": 46,
-     "ms": 72
+     "ms": 72,
+     "ox": 1.6
     },
     {
      "i": 47,
-     "ms": 72
+     "ms": 72,
+     "ox": -1.6
     },
     {
      "i": 48,
-     "ms": 72
+     "ms": 72,
+     "ox": 1.4
     },
     {
      "i": 49,
-     "ms": 72
+     "ms": 72,
+     "ox": -1.4
     },
     {
      "i": 50,
-     "ms": 72
+     "ms": 72,
+     "ox": 1.0
     },
     {
      "i": 51,
-     "ms": 70
+     "ms": 70,
+     "ox": -0.8
     },
     {
      "i": 52,
@@ -259,7 +266,8 @@
     },
     {
      "i": 53,
-     "ms": 60
+     "ms": 60,
+     "event": "scream_done"
     }
    ]
   },
@@ -454,6 +462,72 @@
      "event": "emerged"
     }
    ]
+  },
+  "leap": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 91,
+     "ms": 120,
+     "event": "leap_windup"
+    },
+    {
+     "i": 92,
+     "ms": 130,
+     "ox": -0.6
+    },
+    {
+     "i": 93,
+     "ms": 50,
+     "events": [
+      "leap_takeoff",
+      "takeoff"
+     ],
+     "oy": -3
+    },
+    {
+     "i": 94,
+     "ms": 60,
+     "oy": -12
+    },
+    {
+     "i": 95,
+     "ms": 60,
+     "oy": -20
+    },
+    {
+     "i": 96,
+     "ms": 60,
+     "oy": -23
+    },
+    {
+     "i": 97,
+     "ms": 60,
+     "oy": -19
+    },
+    {
+     "i": 98,
+     "ms": 60,
+     "oy": -10
+    },
+    {
+     "i": 99,
+     "ms": 70,
+     "events": [
+      "leap_land",
+      "land"
+     ]
+    },
+    {
+     "i": 100,
+     "ms": 70
+    },
+    {
+     "i": 101,
+     "ms": 90,
+     "event": "leap_done"
+    }
+   ]
   }
  },
  "meta": {
@@ -550,7 +624,18 @@
    "emerge_vine8",
    "emerge_vine9",
    "emerge_vine10",
-   "death_smash_v2_fade2"
+   "death_smash_v2_fade2",
+   "leap_0",
+   "leap_1",
+   "leap_2",
+   "leap_3",
+   "leap_4",
+   "leap_5",
+   "leap_6",
+   "leap_7",
+   "leap_8",
+   "leap_9",
+   "leap_10"
   ],
   "feetY": 201.6,
   "gameRadius": 17,
@@ -575,6 +660,18 @@
    "death_smash": "v2",
    "splat": "mud",
    "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "front",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "front",
+   "specials": [
+    "leap",
+    "scream"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   }
  }
 }

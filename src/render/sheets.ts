@@ -75,6 +75,10 @@ export interface SheetManifest {
   splat?: string
   /** World-px jet origin from the body anchor (onion gas_puff). */
   mouth?: { x: number; y: number }
+  /** Authored view. `right` mirrors on travel; `front` leans instead. */
+  facing?: 'front' | 'right'
+  /** Clip names listed on `meta.behaviors.specials` (leap, bite, scream, turn). */
+  specials?: readonly string[]
 }
 
 export interface LoadedSheet {
@@ -125,6 +129,9 @@ export const SHEET_PRELOAD: string[] = [
   'prop-furrow',
   'prop-bed',
   'props-garden',
+  'props-garden-grow-a',
+  'props-garden-grow-b',
+  'props-garden-grow-c',
   'props-arena',
 ]
 
@@ -316,6 +323,14 @@ function parseManifest(raw: unknown): SheetManifest | null {
     const m = meta.mouth as Record<string, unknown>
     if (typeof m.x === 'number' && typeof m.y === 'number') mouth = { x: m.x, y: m.y }
   }
+  let facing: 'front' | 'right' | undefined
+  const facingRaw = meta && (meta.facing ?? (meta.behaviors as { facing?: unknown } | undefined)?.facing)
+  if (facingRaw === 'front' || facingRaw === 'right') facing = facingRaw
+  let specials: string[] | undefined
+  const beh = meta && meta.behaviors && typeof meta.behaviors === 'object' ? (meta.behaviors as { specials?: unknown }) : null
+  if (beh && Array.isArray(beh.specials)) {
+    specials = beh.specials.filter((s): s is string => typeof s === 'string' && s.length > 0)
+  }
   return {
     image: o.image,
     frameWidth: o.frameWidth,
@@ -329,6 +344,8 @@ function parseManifest(raw: unknown): SheetManifest | null {
     airOffsetY,
     splat,
     mouth,
+    facing,
+    specials,
   }
 }
 

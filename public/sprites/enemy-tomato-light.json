@@ -478,6 +478,72 @@
      "oy": -4.271
     }
    ]
+  },
+  "leap": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 73,
+     "ms": 120,
+     "event": "leap_windup"
+    },
+    {
+     "i": 89,
+     "ms": 130,
+     "ox": -0.6
+    },
+    {
+     "i": 90,
+     "ms": 50,
+     "events": [
+      "leap_takeoff",
+      "takeoff"
+     ],
+     "oy": -3
+    },
+    {
+     "i": 91,
+     "ms": 60,
+     "oy": -12
+    },
+    {
+     "i": 92,
+     "ms": 60,
+     "oy": -20
+    },
+    {
+     "i": 93,
+     "ms": 60,
+     "oy": -23
+    },
+    {
+     "i": 94,
+     "ms": 60,
+     "oy": -19
+    },
+    {
+     "i": 95,
+     "ms": 60,
+     "oy": -10
+    },
+    {
+     "i": 96,
+     "ms": 70,
+     "events": [
+      "leap_land",
+      "land"
+     ]
+    },
+    {
+     "i": 97,
+     "ms": 70
+    },
+    {
+     "i": 98,
+     "ms": 90,
+     "event": "leap_done"
+    }
+   ]
   }
  },
  "meta": {
@@ -557,7 +623,7 @@
    "death_smash_v2_settle",
    "death_smash_v2_fade1",
    "death_smash_v2_fade2",
-   "",
+   "leap_0",
    "emerge0",
    "emerge1",
    "emerge2",
@@ -572,7 +638,17 @@
    "emerge12",
    "emerge13",
    "emerge14",
-   "prop_vine0"
+   "prop_vine0",
+   "leap_1",
+   "leap_2",
+   "leap_3",
+   "leap_4",
+   "leap_5",
+   "leap_6",
+   "leap_7",
+   "leap_8",
+   "leap_9",
+   "leap_10"
   ],
   "feetY": 193.6,
   "gameRadius": 14,
@@ -597,6 +673,17 @@
    "death_smash": "v2",
    "splat": "red",
    "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "front",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "front",
+   "specials": [
+    "leap"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   }
  }
 }

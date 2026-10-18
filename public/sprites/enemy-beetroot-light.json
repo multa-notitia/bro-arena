@@ -645,6 +645,15 @@
    "death_smash": "v2",
    "splat": "purple",
    "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "front",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "front",
+   "specials": [],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   }
  }
 }

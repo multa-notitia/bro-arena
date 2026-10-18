@@ -1,0 +1,653 @@
+{
+ "image": "props-garden-grow-a.webp",
+ "frameWidth": 224,
+ "frameHeight": 192,
+ "columns": 9,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.875
+ },
+ "clips": {
+  "pea_grow1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 40,
+     "events": [
+      "grow_start",
+      "soil_puff"
+     ]
+    },
+    {
+     "i": 1,
+     "ms": 40
+    },
+    {
+     "i": 2,
+     "ms": 40
+    },
+    {
+     "i": 3,
+     "ms": 45
+    },
+    {
+     "i": 4,
+     "ms": 45
+    },
+    {
+     "i": 5,
+     "ms": 50
+    },
+    {
+     "i": 6,
+     "ms": 55
+    },
+    {
+     "i": 7,
+     "ms": 60
+    },
+    {
+     "i": 8,
+     "ms": 65
+    },
+    {
+     "i": 9,
+     "ms": 70
+    },
+    {
+     "i": 10,
+     "ms": 80
+    },
+    {
+     "i": 11,
+     "ms": 90,
+     "event": "grow_done"
+    }
+   ]
+  },
+  "pea_grow2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 12,
+     "ms": 40,
+     "events": [
+      "grow_start"
+     ]
+    },
+    {
+     "i": 13,
+     "ms": 40
+    },
+    {
+     "i": 14,
+     "ms": 40
+    },
+    {
+     "i": 15,
+     "ms": 45
+    },
+    {
+     "i": 16,
+     "ms": 45
+    },
+    {
+     "i": 17,
+     "ms": 50
+    },
+    {
+     "i": 18,
+     "ms": 55
+    },
+    {
+     "i": 19,
+     "ms": 60
+    },
+    {
+     "i": 20,
+     "ms": 65
+    },
+    {
+     "i": 21,
+     "ms": 70
+    },
+    {
+     "i": 22,
+     "ms": 80
+    },
+    {
+     "i": 23,
+     "ms": 90,
+     "event": "grow_done"
+    }
+   ]
+  },
+  "pea_grow3": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 24,
+     "ms": 40,
+     "events": [
+      "grow_start"
+     ]
+    },
+    {
+     "i": 25,
+     "ms": 40
+    },
+    {
+     "i": 26,
+     "ms": 40
+    },
+    {
+     "i": 27,
+     "ms": 45
+    },
+    {
+     "i": 28,
+     "ms": 45
+    },
+    {
+     "i": 29,
+     "ms": 50
+    },
+    {
+     "i": 30,
+     "ms": 55
+    },
+    {
+     "i": 31,
+     "ms": 60
+    },
+    {
+     "i": 32,
+     "ms": 65
+    },
+    {
+     "i": 33,
+     "ms": 70
+    },
+    {
+     "i": 34,
+     "ms": 80
+    },
+    {
+     "i": 35,
+     "ms": 90,
+     "event": "grow_done"
+    }
+   ]
+  },
+  "sprout_grow1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 36,
+     "ms": 40,
+     "events": [
+      "grow_start",
+      "soil_puff"
+     ]
+    },
+    {
+     "i": 37,
+     "ms": 40
+    },
+    {
+     "i": 38,
+     "ms": 40
+    },
+    {
+     "i": 39,
+     "ms": 45
+    },
+    {
+     "i": 40,
+     "ms": 45
+    },
+    {
+     "i": 41,
+     "ms": 50
+    },
+    {
+     "i": 42,
+     "ms": 55
+    },
+    {
+     "i": 43,
+     "ms": 60
+    },
+    {
+     "i": 44,
+     "ms": 65
+    },
+    {
+     "i": 45,
+     "ms": 70
+    },
+    {
+     "i": 46,
+     "ms": 80
+    },
+    {
+     "i": 47,
+     "ms": 90,
+     "event": "grow_done"
+    }
+   ]
+  },
+  "sprout_grow2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 48,
+     "ms": 40,
+     "events": [
+      "grow_start"
+     ]
+    },
+    {
+     "i": 49,
+     "ms": 40
+    },
+    {
+     "i": 50,
+     "ms": 40
+    },
+    {
+     "i": 51,
+     "ms": 45
+    },
+    {
+     "i": 52,
+     "ms": 45
+    },
+    {
+     "i": 53,
+     "ms": 50
+    },
+    {
+     "i": 54,
+     "ms": 55
+    },
+    {
+     "i": 55,
+     "ms": 60
+    },
+    {
+     "i": 56,
+     "ms": 65
+    },
+    {
+     "i": 57,
+     "ms": 70
+    },
+    {
+     "i": 58,
+     "ms": 80
+    },
+    {
+     "i": 59,
+     "ms": 90,
+     "event": "grow_done"
+    }
+   ]
+  },
+  "sprout_grow3": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 60,
+     "ms": 40,
+     "events": [
+      "grow_start"
+     ]
+    },
+    {
+     "i": 61,
+     "ms": 40
+    },
+    {
+     "i": 62,
+     "ms": 40
+    },
+    {
+     "i": 63,
+     "ms": 45
+    },
+    {
+     "i": 64,
+     "ms": 45
+    },
+    {
+     "i": 65,
+     "ms": 50
+    },
+    {
+     "i": 66,
+     "ms": 55
+    },
+    {
+     "i": 67,
+     "ms": 60
+    },
+    {
+     "i": 68,
+     "ms": 65
+    },
+    {
+     "i": 69,
+     "ms": 70
+    },
+    {
+     "i": 70,
+     "ms": 80
+    },
+    {
+     "i": 71,
+     "ms": 90,
+     "event": "grow_done"
+    }
+   ]
+  },
+  "carrot_grow1": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 72,
+     "ms": 40,
+     "events": [
+      "grow_start",
+      "soil_puff"
+     ]
+    },
+    {
+     "i": 73,
+     "ms": 40
+    },
+    {
+     "i": 74,
+     "ms": 40
+    },
+    {
+     "i": 75,
+     "ms": 45
+    },
+    {
+     "i": 76,
+     "ms": 45
+    },
+    {
+     "i": 77,
+     "ms": 50
+    },
+    {
+     "i": 78,
+     "ms": 55
+    },
+    {
+     "i": 79,
+     "ms": 60
+    },
+    {
+     "i": 80,
+     "ms": 65
+    },
+    {
+     "i": 81,
+     "ms": 70
+    },
+    {
+     "i": 82,
+     "ms": 80
+    },
+    {
+     "i": 83,
+     "ms": 90,
+     "event": "grow_done"
+    }
+   ]
+  },
+  "carrot_grow2": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 84,
+     "ms": 40,
+     "events": [
+      "grow_start"
+     ]
+    },
+    {
+     "i": 85,
+     "ms": 40
+    },
+    {
+     "i": 86,
+     "ms": 40
+    },
+    {
+     "i": 87,
+     "ms": 45
+    },
+    {
+     "i": 88,
+     "ms": 45
+    },
+    {
+     "i": 89,
+     "ms": 50
+    },
+    {
+     "i": 90,
+     "ms": 55
+    },
+    {
+     "i": 91,
+     "ms": 60
+    },
+    {
+     "i": 92,
+     "ms": 65
+    },
+    {
+     "i": 93,
+     "ms": 70
+    },
+    {
+     "i": 94,
+     "ms": 80
+    },
+    {
+     "i": 95,
+     "ms": 90,
+     "event": "grow_done"
+    }
+   ]
+  },
+  "carrot_grow3": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 96,
+     "ms": 40,
+     "events": [
+      "grow_start"
+     ]
+    },
+    {
+     "i": 97,
+     "ms": 40
+    },
+    {
+     "i": 98,
+     "ms": 40
+    },
+    {
+     "i": 99,
+     "ms": 45
+    },
+    {
+     "i": 100,
+     "ms": 45
+    },
+    {
+     "i": 101,
+     "ms": 50
+    },
+    {
+     "i": 102,
+     "ms": 55
+    },
+    {
+     "i": 103,
+     "ms": 60
+    },
+    {
+     "i": 104,
+     "ms": 65
+    },
+    {
+     "i": 105,
+     "ms": 70
+    },
+    {
+     "i": 106,
+     "ms": 80
+    },
+    {
+     "i": 107,
+     "ms": 90,
+     "event": "grow_done"
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Garden crop grow transitions (pea, sprout, carrot)",
+  "pngFallback": "props-garden-grow-a.png",
+  "drawScale": 0.25,
+  "soilLineY": 168,
+  "plants": [
+   "pea",
+   "sprout",
+   "carrot"
+  ],
+  "companionOf": "props-garden",
+  "facing": "front",
+  "note": "Play <plant>_grow1 when a plant appears (bare soil -> stage1), _grow2 / _grow3 when it advances; the last frame is pixel-identical to props-garden <plant>_stageN, so switch to stageN/sway on grow_done. Same cell size, anchor and drawScale as props-garden.",
+  "tool": "tools/behaviors/plants_grow.py",
+  "cells": [
+   "pea_grow1_0",
+   "pea_grow1_1",
+   "pea_grow1_2",
+   "pea_grow1_3",
+   "pea_grow1_4",
+   "pea_grow1_5",
+   "pea_grow1_6",
+   "pea_grow1_7",
+   "pea_grow1_8",
+   "pea_grow1_9",
+   "pea_grow1_10",
+   "pea_grow1_11",
+   "pea_grow2_0",
+   "pea_grow2_1",
+   "pea_grow2_2",
+   "pea_grow2_3",
+   "pea_grow2_4",
+   "pea_grow2_5",
+   "pea_grow2_6",
+   "pea_grow2_7",
+   "pea_grow2_8",
+   "pea_grow2_9",
+   "pea_grow2_10",
+   "pea_grow2_11",
+   "pea_grow3_0",
+   "pea_grow3_1",
+   "pea_grow3_2",
+   "pea_grow3_3",
+   "pea_grow3_4",
+   "pea_grow3_5",
+   "pea_grow3_6",
+   "pea_grow3_7",
+   "pea_grow3_8",
+   "pea_grow3_9",
+   "pea_grow3_10",
+   "pea_grow3_11",
+   "sprout_grow1_0",
+   "sprout_grow1_1",
+   "sprout_grow1_2",
+   "sprout_grow1_3",
+   "sprout_grow1_4",
+   "sprout_grow1_5",
+   "sprout_grow1_6",
+   "sprout_grow1_7",
+   "sprout_grow1_8",
+   "sprout_grow1_9",
+   "sprout_grow1_10",
+   "sprout_grow1_11",
+   "sprout_grow2_0",
+   "sprout_grow2_1",
+   "sprout_grow2_2",
+   "sprout_grow2_3",
+   "sprout_grow2_4",
+   "sprout_grow2_5",
+   "sprout_grow2_6",
+   "sprout_grow2_7",
+   "sprout_grow2_8",
+   "sprout_grow2_9",
+   "sprout_grow2_10",
+   "sprout_grow2_11",
+   "sprout_grow3_0",
+   "sprout_grow3_1",
+   "sprout_grow3_2",
+   "sprout_grow3_3",
+   "sprout_grow3_4",
+   "sprout_grow3_5",
+   "sprout_grow3_6",
+   "sprout_grow3_7",
+   "sprout_grow3_8",
+   "sprout_grow3_9",
+   "sprout_grow3_10",
+   "sprout_grow3_11",
+   "carrot_grow1_0",
+   "carrot_grow1_1",
+   "carrot_grow1_2",
+   "carrot_grow1_3",
+   "carrot_grow1_4",
+   "carrot_grow1_5",
+   "carrot_grow1_6",
+   "carrot_grow1_7",
+   "carrot_grow1_8",
+   "carrot_grow1_9",
+   "carrot_grow1_10",
+   "carrot_grow1_11",
+   "carrot_grow2_0",
+   "carrot_grow2_1",
+   "carrot_grow2_2",
+   "carrot_grow2_3",
+   "carrot_grow2_4",
+   "carrot_grow2_5",
+   "carrot_grow2_6",
+   "carrot_grow2_7",
+   "carrot_grow2_8",
+   "carrot_grow2_9",
+   "carrot_grow2_10",
+   "carrot_grow2_11",
+   "carrot_grow3_0",
+   "carrot_grow3_1",
+   "carrot_grow3_2",
+   "carrot_grow3_3",
+   "carrot_grow3_4",
+   "carrot_grow3_5",
+   "carrot_grow3_6",
+   "carrot_grow3_7",
+   "carrot_grow3_8",
+   "carrot_grow3_9",
+   "carrot_grow3_10",
+   "carrot_grow3_11"
+  ]
+ }
+}

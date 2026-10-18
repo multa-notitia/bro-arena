@@ -411,6 +411,95 @@
      "event": "emerged"
     }
    ]
+  },
+  "leap": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 75,
+     "ms": 120,
+     "event": "leap_windup"
+    },
+    {
+     "i": 76,
+     "ms": 130,
+     "ox": -0.6
+    },
+    {
+     "i": 77,
+     "ms": 50,
+     "events": [
+      "leap_takeoff",
+      "takeoff"
+     ],
+     "oy": -3
+    },
+    {
+     "i": 78,
+     "ms": 60,
+     "oy": -12
+    },
+    {
+     "i": 79,
+     "ms": 60,
+     "oy": -20
+    },
+    {
+     "i": 80,
+     "ms": 60,
+     "oy": -23
+    },
+    {
+     "i": 81,
+     "ms": 60,
+     "oy": -19
+    },
+    {
+     "i": 82,
+     "ms": 60,
+     "oy": -10
+    },
+    {
+     "i": 83,
+     "ms": 70,
+     "events": [
+      "leap_land",
+      "land"
+     ]
+    },
+    {
+     "i": 84,
+     "ms": 70
+    },
+    {
+     "i": 85,
+     "ms": 90,
+     "event": "leap_done"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 86,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 87,
+     "ms": 40
+    },
+    {
+     "i": 88,
+     "ms": 45
+    },
+    {
+     "i": 89,
+     "ms": 50,
+     "event": "turn_done"
+    }
+   ]
   }
  },
  "meta": {
@@ -491,7 +580,22 @@
    "emerge4",
    "emerge5",
    "emerge6",
-   "emerge7"
+   "emerge7",
+   "leap_0",
+   "leap_1",
+   "leap_2",
+   "leap_3",
+   "leap_4",
+   "leap_5",
+   "leap_6",
+   "leap_7",
+   "leap_8",
+   "leap_9",
+   "leap_10",
+   "turn_0",
+   "turn_1",
+   "turn_2",
+   "turn_3"
   ],
   "feetY": 191.76,
   "gameRadius": 18,
@@ -508,6 +612,18 @@
    "death_smash": "v2",
    "splat": "orange",
    "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "right",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "right",
+   "specials": [
+    "leap",
+    "turn"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   }
  }
 }

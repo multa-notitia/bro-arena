@@ -169,7 +169,8 @@
    "frames": [
     {
      "i": 30,
-     "ms": 130
+     "ms": 130,
+     "event": "scream_windup"
     },
     {
      "i": 31,
@@ -207,7 +208,8 @@
     },
     {
      "i": 36,
-     "ms": 100
+     "ms": 100,
+     "event": "scream_done"
     }
    ]
   },
@@ -532,6 +534,17 @@
    "death_smash": "v2",
    "splat": "mud",
    "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "front",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "front",
+   "specials": [
+    "scream"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   }
  }
 }

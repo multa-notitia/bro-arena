@@ -44,10 +44,50 @@ const burstingPlots = new Set<number>()
 const swayStarted = new Set<number>()
 let nextJob = 1
 
+const GROW_SHEET: Record<GardenPlant, string> = {
+  pea: 'props-garden-grow-a',
+  sprout: 'props-garden-grow-a',
+  carrot: 'props-garden-grow-a',
+  garlic: 'props-garden-grow-b',
+  pumpkin: 'props-garden-grow-b',
+  chili: 'props-garden-grow-b',
+  tomato: 'props-garden-grow-c',
+  bean: 'props-garden-grow-c',
+  beetroot: 'props-garden-grow-c',
+}
+
+interface GrowPlay {
+  plant: GardenPlant
+  toStage: 1 | 2 | 3
+  clip: string
+  sheetId: string
+}
+
+/** Stage already committed (the sprite sitting in the bed). 0 = bare soil. */
+const shownStage = new Map<number, number>()
+const growing = new Map<number, GrowPlay>()
+
 export function resetGardenPlants(): void {
   jobs.length = 0
   burstingPlots.clear()
   swayStarted.clear()
+  shownStage.clear()
+  growing.clear()
+}
+
+function growthStage(growth: number): 1 | 2 | 3 {
+  if (growth < 0.34) return 1
+  if (growth < 0.67) return 2
+  return 3
+}
+
+function growSheetFor(plant: GardenPlant): LoadedSheet | null {
+  return resolveSheet([GROW_SHEET[plant]])
+}
+
+function hasGrowClip(plant: GardenPlant, stage: 1 | 2 | 3): boolean {
+  const clip = `${plant}_grow${stage}`
+  return !!growSheetFor(plant)?.manifest.clips[clip]
 }
 
 export function gardenSheet(): LoadedSheet | null {
@@ -114,7 +154,50 @@ export function beginPlantBurst(opts: {
   return true
 }
 
+function tickCropGrowth(world: World, dt: number): void {
+  for (const plot of world.farm.plots) {
+    if (!plot.crop) {
+      shownStage.delete(plot.uid)
+      growing.delete(plot.uid)
+      continue
+    }
+    const plant = cropToPlant(plot.crop)
+    const want = growthStage(plot.growth)
+    const job = growing.get(plot.uid)
+    if (job) {
+      const sheet = resolveSheet([job.sheetId])
+      if (!sheet?.manifest.clips[job.clip]) {
+        shownStage.set(plot.uid, job.toStage)
+        growing.delete(plot.uid)
+        continue
+      }
+      const key = `grow:${plot.uid}`
+      const events = advanceActorSheet(key, sheet, job.clip, dt)
+      // Painted clods are the puff. CHAOS.growth crossfade / pop / soilPuff stay off.
+      if (events.includes('grow_done') || actorClipDone(key, job.clip)) {
+        shownStage.set(plot.uid, job.toStage)
+        growing.delete(plot.uid)
+      }
+      continue
+    }
+    const shown = shownStage.get(plot.uid) ?? 0
+    if (want <= shown) continue
+    const next = (shown + 1) as 1 | 2 | 3
+    const clip = `${plant}_grow${next}`
+    const sheet = growSheetFor(plant)
+    if (sheet?.manifest.clips[clip]) {
+      const play: GrowPlay = { plant, toStage: next, clip, sheetId: GROW_SHEET[plant] }
+      growing.set(plot.uid, play)
+      restartActorClip(`grow:${plot.uid}`, clip)
+      continue
+    }
+    if (CHAOS.growth.soilPuff) spawnFunnyClip('dust', plot.x, plot.y + 4, { scale: CHAOS.sheets.drawScale * 0.5 })
+    shownStage.set(plot.uid, want)
+  }
+}
+
 export function tickGardenPlants(world: World, dt: number, spawn: GardenSpawnFn): void {
+  tickCropGrowth(world, dt)
   const sheet = gardenSheet()
   if (!sheet) {
     for (const j of jobs) flushSpawns(j, spawn)
@@ -193,8 +276,20 @@ export function drawPaintedCrop(ctx: CanvasRenderingContext2D, plot: Plot, time:
     return true
   }
   const plant = cropToPlant(plot.crop)
+  const job = growing.get(plot.uid)
+  if (job) {
+    const growSheet = resolveSheet([job.sheetId])
+    if (growSheet?.manifest.clips[job.clip]) {
+      ctx.save()
+      ctx.translate(plot.x, plot.y + 2)
+      drawNamedClip(ctx, growSheet, `grow:${plot.uid}`, job.clip, 0, { scale: gardenDrawScale(), alpha: 1 })
+      ctx.restore()
+      return true
+    }
+  }
   const g = plot.growth
-  const stage = g < 0.34 ? 1 : g < 0.67 ? 2 : 3
+  const stage = hasGrowClip(plant, 1) ? (shownStage.get(plot.uid) ?? 0) : g < 0.34 ? 1 : g < 0.67 ? 2 : 3
+  if (stage < 1) return true
   const grown = stage === 3 && !!sheet.manifest.clips[`${plant}_sway`]
   const clip = grown ? `${plant}_sway` : `${plant}_stage${stage}`
   if (!sheet.manifest.clips[clip]) return false

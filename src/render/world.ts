@@ -9,7 +9,8 @@ import {
   familyClip,
   familyHidden,
 } from '../game/families.ts'
-import { hopHeight, isLeaping } from '../game/leap.ts'
+import { frontWaddle, motionTilt, turnClip } from '../game/facing.ts'
+import { hopHeight, isLeaping, landingShadow, pinLeapSquash, specialClip } from '../game/leap.ts'
 import { cameraShakeOffset, FEEL } from '../feel.ts'
 import type {
   Enemy,
@@ -259,6 +260,23 @@ function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, footpri
   ctx.fillStyle = g
   ctx.beginPath()
   ctx.arc(0, 0, radius, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
+/** Where a leap will come down. A soft dark patch, not a ring. */
+function drawLandingMark(ctx: CanvasRenderingContext2D, x: number, y: number, footprint: number): void {
+  const rx = Math.max(22, footprint * 1.45)
+  const ry = rx * 0.4
+  ctx.save()
+  ctx.translate(x, y + 3)
+  const g = ctx.createRadialGradient(0, 0, ry * 0.2, 0, 0, rx)
+  g.addColorStop(0, 'rgba(6, 4, 2, 0.78)')
+  g.addColorStop(0.5, 'rgba(10, 7, 4, 0.4)')
+  g.addColorStop(1, 'rgba(10, 7, 4, 0)')
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.ellipse(0, 0, rx, ry, 0, 0, TAU)
   ctx.fill()
   ctx.restore()
 }
@@ -634,30 +652,35 @@ function drawEnemy(
     ctx.restore()
   }
   ctx.save()
-  ctx.translate(ox, oy - hop)
+  ctx.translate(ox + (sheet ? frontWaddle(e) : 0), oy - hop)
+  const tilt = sheet ? motionTilt(e) : 0
+  if (tilt) ctx.rotate(tilt)
   if (sheet) {
     const playKey = `e:${e.uid}`
     const dyingSheet = e.state === 'dying' || e.anim.deathT >= 0
     const deathName = corpseClipName(e) ?? (e.corpse && sheet.manifest.clips[e.corpse] ? e.corpse : deathClipName(e))
     const leaping = isLeaping(e) && hasClip(sheet, 'leap')
     const screaming = e.state === 'screaming' && hasClip(sheet, 'scream')
+    const posed = !dyingSheet && !emerging ? specialClip(e) ?? turnClip(e) : null
     const clipRaw = dyingSheet && deathName && sheet.manifest.clips[deathName]
       ? deathName
       : emerging
         ? 'emerge'
-        : leaping
-          ? 'leap'
-          : screaming
-            ? 'scream'
-            : e.perform && sheet.manifest.clips[e.perform]
-              ? e.perform
-              : pickClip(sheet, e.anim, {
+        : posed && sheet.manifest.clips[posed]
+          ? posed
+          : leaping
+            ? 'leap'
+            : screaming
+              ? 'scream'
+              : e.perform && sheet.manifest.clips[e.perform]
+                ? e.perform
+                : pickClip(sheet, e.anim, {
                   attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
                   // Cream hurt cells are solid pale fills. Recoil is squash; keep idle/walk.
                   hurt: false,
                 })
     const clip = familyClip(e, clipRaw)
-    const squash = clamp(e.anim.squash || 1, 0.45, 1.8)
+    const squash = pinLeapSquash(e) ? 1 : clamp(e.anim.squash || 1, 0.45, 1.8)
     ctx.globalAlpha = appear * (1 - (deathName && dyingSheet ? 0 : death))
     ctx.scale(squash, 1 / squash)
     if (clip) {
@@ -1241,6 +1264,16 @@ export function drawWorld(
   drawSmashSplats(ctx, dt)
   ctx.restore()
   if (night) drawWarmPool(ctx, world.player.x, world.player.y)
+  for (let i = 0; i < world.enemies.length; i++) {
+    const e = world.enemies[i]
+    if (!e) continue
+    const aimed = landingShadow(e)
+    if (!aimed) continue
+    const sheet = resolveEnemySheet(e.kind, e.form)
+    const paintR = e.r * crowdPaintScale(e.kind, e.elite, e.boss)
+    const foot = sheet ? actorFootprint(sheet, paintR) : paintR * 1.7
+    drawLandingMark(ctx, aimed.x, aimed.y, foot)
+  }
   drawGasClouds(ctx, dt, world.player.x, world.player.y)
   for (let i = 0; i < world.enemies.length; i++) {
     const e = world.enemies[i]

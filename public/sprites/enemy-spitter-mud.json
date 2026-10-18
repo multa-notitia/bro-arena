@@ -149,7 +149,8 @@
    "frames": [
     {
      "i": 24,
-     "ms": 110
+     "ms": 110,
+     "event": "scream_windup"
     },
     {
      "i": 25,
@@ -193,7 +194,8 @@
     },
     {
      "i": 33,
-     "ms": 80
+     "ms": 80,
+     "event": "scream_done"
     }
    ]
   },
@@ -369,6 +371,74 @@
      "event": "emerged"
     }
    ]
+  },
+  "bite": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 67,
+     "ms": 50,
+     "event": "bite_windup"
+    },
+    {
+     "i": 68,
+     "ms": 70,
+     "ox": -1.0
+    },
+    {
+     "i": 69,
+     "ms": 40,
+     "events": [
+      "bite_hit",
+      "attack_hit",
+      "hit"
+     ],
+     "ox": 3.5
+    },
+    {
+     "i": 70,
+     "ms": 40,
+     "ox": 2.6
+    },
+    {
+     "i": 71,
+     "ms": 60,
+     "ox": 0.8
+    },
+    {
+     "i": 72,
+     "ms": 60,
+     "ox": 0.2
+    },
+    {
+     "i": 73,
+     "ms": 80,
+     "event": "bite_done"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 74,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 75,
+     "ms": 40
+    },
+    {
+     "i": 76,
+     "ms": 45
+    },
+    {
+     "i": 77,
+     "ms": 50,
+     "event": "turn_done"
+    }
+   ]
   }
  },
  "meta": {
@@ -441,7 +511,18 @@
    "emerge9",
    "death_smash_v2_settle",
    "death_smash_v2_fade1",
-   "death_smash_v2_fade2"
+   "death_smash_v2_fade2",
+   "bite_0",
+   "bite_1",
+   "bite_2",
+   "bite_3",
+   "bite_4",
+   "bite_5",
+   "bite_6",
+   "turn_0",
+   "turn_1",
+   "turn_2",
+   "turn_3"
   ],
   "feetY": 230.4,
   "gameRadius": 19,
@@ -458,6 +539,19 @@
    "death_smash": "v2",
    "splat": "mud",
    "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "right",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "right",
+   "specials": [
+    "bite",
+    "scream",
+    "turn"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   }
  }
 }

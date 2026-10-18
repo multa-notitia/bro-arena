@@ -66,6 +66,21 @@ export const CHAOS = {
       pea: 105,
       peaMud: 95,
     } as Record<string, number>,
+    /**
+     * Front-painted families lean and waddle for direction. Beetle is a
+     * side-view crawl now, so it is not in this list. Mud pea is front via
+     * `meta.facing`, not this list.
+     */
+    frontFamilies: ['tomato', 'beetroot', 'onion', 'shroom', 'blob'] as const,
+    /** Horizontal px/s that does not flip facing. */
+    faceDead: 16,
+    /** Seconds a new travel sign must hold before the flip. */
+    faceHold: 0.12,
+    /** Radians of lean into horizontal velocity. Front sheets lean harder. */
+    tiltSide: 0.07,
+    tiltFront: 0.14,
+    /** World px of the front-view step sway. */
+    waddleFront: 2.2,
     /** Brotato wave lengths: +5s through wave 8, 60s mid, 90s finale. */
     waveSeconds: [20, 25, 30, 35, 40, 45, 50, 55, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 90] as const,
     /** Seconds between farm pulses. Wave 1 is readable; later waves densify. */
@@ -311,6 +326,16 @@ export const CHAOS = {
       mother: ['enemy-eliteBlob'],
       lord: ['enemy-beetroot'],
     } as Record<string, string[]>,
+  },
+
+  /**
+   * Procedural plant pop. Skipped when `props-garden-grow-*` has the
+   * `<plant>_growN` clip — that clip is the transition.
+   */
+  growth: {
+    crossfadeMs: 80,
+    popMs: 90,
+    soilPuff: true,
   },
 
   families: {

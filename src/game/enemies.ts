@@ -33,7 +33,8 @@ import {
   tickFamily,
   tickGas,
 } from './families.ts'
-import { isAirborne, isLeaping, leapEvents, maybeLeap } from './leap.ts'
+import { tickFacing, turnClip } from './facing.ts'
+import { isAirborne, isLeaping, maybeLeap, onSpecialEvents, pinLeapSquash, screamIsLeapTell, specialClip, specialOwns } from './leap.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
 import { spawnOnionPuff, spawnSmashSplat } from '../render/smashVfx.ts'
 import {
@@ -790,7 +791,7 @@ function sheetEvents(world: World, e: Enemy, clip: string, events: readonly stri
       popKamikaze(world, e, ctx)
     }
   }
-  if (events.includes('scream') && !ex.screamBurst) {
+  if (events.includes('scream') && !ex.screamBurst && !screamIsLeapTell(e)) {
     ex.screamBurst = true
     fireScreamBurst(world, e, ctx)
     mudRumble(world, e, ctx)
@@ -822,7 +823,19 @@ function sheetEvents(world: World, e: Enemy, clip: string, events: readonly stri
   }
   if (events.includes('gas_puff')) spawnOnionPuff(e)
   if (events.includes('emerge_fx') || events.includes('emerged')) emergeEvents(e, events, ctx)
-  if (events.includes('takeoff') || events.includes('land')) leapEvents(e, events, ctx)
+  if (
+    events.includes('takeoff') ||
+    events.includes('leap_takeoff') ||
+    events.includes('land') ||
+    events.includes('leap_land') ||
+    events.includes('leap_done') ||
+    events.includes('bite_hit') ||
+    events.includes('bite_done') ||
+    events.includes('attack_hit') ||
+    events.includes('hit')
+  ) {
+    onSpecialEvents(world, e, events, ctx)
+  }
   if (events.includes('spawnFx')) {
     if (clip === 'death' || clip === 'death_slice' || clip === 'death_smash' || clip === 'attack') {
       spawnFunnyClip(CHAOS.sheets.pop, e.x, e.y, { scale: CHAOS.sheets.popScale })
@@ -860,27 +873,30 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const screamingClip = e.state === 'screaming' && hasClip(sheet, 'scream')
   const performing = !dead && e.perform && sheet.manifest.clips[e.perform] ? e.perform : ''
   const playAttack = attacking && sheet.manifest.clips.attack && ex.attackHold <= 0
+  const posedClip = !dead && !emerging ? specialClip(e) ?? turnClip(e) : null
   const clipRaw = dead
     ? corpseName && sheet.manifest.clips[corpseName]
       ? corpseName
       : null
     : emerging
       ? 'emerge'
-      : leaping
-        ? 'leap'
-        : screamingClip
-          ? 'scream'
-          : performing
-            ? performing
-            : playAttack
-              ? 'attack'
-              : e.anim.moving && sheet.manifest.clips.walk
-                ? 'walk'
-                : sheet.manifest.clips.idle
-                  ? 'idle'
-                  : sheet.manifest.clips.walk
-                    ? 'walk'
-                    : null
+      : posedClip && sheet.manifest.clips[posedClip]
+        ? posedClip
+        : leaping
+          ? 'leap'
+          : screamingClip
+            ? 'scream'
+            : performing
+              ? performing
+              : playAttack
+                ? 'attack'
+                : e.anim.moving && sheet.manifest.clips.walk
+                  ? 'walk'
+                  : sheet.manifest.clips.idle
+                    ? 'idle'
+                    : sheet.manifest.clips.walk
+                      ? 'walk'
+                      : null
   const clip = familyClip(e, clipRaw)
   if (!clip) return
   presentActorClip(key, clip)
@@ -892,6 +908,8 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
     clip.startsWith('death') ||
     clip === 'emerge' ||
     clip === 'leap' ||
+    clip === 'bite' ||
+    clip === 'taunt' ||
     clip === 'scream' ||
     clip === 'burrow' ||
     clip === 'resurface' ||
@@ -914,6 +932,10 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const b = e.def.behavior
   const p = world.player
   const spd = currentSpeed(e)
+  if (specialOwns(e)) {
+    maybeLeap(world, e, dt, ctx)
+    return
+  }
   if (tickFamily(world, e, dt, ctx)) return
   if (maybeLeap(world, e, dt, ctx)) return
 
@@ -1030,7 +1052,7 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
 
 function canSeparate(e: Enemy): boolean {
   if (e.state === 'dying' || e.state === 'spawning' || e.state === 'charging') return false
-  if (isAirborne(e) || isLeaping(e)) return false
+  if (isAirborne(e)) return false
   return true
 }
 
@@ -1169,7 +1191,7 @@ function pushFromHero(world: World): void {
   for (let i = 0; i < world.enemies.length; i++) {
     const e = world.enemies[i]
     if (!e || e.state === 'dying') continue
-    if (isAirborne(e) || isLeaping(e)) continue
+    if (isAirborne(e)) continue
     let dx = e.x - p.x
     let dy = e.y - p.y
     let d2 = dx * dx + dy * dy
@@ -1400,7 +1422,13 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     } else {
       updateBehavior(world, e, dt, ctx)
     }
-    if (enemySheet(e)) stepEnemySheet(world, e, dt, ctx)
+    if (enemySheet(e)) {
+      const attackAim =
+        !specialOwns(e) && (e.state === 'windup' || e.state === 'shooting' || e.state === 'charging')
+      tickFacing(e, dt, attackAim)
+      if (pinLeapSquash(e)) e.anim.squash = 1
+      stepEnemySheet(world, e, dt, ctx)
+    }
     if (familyHidden(e)) {
       e.knock.x = 0
       e.knock.y = 0
@@ -1416,13 +1444,9 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     if (posed) {
       // Authored clips already bob. Hit-squash is juice, so don't pin it to 1 on a flash.
       e.anim.bob = 0
-      if (e.anim.hitFlash < 0.05 && !isAirborne(e)) {
+      if (pinLeapSquash(e)) e.anim.squash = 1
+      else if (e.anim.hitFlash < 0.05 && !isAirborne(e)) {
         e.anim.squash = damp(e.anim.squash, 1, CHAOS.juice.squashRecover, dt)
-      }
-      if (e.state === 'windup' || e.state === 'shooting' || e.state === 'charging') {
-        if (Math.abs(e.aim.x) + Math.abs(e.aim.y) > 0.01) e.anim.facing = e.aim.x >= 0 ? 1 : -1
-      } else if (Math.abs(e.vx) > 8) {
-        e.anim.facing = e.vx >= 0 ? 1 : -1
       }
       if (e.anim.moving && e.state !== 'windup' && e.state !== 'shooting') {
         ex.footAcc += dt
@@ -1451,7 +1475,8 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
       e.anim.kick.x = 0
       e.anim.kick.y = 0
       e.anim.bob = 0
-      if (e.anim.hitFlash < 0.05 && !isAirborne(e)) {
+      if (pinLeapSquash(e)) e.anim.squash = 1
+      else if (e.anim.hitFlash < 0.05 && !isAirborne(e)) {
         e.anim.squash = damp(e.anim.squash, 1, CHAOS.juice.squashRecover, dt)
       }
     }
