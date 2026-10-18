@@ -1,6 +1,7 @@
 import { clamp, lerp, uid } from '../core/math.ts'
 import type { CropId, EnemyKind, Farm, PlantView, Plot, World } from '../core/types.ts'
 import { CROP_IDS, STARTER_CROP_IDS } from '../core/types.ts'
+import { bedById } from '../data/beds.ts'
 import { CROPS, CROP_LIST, cropByEnemy, cropUnlockedAt, GARDEN_COL_COUNT, GARDEN_ROW_COUNT, GARDEN_ROWS } from '../data/crops.ts'
 import { FEEL } from '../feel.ts'
 
@@ -10,8 +11,7 @@ export const PLOT_COUNT = COL_COUNT * ROW_COUNT
 export const ROW_NAMES = GARDEN_ROWS
 
 const GARDEN_SCALE = FEEL.garden.scale
-const XS = [-210, -70, 70, 210].map((v) => Math.round(v * GARDEN_SCALE))
-const YS = [-150, 48, 218].map((v) => Math.round(v * GARDEN_SCALE))
+const COLS = [-210, -70, 70, 210].map((v) => Math.round(v * GARDEN_SCALE))
 const JITTER_X = Math.round(10 * GARDEN_SCALE)
 const JITTER_Y = Math.round(7 * GARDEN_SCALE)
 
@@ -25,10 +25,12 @@ export function starterSeeds(): Record<CropId, number> {
 
 export function createFarm(): Farm {
   const plots: Plot[] = []
+  const rows = bedById('C')?.rows ?? []
   for (let r = 0; r < ROW_COUNT; r++) {
+    const origin = rows[r] ?? { x: 0, y: 0 }
     for (let c = 0; c < COL_COUNT; c++) {
-      const x = XS[c] ?? 0
-      const y = YS[r] ?? 0
+      const x = origin.x + (COLS[c] ?? 0)
+      const y = origin.y
       plots.push({
         uid: uid(),
         row: r,

@@ -607,6 +607,13 @@
     "turn"
    ],
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "smashV3": {
+   "version": 3,
+   "date": "2026-10-18",
+   "tool": "tools/smash_v3/burst_old.py",
+   "chunks": "death burst re-rendered: organic torn re-cut + painted torn chunks",
+   "note": "clips/frames/ms/events unchanged; see tools/smash_v3/README.md"
   }
  }
 }

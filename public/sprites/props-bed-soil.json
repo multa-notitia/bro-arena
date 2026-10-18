@@ -1,0 +1,254 @@
+{
+ "image": "props-bed-soil.webp",
+ "frameWidth": 512,
+ "frameHeight": 512,
+ "columns": 4,
+ "anchor": {
+  "x": 0,
+  "y": 0
+ },
+ "clips": {
+  "soil_a": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 1000
+    }
+   ]
+  },
+  "soil_b": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 1,
+     "ms": 1000
+    }
+   ]
+  },
+  "soil_c": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 2,
+     "ms": 1000
+    }
+   ]
+  },
+  "row_a": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 3,
+     "ms": 1000
+    }
+   ]
+  },
+  "row_b": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 4,
+     "ms": 1000
+    }
+   ]
+  },
+  "sprout": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 5,
+     "ms": 1000
+    }
+   ]
+  },
+  "stones": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 6,
+     "ms": 1000
+    }
+   ]
+  },
+  "straw": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 7,
+     "ms": 1000
+    }
+   ]
+  },
+  "label": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 8,
+     "ms": 1000
+    }
+   ]
+  },
+  "mound": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 9,
+     "ms": 1000
+    }
+   ]
+  },
+  "clods": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 10,
+     "ms": 1000
+    }
+   ]
+  },
+  "wet": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 11,
+     "ms": 1000
+    }
+   ]
+  },
+  "weed": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 12,
+     "ms": 1000
+    }
+   ]
+  },
+  "row_a_tile": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 13,
+     "ms": 1000
+    }
+   ]
+  },
+  "row_b_tile": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 14,
+     "ms": 1000
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Garden bed soil: 3 seamless tiles + planted rows and decals",
+  "drawScale": 0.5,
+  "pngFallback": "props-bed-soil.png",
+  "source": "tools/beds/src/*.jpg (GenerateImage, magenta keyed)",
+  "tool": "tools/beds/build.py",
+  "date": "2026-10-18",
+  "cells": [
+   "soil_a",
+   "soil_b",
+   "soil_c",
+   "row_a",
+   "row_b",
+   "sprout",
+   "stones",
+   "straw",
+   "label",
+   "mound",
+   "clods",
+   "wet",
+   "weed",
+   "row_a_tile",
+   "row_b_tile"
+  ],
+  "tiles": [
+   "soil_a",
+   "soil_b",
+   "soil_c"
+  ],
+  "tileWorldPx": 256,
+  "groundLayer": [
+   "soil_a",
+   "soil_b",
+   "soil_c",
+   "row_a",
+   "row_b",
+   "sprout",
+   "stones",
+   "straw",
+   "label",
+   "mound",
+   "clods",
+   "wet",
+   "weed",
+   "row_a_tile",
+   "row_b_tile"
+  ],
+  "rowTiles": {
+   "row_a_tile": {
+    "tileAxis": "x",
+    "tileWorldPx": 256
+   },
+   "row_b_tile": {
+    "tileAxis": "x",
+    "tileWorldPx": 256
+   }
+  },
+  "note": "soil_* are seamless 512 px tiles (256 world px at drawScale 0.5); copy the cell into an offscreen canvas and use createPattern. Decals: centre anchor, ground layer."
+ }
+}

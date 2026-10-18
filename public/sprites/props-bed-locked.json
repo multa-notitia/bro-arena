@@ -1,0 +1,95 @@
+{
+ "image": "props-bed-locked.webp",
+ "frameWidth": 512,
+ "frameHeight": 512,
+ "columns": 4,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.625
+ },
+ "clips": {
+  "hedge_h": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.625
+   },
+   "frames": [
+    {
+     "i": 0,
+     "ms": 1000
+    }
+   ]
+  },
+  "hedge_v": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0
+   },
+   "frames": [
+    {
+     "i": 1,
+     "ms": 1000
+    }
+   ]
+  },
+  "gate": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 2,
+     "ms": 1000
+    }
+   ]
+  },
+  "sign": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 3,
+     "ms": 1000
+    }
+   ]
+  },
+  "overgrowth": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0
+   },
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 4,
+     "ms": 1000
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Locked garden bed: overgrown bramble hedge, padlocked gate, sign, overgrowth overlay",
+  "drawScale": 0.5,
+  "pngFallback": "props-bed-locked.png",
+  "source": "tools/beds/src/*.jpg (GenerateImage, magenta keyed)",
+  "tool": "tools/beds/build.py",
+  "date": "2026-10-18",
+  "cells": [
+   "hedge_h",
+   "hedge_v",
+   "gate",
+   "sign",
+   "overgrowth"
+  ],
+  "tileWorldPx": {
+   "hedge_h": 256,
+   "hedge_v": 174,
+   "overgrowth": 256
+  },
+  "groundLineY": 320,
+  "drawScaleByClip": {
+   "overgrowth": 0.5
+  },
+  "note": "Locked bed = its soil tile darkened (multiply ~0.62, slight blue) + the seamless `overgrowth` tile on top (ground layer) + hedge_h/hedge_v around the perimeter (same anchor conventions as plank_h/plank_v, steps in tileWorldPx; draw over the planks; leave a gap of ~80 world px for the gate) + `gate` (front-on view, so put it on a horizontal edge, preferably the bottom/front edge nearest the open bed) + `sign` beside it. The hedge is ~48 world px tall, so the bed beyond stays visible."
+ }
+}

@@ -51,7 +51,7 @@ import { ambushGardenJobs, drawGardenJob } from '../game/garden.ts'
 import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { arenaActorProps, drawArenaGround, drawArenaProp, drawPaintedTree } from '../game/arenaProps.ts'
 import { drawPaddock } from './ground.ts'
-import { drawGardenBeds } from './beds.ts'
+import { drawBedBadges, drawGardenBeds, takeBedDepth } from './beds.ts'
 import { plotBounds } from '../data/beds.ts'
 import { paperColor } from './paintLang.ts'
 import { drawMultiArm, multiArmSheet, potatoMultiArm } from './multiarm.ts'
@@ -1289,7 +1289,8 @@ export function drawWorld(
   const onScreen = (x: number, y: number, pad = 120): boolean =>
     x >= cam.x - hw - pad && x <= cam.x + hw + pad && y >= cam.y - hh - pad && y <= cam.y + hh + pad
   drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale))
-  drawGardenBeds(ctx)
+  drawGardenBeds(ctx, qScale >= 2)
+  const bedDepth = takeBedDepth()
   drawFarmRows(ctx, world.farm.plots, qScale >= 2, world.waveTime)
   drawFarmBeds(ctx, world.farm.plots, qScale >= 2)
   drawArenaGround(ctx, world, dt)
@@ -1359,6 +1360,10 @@ export function drawWorld(
     const p = decor[i]
     if (p && onScreen(p.x, p.y, 140)) pushCmd(p.y, 1, 7, i)
   }
+  for (let i = 0; i < bedDepth.length; i++) {
+    const piece = bedDepth[i]
+    if (piece && onScreen(piece.x, piece.y, 240)) pushCmd(piece.sortY, 2, 8, i)
+  }
 
   const list = cmds.slice(0, cmdN)
   list.sort((a, b) => a.y - b.y)
@@ -1401,6 +1406,8 @@ export function drawWorld(
     } else if (c.kind === 7) {
       const p = decor[c.idx]
       if (p) drawArenaProp(ctx, world, p, dt)
+    } else if (c.kind === 8) {
+      bedDepth[c.idx]?.draw(ctx)
     }
   }
 
@@ -1432,6 +1439,7 @@ export function drawWorld(
   fx.drawScreen(ctx, cssW, cssH)
   drawComboHud(ctx, cssW, cssH, comboCount())
   drawOffscreen(ctx, world, cssW, cssH)
+  drawBedBadges(ctx, world, cssW, cssH)
   vignette(ctx, cssW, cssH, night ? 0.72 : 0.4)
   drawGasOverlay(ctx, cssW, cssH)
   ctx.restore()

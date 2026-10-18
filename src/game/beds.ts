@@ -1,10 +1,12 @@
-import { clamp, lerp } from '../core/math.ts'
+import { clamp } from '../core/math.ts'
 import type { BedOffer, World } from '../core/types.ts'
 import {
+  BED_OPEN_AT,
   BED_PEEK,
   BED_REVEAL_SEC,
   BEDS,
   bedById,
+  bedMouth,
   boundsOf,
   type BedBounds,
   type BedDef,
@@ -26,11 +28,6 @@ interface Reveal {
 
 let reveal: Reveal | null = null
 
-function smooth(t: number): number {
-  const x = clamp(t, 0, 1)
-  return x * x * (3 - 2 * x)
-}
-
 function bedsAllRequested(): boolean {
   if (typeof location === 'undefined') return false
   return new URLSearchParams(location.search).get('beds') === 'all'
@@ -47,15 +44,6 @@ function writeBounds(world: World, b: BedBounds): void {
   world.arenaMaxY = b.maxY
   world.arenaHalfW = Math.max(-b.minX, b.maxX)
   world.arenaHalfH = Math.max(-b.minY, b.maxY)
-}
-
-function lerpBounds(a: BedBounds, b: BedBounds, t: number): BedBounds {
-  return {
-    minX: lerp(a.minX, b.minX, t),
-    maxX: lerp(a.maxX, b.maxX, t),
-    minY: lerp(a.minY, b.minY, t),
-    maxY: lerp(a.maxY, b.maxY, t),
-  }
 }
 
 function beginReveal(): void {
@@ -86,20 +74,33 @@ export function bedRevealActive(): boolean {
   return reveal !== null || pending.length > 0
 }
 
-/** 0 while shut, 1 when the hedge is gone. Queued beds stay shut until their turn. */
+/** 0 while shut, 1 once the gate's `open` event has fired. */
 export function bedOpenAmount(id: BedId): number {
-  if (reveal?.id === id) return smooth(Math.min(1, reveal.t / BED_REVEAL_SEC))
-  return revealed.has(id) ? 1 : 0
+  if (revealed.has(id)) return 1
+  if (reveal?.id === id && reveal.t >= BED_OPEN_AT) return 1
+  return 0
 }
 
 export function revealBedId(): BedId | null {
   return reveal?.id ?? null
 }
 
-/** A wing the player can already walk is open, including the one currently easing. */
+export function bedPhase(id: BedId): 'locked' | 'opening' | 'open' {
+  if (reveal?.id === id) return 'opening'
+  if (revealed.has(id)) return 'open'
+  return 'locked'
+}
+
+/** Elapsed seconds of the bed whose gate is playing. */
+export function bedRevealAge(): { id: BedId; t: number } | null {
+  if (!reveal) return null
+  return { id: reveal.id, t: reveal.t }
+}
+
+/** A wing the player can already walk. Collision clears on `open`, not at the click. */
 export function hasOpenWing(): boolean {
   for (const id of revealed) if (id !== CENTRE) return true
-  return reveal !== null && reveal.id !== CENTRE
+  return reveal !== null && reveal.id !== CENTRE && reveal.t >= BED_OPEN_AT
 }
 
 export function tickBeds(world: World, dt: number): boolean {
@@ -109,14 +110,17 @@ export function tickBeds(world: World, dt: number): boolean {
     return false
   }
   reveal.t += dt
-  const u = smooth(Math.min(1, reveal.t / BED_REVEAL_SEC))
-  writeBounds(world, lerpBounds(reveal.from, reveal.to, u))
   if (reveal.t >= BED_REVEAL_SEC) {
     revealed.add(reveal.id)
     reveal = null
     if (pending.length) beginReveal()
   }
-  return reveal !== null
+  if (!reveal) {
+    writeBounds(world, unionOf(revealed))
+    return false
+  }
+  writeBounds(world, reveal.t >= BED_OPEN_AT ? reveal.to : reveal.from)
+  return true
 }
 
 /**
@@ -128,6 +132,15 @@ export function cameraLimits(world: World): BedBounds {
   let maxX = world.arenaMaxX
   let minY = world.arenaMinY
   let maxY = world.arenaMaxY
+  if (reveal) {
+    const bed = bedById(reveal.id)
+    if (bed) {
+      minX = Math.min(minX, bed.x)
+      maxX = Math.max(maxX, bed.x + bed.w)
+      minY = Math.min(minY, bed.y)
+      maxY = Math.max(maxY, bed.y + bed.h)
+    }
+  }
   const openIds = new Set<BedId>(revealed)
   if (reveal) openIds.add(reveal.id)
   for (const bed of BEDS) {
@@ -152,25 +165,20 @@ export function zoomFloorForArena(world: World, viewW: number, viewH: number): n
   return Math.max(viewW / allowW, viewH / allowH)
 }
 
-/** Camera look-at while a bed is opening. `pull` peaks mid-reveal. */
+/** Look at the gate, or at the inner hedge when the bed has no side gate. */
 export function revealLook(): { x: number; y: number; pull: number } | null {
   if (!reveal) return null
   const bed = bedById(reveal.id)
   if (!bed) return null
-  const u = clamp(reveal.t / BED_REVEAL_SEC, 0, 1)
-  const pull = Math.sin(u * Math.PI) * 0.92
-  const seamX = clamp(0, bed.x, bed.x + bed.w)
-  const seamY = clamp(0, bed.y, bed.y + bed.h)
+  const rise = clamp(reveal.t / 0.16, 0, 1)
+  const fall = clamp((BED_REVEAL_SEC - reveal.t) / 0.28, 0, 1)
+  const mouth = bedMouth(bed)
   const cx = bed.x + bed.w * 0.5
   const cy = bed.y + bed.h * 0.5
-  const dirX = cx - seamX
-  const dirY = cy - seamY
-  const len = Math.hypot(dirX, dirY) || 1
-  const dist = 48 + u * Math.min(bed.w, bed.h) * 0.42
   return {
-    x: seamX + (dirX / len) * dist,
-    y: seamY + (dirY / len) * dist,
-    pull,
+    x: mouth.x + (cx - mouth.x) * 0.22,
+    y: mouth.y + (cy - mouth.y) * 0.16,
+    pull: Math.min(rise, fall),
   }
 }
 
@@ -187,7 +195,7 @@ export function tryBuyBed(world: World, id: string): BedDef | null {
 }
 
 export function bedOffers(materials: number): BedOffer[] {
-  return BEDS.map((bed) => {
+  return BEDS.filter((bed) => bed.cost > 0).map((bed) => {
     if (owned.has(bed.id) || bed.cost <= 0) {
       return {
         id: bed.id,
