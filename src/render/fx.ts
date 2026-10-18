@@ -37,6 +37,7 @@ interface Particle {
   landed: boolean
   mergeId: number
   amount: number
+  stackUnit: number
 }
 
 interface WipeBlob {
@@ -82,6 +83,7 @@ function fresh(): Particle {
     landed: false,
     mergeId: 0,
     amount: 0,
+    stackUnit: 0,
   }
 }
 
@@ -102,6 +104,7 @@ function reset(p: Particle): void {
   p.landed = false
   p.mergeId = 0
   p.amount = 0
+  p.stackUnit = 0
 }
 
 export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): void } {
@@ -345,14 +348,15 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
         for (let i = 0; i < ps.length; i++) {
           const live = ps[i]
           if (!live || live.kind !== 'dmg' || live.mergeId !== mergeId || live.heal || live.dodge) continue
+          if (live.stackUnit !== value) continue
+          if (!!live.crit !== !!opts?.crit || !!live.burn !== !!opts?.burn) continue
           if (live.maxLife - live.life > CHAOS.juice.numberMerge) continue
           live.amount += value
-          live.crit = live.crit || !!opts?.crit
-          live.burn = live.burn || !!opts?.burn
           live.text = String(live.amount)
           live.life = live.maxLife
           live.y = y
           live.x = x
+          live.vy = Math.min(live.vy, -38 - (opts?.crit ? 8 : 0))
           live.size = live.crit ? CHAOS.juice.numberCritSize : CHAOS.juice.numberSize
           return
         }
@@ -373,6 +377,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.burn = !!opts?.burn
       p.mergeId = mergeId
       p.amount = value
+      p.stackUnit = value
       if (p.dodge) p.text = 'dodge'
       else if (p.heal) p.text = `+${value}`
       else p.text = String(value)
@@ -472,7 +477,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.maxLife = 0.16
     },
     dust(x, y, vx = 0, vy = 0) {
-      if (spawnInkClip('dust', x, y, { scale: 0.4 })) return
+      if (spawnInkClip('dust', x, y, { scale: CHAOS.read.dustScale })) return
       for (let i = 0; i < 3; i++) {
         const p = alloc()
         p.kind = 'puff'
@@ -480,9 +485,9 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
         p.y = y
         p.vx = vx * 0.4 + (n01(i, 62) - 0.5) * 18
         p.vy = vy * 0.3 - 10 - n01(i, 63) * 14
-        p.size = 7 + n01(i, 64) * 6
+        p.size = (7 + n01(i, 64) * 6) * CHAOS.read.dustSize
         p.color = '#6a5a48'
-        p.life = 0.28 + n01(i, 65) * 0.18
+        p.life = Math.min(CHAOS.read.dustLife, 0.28 + n01(i, 65) * 0.18)
         p.maxLife = p.life
       }
     },

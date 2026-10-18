@@ -1,6 +1,7 @@
 import { CHAOS } from '../data/chaos.ts'
 
 const counters: Array<() => number> = []
+const dustCounters: Array<() => number> = []
 
 export function isSparkClip(name: string): boolean {
   return name === 'hitSpark' || name === 'stars' || name === 'spark'
@@ -22,6 +23,20 @@ export function sparkCount(): number {
 
 export function sparksFull(): boolean {
   return sparkCount() >= CHAOS.read.sparkCap
+}
+
+export function registerDustCounter(fn: () => number): void {
+  dustCounters.push(fn)
+}
+
+export function dustCount(): number {
+  let n = 0
+  for (let i = 0; i < dustCounters.length; i++) n += dustCounters[i]!()
+  return n
+}
+
+export function dustFull(): boolean {
+  return dustCount() >= CHAOS.read.dustCap
 }
 
 export function nearHeroFx(x: number, y: number, hx: number, hy: number): boolean {

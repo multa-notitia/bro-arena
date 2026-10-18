@@ -90,10 +90,10 @@ export const CHAOS = {
     smearLife: 0.09,
     smearWidth: 3.2,
     smearSpan: 0.9,
-    /** Kill ghost clip. Was a 0.7s white veggie capsule. */
-    ghostLife: 0.16,
+    /** Kill ghost clip. Off: pale veggie / white-fill fallbacks read as silhouettes. */
+    ghostLife: 0,
     ghostScale: 0.55,
-    ghostAlpha: 0.42,
+    ghostAlpha: 0,
     /** Multiplier on contact-shadow strength (not a disc). */
     heroShadow: 1.32,
     /** Separation radius as a fraction of each hit radius. */
@@ -127,6 +127,13 @@ export const CHAOS = {
     coinBob: 1.15,
     /** Magnet pull in world px/s once inside pickup range. */
     coinMagnet: 780,
+    /** Death dust. Prior ink scale 0.4 / 370ms / uncapped covered a third of wave 8. */
+    dustSize: 0.6,
+    dustScale: 0.24,
+    dustLife: 0.45,
+    dustCap: 6,
+    /** Comic POP bursts on screen. */
+    popCap: 3,
   },
 
   director: {
@@ -191,7 +198,7 @@ export const CHAOS = {
     numberSize: 5,
     numberCritSize: 7,
     numberLife: 0.42,
-    numberMerge: 0.16,
+    numberMerge: 0.25,
     traumaHit: 0.06,
     traumaKill: 0.1,
     traumaElite: 0.16,

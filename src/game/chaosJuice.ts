@@ -134,11 +134,6 @@ export function juiceOnKill(world: World, enemy: Enemy, ctx: SimCtx, damage: num
   const color = juiceColorOf(enemy)
   spawnSplatDecal(enemy.x, enemy.y + 6, color, Math.min(CHAOS.juice.splatSize, enemy.r * 0.35))
   spawnFunnyClip(CHAOS.sheets.pop, enemy.x, enemy.y, { scale: CHAOS.sheets.popScale, color })
-  spawnFunnyClip('ghost', enemy.x, enemy.y - 4, {
-    scale: CHAOS.sheets.drawScale * CHAOS.read.ghostScale,
-    color,
-    loopLife: CHAOS.read.ghostLife,
-  })
   const big = elite || enemy.maxHp >= j.bigKillHp || damage >= 22
   if (big) {
     spawnFunnyClip('stars', enemy.x, enemy.y, { scale: CHAOS.sheets.drawScale, color })
@@ -167,7 +162,7 @@ export function chainBurst(world: World, enemy: Enemy, ctx: SimCtx, sourceDamage
     other.anim.squash = CHAOS.juice.squash
     other.knock.x += (other.x - enemy.x) * 0.35
     other.knock.y += (other.y - enemy.y) * 0.35
-    ctx.render.fx.damageNumber(other.x, other.y - other.r - 4, splash)
+    ctx.render.fx.damageNumber(other.x, other.y - other.r - 4, splash, { mergeId: other.uid })
     if (other.hp <= 0) other.hp = 0
   }
 }

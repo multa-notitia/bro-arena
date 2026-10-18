@@ -624,7 +624,8 @@ function drawEnemy(
               ? e.perform
               : pickClip(sheet, e.anim, {
                   attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
-                  hurt: !dyingSheet && actorClipActive(playKey, 'hurt'),
+                  // Cream hurt cells are solid pale fills. Recoil is squash; keep idle/walk.
+                  hurt: false,
                 })
     const clip = familyClip(e, clipRaw)
     const squash = clamp(e.anim.squash || 1, 0.45, 1.8)
@@ -682,15 +683,6 @@ function drawEnemy(
     model,
   })
   ctx.restore()
-  if (e.anim.hitFlash > 0.02 && e.anim.deathT < 0 && e.state !== 'dying') {
-    ctx.save()
-    ctx.globalAlpha = e.anim.hitFlash * 0.65
-    ctx.fillStyle = '#fff6e8'
-    ctx.beginPath()
-    ctx.ellipse(0, 0, e.r * 1.05, e.r * 0.9, 0, 0, TAU)
-    ctx.fill()
-    ctx.restore()
-  }
   if (e.slow > 0) {
     ctx.save()
     ctx.globalCompositeOperation = 'multiply'

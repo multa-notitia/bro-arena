@@ -2,7 +2,7 @@ import { TAU, clamp, hashNoise } from '../core/math.ts'
 import { CHAOS, chaosJuiceOn, chaosOn, fxOn } from '../data/chaos.ts'
 import type { SpawnMarker, Vec } from '../core/types.ts'
 import { drawNamedClip, restartActorClip, resolveSheet, spawnInkClip } from './sheets.ts'
-import { heroBurstAlpha, isSparkClip, nearHeroFx, registerSparkCounter, sparksFull, underHeroClip } from './sparkBudget.ts'
+import { dustFull, heroBurstAlpha, isSparkClip, nearHeroFx, registerDustCounter, registerSparkCounter, sparksFull, underHeroClip } from './sparkBudget.ts'
 
 interface Decal {
   alive: boolean
@@ -40,6 +40,15 @@ registerSparkCounter(() => {
   for (let i = 0; i < bursts.length; i++) {
     const b = bursts[i]
     if (b && b.alive && isSparkClip(b.clip)) n++
+  }
+  return n
+})
+
+registerDustCounter(() => {
+  let n = 0
+  for (let i = 0; i < bursts.length; i++) {
+    const b = bursts[i]
+    if (b && b.alive && b.clip === 'dust') n++
   }
   return n
 })
@@ -124,6 +133,27 @@ export function spawnSplatDecal(x: number, y: number, color: string, size: numbe
   d.id = nextId++
 }
 
+function retireOldestBurst(clip: string): boolean {
+  let oldest: FunnyBurst | null = null
+  for (let i = 0; i < bursts.length; i++) {
+    const live = bursts[i]
+    if (!live || !live.alive || live.clip !== clip) continue
+    if (!oldest || live.t > oldest.t) oldest = live
+  }
+  if (!oldest) return false
+  oldest.alive = false
+  return true
+}
+
+function countBursts(clip: string): number {
+  let n = 0
+  for (let i = 0; i < bursts.length; i++) {
+    const live = bursts[i]
+    if (live && live.alive && live.clip === clip) n++
+  }
+  return n
+}
+
 export function spawnFunnyClip(
   name: string,
   x: number,
@@ -131,6 +161,8 @@ export function spawnFunnyClip(
   opts?: { scale?: number; color?: string; loopLife?: number },
 ): boolean {
   if (!chaosOn()) return false
+  // Pale death ghosts (and the white circle fallback) read as enemy silhouettes.
+  if (name === 'ghost') return false
   const sheet = resolveSheet([CHAOS.sheets.funny])
   const clip = sheet?.manifest.clips[name]
   if (sheet && clip) {
@@ -144,26 +176,40 @@ export function spawnFunnyClip(
       if (oldest) oldest.alive = false
       else return false
     }
+    if (name === 'pop' || name === CHAOS.sheets.pop) {
+      if (countBursts('pop') >= CHAOS.read.popCap && !retireOldestBurst('pop')) return false
+    }
+    if (name === 'dust' && dustFull() && !retireOldestBurst('dust')) return false
     const b = allocBurst()
     const idx = bursts.indexOf(b)
     b.alive = true
     b.clip = name
     b.x = x
     b.y = y
-    b.scale = funnyScale(name, opts?.scale)
+    const size = funnyScale(name, opts?.scale)
+    b.scale = name === 'dust' ? size * CHAOS.read.dustSize : size
     b.color = opts?.color ?? '#fff'
     b.t = 0
     b.loop = clip.loop
     let ms = 0
     for (const f of clip.frames) ms += f.ms
     const lifeScale = isSparkClip(name) ? CHAOS.read.sparkLife : 1
-    b.life = opts?.loopLife ?? Math.max(0.12, (ms / 1000) * lifeScale)
+    let life = opts?.loopLife ?? Math.max(0.12, (ms / 1000) * lifeScale)
+    if (name === 'dust') life = Math.min(life, CHAOS.read.dustLife)
+    b.life = life
     b.key = `fx:${name}:${idx}:${nextId++}`
     restartActorClip(b.key, name)
+    if (name === 'pop' || name === CHAOS.sheets.pop) {
+      while (countBursts('pop') > CHAOS.read.popCap) retireOldestBurst('pop')
+    }
+    if (name === 'dust') {
+      while (countBursts('dust') > CHAOS.read.dustCap) retireOldestBurst('dust')
+    }
     return true
   }
-  if (name === 'mud_erupt' || name === CHAOS.sheets.mudErupt) {
-    if (spawnInkClip('dust', x, y + 4, { scale: opts?.scale ?? 0.5 })) return true
+  if (name === 'dust' || name === 'mud_erupt' || name === CHAOS.sheets.mudErupt) {
+    const scale = opts?.scale ?? (name === 'dust' ? CHAOS.read.dustScale : 0.5)
+    if (spawnInkClip('dust', x, y + 4, { scale })) return true
   }
   if (name === 'pop' || name.startsWith('veg_burst')) {
     if (spawnInkClip('inkBurst', x, y, { scale: opts?.scale ?? 0.5 })) return true
@@ -268,10 +314,9 @@ export function drawFunnyBursts(
     if (!b || !b.alive) continue
     const spark = isSparkClip(b.clip)
     const under = underHeroClip(b.clip)
+    if (b.clip === 'ghost') continue
     if (hero && layer) {
       const close = nearHeroFx(b.x, b.y, hero.x, hero.y)
-      // Kill ghosts and other pale capsules must not sit under the potato.
-      if (b.clip === 'ghost' && close) continue
       if (under) {
         if (layer === 'near' && !close) continue
         if (layer === 'far' && close) continue
@@ -282,7 +327,8 @@ export function drawFunnyBursts(
     const ground = b.clip.startsWith('splat') || b.clip.startsWith('veg_burst') || b.clip === 'mud_erupt' || b.clip === 'mud_hole' || b.clip.startsWith('rustle')
     if (ground && !fxOn('telegraphs')) continue
     let dim = hero && spark ? heroBurstAlpha(b.x, b.y, hero.x, hero.y) : 1
-    if (b.clip === 'ghost') dim *= CHAOS.read.ghostAlpha
+    const u = clamp(b.t / Math.max(0.001, b.life), 0, 1)
+    if (b.clip === 'dust') dim *= 1 - u
     const step = spark ? dt / Math.max(0.2, CHAOS.read.sparkLife) : dt
     if (sheet?.manifest.clips[b.clip]) {
       ctx.save()
@@ -291,17 +337,7 @@ export function drawFunnyBursts(
       ctx.restore()
       if (painted) continue
     }
-    if (ground) continue
-    const u = clamp(b.t / b.life, 0, 1)
-    const fade = 1 - u
-    ctx.save()
-    ctx.globalAlpha = fade * 0.7 * dim
-    ctx.fillStyle = b.color
-    const r = 6 + u * 8
-    ctx.beginPath()
-    ctx.arc(b.x, b.y, r, 0, TAU)
-    ctx.fill()
-    ctx.restore()
+    // Missing clip: skip. A white/pale fill here used to look like an enemy body.
   }
 }
 

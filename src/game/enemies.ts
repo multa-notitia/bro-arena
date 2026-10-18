@@ -36,7 +36,6 @@ import {
 import { isAirborne, isLeaping, leapEvents, maybeLeap } from './leap.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
 import {
-  actorClipActive,
   actorClipDone,
   actorClipFraction,
   advanceActorSheet,
@@ -833,17 +832,8 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const dead = e.state === 'dying' || e.anim.deathT >= 0
   const attacking = e.state === 'windup' || e.state === 'charging' || e.state === 'shooting'
   const key = enemyKey(e)
-  // A killing blow queues a hurt replay before death starts. Swallow it so the
-  // cream hurt cell cannot replace, or restart, the death clip.
-  if (dead) consumeHurtKick(key)
-  const hurtClip = !dead && !!sheet.manifest.clips.hurt
-  // The first hurt cell is a solid cream flash (40 ms). Restarting on every
-  // hit — multi-arm swings, burn ticks — holds that cell, so the blob reads
-  // as a white shape. Let the recovery frames play out.
-  const hurtPlaying = hurtClip && actorClipActive(key, 'hurt')
-  const kicked = hurtClip && consumeHurtKick(key)
-  if (kicked && !hurtPlaying) restartActorClip(key, 'hurt')
-  const hurt = hurtPlaying || kicked
+  // Cream hurt cells are a solid pale fill. Never play them as the body.
+  consumeHurtKick(key)
   const corpseName = dead ? corpseClipName(e) ?? (e.corpse && sheet.manifest.clips[e.corpse] ? e.corpse : 'death') : null
   const emerging = e.state === 'spawning' && hasClip(sheet, 'emerge')
   const leaping = isLeaping(e) && hasClip(sheet, 'leap')
@@ -861,28 +851,16 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
           ? 'scream'
           : performing
             ? performing
-            : hurt
-              ? 'hurt'
-              : attacking && sheet.manifest.clips.attack
-                ? 'attack'
-                : e.anim.moving && sheet.manifest.clips.walk
-                  ? 'walk'
-                  : sheet.manifest.clips.idle
-                    ? 'idle'
-                    : sheet.manifest.clips.walk
-                      ? 'walk'
-                      : null
+            : attacking && sheet.manifest.clips.attack
+              ? 'attack'
+              : e.anim.moving && sheet.manifest.clips.walk
+                ? 'walk'
+                : sheet.manifest.clips.idle
+                  ? 'idle'
+                  : sheet.manifest.clips.walk
+                    ? 'walk'
+                    : null
   const clip = familyClip(e, clipRaw)
-  // Hurt is painted on top, but the attack or scream clock keeps running.
-  if (hurt && attacking && sheet.manifest.clips.attack && clip !== 'attack') {
-    const ev = advanceActorSheet(enemyKey(e), sheet, 'attack', dt)
-    sheetEvents(world, e, 'attack', ev, ctx)
-  }
-  if (hurt && performing && clip !== performing) {
-    const ev = advanceActorSheet(enemyKey(e), sheet, performing, dt)
-    sheetEvents(world, e, performing, ev, ctx)
-    if (actorClipDone(enemyKey(e), performing)) e.perform = undefined
-  }
   if (!clip) return
   presentActorClip(key, clip)
   const walkRate = walkPlaybackRate(Math.hypot(e.vx, e.vy), Math.max(40, e.speed))

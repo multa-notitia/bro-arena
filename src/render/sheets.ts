@@ -32,7 +32,7 @@
 import { clamp, lerp } from '../core/math.ts'
 import { CHAOS } from '../data/chaos.ts'
 import type { AnimState, EnemyKind, Form, ModelDir, Species, Vec } from '../core/types.ts'
-import { heroBurstAlpha, isSparkClip, nearHeroFx, registerSparkCounter, sparksFull, underHeroClip } from './sparkBudget.ts'
+import { dustFull, heroBurstAlpha, isSparkClip, nearHeroFx, registerDustCounter, registerSparkCounter, sparksFull, underHeroClip } from './sparkBudget.ts'
 
 export interface SheetAnchor {
   x: number
@@ -193,6 +193,12 @@ registerSparkCounter(() => {
   for (let i = 0; i < inkBursts.length; i++) {
     if (isSparkClip(inkBursts[i]!.clip)) n++
   }
+  return n
+})
+
+registerDustCounter(() => {
+  let n = 0
+  for (let i = 0; i < inkBursts.length; i++) if (inkBursts[i]?.clip === 'dust') n++
   return n
 })
 
@@ -934,6 +940,22 @@ export function drawProp(
   return true
 }
 
+function retireOldestInk(name: string): boolean {
+  let oldest = -1
+  let worst = -1
+  for (let i = 0; i < inkBursts.length; i++) {
+    const b = inkBursts[i]
+    if (!b || b.clip !== name) continue
+    if (b.elapsed > worst) {
+      worst = b.elapsed
+      oldest = i
+    }
+  }
+  if (oldest < 0) return false
+  inkBursts.splice(oldest, 1)
+  return true
+}
+
 export function spawnInkClip(
   name: string,
   x: number,
@@ -944,28 +966,34 @@ export function spawnInkClip(
   const clip = sheet?.manifest.clips[name]
   if (!sheet || !clip) return false
   if (isSparkClip(name) && sparksFull()) {
-    let oldest = -1
-    let worst = -1
-    for (let i = 0; i < inkBursts.length; i++) {
-      const b = inkBursts[i]
-      if (!b || !isSparkClip(b.clip)) continue
-      if (b.elapsed > worst) {
-        worst = b.elapsed
-        oldest = i
+    if (!retireOldestInk(name === 'hitSpark' ? 'hitSpark' : name)) {
+      let oldest = -1
+      let worst = -1
+      for (let i = 0; i < inkBursts.length; i++) {
+        const b = inkBursts[i]
+        if (!b || !isSparkClip(b.clip)) continue
+        if (b.elapsed > worst) {
+          worst = b.elapsed
+          oldest = i
+        }
       }
+      if (oldest >= 0) inkBursts.splice(oldest, 1)
+      else return false
     }
-    if (oldest >= 0) inkBursts.splice(oldest, 1)
-    else return false
   }
+  if (name === 'dust' && dustFull() && !retireOldestInk('dust')) return false
   if (inkBursts.length >= INK_CAP) inkBursts.shift()
+  const authored = clipDurationMs(clip)
+  const duration = name === 'dust' ? Math.min(authored, CHAOS.read.dustLife * 1000) : authored
+  const scale = name === 'dust' ? (opts?.scale ?? CHAOS.read.dustScale) : (opts?.scale ?? 0.36)
   inkBursts.push({
     clip: name,
     elapsed: 0,
-    duration: clipDurationMs(clip),
+    duration,
     x,
     y,
     angle: opts?.angle ?? 0,
-    scale: opts?.scale ?? 0.36,
+    scale,
     rotate: !!opts?.rotate,
   })
   return true
@@ -1055,7 +1083,11 @@ export function drawInkClips(ctx: CanvasRenderingContext2D, hero?: Vec, layer?: 
     const anchor = clip.anchor ?? sheet.manifest.anchor
     const cell = frameCell(sheet.img, `ink:${b.clip}:${frame.i}`, col * fw, row * fh, fw, fh)
     if (!cell) continue
-    const dim = hero && spark ? heroBurstAlpha(b.x, b.y, hero.x, hero.y) : 1
+    let dim = hero && spark ? heroBurstAlpha(b.x, b.y, hero.x, hero.y) : 1
+    if (b.clip === 'dust') {
+      const u = b.duration > 0 ? clamp(b.elapsed / b.duration, 0, 1) : 1
+      dim *= 1 - u
+    }
     ctx.save()
     ctx.globalAlpha = dim
     ctx.translate(b.x, b.y)
