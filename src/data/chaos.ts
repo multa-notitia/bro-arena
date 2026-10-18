@@ -256,6 +256,18 @@ export const CHAOS = {
     aliases: {
       tomato: ['enemy-tomato'],
       bean: ['enemy-bean'],
+      sprout: ['enemy-pea'],
+      blob: ['enemy-blob'],
+      charger: ['enemy-charger'],
+      spitter: ['enemy-spitter'],
+      wisp: ['enemy-spitter'],
+      runner: ['enemy-charger'],
+      crab: ['enemy-beetle'],
+      brute: ['enemy-beetroot'],
+      eliteBrute: ['enemy-eliteBlob'],
+      hive: ['enemy-shroom'],
+      mother: ['enemy-eliteBlob'],
+      lord: ['enemy-beetroot'],
     } as Record<string, string[]>,
   },
 

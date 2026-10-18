@@ -53,7 +53,7 @@ const EARLY: Pool = [
   ...mix('shroom-light', 'shroom-mud', 10),
   ...mix('bean-light', 'bean-mud', 18),
   ...mix('tomato-light', 'tomato-mud', 10),
-  { kind: 'sprout', weight: 10 },
+  ...mix('pea-light', 'pea-mud', 10),
 ]
 const MID: Pool = [
   ...mix('blob-light', 'blob-mud', 22),
@@ -62,7 +62,7 @@ const MID: Pool = [
   ...mix('shroom-light', 'shroom-mud', 10),
   ...mix('bean-light', 'bean-mud', 16),
   ...mix('tomato-light', 'tomato-mud', 14),
-  { kind: 'sprout', weight: 8 },
+  ...mix('pea-light', 'pea-mud', 8),
 ]
 const LATE: Pool = [
   ...mix('blob-light', 'blob-mud', 14),

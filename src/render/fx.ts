@@ -617,9 +617,10 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
         const p = ps[i]
         if (!p) continue
         const spark = p.kind === 'spark' || p.kind === 'sparkle'
+        const under = spark || p.kind === 'puff'
         if (hero && layer) {
           const close = nearHeroFx(p.x, p.y, hero.x, hero.y)
-          if (spark) {
+          if (under) {
             if (layer === 'near' && !close) continue
             if (layer === 'far' && close) continue
           } else if (layer === 'near') {

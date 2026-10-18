@@ -6,7 +6,7 @@ import type {
   ProjectileDef,
   World,
 } from '../core/types.ts'
-import { ENEMIES, corpseClipFor, enemyFamily, variantTone } from '../data/enemies.ts'
+import { ENEMIES, corpseClipFor, enemyFamily, paintedEnemyKind, variantTone } from '../data/enemies.ts'
 import { enemyDamageAtWave, enemyHpAtWave } from '../data/waves.ts'
 import { damagePlayer, dealDamageToEnemy } from './combat.ts'
 import { dropFromEnemy, enemyMaterialValue } from './pickups.ts'
@@ -157,6 +157,7 @@ export function spawnEnemy(
   fromMarker = false,
 ): Enemy | null {
   if (world.enemies.length >= maxEnemies(world.wave)) return null
+  kind = paintedEnemyKind(kind)
   const def = ENEMIES[kind]
   if (!def) return null
   let hp = enemyHpAtWave(def, world.wave)
@@ -1229,7 +1230,7 @@ function finishScream(world: World, e: Enemy, ctx: SimCtx): void {
   if (e.kind === 'hive' || e.def.species === 'cabbage') {
     for (let i = 0; i < 2; i++) {
       const a = ctx.rng.range(0, Math.PI * 2)
-      spawnEnemy(world, 'blob', e.x + Math.cos(a) * (e.r + 20), e.y + Math.sin(a) * (e.r + 20), ctx, false, e)
+      spawnEnemy(world, 'blob-light', e.x + Math.cos(a) * (e.r + 20), e.y + Math.sin(a) * (e.r + 20), ctx, false, e)
     }
   }
   if (e.boss) {

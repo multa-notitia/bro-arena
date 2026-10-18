@@ -1205,6 +1205,11 @@ export function drawWorld(
   drawChaosFloor(ctx)
   darkenGround(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
   if (night) drawWarmPool(ctx, world.player.x, world.player.y)
+  drawGasClouds(ctx, dt, world.player.x, world.player.y)
+  for (let i = 0; i < world.enemies.length; i++) {
+    const e = world.enemies[i]
+    if (e) drawFamilyGround(ctx, e, world.time)
+  }
 
   cmdN = 0
   for (let i = 0; i < world.trees.length; i++) {
@@ -1248,7 +1253,6 @@ export function drawWorld(
     } else if (c.kind === 3) {
       const e = world.enemies[c.idx]
       if (e) {
-        drawFamilyGround(ctx, e, world.time)
         if (!familyHidden(e)) drawEnemy(ctx, e, cache, world.time)
       }
     } else if (c.kind === 4 && !playerDrawn) {
@@ -1282,7 +1286,6 @@ export function drawWorld(
     if (p) drawProjectile(ctx, p, cache)
   }
 
-  drawGasClouds(ctx, dt)
   tickChaosFx(dt)
   drawFunnyBursts(ctx, dt, world.player, 'far')
   fx.drawWorld(ctx, world.player, 'far')

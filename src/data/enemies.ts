@@ -232,7 +232,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     damage: 1,
     radius: 24,
     materials: 2,
-    behavior: { type: 'spawner', child: 'blob', interval: 4, max: 5 },
+    behavior: { type: 'spawner', child: 'blob-light', interval: 4, max: 5 },
     palette: cabbage,
     paint: 'cabbage',
     knockbackResist: 0.35,
@@ -369,7 +369,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
         { until: 0.34, pattern: 'ring', interval: 2.7 },
         { until: 0, pattern: 'charge', interval: 3.1 },
       ],
-      summon: 'sprout',
+      summon: 'pea-light',
       projectile: MOTHER_ORB,
     },
     palette: marrow,
@@ -398,7 +398,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
         { until: 0.3, pattern: 'charge', interval: 2.6 },
         { until: 0, pattern: 'summon', interval: 3.4 },
       ],
-      summon: 'runner',
+      summon: 'charger-light',
       projectile: LORD_ORB,
     },
     palette: beet,
@@ -618,4 +618,22 @@ export function variantTone(kind: EnemyKind): 'light' | 'mud' | null {
 
 export function enemyFamily(kind: EnemyKind): string {
   return kind.replace(/-(light|mud)$/, '')
+}
+
+/** Bare/legacy kinds the director still names, mapped onto painted sheets. */
+const PAINTED_KIND: Partial<Record<EnemyKind, EnemyKind>> = {
+  sprout: 'pea-light',
+  blob: 'blob-light',
+  charger: 'charger-light',
+  spitter: 'spitter-light',
+  brute: 'beetroot-mud',
+  eliteBrute: 'eliteBlob',
+  wisp: 'spitter-light',
+  runner: 'charger-light',
+  crab: 'beetle-light',
+  hive: 'shroom-light',
+}
+
+export function paintedEnemyKind(kind: EnemyKind): EnemyKind {
+  return PAINTED_KIND[kind] ?? kind
 }

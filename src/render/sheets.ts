@@ -32,7 +32,7 @@
 import { clamp, lerp } from '../core/math.ts'
 import { CHAOS } from '../data/chaos.ts'
 import type { AnimState, EnemyKind, Form, ModelDir, Species, Vec } from '../core/types.ts'
-import { heroBurstAlpha, isSparkClip, nearHeroFx, registerSparkCounter, sparksFull } from './sparkBudget.ts'
+import { heroBurstAlpha, isSparkClip, nearHeroFx, registerSparkCounter, sparksFull, underHeroClip } from './sparkBudget.ts'
 
 export interface SheetAnchor {
   x: number
@@ -1008,9 +1008,10 @@ export function drawInkClips(ctx: CanvasRenderingContext2D, hero?: Vec, layer?: 
   if (!sheet || inkBursts.length === 0) return
   for (const b of inkBursts) {
     const spark = isSparkClip(b.clip)
+    const under = underHeroClip(b.clip)
     if (hero && layer) {
       const close = nearHeroFx(b.x, b.y, hero.x, hero.y)
-      if (spark) {
+      if (under) {
         if (layer === 'near' && !close) continue
         if (layer === 'far' && close) continue
       } else if (layer === 'near') {

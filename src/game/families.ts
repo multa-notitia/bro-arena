@@ -374,13 +374,21 @@ export function drawFamilyGround(ctx: CanvasRenderingContext2D, e: Enemy, time: 
   }
 }
 
-export function drawGasClouds(ctx: CanvasRenderingContext2D, dt: number): void {
+const GAS_CAP = 0.45
+const GAS_NEAR = 0.25
+const GAS_NEAR_PX = 70
+
+export function drawGasClouds(ctx: CanvasRenderingContext2D, dt: number, heroX: number, heroY: number): void {
   for (const c of clouds) {
     const sheet = resolveSheet([c.sheet])
     if (!sheet || !sheet.manifest.clips.gas_cloud) continue
+    const lifeA = Math.min(GAS_CAP, clamp(c.life / Math.max(0.2, c.max), 0, 1) * GAS_CAP)
+    const d = dist(c.x, c.y, heroX, heroY)
+    const t = clamp(d / GAS_NEAR_PX, 0, 1)
+    const a = lifeA * t + GAS_NEAR * (1 - t)
     ctx.save()
     ctx.translate(c.x, c.y)
-    ctx.globalAlpha = clamp(c.life / Math.max(0.2, c.max), 0.25, 0.85)
+    ctx.globalAlpha = a
     if (c.mud) ctx.filter = 'hue-rotate(70deg) saturate(1.2)'
     drawNamedClip(ctx, sheet, c.key, 'gas_cloud', dt, { scale: 0.22, alpha: 1 })
     ctx.filter = 'none'

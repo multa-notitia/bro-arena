@@ -10,9 +10,14 @@ export function applyChaosDemo(world: World): number {
   const wave = chaosDemoWave()
   const farm = world.farm
   farm.unlocked = [...CROP_IDS]
-  farm.seeds = { pea: 12, sprout: 8, carrot: 6, garlic: 4, pumpkin: 0, chili: 0 }
+  farm.seeds = { pea: 12, sprout: 8, carrot: 6, garlic: 4, pumpkin: 4, chili: 0 }
   const early = wave <= 3
-  const cycle = early ? (['pea', 'pea', 'sprout'] as const) : (['pea', 'sprout', 'carrot'] as const)
+  const cycle =
+    wave >= 6
+      ? (['pea', 'sprout', 'carrot', 'pumpkin'] as const)
+      : early
+        ? (['pea', 'pea', 'sprout'] as const)
+        : (['pea', 'sprout', 'carrot'] as const)
   const sow = early ? Math.min(4, farm.plots.length) : Math.min(8, farm.plots.length)
   for (let i = 0; i < farm.plots.length; i++) {
     const plot = farm.plots[i]

@@ -205,7 +205,7 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
       if (t === undefined || world.waveTime < t) break
       d.elitesSpawned += 1
       spawnFromBed(world, ctx, true, 1.15)
-      ctx.ui.banner('Elite', 'The row grew something bigger.', 1400)
+      ctx.ui.banner('Elite', 'The row grew something bigger.', 1500)
     }
 
     if (def.boss && !d.bossSpawned && world.waveTime >= 3) {

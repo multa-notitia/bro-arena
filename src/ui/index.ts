@@ -98,6 +98,10 @@ const SKELETON = `
         <div id="hud-wave" class="wave-name">Wave 1</div>
         <div id="hud-clock" class="wave-clock">0:00</div>
         <div id="hud-row" class="row-label">Fallow</div>
+        <div id="hud-callout" class="hud-callout" hidden>
+          <div id="hud-callout-text" class="hud-callout-text"></div>
+          <div id="hud-callout-sub" class="hud-callout-sub" hidden></div>
+        </div>
         <div id="hud-mud" class="mud-meter" hidden>Mud · <span id="hud-mud-count">0</span></div>
       </div>
       <div id="hud-boss" class="scrap" hidden>
@@ -420,6 +424,9 @@ export function createUi(
   const waveEl = must<HTMLElement>('#hud-wave')
   const clockEl = must<HTMLElement>('#hud-clock')
   const rowEl = must<HTMLElement>('#hud-row')
+  const calloutEl = must<HTMLDivElement>('#hud-callout')
+  const calloutText = must<HTMLElement>('#hud-callout-text')
+  const calloutSub = must<HTMLElement>('#hud-callout-sub')
   const hudSeeds = must<HTMLDivElement>('#hud-seeds')
   const mudMeter = must<HTMLDivElement>('#hud-mud')
   const mudCount = must<HTMLElement>('#hud-mud-count')
@@ -619,6 +626,7 @@ export function createUi(
   let activeOverlay: OverlayId | null = null
   let bannerTimer = 0
   let bannerHideTimer = 0
+  let calloutTimer = 0
   let mutedUi = false
   let juiceUi = false
   let hpDelayFrac = 1
@@ -1547,6 +1555,22 @@ export function createUi(
     },
 
     banner(text: string, sub?: string, ms = 2400): void {
+      if (text === 'Elite') {
+        window.clearTimeout(calloutTimer)
+        calloutText.textContent = text
+        if (sub) {
+          calloutSub.textContent = sub
+          calloutSub.hidden = false
+        } else {
+          calloutSub.textContent = ''
+          calloutSub.hidden = true
+        }
+        calloutEl.hidden = false
+        calloutTimer = window.setTimeout(() => {
+          calloutEl.hidden = true
+        }, ms)
+        return
+      }
       window.clearTimeout(bannerTimer)
       window.clearTimeout(bannerHideTimer)
       bannerText.textContent = text
