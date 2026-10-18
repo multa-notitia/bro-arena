@@ -75,10 +75,10 @@ export const CHAOS = {
   read: {
     /** Draw radius vs the common pea (player.r is still the hit circle). */
     heroScale: 1.15,
-    /** Crisp alpha outline in world px at camera zoom 1. Dilate, no blur. */
-    heroRimPx: 1.5,
+    /** Outline width in screen px. Do not multiply by camera zoom. */
+    heroRimPx: 1,
     heroRim: '#f3e6c4',
-    heroRimAlpha: 0.7,
+    heroRimAlpha: 0.55,
     /** Melee swing smear. Real seconds; a curved stroke, not a pill. */
     smearLife: 0.09,
     smearWidth: 3.2,
@@ -114,8 +114,12 @@ export const CHAOS = {
     heroFxRadius: 60,
     /** Burst alpha next to the hero (40% dim). */
     heroFxAlpha: 0.6,
-    coinScale: 0.75,
+    /** On-screen size vs the 0.17 sheet fit. 0.45 is 60% of the prior 0.75×. */
+    coinScale: 0.45,
     coinSat: 0.72,
+    coinBob: 1.15,
+    /** Magnet pull in world px/s once inside pickup range. */
+    coinMagnet: 780,
   },
 
   director: {

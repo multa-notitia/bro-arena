@@ -161,8 +161,7 @@ function paintWithRim(
   }
   const { body: g, ring: rg } = layers
   const m = ctx.getTransform()
-  const zoom = (Math.hypot(m.a, m.b) + Math.hypot(m.c, m.d)) * 0.5 || 1
-  const o = CHAOS.read.heroRimPx * zoom
+  const o = Math.max(1, CHAOS.read.heroRimPx)
   const mid = RIM_BAKE * 0.5
   g.setTransform(1, 0, 0, 1, 0, 0)
   g.clearRect(0, 0, RIM_BAKE, RIM_BAKE)
@@ -447,12 +446,14 @@ const PICKUP_CLIP: Record<Pickup['type'], string> = {
 function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache, time: number, dt: number): void {
   const sheet = sheetById('pickups')
   const clip = PICKUP_CLIP[p.type]
-  const pr = p.type === 'chest' ? 12 : p.type === 'materialBig' ? 10 : 8
-  const bob = sheet ? Math.sin(p.t * 3.2 + time) * 1.2 : Math.sin(p.t * 3.2 + time) * 3
-  drawShadow(ctx, p.x, p.y + bob + 2, pr * 1.6, 0.75)
+  const coin = p.type === 'material'
+  const pr = p.type === 'chest' ? 12 : p.type === 'materialBig' ? 10 : coin ? 5 : 8
+  const bobAmp = coin ? CHAOS.read.coinBob : sheet ? 1.2 : 3
+  const bob = Math.sin(p.t * (coin ? 2.4 : 3.2) + time) * bobAmp
+  drawShadow(ctx, p.x, p.y + bob + 2, pr * 1.6, coin ? 0.45 : 0.75)
   ctx.save()
   ctx.translate(p.x, p.y + bob)
-  if (p.magnet) {
+  if (p.magnet && !coin) {
     const ang = Math.atan2(p.vy, p.vx)
     const spd = Math.hypot(p.vx, p.vy)
     ctx.rotate(ang)
@@ -460,12 +461,13 @@ function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache
     ctx.scale(stretch, 1 / Math.sqrt(stretch))
   }
   let scale = p.type === 'chest' ? 0.22 : p.type === 'materialBig' ? 0.2 : 0.17
-  const coin = p.type === 'material'
   if (coin) {
     scale *= CHAOS.read.coinScale
     ctx.filter = `saturate(${CHAOS.read.coinSat})`
   }
-  if (!sheet || !drawNamedClip(ctx, sheet, `pick:${p.uid}`, clip, dt, { scale })) {
+  // Coins stay on the face-on cell (dt 0). The authored clip flips edge-on.
+  const step = coin ? 0 : dt
+  if (!sheet || !drawNamedClip(ctx, sheet, `pick:${p.uid}`, clip, step, { scale })) {
     const spr = pickupSprite(cache, p.type, qScale, p.crop)
     const sc = p.type === 'chest' ? 0.85 : p.type === 'materialBig' ? 0.95 : coin ? 0.72 * CHAOS.read.coinScale : 0.72
     blit(ctx, spr, sc)

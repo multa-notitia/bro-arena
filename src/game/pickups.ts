@@ -204,12 +204,13 @@ export function updatePickups(world: World, dt: number, ctx: SimCtx): void {
       const dx = player.x - p.x
       const dy = player.y - p.y
       const d = Math.hypot(dx, dy) || 1
-      const pull = 90 + p.t * 520
+      const coin = p.type === 'material' || p.type === 'materialBig'
+      const pull = coin ? CHAOS.read.coinMagnet + (1 - clamp(d / range, 0, 1)) * 420 : 90 + p.t * 520
       p.vx = (dx / d) * pull
       p.vy = (dy / d) * pull
       p.x += p.vx * dt
       p.y += p.vy * dt
-      if (d < 26) {
+      if (d < (coin ? 14 : 26)) {
         collectPickup(world, p, ctx)
         continue
       }
