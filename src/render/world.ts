@@ -172,6 +172,7 @@ function paintWithRim(
   const o = Math.max(1, CHAOS.read.heroRimPx)
   const mid = RIM_BAKE * 0.5
   g.setTransform(1, 0, 0, 1, 0, 0)
+  g.globalAlpha = 1
   g.clearRect(0, 0, RIM_BAKE, RIM_BAKE)
   g.setTransform(
     m.a,
@@ -189,6 +190,7 @@ function paintWithRim(
   g.globalCompositeOperation = 'source-over'
 
   rg.setTransform(1, 0, 0, 1, 0, 0)
+  rg.globalAlpha = 1
   rg.clearRect(0, 0, RIM_BAKE, RIM_BAKE)
   const steps = 8
   for (let i = 0; i < steps; i++) {
@@ -988,16 +990,19 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     held[1] = { x: x + localL.x * sx * c - localL.y * sy * s, y: y + localL.x * sx * s + localL.y * sy * c }
   }
 
-  let alpha = 1
-  if (p.invuln > 0) alpha = Math.sin(p.anim.t * 24) > 0 ? 1 : 0.32
+  // Gameplay i-frames (including the long demo spawn window) must not ghost the
+  // potato. A hurt skip-blink may flash for ~90ms, then alpha is 1.
+  const alpha = p.anim.hitFlash > 0.64 && Math.sin(p.anim.t * 90) <= 0 ? 0 : 1
+
+  ctx.save()
+  ctx.globalAlpha = 1
 
   if (sheet) {
     const arms = potatoMultiArm(species) ? multiArmSheet(species) : null
     const body = arms ?? sheet
     const swinging = !arms && p.weapons.some((w) => w.swingT >= 0)
-    const shade = p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.35 : 1
     const foot = actorFootprint(body, drawR)
-    drawShadow(ctx, x, p.y, foot, shade * CHAOS.read.heroShadow)
+    drawShadow(ctx, x, p.y, foot, CHAOS.read.heroShadow)
     drawPlayerWeapons(ctx, world, cache, true, held, true)
     const clip = pickClip(body, p.anim, { swinging, hurt: actorClipActive('player', 'hurt') })
     const paintFacing: 1 | -1 = arms ? 1 : facing
@@ -1035,6 +1040,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     paintWithRim(ctx, x, y, paintHero)
     drawPlayerWeapons(ctx, world, cache, false, held, true)
     drawOrbitWeapons(ctx, world, cache)
+    ctx.restore()
     return
   }
 
@@ -1077,30 +1083,17 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     drawOrbitWeapons(ctx, world, cache)
     const arena = typeof document !== 'undefined' ? document.getElementById('arena') : null
     if (arena) arena.dataset.swing = String(p.weapons[0]?.swingT ?? -1)
+    ctx.restore()
     return
   }
 
-  drawShadow(
-    ctx,
-    x,
-    p.y + drawR * 0.45,
-    drawR * 1.7,
-    (p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.35 : 1) * CHAOS.read.heroShadow,
-  )
+  drawShadow(ctx, x, p.y + drawR * 0.45, drawR * 1.7, CHAOS.read.heroShadow)
   drawPlayerWeapons(ctx, world, cache, true, held)
   ctx.save()
   ctx.translate(x, y)
   ctx.rotate(bodyRot)
   ctx.scale(squashAmt * ss.sx, ss.sy / squashAmt)
-  if (form === 'normal') {
-    ctx.save()
-    ctx.globalAlpha = 0.2 * alpha
-    ctx.fillStyle = '#f7f1e2'
-    ctx.beginPath()
-    ctx.ellipse(0, 2, p.r * 1.55, p.r * 1.32, 0, 0, TAU)
-    ctx.fill()
-    ctx.restore()
-  } else {
+  if (form !== 'normal') {
     ctx.save()
     ctx.globalCompositeOperation = 'lighter'
     ctx.globalAlpha = 0.16 * alpha
@@ -1153,15 +1146,18 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     ctx.restore()
   }
   if (p.anim.hitFlash > 0.02) {
+    ctx.save()
     ctx.globalAlpha = p.anim.hitFlash * 0.7 * alpha
     ctx.fillStyle = '#fff6e8'
     ctx.beginPath()
     ctx.ellipse(0, 0, p.r * 1.05, p.r * 0.9, 0, 0, TAU)
     ctx.fill()
+    ctx.restore()
   }
   ctx.restore()
   drawPlayerWeapons(ctx, world, cache, false, held)
   drawOrbitWeapons(ctx, world, cache)
+  ctx.restore()
 }
 
 export function drawWorld(
@@ -1266,7 +1262,10 @@ export function drawWorld(
       const hero = world.player
       drawFunnyBursts(ctx, dt, hero, 'near')
       fx.drawWorld(ctx, hero, 'near')
+      ctx.save()
+      ctx.globalAlpha = 1
       drawPlayer(ctx, world, cache)
+      ctx.restore()
     } else if (c.kind === 5) {
       const plot = world.farm.plots[c.idx]
       if (plot) drawFarmPlant(ctx, plot, world.time)

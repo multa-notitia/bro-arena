@@ -1019,6 +1019,7 @@ export function drawInkClips(ctx: CanvasRenderingContext2D, hero?: Vec, layer?: 
     const under = underHeroClip(b.clip)
     if (hero && layer) {
       const close = nearHeroFx(b.x, b.y, hero.x, hero.y)
+      if (b.clip === 'ghost' && close) continue
       if (under) {
         if (layer === 'near' && !close) continue
         if (layer === 'far' && close) continue

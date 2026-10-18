@@ -7,7 +7,7 @@ export function isSparkClip(name: string): boolean {
 }
 
 export function underHeroClip(name: string): boolean {
-  return isSparkClip(name) || name === 'ghost' || name === 'dust'
+  return isSparkClip(name) || name === 'dust'
 }
 
 export function registerSparkCounter(fn: () => number): void {

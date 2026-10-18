@@ -270,6 +270,8 @@ export function drawFunnyBursts(
     const under = underHeroClip(b.clip)
     if (hero && layer) {
       const close = nearHeroFx(b.x, b.y, hero.x, hero.y)
+      // Kill ghosts and other pale capsules must not sit under the potato.
+      if (b.clip === 'ghost' && close) continue
       if (under) {
         if (layer === 'near' && !close) continue
         if (layer === 'far' && close) continue

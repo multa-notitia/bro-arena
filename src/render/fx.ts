@@ -612,14 +612,15 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
     },
     drawWorld(ctx, hero?: Vec, layer?: 'near' | 'far') {
       drawInkClips(ctx, hero, layer)
-      ctx.save()
       for (let i = 0; i < ps.length; i++) {
         const p = ps[i]
         if (!p) continue
         const spark = p.kind === 'spark' || p.kind === 'sparkle'
-        const under = spark || p.kind === 'puff'
+        const under = spark
         if (hero && layer) {
           const close = nearHeroFx(p.x, p.y, hero.x, hero.y)
+          // Beige impact puffs (`#fff4d8`) used to sit under the potato as a blob.
+          if (p.kind === 'puff' && close) continue
           if (under) {
             if (layer === 'near' && !close) continue
             if (layer === 'far' && close) continue
@@ -630,6 +631,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
         const u = 1 - clamp(p.life / p.maxLife, 0, 1)
         const fade = 1 - u
         const dim = hero && spark ? heroBurstAlpha(p.x, p.y, hero.x, hero.y) : 1
+        ctx.save()
         if (p.kind === 'splat') {
           ctx.globalAlpha = fade * 0.75
           ctx.fillStyle = p.color
@@ -759,8 +761,8 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
           ctx.fillText(p.text, 0, 0)
           ctx.restore()
         }
+        ctx.restore()
       }
-      ctx.restore()
     },
     drawScreen(ctx, w, h) {
       if (flashA > 0.01) {
