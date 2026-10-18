@@ -635,6 +635,7 @@
    "chunks": "death burst re-rendered: organic torn re-cut + painted torn chunks",
    "note": "clips/frames/ms/events unchanged; see tools/smash_v3/README.md"
   },
-  "rimV2": "motion v2: soft light-directed amber rim (was a hard 2 px ring)"
+  "rimV2": "motion v2: soft light-directed amber rim (was a hard 2 px ring)",
+  "gardenV2": "emerge cells: yellow outline (old warm rim) around the mud hands recoloured to the mud; worst was cell 62"
  }
 }

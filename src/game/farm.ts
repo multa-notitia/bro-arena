@@ -1,29 +1,49 @@
 import { clamp, lerp, uid } from '../core/math.ts'
 import type { CropId, EnemyKind, Farm, PlantView, Plot, World } from '../core/types.ts'
 import { CROP_IDS, STARTER_CROP_IDS } from '../core/types.ts'
-import { bedById } from '../data/beds.ts'
-import { CROPS, CROP_LIST, cropByEnemy, cropUnlockedAt, GARDEN_COL_COUNT, GARDEN_ROW_COUNT, GARDEN_ROWS } from '../data/crops.ts'
-import { FEEL } from '../feel.ts'
+import { BEDS } from '../data/beds.ts'
+import layout from '../data/garden_layout_v2.json'
+import { CROPS, CROP_LIST, cropByEnemy, cropUnlockedAt } from '../data/crops.ts'
 
 /**
- * Where sown crops come up. Straight, and not a raised bed: the centre
- * lawn stays clear of furrow props. `bedById('C')` has no rows.
+ * Planting lives in the six raised beds. The centre lawn has no rows.
+ * Each layout row is one furrow; plots sit in the dips at row.y + 4.
  */
-const LAWN_ROWS = [
-  { x: 0, y: -64 },
-  { x: 0, y: 0 },
-  { x: 0, y: 64 },
-] as const
+const BED_ORDER = ['L1', 'L2', 'R1', 'R2', 'N', 'S'] as const
 
-export const COL_COUNT = GARDEN_COL_COUNT
-export const ROW_COUNT = GARDEN_ROW_COUNT
-export const PLOT_COUNT = COL_COUNT * ROW_COUNT
-export const ROW_NAMES = GARDEN_ROWS
+interface Spot {
+  row: number
+  col: number
+  x: number
+  y: number
+}
 
-const GARDEN_SCALE = FEEL.garden.scale
-const COLS = [-210, -70, 70, 210].map((v) => Math.round(v * GARDEN_SCALE))
-const JITTER_X = Math.round(10 * GARDEN_SCALE)
-const JITTER_Y = Math.round(7 * GARDEN_SCALE)
+function layoutSpots(): { spots: Spot[]; names: string[] } {
+  const spots: Spot[] = []
+  const names: string[] = []
+  let row = 0
+  for (const id of BED_ORDER) {
+    const bed = layout.beds[id]
+    const label = BEDS.find((b) => b.id === id)?.label ?? id
+    for (let i = 0; i < bed.rows.length; i++) {
+      const pair = bed.rows[i]
+      const x = pair?.[0] ?? 0
+      const y = (pair?.[1] ?? 0) + 4
+      names.push(`${label} ${i + 1}`)
+      for (let col = 0; col < bed.plotOffsetsX.length; col++) {
+        spots.push({ row, col, x: x + (bed.plotOffsetsX[col] ?? 0), y })
+      }
+      row += 1
+    }
+  }
+  return { spots, names }
+}
+
+const LAID = layoutSpots()
+export const COL_COUNT = layout.beds.L1.plotOffsetsX.length
+export const ROW_COUNT = LAID.names.length
+export const PLOT_COUNT = LAID.spots.length
+export const ROW_NAMES = LAID.names
 
 export function emptySeeds(): Record<CropId, number> {
   return { pea: 0, sprout: 0, carrot: 0, garlic: 0, pumpkin: 0, chili: 0 }
@@ -34,25 +54,16 @@ export function starterSeeds(): Record<CropId, number> {
 }
 
 export function createFarm(): Farm {
-  const plots: Plot[] = []
-  const rows = bedById('C')?.rows.length ? bedById('C')!.rows : LAWN_ROWS
-  for (let r = 0; r < ROW_COUNT; r++) {
-    const origin = rows[r] ?? { x: 0, y: 0 }
-    for (let c = 0; c < COL_COUNT; c++) {
-      const x = origin.x + (COLS[c] ?? 0)
-      const y = origin.y
-      plots.push({
-        uid: uid(),
-        row: r,
-        col: c,
-        x: x + ((r + c) % 2 === 0 ? -JITTER_X : JITTER_X),
-        y: y + (c % 2 === 0 ? -JITTER_Y : JITTER_Y),
-        crop: null,
-        growth: 0,
-        sway: (r * 3 + c) * 0.7,
-      })
-    }
-  }
+  const plots: Plot[] = LAID.spots.map((spot) => ({
+    uid: uid(),
+    row: spot.row,
+    col: spot.col,
+    x: spot.x,
+    y: spot.y,
+    crop: null,
+    growth: 0,
+    sway: (spot.row * 3 + spot.col) * 0.7,
+  }))
   return {
     plots,
     seeds: starterSeeds(),

@@ -52,7 +52,7 @@ import { drawFarmPlant } from './crops.ts'
 import { arenaActorProps, drawArenaGround, drawArenaProp, drawPaintedTree } from '../game/arenaProps.ts'
 import { drawPaddock } from './ground.ts'
 import { drawBedBadges, drawGardenBeds, takeBedDepth } from './beds.ts'
-import { gardenDepth } from './garden.ts'
+import { drawGardenFloor, gardenDepth } from './garden.ts'
 import { plotBounds } from '../data/beds.ts'
 import { paperColor } from './paintLang.ts'
 import { drawMultiArm, multiArmSheet, potatoMultiArm } from './multiarm.ts'
@@ -1381,7 +1381,8 @@ export function drawWorld(
   const onScreen = (x: number, y: number, pad = 120): boolean =>
     x >= cam.x - hw - pad && x <= cam.x + hw + pad && y >= cam.y - hh - pad && y <= cam.y + hh + pad
   drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale))
-  drawGardenBeds(ctx, qScale >= 2)
+  drawGardenFloor(ctx, qScale >= 2, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
+  drawGardenBeds(ctx)
   const bedDepth = takeBedDepth().concat(gardenDepth())
   drawArenaGround(ctx, world, dt)
   fx.drawFloor(ctx)

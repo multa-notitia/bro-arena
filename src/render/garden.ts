@@ -1,20 +1,27 @@
 /**
- * Lawn dressing and the outer wooden fence. Pieces come from
- * `data/garden_layout.json`. The south run is the low see-through clip, so a
- * body at that edge still reads through the planks.
+ * Tidy garden floor and the outer wooden fence.
+ * Draw order with the paddock: lawn, then this floor (paths, raised beds,
+ * furrows, dips), then y-sorted fence, props, and actors.
+ * The south run is the low see-through clip. Its alpha is already in the art.
  */
+import { FEEL } from '../feel.ts'
 import {
   FENCE_LINES,
-  GARDEN_CLUTTER,
-  GARDEN_DECOR,
   GARDEN_FENCE,
-  GARDEN_GROUND,
+  GARDEN_PROPS,
+  PATH_RECTS,
+  RAISED_BEDS,
   type GardenMark,
 } from '../data/garden.ts'
 import type { BedDepth } from './beds.ts'
-import { clipDrawScale, drawNamedClip, resolveSheet, type LoadedSheet } from './sheets.ts'
+import { clipDrawScale, drawNamedClip, drawProp, gardenPathGravel, resolveSheet, type LoadedSheet } from './sheets.ts'
 
 const FENCE_SHEET = 'props-fence'
+const RAISED_SHEET = 'props-raised-beds'
+const FURROW_W = Math.round(613 * FEEL.garden.scale)
+const DIP_W = Math.round(118 * FEEL.garden.scale)
+const EDGE = 3
+const SHADOW = 4
 
 function pieceRect(sheet: LoadedSheet, mark: GardenMark): { x: number; y: number; w: number; h: number } | null {
   if (mark.clipW == null && mark.clipH == null) return null
@@ -51,13 +58,70 @@ function paintMark(ctx: CanvasRenderingContext2D, mark: GardenMark, key: string)
   ctx.restore()
 }
 
-/** Soil stamps, gravel, and stepping stones. Skipped while clutter is off. */
-export function drawGardenGround(ctx: CanvasRenderingContext2D): void {
-  if (!GARDEN_CLUTTER) return
-  for (let i = 0; i < GARDEN_GROUND.length; i++) {
-    const mark = GARDEN_GROUND[i]
-    if (!mark) continue
-    paintMark(ctx, mark, `garden-ground:${mark.clip}:${i}`)
+function seen(x: number, y: number, viewL: number, viewT: number, viewR: number, viewB: number, pad: number): boolean {
+  return x >= viewL - pad && x <= viewR + pad && y >= viewT - pad && y <= viewB + pad
+}
+
+/** Gravel paths, raised-bed sprites, furrows, and planting dips. No centre rows. */
+export function drawGardenFloor(
+  ctx: CanvasRenderingContext2D,
+  hi: boolean,
+  viewL: number,
+  viewT: number,
+  viewW: number,
+  viewH: number,
+): void {
+  const viewR = viewL + viewW
+  const viewB = viewT + viewH
+  ctx.save()
+  ctx.fillStyle = 'rgba(20, 24, 10, 0.25)'
+  ctx.beginPath()
+  for (const r of PATH_RECTS) {
+    ctx.rect(r.x - EDGE + SHADOW, r.y - EDGE + SHADOW, r.w + EDGE * 2, r.h + EDGE * 2)
+  }
+  ctx.fill()
+  ctx.fillStyle = '#4a4232'
+  ctx.beginPath()
+  for (const r of PATH_RECTS) ctx.rect(r.x - EDGE, r.y - EDGE, r.w + EDGE * 2, r.h + EDGE * 2)
+  ctx.fill()
+  const gravel = gardenPathGravel(hi) ?? gardenPathGravel(false)
+  if (gravel) {
+    ctx.beginPath()
+    for (const r of PATH_RECTS) ctx.rect(r.x, r.y, r.w, r.h)
+    ctx.clip()
+    ctx.imageSmoothingEnabled = true
+    const t0x = Math.floor(viewL / 512)
+    const t0y = Math.floor(viewT / 512)
+    const t1x = Math.floor(viewR / 512)
+    const t1y = Math.floor(viewB / 512)
+    for (let ty = t0y; ty <= t1y; ty++) {
+      for (let tx = t0x; tx <= t1x; tx++) ctx.drawImage(gravel, tx * 512, ty * 512, 512, 512)
+    }
+  }
+  ctx.restore()
+
+  const raised = resolveSheet([RAISED_SHEET])
+  if (raised) {
+    for (const bed of RAISED_BEDS) {
+      if (!seen(bed.x, bed.y, viewL, viewT, viewR, viewB, 420)) continue
+      if (!raised.manifest.clips[bed.clip]) continue
+      ctx.save()
+      ctx.translate(bed.x, bed.y)
+      drawNamedClip(ctx, raised, `raised:${bed.id}`, bed.clip, 0, {
+        scale: clipDrawScale(raised, bed.clip),
+      })
+      ctx.restore()
+    }
+  }
+
+  for (const bed of RAISED_BEDS) {
+    for (const row of bed.rows) {
+      if (!seen(row.x, row.y, viewL, viewT, viewR, viewB, 180)) continue
+      drawProp(ctx, 'prop-furrow', row.x, row.y + 6, { width: FURROW_W, hi })
+      for (const dx of bed.plotOffsetsX) {
+        drawProp(ctx, 'prop-bed', row.x + dx, row.y + 4, { width: DIP_W, hi })
+      }
+    }
   }
 }
 
@@ -66,7 +130,7 @@ function fenceSortY(mark: GardenMark): number {
   return mark.y
 }
 
-/** Outer fence, y-sorted with the actors. Corner props wait on the clutter flag. */
+/** Outer fence and the six layout props, y-sorted with the actors. */
 export function gardenDepth(): BedDepth[] {
   const out: BedDepth[] = []
   if (resolveSheet([FENCE_SHEET])) {
@@ -82,15 +146,14 @@ export function gardenDepth(): BedDepth[] {
       })
     }
   }
-  if (!GARDEN_CLUTTER) return out
-  for (let i = 0; i < GARDEN_DECOR.length; i++) {
-    const mark = GARDEN_DECOR[i]
+  for (let i = 0; i < GARDEN_PROPS.length; i++) {
+    const mark = GARDEN_PROPS[i]
     if (!mark) continue
     out.push({
       x: mark.x,
       y: mark.y,
       sortY: mark.y,
-      draw: (ctx) => paintMark(ctx, mark, `garden-decor:${mark.clip}:${i}`),
+      draw: (ctx) => paintMark(ctx, mark, `garden-prop:${mark.clip}:${i}`),
     })
   }
   return out

@@ -1,0 +1,53 @@
+{
+ "image": "props-raised-beds.webp",
+ "frameWidth": 1400,
+ "frameHeight": 980,
+ "columns": 2,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.5
+ },
+ "clips": {
+  "bed_v": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 1000
+    }
+   ]
+  },
+  "bed_h": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 1,
+     "ms": 1000
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Raised garden beds: old plank edging around tidy soil (rows are prop-furrow on top)",
+  "drawScale": 0.5,
+  "pngFallback": "props-raised-beds.png",
+  "source": "tools/garden/src/*.jpg (GenerateImage, magenta keyed)",
+  "tool": "tools/garden/build_garden.py",
+  "date": "2026-10-18",
+  "cells": [
+   "bed_v",
+   "bed_h"
+  ],
+  "sizeWorldPx": {
+   "bed_v": [
+    340,
+    460
+   ],
+   "bed_h": [
+    680,
+    260
+   ]
+  },
+  "note": "Ground layer, drawn after the lawn and paths, before prop-furrow rows. Anchor = centre of the bed rect (rects in data/garden_layout_v2.json). bed_v = 340x460 world px (L1, L2, R1, R2), bed_h = 680x260 (N, S). The front board is the lower edge."
+ }
+}

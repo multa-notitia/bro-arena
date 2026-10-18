@@ -1,9 +1,9 @@
 import { clamp } from '../core/math.ts'
 import type { World } from '../core/types.ts'
-import { BEDS, BED_OPEN_AT, BED_SHEET, bedMouth, plotBounds, type BedDef, type BedId } from '../data/beds.ts'
+import { BEDS, BED_OPEN_AT, BED_SHEET, bedMouth, type BedDef, type BedId } from '../data/beds.ts'
 import { cameraShakeOffset } from '../feel.ts'
 import { bedPhase, bedRevealAge } from '../game/beds.ts'
-import { cellOrigin, clipDrawScale, clipTileWorldPx, drawNamedClip, frameCell, resolveSheet, seekActorClip } from './sheets.ts'
+import { clipDrawScale, clipTileWorldPx, drawNamedClip, resolveSheet, seekActorClip } from './sheets.ts'
 import { BARRIER_CLIPS, BED_BARRIER } from './barrierArt.ts'
 
 /** Used only until the locked sheet has loaded. The live step comes from meta.tileWorldPx. */
@@ -11,7 +11,6 @@ const HEDGE_H_FALLBACK = 256
 const HEDGE_V_FALLBACK = 174
 const GATE_GAP = 136
 const GATE_SIDE_FALLBACK = 162
-const OVER_QUADS = ['overgrowth_q00', 'overgrowth_q10', 'overgrowth_q01', 'overgrowth_q11'] as const
 const SIGN_DX = 92
 const SHADE_SEC = 0.4
 const HEDGE_STAGGER = 0.035
@@ -20,8 +19,6 @@ const GATE_MS = 700
 const FLUFF_MS = 500
 const FLUFF_GAP = 0.06
 const BAND = 110
-
-const patterns = new Map<string, CanvasPattern>()
 
 interface Rect {
   x: number
@@ -99,32 +96,6 @@ function tileStep(sheetId: string, clip: string, fallback: number): number {
   return clipTileWorldPx(sheet, clip)
 }
 
-function tilePattern(ctx: CanvasRenderingContext2D, sheetId: string, clip: string): CanvasPattern | null {
-  const sheet = resolveSheet([sheetId])
-  const frame = sheet?.manifest.clips[clip]?.frames[0]
-  if (!sheet || !frame || sheet.img.naturalWidth < 1) return null
-  const size = Math.max(1, Math.round(clipTileWorldPx(sheet, clip)))
-  const key = `${sheetId}:${clip}:${size}`
-  const hit = patterns.get(key)
-  if (hit) return hit
-  const fw = sheet.manifest.frameWidth
-  const fh = sheet.manifest.frameHeight
-  const { sx, sy } = cellOrigin(fw, fh, sheet.columns, frame.i)
-  const cell = frameCell(sheet.img, `${sheet.id}:${sx}:${sy}:${fw}x${fh}`, sx, sy, fw, fh)
-  if (!cell) return null
-  const bake = document.createElement('canvas')
-  bake.width = size
-  bake.height = size
-  const g = bake.getContext('2d')
-  if (!g) return null
-  g.imageSmoothingEnabled = true
-  g.drawImage(cell, 0, 0, size, size)
-  const pat = ctx.createPattern(bake, 'repeat')
-  if (!pat) return null
-  patterns.set(key, pat)
-  return pat
-}
-
 function queue(x: number, y: number, sortY: number, draw: (ctx: CanvasRenderingContext2D) => void): void {
   depth.push({ x, y, sortY, draw })
 }
@@ -165,108 +136,6 @@ function paint(
     run()
     g.restore()
   })
-}
-
-/** One soil rectangle and three straight rows. No scattered furrow props. */
-function drawRaised(ctx: CanvasRenderingContext2D, bed: BedDef, hi: boolean): void {
-  const box = bed.raised
-  if (!box) return
-  ctx.save()
-  ctx.fillStyle = 'rgba(36, 22, 12, 0.28)'
-  ctx.fillRect(box.x + 5, box.y + 7, box.w, box.h)
-  ctx.fillStyle = hi ? '#8d6238' : '#7a5230'
-  ctx.fillRect(box.x, box.y, box.w, box.h)
-  ctx.fillStyle = '#8b6240'
-  ctx.fillRect(box.x + 8, box.y + 8, box.w - 16, box.h - 16)
-  ctx.strokeStyle = '#3a2414'
-  ctx.lineWidth = 4
-  ctx.strokeRect(box.x + 2, box.y + 2, box.w - 4, box.h - 4)
-  ctx.strokeStyle = '#cbb892'
-  ctx.lineWidth = 2
-  ctx.strokeRect(box.x + 7, box.y + 7, box.w - 14, box.h - 14)
-  ctx.strokeStyle = 'rgba(48, 28, 14, 0.9)'
-  ctx.lineWidth = 3
-  ctx.lineCap = 'round'
-  const inset = 28
-  for (const row of bed.rows) {
-    ctx.beginPath()
-    ctx.moveTo(box.x + inset, row.y)
-    ctx.lineTo(box.x + box.w - inset, row.y)
-    ctx.stroke()
-  }
-  ctx.restore()
-}
-
-function paintShade(ctx: CanvasRenderingContext2D, bed: BedDef): void {
-  const shade = shadeOf(bed.id)
-  if (shade <= 0.01) return
-  ctx.save()
-  ctx.beginPath()
-  ctx.rect(bed.x, bed.y, bed.w, bed.h)
-  ctx.clip()
-  ctx.globalCompositeOperation = 'multiply'
-  ctx.globalAlpha = shade
-  ctx.fillStyle = 'rgb(158, 163, 184)'
-  ctx.fillRect(bed.x, bed.y, bed.w, bed.h)
-  ctx.restore()
-  const over = overgrowthPattern(ctx)
-  if (!over) return
-  const size = over.size
-  const seed = bed.id.charCodeAt(0) * 13 + bed.rows.length
-  const phaseX = size > 0 ? Math.round(u01(seed) * size) : 0
-  const phaseY = size > 0 ? Math.round(u01(seed + 17) * size) : 0
-  ctx.save()
-  ctx.beginPath()
-  ctx.rect(bed.x, bed.y, bed.w, bed.h)
-  ctx.clip()
-  ctx.globalAlpha = shade
-  ctx.translate(phaseX, phaseY)
-  ctx.fillStyle = over.pat
-  ctx.fillRect(bed.x - phaseX, bed.y - phaseY, bed.w, bed.h)
-  ctx.restore()
-}
-
-/** 2×2 hi-res overgrowth. Falls back to the single `overgrowth` tile. */
-function overgrowthPattern(ctx: CanvasRenderingContext2D): { pat: CanvasPattern; size: number } | null {
-  const sheet = resolveSheet([BED_SHEET.locked])
-  if (!sheet || sheet.img.naturalWidth < 1) return null
-  const ready = OVER_QUADS.every((name) => sheet.manifest.clips[name]?.frames[0])
-  if (!ready) {
-    const pat = tilePattern(ctx, BED_SHEET.locked, 'overgrowth')
-    if (!pat) return null
-    return { pat, size: tileStep(BED_SHEET.locked, 'overgrowth', 0) }
-  }
-  const fw = sheet.manifest.frameWidth
-  const fh = sheet.manifest.frameHeight
-  const quadWorld = clipTileWorldPx(sheet, 'overgrowth_q00')
-  const block = quadWorld * 2
-  const key = `${sheet.id}:overgrowth-quad:${fw}x${fh}:${block}`
-  const hit = patterns.get(key)
-  if (hit) return { pat: hit, size: block }
-  const bake = document.createElement('canvas')
-  bake.width = fw * 2
-  bake.height = fh * 2
-  const g = bake.getContext('2d')
-  if (!g) return null
-  const spots = [
-    ['overgrowth_q00', 0, 0],
-    ['overgrowth_q10', fw, 0],
-    ['overgrowth_q01', 0, fh],
-    ['overgrowth_q11', fw, fh],
-  ] as const
-  for (const [name, dx, dy] of spots) {
-    const frame = sheet.manifest.clips[name]!.frames[0]!
-    const { sx, sy } = cellOrigin(fw, fh, sheet.columns, frame.i)
-    const cell = frameCell(sheet.img, `${sheet.id}:${sx}:${sy}:${fw}x${fh}`, sx, sy, fw, fh)
-    if (!cell) return null
-    g.drawImage(cell, dx, dy)
-  }
-  const pat = ctx.createPattern(bake, 'repeat')
-  if (!pat) return null
-  const scale = block / bake.width
-  pat.setTransform(new DOMMatrix().scale(scale, scale))
-  patterns.set(key, pat)
-  return { pat, size: block }
 }
 
 function hSpans(x0: number, x1: number, step: number, gap: [number, number] | null, fn: (tileX: number, a: number, b: number) => void): void {
@@ -431,25 +300,12 @@ function drawFluff(bed: BedDef): void {
   }
 }
 
-/** Raised beds, then the wooden fence around any that are still shut. The centre is lawn. */
-export function drawGardenBeds(ctx: CanvasRenderingContext2D, hi = false): void {
+/** Wooden fence around any bed that is still shut. Raised soil is drawn with the floor. */
+export function drawGardenBeds(ctx: CanvasRenderingContext2D): void {
   depth.length = 0
-  const plot = plotBounds()
-  ctx.save()
-  ctx.fillStyle = 'rgba(12, 14, 10, 0.55)'
-  ctx.beginPath()
-  ctx.rect(plot.minX - 800, plot.minY - 800, plot.maxX - plot.minX + 1600, plot.maxY - plot.minY + 1600)
-  ctx.rect(plot.minX, plot.minY, plot.maxX - plot.minX, plot.maxY - plot.minY)
-  ctx.fill('evenodd')
-  ctx.restore()
-
+  void ctx
   for (const bed of BEDS) {
     if (bed.cost <= 0) continue
-    drawRaised(ctx, bed, hi)
-  }
-  for (const bed of BEDS) {
-    if (bed.cost <= 0) continue
-    paintShade(ctx, bed)
     drawHedges(bed)
     drawGate(bed)
     drawFluff(bed)

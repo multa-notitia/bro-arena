@@ -1,8 +1,8 @@
 /**
- * Placement for the wooden fence, the lawn dressing, and the corner props.
- * Generated with the beds; the game reads it as-is.
+ * Tidy allotment. `garden_layout_v2.json` is the authority for rects,
+ * fence pieces, paths, and the six corner props.
  */
-import raw from './garden_layout.json'
+import raw from './garden_layout_v2.json'
 
 export interface GardenMark {
   sheet: string
@@ -12,31 +12,62 @@ export interface GardenMark {
   clipW?: number
   clipH?: number
   flipX?: boolean
-  /** Degrees, clockwise. Stepping stones only. */
+  /** Degrees, clockwise. */
   rot?: number
 }
 
-export const FENCE_LINES = raw.fenceLines
-export const GARDEN_FENCE = raw.fence as GardenMark[]
-export const GARDEN_DECOR = raw.decor as GardenMark[]
-export const GARDEN_GROUND = raw.ground as GardenMark[]
+export interface PathRect {
+  id: string
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+export interface RaisedSprite {
+  id: string
+  clip: string
+  /** Centre of the bed sprite, world px. */
+  x: number
+  y: number
+  rows: { x: number; y: number }[]
+  plotOffsetsX: readonly number[]
+}
+
+export const FENCE_LINES = raw.fence.lines
+export const GARDEN_FENCE = raw.fence.pieces as GardenMark[]
+export const GARDEN_PROPS = raw.props as GardenMark[]
+
+export const PATH_RECTS: PathRect[] = raw.paths.rects.map((p) => ({
+  id: p.id,
+  x: p.rect[0] ?? 0,
+  y: p.rect[1] ?? 0,
+  w: p.rect[2] ?? 0,
+  h: p.rect[3] ?? 0,
+}))
+
+const BED_IDS = ['L1', 'L2', 'R1', 'R2', 'N', 'S'] as const
+
+export const RAISED_BEDS: RaisedSprite[] = BED_IDS.map((id) => {
+  const bed = raw.beds[id]
+  const centre = bed.raisedBed.centre
+  return {
+    id,
+    clip: bed.raisedBed.clip,
+    x: centre[0] ?? 0,
+    y: centre[1] ?? 0,
+    rows: bed.rows.map((pair) => ({ x: pair[0] ?? 0, y: pair[1] ?? 0 })),
+    plotOffsetsX: bed.plotOffsetsX,
+  }
+})
 
 /**
- * Wheelbarrow, gravel, soil stamps, and the other garden-v1 props.
- * Off until a tidy layout replaces them. The perimeter fence still draws.
- */
-export const GARDEN_CLUTTER = false
-
-/**
- * Structures you walk around. Flower borders, clumps, pots, and the watering
- * can stay decorative.
+ * Structures you walk around. The two apple trees use the same clip name.
  */
 export const GARDEN_SOLID: Record<string, number> = {
   shed_corner: 34,
-  compost_bin: 16,
-  bean_teepee: 20,
-  wheelbarrow: 18,
-  birdbath: 12,
   rain_barrel: 11,
-  tomato_cage: 12,
+  wheelbarrow: 18,
+  compost_bin: 16,
+  tree_apple: 26,
 }

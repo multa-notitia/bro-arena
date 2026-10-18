@@ -1,10 +1,9 @@
 import { TAU, clamp, hashNoise, lerp } from '../core/math.ts'
 import { getPaintStyle, lookKey } from './look.ts'
 import { paperColor } from './paintLang.ts'
-import { gardenGroundVariant, gardenLawn } from './sheets.ts'
+import { gardenGroundVariant, gardenLawnMown } from './sheets.ts'
 import { tileVariant } from './groundHash.ts'
-import { drawGroundDecals } from './decals.ts'
-import { drawGardenGround, gardenFadeRect } from './garden.ts'
+import { gardenFadeRect } from './garden.ts'
 import {
   granulate,
   makeCanvas,
@@ -480,18 +479,12 @@ export function drawPaddock(
   q: number,
 ): void {
   const hi = q >= 2
-  const lawnA = gardenLawn(hi, 0)
-  const lawnB = gardenLawn(hi, 1)
-  if (lawnA && lawnB) {
+  const mown = gardenLawnMown(hi)
+  if (mown) {
     ctx.save()
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = 'high'
-    tileFill(ctx, viewL, viewT, viewW, viewH, (tx, ty) => {
-      const v = tileVariant(tx, ty)
-      return v === 0 || v === 2 ? lawnA : lawnB
-    })
-    drawGroundDecals(ctx, viewL, viewT, viewW, viewH)
-    drawGardenGround(ctx)
+    tileFill(ctx, viewL, viewT, viewW, viewH, () => mown)
     const fade = gardenFadeRect()
     ctx.beginPath()
     ctx.rect(viewL, viewT, viewW, viewH)
@@ -509,7 +502,6 @@ export function drawPaddock(
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = 'high'
     tileFill(ctx, viewL, viewT, viewW, viewH, (tx, ty) => painted(tx, ty) ?? garden)
-    drawGroundDecals(ctx, viewL, viewT, viewW, viewH)
     ctx.beginPath()
     ctx.rect(viewL, viewT, viewW, viewH)
     ctx.rect(-aw, -ah, aw * 2, ah * 2)

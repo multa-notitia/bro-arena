@@ -2,20 +2,21 @@
  * Walkable regions in world px. Origin is the centre of the starting lawn.
  *
  * Centre C, 1024×768 at (-512, -384), is open lawn. The run starts there.
- * It is not a garden bed.
+ * It is not a garden bed, and it has no rows.
  *
- * Six beds, each one raised rectangle with three straight rows, centred in
- * its unlock region. The regions (costs, gates, order) are unchanged:
+ * Six beds, centred in the unchanged unlock regions. Costs and gates stay:
  *   L1 560×768 at (-1072, -384)     L2 560×768 at (-1632, -384)
  *   R1 560×768 at (512, -384)       R2 560×768 at (1072, -384)
  *   N  1024×448 at (-512, -832)     S  1024×448 at (-512, 384)
  *
- * Raised beds are 400×240. East mirrors west, south mirrors north.
+ * Raised soil comes from garden_layout_v2.json. Side beds are 340×460 with
+ * three rows. N and S are 680×260 with a 2×2 of rows. East mirrors west,
+ * south mirrors north. Gate sides match the layout: L1/L2 right, R1/R2 left,
+ * N bottom, S top.
  * All seven regions together span x -1632..1632 and y -832..832.
- * Locked beds use props-bed-locked / props-bed-unlock. N and S use the
- * face-on gate. L and R use gate_side on the inner vertical edge.
- * A later garden_layout_v2 replaces the raised rectangles.
+ * Locked beds use props-bed-locked / props-bed-unlock.
  */
+import layout from './garden_layout_v2.json'
 
 export type BedId = 'C' | 'L1' | 'L2' | 'R1' | 'R2' | 'N' | 'S'
 
@@ -59,22 +60,15 @@ export interface BedDef {
   rows: readonly GardenRow[]
 }
 
-const RAISED_W = 400
-const RAISED_H = 240
+type SideBed = keyof typeof layout.beds
 
-function raisedIn(x: number, y: number, w: number, h: number): RaisedBed {
-  return {
-    x: x + Math.round((w - RAISED_W) / 2),
-    y: y + Math.round((h - RAISED_H) / 2),
-    w: RAISED_W,
-    h: RAISED_H,
-  }
+function raisedOf(id: SideBed): RaisedBed {
+  const r = layout.beds[id].raisedBed.rect
+  return { x: r[0] ?? 0, y: r[1] ?? 0, w: r[2] ?? 0, h: r[3] ?? 0 }
 }
 
-/** Three horizontal rows, evenly spaced, sharing the bed's centre x. */
-function straightRows(box: RaisedBed): GardenRow[] {
-  const x = box.x + box.w / 2
-  return [1, 2, 3].map((i) => ({ x, y: box.y + Math.round((box.h * i) / 4) }))
+function rowsOf(id: SideBed): GardenRow[] {
+  return layout.beds[id].rows.map((pair) => ({ x: pair[0] ?? 0, y: pair[1] ?? 0 }))
 }
 
 /** How far the camera may look into a still-locked neighbour, world px. */
@@ -119,8 +113,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 12,
     gated: '',
     gate: 'right',
-    raised: raisedIn(-1072, -384, 560, 768),
-    rows: straightRows(raisedIn(-1072, -384, 560, 768)),
+    raised: raisedOf('L1'),
+    rows: rowsOf('L1'),
   },
   {
     id: 'L2',
@@ -133,8 +127,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 36,
     gated: 'Open the west bed first',
     gate: 'right',
-    raised: raisedIn(-1632, -384, 560, 768),
-    rows: straightRows(raisedIn(-1632, -384, 560, 768)),
+    raised: raisedOf('L2'),
+    rows: rowsOf('L2'),
   },
   {
     id: 'R1',
@@ -147,8 +141,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 12,
     gated: '',
     gate: 'left',
-    raised: raisedIn(512, -384, 560, 768),
-    rows: straightRows(raisedIn(512, -384, 560, 768)),
+    raised: raisedOf('R1'),
+    rows: rowsOf('R1'),
   },
   {
     id: 'R2',
@@ -161,8 +155,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 36,
     gated: 'Open the east bed first',
     gate: 'left',
-    raised: raisedIn(1072, -384, 560, 768),
-    rows: straightRows(raisedIn(1072, -384, 560, 768)),
+    raised: raisedOf('R2'),
+    rows: rowsOf('R2'),
   },
   {
     id: 'N',
@@ -175,8 +169,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 18,
     gated: '',
     gate: 'bottom',
-    raised: raisedIn(-512, -832, 1024, 448),
-    rows: straightRows(raisedIn(-512, -832, 1024, 448)),
+    raised: raisedOf('N'),
+    rows: rowsOf('N'),
   },
   {
     id: 'S',
@@ -189,8 +183,8 @@ export const BEDS: readonly BedDef[] = [
     cost: 18,
     gated: '',
     gate: 'top',
-    raised: raisedIn(-512, 384, 1024, 448),
-    rows: straightRows(raisedIn(-512, 384, 1024, 448)),
+    raised: raisedOf('S'),
+    rows: rowsOf('S'),
   },
 ]
 

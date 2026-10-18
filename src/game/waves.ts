@@ -1,5 +1,5 @@
-import { dist, uid } from '../core/math.ts'
-import type { EnemyKind, SpawnMarker, Tree, World } from '../core/types.ts'
+import { dist } from '../core/math.ts'
+import type { EnemyKind, SpawnMarker, World } from '../core/types.ts'
 import { CROPS } from '../data/crops.ts'
 import { waveDef } from '../data/waves.ts'
 import { ENEMIES } from '../data/enemies.ts'
@@ -21,7 +21,7 @@ import {
   resetGardenPlants,
   tickGardenPlants,
 } from './garden.ts'
-import { pickTreeKind, placeArenaDecor, resetArenaProps } from './arenaProps.ts'
+import { placeArenaDecor, resetArenaProps } from './arenaProps.ts'
 import { telegraphLife } from '../data/chaos.ts'
 
 const MARKER_LIFE = 1
@@ -134,41 +134,8 @@ function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LI
 }
 
 function placeTrees(world: World, ctx: SimCtx): void {
-  const n = world.waveDef.trees
-  for (let i = 0; i < n; i++) {
-    const inset = 72
-    const spanX = Math.max(40, world.arenaMaxX - world.arenaMinX - inset * 2)
-    const spanY = Math.max(40, world.arenaMaxY - world.arenaMinY - inset * 2)
-    const sample = (): { x: number; y: number } => ({
-      x: ctx.rng.range(world.arenaMinX + inset, world.arenaMinX + inset + spanX),
-      y: ctx.rng.range(world.arenaMinY + inset, world.arenaMinY + inset + spanY),
-    })
-    let pos = sample()
-    let guard = 0
-    const blocked = (): boolean =>
-      world.trees.some((t) => dist(t.x, t.y, pos.x, pos.y) < 90) ||
-      world.farm.plots.some((p) => dist(p.x, p.y, pos.x, pos.y) < 78) ||
-      dist(pos.x, pos.y, world.player.x, world.player.y) < 110
-    while (guard < 12 && blocked()) {
-      pos = sample()
-      guard += 1
-    }
-    if (world.farm.plots.some((p) => dist(p.x, p.y, pos.x, pos.y) < 70)) continue
-    const hp = 16 + world.wave * 4
-    const tree: Tree = {
-      uid: uid(),
-      x: pos.x,
-      y: pos.y,
-      hp,
-      maxHp: hp,
-      r: 26,
-      sway: ctx.rng.range(0, 8),
-      hitFlash: 0,
-      kind: pickTreeKind(ctx.rng),
-      hitAnim: false,
-    }
-    world.trees.push(tree)
-  }
+  void world.wave
+  void ctx.rng
 }
 
 export function beginWave(world: World, ctx: SimCtx, index: number): void {

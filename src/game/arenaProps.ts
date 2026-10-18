@@ -26,19 +26,12 @@ export interface ArenaProp {
 const ground: ArenaProp[] = []
 const actors: ArenaProp[] = []
 const swaySeek = new Set<number>()
-let nextUid = 1
 
 const TREE_ROLL: { kind: TreeKind; w: number }[] = [
   { kind: 'apple', w: 0.45 },
   { kind: 'shrub', w: 0.35 },
   { kind: 'gnarly', w: 0.2 },
 ]
-
-const ROCKS = ['rock_boulder', 'rock_slab', 'rock_pebbles', 'rock_jagged'] as const
-const TUFTS = ['tuft_grass', 'tuft_dandelion', 'tuft_clover', 'tuft_dry'] as const
-const PUDDLES = ['puddle_a', 'puddle_b'] as const
-const LEAVES = ['leaves_a', 'leaves_b'] as const
-const EDGE = ['scarecrow', 'gnome', 'watering_can'] as const
 
 function sheet(): LoadedSheet | null {
   return resolveSheet([ARENA_SHEET])
@@ -52,7 +45,6 @@ export function resetArenaProps(): void {
   ground.length = 0
   actors.length = 0
   swaySeek.clear()
-  nextUid = 1
 }
 
 export function pickTreeKind(rng: { next(): number }): TreeKind {
@@ -73,123 +65,19 @@ export function kickTreeHit(tree: Tree): void {
   restartActorClip(`tree:${tree.uid}`, `tree_${tree.kind}_hit`)
 }
 
-function blocked(world: World, x: number, y: number, minPlot: number, extra: ArenaProp[]): boolean {
-  if (world.farm.plots.some((p) => dist(p.x, p.y, x, y) < minPlot)) return true
-  if (world.trees.some((t) => dist(t.x, t.y, x, y) < 70)) return true
-  if (world.markers.some((m) => dist(m.x, m.y, x, y) < 48)) return true
-  if (extra.some((p) => dist(p.x, p.y, x, y) < 36)) return true
-  return false
-}
-
-function tryPlace(
-  world: World,
-  ctx: SimCtx,
-  clip: string,
-  layer: 'ground' | 'actor',
-  halfW: number,
-  height: number,
-  minPlot: number,
-  extra: ArenaProp[],
-  wobble = false,
-  inset = 90,
-): ArenaProp | null {
-  const minX = world.arenaMinX + inset
-  const maxX = world.arenaMaxX - inset
-  const minY = world.arenaMinY + inset
-  const maxY = world.arenaMaxY - inset
-  if (maxX - minX < 40 || maxY - minY < 40) return null
-  for (let n = 0; n < 10; n++) {
-    const x = ctx.rng.range(minX, maxX)
-    const y = ctx.rng.range(minY, maxY)
-    if (blocked(world, x, y, minPlot, extra)) continue
-    const prop: ArenaProp = { uid: nextUid++, clip, x, y, halfW, height, wobble }
-    extra.push(prop)
-    if (layer === 'ground') ground.push(prop)
-    else actors.push(prop)
-    return prop
-  }
-  return null
-}
-
-function edgeSpot(world: World, ctx: SimCtx): { x: number; y: number } {
-  const minX = world.arenaMinX
-  const maxX = world.arenaMaxX
-  const minY = world.arenaMinY
-  const maxY = world.arenaMaxY
-  const inset = ctx.rng.range(22, 58)
-  const side = ctx.rng.int(0, 3)
-  if (side === 0) return { x: ctx.rng.range(minX + 40, maxX - 40), y: minY + inset }
-  if (side === 1) return { x: ctx.rng.range(minX + 40, maxX - 40), y: maxY - inset }
-  if (side === 2) return { x: minX + inset, y: ctx.rng.range(minY + 40, maxY - 40) }
-  return { x: maxX - inset, y: ctx.rng.range(minY + 40, maxY - 40) }
-}
-
 export function dressBed(
   world: World,
   ctx: SimCtx,
   rect: { x: number; y: number; w: number; h: number },
 ): void {
-  const inset = 48
-  const minX = rect.x + inset
-  const maxX = rect.x + rect.w - inset
-  const minY = rect.y + inset
-  const maxY = rect.y + rect.h - inset
-  if (maxX - minX < 30 || maxY - minY < 30) return
-  for (let i = 0; i < 4; i++) {
-    const clip = TUFTS[i % TUFTS.length] ?? 'tuft_grass'
-    const x = ctx.rng.range(minX, maxX)
-    const y = ctx.rng.range(minY, maxY)
-    if (blocked(world, x, y, 50, actors)) continue
-    actors.push({ uid: nextUid++, clip, x, y, halfW: 14, height: 22, wobble: true })
-  }
+  void world.time
+  void ctx.rng
+  void rect.w
 }
 
 export function placeArenaDecor(world: World, ctx: SimCtx): void {
-  resetArenaProps()
-  const area = ((world.arenaMaxX - world.arenaMinX) * (world.arenaMaxY - world.arenaMinY)) / 1_000_000
-  const tuftN = Math.round(8 * area)
-  const rockN = Math.round(3 * area)
-  const puddleN = Math.max(1, Math.round(1.5 * area))
-  const leafN = Math.round(2.5 * area)
-  const placed: ArenaProp[] = []
-
-  for (let i = 0; i < tuftN; i++) {
-    const clip = TUFTS[i % TUFTS.length] ?? 'tuft_grass'
-    tryPlace(world, ctx, clip, 'actor', 14, 22, 60, placed, true)
-  }
-  for (let i = 0; i < rockN; i++) {
-    const clip = ROCKS[i % ROCKS.length] ?? 'rock_boulder'
-    const tall = clip === 'rock_jagged' ? 36 : clip === 'rock_boulder' ? 30 : 20
-    tryPlace(world, ctx, clip, 'actor', clip === 'rock_boulder' ? 21 : 16, tall, 60, placed)
-  }
-  for (let i = 0; i < puddleN; i++) {
-    const clip = PUDDLES[i % PUDDLES.length] ?? 'puddle_a'
-    tryPlace(world, ctx, clip, 'ground', 33, 20, 70, placed)
-  }
-  for (let i = 0; i < leafN; i++) {
-    const clip = LEAVES[i % LEAVES.length] ?? 'leaves_a'
-    tryPlace(world, ctx, clip, 'ground', 20, 12, 50, placed)
-  }
-
-  const edgeN = ctx.rng.int(1, 3)
-  for (let i = 0; i < edgeN; i++) {
-    const clip = EDGE[i % EDGE.length] ?? 'gnome'
-    const spot = edgeSpot(world, ctx)
-    if (blocked(world, spot.x, spot.y, 50, placed)) continue
-    const height = clip === 'scarecrow' ? 79 : clip === 'gnome' ? 37 : 25
-    const halfW = clip === 'scarecrow' ? 30 : 12
-    const prop: ArenaProp = {
-      uid: nextUid++,
-      clip,
-      x: spot.x,
-      y: spot.y,
-      halfW,
-      height,
-      wobble: false,
-    }
-    actors.push(prop)
-    placed.push(prop)
-  }
+  void world.time
+  void ctx.rng
 }
 
 export function arenaActorProps(): readonly ArenaProp[] {

@@ -1,4 +1,4 @@
-import { GARDEN_CLUTTER, GARDEN_DECOR, GARDEN_SOLID } from '../data/garden.ts'
+import { GARDEN_PROPS, GARDEN_SOLID } from '../data/garden.ts'
 
 export interface GardenSolid {
   x: number
@@ -8,13 +8,10 @@ export interface GardenSolid {
 
 let solids: GardenSolid[] | null = null
 
-const NONE: readonly GardenSolid[] = []
-
 export function gardenSolids(): readonly GardenSolid[] {
-  if (!GARDEN_CLUTTER) return NONE
   if (solids) return solids
   const out: GardenSolid[] = []
-  for (const mark of GARDEN_DECOR) {
+  for (const mark of GARDEN_PROPS) {
     const r = GARDEN_SOLID[mark.clip]
     if (!r) continue
     out.push({ x: mark.x, y: mark.y, r })
@@ -23,11 +20,11 @@ export function gardenSolids(): readonly GardenSolid[] {
   return out
 }
 
-/** Slide a body out of the shed, teepees, and the other solid props. */
+/** Slide a body out of the shed, barrel, trees, and the other solid props. */
 export function pushGardenSolids(x: number, y: number, radius: number): { x: number; y: number } {
-  const solids = gardenSolids()
+  const list = gardenSolids()
   for (let pass = 0; pass < 2; pass++) {
-    for (const solid of solids) {
+    for (const solid of list) {
       let dx = x - solid.x
       let dy = y - solid.y
       const min = radius + solid.r

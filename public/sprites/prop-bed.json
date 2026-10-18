@@ -11,15 +11,19 @@
   "idle": {
    "loop": true,
    "frames": [
-    { "i": 0, "ms": 1000 }
+    {
+     "i": 0,
+     "ms": 1000
+    }
    ]
   }
  },
  "meta": {
-  "title": "Garden bed block",
-  "source": "image.jpg",
+  "title": "Garden bed block (planting dip)",
+  "source": "tools/garden/src/g2_rows.jpg",
   "image2x": "prop-bed@2x.webp",
-  "note": "static prop; draw at 1x for normal zoom, @2x for hi-dpi.",
-  "pngFallback": "prop-bed.png"
+  "pngFallback": "prop-bed.png",
+  "tool": "tools/garden/build_garden2.py",
+  "note": "garden v2: soft planting dip in the same soil as the veggie rows (no wilted stalks), same id/size/anchor."
  }
 }

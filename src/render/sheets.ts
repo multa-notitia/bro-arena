@@ -147,6 +147,7 @@ export const SHEET_PRELOAD: string[] = [
   'props-fence',
   'props-garden-decor',
   'props-garden-ground',
+  'props-raised-beds',
 ]
 
 const cache = new Map<string, LoadedSheet>()
@@ -241,6 +242,7 @@ const lawn: { lo: HTMLImageElement | null; hi: HTMLImageElement | null }[] = [
   { lo: null, hi: null },
 ]
 let lawnMown: { lo: HTMLImageElement | null; hi: HTMLImageElement | null } | null = null
+let pathGravel: { lo: HTMLImageElement | null; hi: HTMLImageElement | null } | null = null
 
 let bootDone = false
 
@@ -501,11 +503,12 @@ async function loadGroundPair(id: string): Promise<{ lo: HTMLImageElement | null
 }
 
 async function loadGround(): Promise<void> {
-  const [legacy, a, b, mown, ...variants] = await Promise.all([
+  const [legacy, a, b, mown, gravel, ...variants] = await Promise.all([
     loadGroundPair('ground-garden'),
     loadGroundPair('ground-lawn-a'),
     loadGroundPair('ground-lawn-b'),
     loadGroundPair('ground-lawn-mown'),
+    loadGroundPair('ground-path-gravel'),
     ...GROUND_VARIANTS.map((name) => loadGroundPair(`ground-garden-${name}`)),
   ])
   ground.lo = legacy?.lo ?? null
@@ -513,6 +516,7 @@ async function loadGround(): Promise<void> {
   lawn[0] = a ?? { lo: null, hi: null }
   lawn[1] = b ?? { lo: null, hi: null }
   lawnMown = mown ?? null
+  pathGravel = gravel ?? null
   for (let i = 0; i < GROUND_VARIANTS.length; i++) {
     const slot = variants[i]
     if (!slot) continue
@@ -573,11 +577,18 @@ export function gardenLawn(hi: boolean, variant: 0 | 1): HTMLImageElement | null
   return slot.lo
 }
 
-/** Striped lawn for a whole-arena swap. Not mixed into the a/b scatter. */
+/** Striped lawn. One tile, everywhere. */
 export function gardenLawnMown(hi: boolean): HTMLImageElement | null {
   if (!lawnMown) return null
   if (hi && lawnMown.hi) return lawnMown.hi
   return lawnMown.lo
+}
+
+/** Seamless gravel for the straight paths. 512 world px. */
+export function gardenPathGravel(hi: boolean): HTMLImageElement | null {
+  if (!pathGravel) return null
+  if (hi && pathGravel.hi) return pathGravel.hi
+  return pathGravel.lo
 }
 
 export function chooseClip(
