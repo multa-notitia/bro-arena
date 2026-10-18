@@ -3,10 +3,11 @@ import type { World } from '../core/types.ts'
 import { BEDS, BED_OPEN_AT, BED_SHEET, bedMouth, plotBounds, type BedDef, type BedId } from '../data/beds.ts'
 import { cameraShakeOffset, FEEL } from '../feel.ts'
 import { bedPhase, bedRevealAge } from '../game/beds.ts'
-import { cellOrigin, clipDrawScale, drawNamedClip, drawProp, frameCell, resolveSheet, seekActorClip } from './sheets.ts'
+import { cellOrigin, clipDrawScale, clipTileWorldPx, drawNamedClip, drawProp, frameCell, resolveSheet, seekActorClip } from './sheets.ts'
 
-const TILE = 256
-const HEDGE_V = 174
+/** Used only until the locked sheet has loaded. The live step comes from meta.tileWorldPx. */
+const HEDGE_H_FALLBACK = 256
+const HEDGE_V_FALLBACK = 174
 const GATE_GAP = 136
 const SIGN_DX = 92
 const SHADE_SEC = 0.4
@@ -89,25 +90,32 @@ function u01(n: number): number {
   return (x >>> 0) / 4294967296
 }
 
+function tileStep(sheetId: string, clip: string, fallback: number): number {
+  const sheet = resolveSheet([sheetId])
+  if (!sheet) return fallback
+  return clipTileWorldPx(sheet, clip)
+}
+
 function tilePattern(ctx: CanvasRenderingContext2D, sheetId: string, clip: string): CanvasPattern | null {
-  const key = `${sheetId}:${clip}`
-  const hit = patterns.get(key)
-  if (hit) return hit
   const sheet = resolveSheet([sheetId])
   const frame = sheet?.manifest.clips[clip]?.frames[0]
   if (!sheet || !frame || sheet.img.naturalWidth < 1) return null
+  const size = Math.max(1, Math.round(clipTileWorldPx(sheet, clip)))
+  const key = `${sheetId}:${clip}:${size}`
+  const hit = patterns.get(key)
+  if (hit) return hit
   const fw = sheet.manifest.frameWidth
   const fh = sheet.manifest.frameHeight
   const { sx, sy } = cellOrigin(fw, fh, sheet.columns, frame.i)
   const cell = frameCell(sheet.img, `${sheet.id}:${sx}:${sy}:${fw}x${fh}`, sx, sy, fw, fh)
   if (!cell) return null
   const bake = document.createElement('canvas')
-  bake.width = TILE
-  bake.height = TILE
+  bake.width = size
+  bake.height = size
   const g = bake.getContext('2d')
   if (!g) return null
   g.imageSmoothingEnabled = true
-  g.drawImage(cell, 0, 0, TILE, TILE)
+  g.drawImage(cell, 0, 0, size, size)
   const pat = ctx.createPattern(bake, 'repeat')
   if (!pat) return null
   patterns.set(key, pat)
@@ -179,20 +187,25 @@ function paintShade(ctx: CanvasRenderingContext2D, bed: BedDef): void {
   ctx.restore()
   const over = tilePattern(ctx, BED_SHEET.locked, 'overgrowth')
   if (!over) return
+  const size = tileStep(BED_SHEET.locked, 'overgrowth', 0)
+  const seed = bed.id.charCodeAt(0) * 13 + bed.rows.length
+  const phaseX = size > 0 ? Math.round(u01(seed) * size) : 0
+  const phaseY = size > 0 ? Math.round(u01(seed + 17) * size) : 0
   ctx.save()
   ctx.beginPath()
   ctx.rect(bed.x, bed.y, bed.w, bed.h)
   ctx.clip()
   ctx.globalAlpha = shade
+  ctx.translate(phaseX, phaseY)
   ctx.fillStyle = over
-  ctx.fillRect(bed.x, bed.y, bed.w, bed.h)
+  ctx.fillRect(bed.x - phaseX, bed.y - phaseY, bed.w, bed.h)
   ctx.restore()
 }
 
-function hSpans(x0: number, x1: number, gap: [number, number] | null, fn: (tileX: number, a: number, b: number) => void): void {
-  for (let x = x0; x < x1 - 0.5; x += TILE) {
+function hSpans(x0: number, x1: number, step: number, gap: [number, number] | null, fn: (tileX: number, a: number, b: number) => void): void {
+  for (let x = x0; x < x1 - 0.5; x += step) {
     const a = x
-    const b = Math.min(x + TILE, x1)
+    const b = Math.min(x + step, x1)
     if (!gap || b <= gap[0] || a >= gap[1]) {
       fn(x, a, b)
       continue
@@ -216,6 +229,8 @@ function hedgeSegs(bed: BedDef): Seg[] {
   const out: Seg[] = []
   if (bed.cost <= 0 || bedPhase(bed.id) === 'open') return out
   const mouth = bedMouth(bed)
+  const hedgeH = tileStep(BED_SHEET.locked, 'hedge_h', HEDGE_H_FALLBACK)
+  const hedgeV = tileStep(BED_SHEET.locked, 'hedge_v', HEDGE_V_FALLBACK)
   const gap = (side: Side): [number, number] | null => {
     if (!bed.gate || bed.gate !== side) return null
     const gx = bed.x + bed.w * 0.5
@@ -226,7 +241,7 @@ function hedgeSegs(bed: BedDef): Seg[] {
     if (!ownsSeam(bed, side)) continue
     if (side === 'top' || side === 'bottom') {
       const y = side === 'top' ? bed.y : bed.y + bed.h
-      hSpans(bed.x, bed.x + bed.w, gap(side), (tileX, a, b) => {
+      hSpans(bed.x, bed.x + bed.w, hedgeH, gap(side), (tileX, a, b) => {
         const mid = (a + b) * 0.5
         out.push({
           clip: 'hedge_h',
@@ -242,9 +257,9 @@ function hedgeSegs(bed: BedDef): Seg[] {
     }
     const x = side === 'left' ? bed.x : bed.x + bed.w
     const y1 = bed.y + bed.h
-    for (let y = bed.y; y < y1 - 0.5; y += HEDGE_V) {
-      const end = Math.min(y + HEDGE_V, y1)
-      const partial = end < y + HEDGE_V - 0.5
+    for (let y = bed.y; y < y1 - 0.5; y += hedgeV) {
+      const end = Math.min(y + hedgeV, y1)
+      const partial = end < y + hedgeV - 0.5
       out.push({
         clip: 'hedge_v',
         collapse: 'hedge_v_collapse',

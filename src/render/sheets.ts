@@ -79,6 +79,11 @@ export interface SheetManifest {
   facing?: 'front' | 'right'
   /** Clip names listed on `meta.behaviors.specials` (leap, bite, scream, turn). */
   specials?: readonly string[]
+  /**
+   * World px of a repeating tile. A number applies to every clip on the sheet
+   * (soil). A record is per clip (`overgrowth`, `hedge_h`, `plank_v`).
+   */
+  tileWorldPx?: number | Readonly<Record<string, number>>
 }
 
 export interface LoadedSheet {
@@ -335,6 +340,16 @@ function parseManifest(raw: unknown): SheetManifest | null {
   if (beh && Array.isArray(beh.specials)) {
     specials = beh.specials.filter((s): s is string => typeof s === 'string' && s.length > 0)
   }
+  let tileWorldPx: number | Record<string, number> | undefined
+  if (meta && typeof meta.tileWorldPx === 'number' && meta.tileWorldPx > 0) {
+    tileWorldPx = meta.tileWorldPx
+  } else if (meta && meta.tileWorldPx && typeof meta.tileWorldPx === 'object') {
+    const rec: Record<string, number> = {}
+    for (const [name, value] of Object.entries(meta.tileWorldPx as Record<string, unknown>)) {
+      if (typeof value === 'number' && value > 0) rec[name] = value
+    }
+    if (Object.keys(rec).length) tileWorldPx = rec
+  }
   return {
     image: o.image,
     frameWidth: o.frameWidth,
@@ -350,7 +365,16 @@ function parseManifest(raw: unknown): SheetManifest | null {
     mouth,
     facing,
     specials,
+    tileWorldPx,
   }
+}
+
+/** World size of a repeating tile, from `meta.tileWorldPx`, else cell px × draw scale. */
+export function clipTileWorldPx(sheet: LoadedSheet, clipName: string): number {
+  const meta = sheet.manifest.tileWorldPx
+  if (typeof meta === 'number' && meta > 0) return meta
+  if (meta && typeof meta[clipName] === 'number' && meta[clipName] > 0) return meta[clipName]
+  return Math.round(sheet.manifest.frameWidth * clipDrawScale(sheet, clipName))
 }
 
 function imageUrl(file: string): string {

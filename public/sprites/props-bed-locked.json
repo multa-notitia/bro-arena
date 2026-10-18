@@ -58,7 +58,7 @@
     "x": 0,
     "y": 0
    },
-   "drawScale": 0.5,
+   "drawScale": 1.0,
    "frames": [
     {
      "i": 4,
@@ -84,11 +84,11 @@
   "tileWorldPx": {
    "hedge_h": 256,
    "hedge_v": 174,
-   "overgrowth": 256
+   "overgrowth": 512
   },
   "groundLineY": 320,
   "drawScaleByClip": {
-   "overgrowth": 0.5
+   "overgrowth": 1.0
   },
   "note": "Locked bed = its soil tile darkened (multiply ~0.62, slight blue) + the seamless `overgrowth` tile on top (ground layer) + hedge_h/hedge_v around the perimeter (same anchor conventions as plank_h/plank_v, steps in tileWorldPx; draw over the planks; leave a gap of ~80 world px for the gate) + `gate` (front-on view, so put it on a horizontal edge, preferably the bottom/front edge nearest the open bed) + `sign` beside it. The hedge is ~48 world px tall, so the bed beyond stays visible."
  }
