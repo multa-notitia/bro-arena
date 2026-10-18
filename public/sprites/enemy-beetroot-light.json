@@ -639,7 +639,7 @@
   },
   "splat": "purple",
   "attacksSmash": {
-   "version": 1,
+   "version": 2,
    "date": "2026-10-18",
    "attack": "v2",
    "death_smash": "v2",

@@ -164,7 +164,7 @@ export const CHAOS = {
     splatCap: 40,
     /** CSS px of the top HUD band; ground decals clip below this. */
     splatHudClip: 92,
-    smashDeathScale: 0.7,
+    smashDeathScale: 0.85,
     /** I-frame / hurt blink. Never below lo, never held faded. */
     heroIframeHz: 8,
     heroIframeHi: 1,

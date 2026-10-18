@@ -516,7 +516,7 @@
   "emerge": "emerge (light): 620 ms spawn clip, plays once before AI. `emerge_fx` on f0 (spawn fx-funny mud_erupt at the feet), `emerged` on the last frame (= idle f0; AI + collisions on). ox/oy are world px (shake / hop beyond the cell). Built by figures/fx-funny/src/emerge.py, appended after all other cells (indices of every other clip unchanged).",
   "splat": "red",
   "attacksSmash": {
-   "version": 1,
+   "version": 2,
    "date": "2026-10-18",
    "attack": "events",
    "death_smash": "v2",

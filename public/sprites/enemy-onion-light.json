@@ -812,13 +812,13 @@
    "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
   },
   "mouth": {
-   "x": 18.2,
-   "y": -2.6,
+   "x": 24.7,
+   "y": -2.0,
    "note": "gas_puff jet origin on the attack_hit frame, world px from the anchor (x already includes that frame ox)"
   },
   "splat": "orange",
   "attacksSmash": {
-   "version": 1,
+   "version": 2,
    "date": "2026-10-18",
    "attack": "v2",
    "death_smash": "v2",
