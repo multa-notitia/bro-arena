@@ -302,6 +302,10 @@ const SKELETON = `
       <label class="opt-row"><input type="checkbox" id="opt-combo" /> Chain text</label>
       <label class="opt-row"><input type="checkbox" id="opt-shake" /> Screen shake</label>
       <label class="opt-row"><input type="checkbox" id="opt-hitstop" /> Hit-stop</label>
+      <label class="opt-row opt-slider" for="opt-zoom">Camera
+        <input type="range" id="opt-zoom" min="1" max="1.5" step="0.05" />
+        <span id="opt-zoom-val">1.25</span>
+      </label>
     </fieldset>
     <div class="actions">
       <button id="btn-resume" class="btn primary" type="button">Keep going</button>
@@ -463,6 +467,8 @@ export function createUi(
   const optCombo = must<HTMLInputElement>('#opt-combo')
   const optShake = must<HTMLInputElement>('#opt-shake')
   const optHitstop = must<HTMLInputElement>('#opt-hitstop')
+  const optZoom = must<HTMLInputElement>('#opt-zoom')
+  const optZoomVal = must<HTMLElement>('#opt-zoom-val')
   const overLede = must<HTMLElement>('#over-lede')
   const overHero = must<HTMLDivElement>('#over-hero')
   const overSummary = must<HTMLUListElement>('#over-summary')
@@ -637,6 +643,8 @@ export function createUi(
     setReducedJuice(v: boolean): void
     fx: Record<FxToggle, boolean>
     setFx(flag: FxToggle, value: boolean): void
+    zoom: number
+    setZoom(value: number): void
   } | null = null
   let shopHandlers: ShopHandlers | null = null
   let plantHandlers: PlantHandlers | null = null
@@ -885,6 +893,13 @@ export function createUi(
   optCombo.addEventListener('change', () => pauseHandlers?.setFx('combo', optCombo.checked))
   optShake.addEventListener('change', () => pauseHandlers?.setFx('shake', optShake.checked))
   optHitstop.addEventListener('change', () => pauseHandlers?.setFx('hitStop', optHitstop.checked))
+  const syncZoomLabel = () => {
+    optZoomVal.textContent = Number(optZoom.value).toFixed(2)
+  }
+  optZoom.addEventListener('input', () => {
+    syncZoomLabel()
+    pauseHandlers?.setZoom(Number(optZoom.value))
+  })
 
   shopReroll.addEventListener('click', () => {
     shopHandlers?.reroll()
@@ -1494,6 +1509,8 @@ export function createUi(
         setReducedJuice(v: boolean): void
         fx: Record<FxToggle, boolean>
         setFx(flag: FxToggle, value: boolean): void
+        zoom: number
+        setZoom(value: number): void
       },
     ): void {
       pauseHandlers = handlers
@@ -1506,6 +1523,8 @@ export function createUi(
       optCombo.checked = handlers.fx.combo
       optShake.checked = handlers.fx.shake
       optHitstop.checked = handlers.fx.hitStop
+      optZoom.value = String(handlers.zoom)
+      optZoomVal.textContent = handlers.zoom.toFixed(2)
     },
 
     renderGameOver(summary: RunSummary, handlers: { retry(): void; title(): void }): void {

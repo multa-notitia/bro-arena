@@ -18,7 +18,8 @@ export const FEEL = {
      * narrower window from shrinking the hero; zoomMax leaves 1280 unclamped.
      */
     zoomMin: 2.2,
-    zoomMax: 3.35,
+    /** High enough for the 1.5× Options zoom on a 1280 window. */
+    zoomMax: 5.2,
   },
   shake: {
     max: 7,

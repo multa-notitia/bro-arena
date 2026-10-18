@@ -1,7 +1,8 @@
 import { TAU, clamp, hashNoise } from '../core/math.ts'
 import { CHAOS, chaosJuiceOn, chaosOn, fxOn } from '../data/chaos.ts'
-import type { SpawnMarker } from '../core/types.ts'
+import type { SpawnMarker, Vec } from '../core/types.ts'
 import { drawNamedClip, restartActorClip, resolveSheet, spawnInkClip } from './sheets.ts'
+import { heroBurstAlpha, isSparkClip, nearHeroFx, registerSparkCounter, sparksFull } from './sparkBudget.ts'
 
 interface Decal {
   alive: boolean
@@ -33,6 +34,15 @@ const decals: Decal[] = []
 const bursts: FunnyBurst[] = []
 const BURST_CAP = 64
 let nextId = 1
+
+registerSparkCounter(() => {
+  let n = 0
+  for (let i = 0; i < bursts.length; i++) {
+    const b = bursts[i]
+    if (b && b.alive && isSparkClip(b.clip)) n++
+  }
+  return n
+})
 
 function funnyScale(clip: string, override?: number): number {
   if (override !== undefined) return override
@@ -124,6 +134,16 @@ export function spawnFunnyClip(
   const sheet = resolveSheet([CHAOS.sheets.funny])
   const clip = sheet?.manifest.clips[name]
   if (sheet && clip) {
+    if (isSparkClip(name) && sparksFull()) {
+      let oldest: FunnyBurst | null = null
+      for (let i = 0; i < bursts.length; i++) {
+        const live = bursts[i]
+        if (!live || !live.alive || !isSparkClip(live.clip)) continue
+        if (!oldest || live.t > oldest.t) oldest = live
+      }
+      if (oldest) oldest.alive = false
+      else return false
+    }
     const b = allocBurst()
     const idx = bursts.indexOf(b)
     b.alive = true
@@ -136,7 +156,8 @@ export function spawnFunnyClip(
     b.loop = clip.loop
     let ms = 0
     for (const f of clip.frames) ms += f.ms
-    b.life = opts?.loopLife ?? Math.max(0.12, ms / 1000)
+    const lifeScale = isSparkClip(name) ? CHAOS.read.sparkLife : 1
+    b.life = opts?.loopLife ?? Math.max(0.12, (ms / 1000) * lifeScale)
     b.key = `fx:${name}:${idx}:${nextId++}`
     restartActorClip(b.key, name)
     return true
@@ -235,17 +256,34 @@ export function drawLeapShadow(
   ctx.restore()
 }
 
-export function drawFunnyBursts(ctx: CanvasRenderingContext2D, dt: number): void {
+export function drawFunnyBursts(
+  ctx: CanvasRenderingContext2D,
+  dt: number,
+  hero?: Vec,
+  layer?: 'near' | 'far',
+): void {
   const sheet = resolveSheet([CHAOS.sheets.funny])
   for (let i = 0; i < bursts.length; i++) {
     const b = bursts[i]
     if (!b || !b.alive) continue
+    const spark = isSparkClip(b.clip)
+    if (hero && layer) {
+      const close = nearHeroFx(b.x, b.y, hero.x, hero.y)
+      if (spark) {
+        if (layer === 'near' && !close) continue
+        if (layer === 'far' && close) continue
+      } else if (layer === 'near') {
+        continue
+      }
+    }
     const ground = b.clip.startsWith('splat') || b.clip.startsWith('veg_burst') || b.clip === 'mud_erupt' || b.clip === 'mud_hole' || b.clip.startsWith('rustle')
     if (ground && !fxOn('telegraphs')) continue
+    const dim = hero && spark ? heroBurstAlpha(b.x, b.y, hero.x, hero.y) : 1
+    const step = spark ? dt / Math.max(0.2, CHAOS.read.sparkLife) : dt
     if (sheet?.manifest.clips[b.clip]) {
       ctx.save()
       ctx.translate(b.x, b.y)
-      const painted = drawNamedClip(ctx, sheet, b.key, b.clip, dt, { scale: b.scale })
+      const painted = drawNamedClip(ctx, sheet, b.key, b.clip, step, { scale: b.scale, alpha: dim })
       ctx.restore()
       if (painted) continue
     }
@@ -253,7 +291,7 @@ export function drawFunnyBursts(ctx: CanvasRenderingContext2D, dt: number): void
     const u = clamp(b.t / b.life, 0, 1)
     const fade = 1 - u
     ctx.save()
-    ctx.globalAlpha = fade * 0.7
+    ctx.globalAlpha = fade * 0.7 * dim
     ctx.fillStyle = b.color
     const r = 6 + u * 8
     ctx.beginPath()

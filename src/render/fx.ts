@@ -3,6 +3,8 @@ import type { DamageNumberOpts, FxApi } from '../core/types.ts'
 import { CHAOS, chaosJuiceOn, fxOn } from '../data/chaos.ts'
 import { FEEL, flashStrength } from '../feel.ts'
 import { drawInkClips, spawnInkClip, tickInkClips } from './sheets.ts'
+import { heroBurstAlpha, nearHeroFx, registerSparkCounter, sparksFull } from './sparkBudget.ts'
+import type { Vec } from '../core/types.ts'
 import { n01, parseRgb, wobbleBlob } from './watercolor.ts'
 
 const MAX_PARTICLES = 720
@@ -146,6 +148,36 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
     stains.push(s)
   }
 
+  registerSparkCounter(() => {
+    let n = 0
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i]
+      if (p && (p.kind === 'spark' || p.kind === 'sparkle')) n++
+    }
+    return n
+  })
+
+  function recycleSpark(): Particle | null {
+    let oldest: Particle | null = null
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i]
+      if (!p || (p.kind !== 'spark' && p.kind !== 'sparkle')) continue
+      if (!oldest || p.life < oldest.life) oldest = p
+    }
+    if (!oldest) return null
+    reset(oldest)
+    oldest.id = nextId++
+    return oldest
+  }
+
+  function allocSpark(): Particle {
+    if (sparksFull()) {
+      const slot = recycleSpark()
+      if (slot) return slot
+    }
+    return alloc()
+  }
+
   function alloc(): Particle {
     if (ps.length >= MAX_PARTICLES) {
       let oi = 0
@@ -255,8 +287,8 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
     },
     hitSpark(x, y, angle, color) {
       if (spawnInkClip('hitSpark', x, y, { angle, scale: 0.42, rotate: true })) return
-      for (let i = 0; i < 6; i++) {
-        const p = alloc()
+      for (let i = 0; i < 3; i++) {
+        const p = allocSpark()
         p.kind = 'spark'
         const a = angle + (n01(i, 11) - 0.5) * 0.9
         const spd = 80 + n01(i, 12) * 140
@@ -267,7 +299,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
         p.size = 3 + n01(i, 13) * 5
         p.angle = a
         p.color = color
-        p.life = 0.14 + n01(i, 14) * 0.16
+        p.life = 0.08 + n01(i, 14) * 0.08
         p.maxLife = p.life
       }
     },
@@ -360,13 +392,13 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.size = 15
     },
     sparkle(x, y, color) {
-      const p = alloc()
+      const p = allocSpark()
       p.kind = 'sparkle'
       p.x = x
       p.y = y
       p.color = color
-      p.life = 0.45
-      p.maxLife = 0.45
+      p.life = 0.22
+      p.maxLife = 0.22
       p.size = 5 + hashNoise(nextId, 25) * 4
       p.rot = hashNoise(nextId, 26) * TAU
     },
@@ -392,7 +424,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       addStain(x + size * 0.22, y + 6, '#1c1814', size * 0.45)
       const n = 9
       for (let i = 0; i < n; i++) {
-        const p = alloc()
+        const p = allocSpark()
         p.kind = 'spark'
         const a = n01(i + nextId, 51) * TAU
         const spd = 90 + n01(i, 52) * 180
@@ -403,7 +435,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
         p.size = 4 + n01(i, 53) * 7
         p.angle = a
         p.color = i % 3 === 0 ? '#fff8e8' : '#f4ead0'
-        p.life = 0.16 + n01(i, 54) * 0.18
+        p.life = 0.1 + n01(i, 54) * 0.1
         p.maxLife = p.life
       }
       const bloom = alloc()
@@ -578,14 +610,25 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       }
       ctx.restore()
     },
-    drawWorld(ctx) {
-      drawInkClips(ctx)
+    drawWorld(ctx, hero?: Vec, layer?: 'near' | 'far') {
+      drawInkClips(ctx, hero, layer)
       ctx.save()
       for (let i = 0; i < ps.length; i++) {
         const p = ps[i]
         if (!p) continue
+        const spark = p.kind === 'spark' || p.kind === 'sparkle'
+        if (hero && layer) {
+          const close = nearHeroFx(p.x, p.y, hero.x, hero.y)
+          if (spark) {
+            if (layer === 'near' && !close) continue
+            if (layer === 'far' && close) continue
+          } else if (layer === 'near') {
+            continue
+          }
+        }
         const u = 1 - clamp(p.life / p.maxLife, 0, 1)
         const fade = 1 - u
+        const dim = hero && spark ? heroBurstAlpha(p.x, p.y, hero.x, hero.y) : 1
         if (p.kind === 'splat') {
           ctx.globalAlpha = fade * 0.75
           ctx.fillStyle = p.color
@@ -604,7 +647,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
           ctx.arc(p.x, p.y, r * 1.35, 0, TAU)
           ctx.fill()
         } else if (p.kind === 'spark') {
-          ctx.globalAlpha = fade
+          ctx.globalAlpha = fade * dim
           ctx.strokeStyle = p.color
           ctx.lineWidth = 1.4
           ctx.lineCap = 'round'
@@ -674,7 +717,7 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
           ctx.save()
           ctx.translate(p.x, p.y)
           ctx.rotate(p.rot + u * 0.8)
-          ctx.globalAlpha = fade
+          ctx.globalAlpha = fade * dim
           ctx.strokeStyle = p.color
           ctx.lineWidth = 1.2
           const s = p.size * (1 - u * 0.3)

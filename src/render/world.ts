@@ -371,12 +371,18 @@ function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache
     const stretch = 1 + clamp(spd / 380, 0, 0.85)
     ctx.scale(stretch, 1 / Math.sqrt(stretch))
   }
-  const scale = p.type === 'chest' ? 0.22 : p.type === 'materialBig' ? 0.2 : 0.17
+  let scale = p.type === 'chest' ? 0.22 : p.type === 'materialBig' ? 0.2 : 0.17
+  const coin = p.type === 'material'
+  if (coin) {
+    scale *= CHAOS.read.coinScale
+    ctx.filter = `saturate(${CHAOS.read.coinSat})`
+  }
   if (!sheet || !drawNamedClip(ctx, sheet, `pick:${p.uid}`, clip, dt, { scale })) {
     const spr = pickupSprite(cache, p.type, qScale, p.crop)
-    const sc = p.type === 'chest' ? 0.85 : p.type === 'materialBig' ? 0.95 : 0.72
+    const sc = p.type === 'chest' ? 0.85 : p.type === 'materialBig' ? 0.95 : coin ? 0.72 * CHAOS.read.coinScale : 0.72
     blit(ctx, spr, sc)
   }
+  if (coin) ctx.filter = 'none'
   ctx.restore()
 }
 
@@ -396,12 +402,14 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: SpawnMarker, cache: Sprite
   const pulse = 0.35 + 0.65 * Math.sin(clamp(u, 0, 1) * Math.PI)
   ctx.save()
   ctx.translate(m.x, m.y)
-  ctx.globalAlpha = pulse * 0.55
-  ctx.strokeStyle = form === 'nightmare' ? '#d9ff5c' : '#c4a050'
-  ctx.lineWidth = 3
-  ctx.beginPath()
-  ctx.ellipse(0, 6, 18 + bloom * 10, 8 + bloom * 4, 0, 0, TAU)
-  ctx.stroke()
+  if (fxOn('telegraphs')) {
+    ctx.globalAlpha = pulse * 0.55
+    ctx.strokeStyle = form === 'nightmare' ? '#d9ff5c' : '#c4a050'
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.ellipse(0, 6, 18 + bloom * 10, 8 + bloom * 4, 0, 0, TAU)
+    ctx.stroke()
+  }
   blit(ctx, spr, bloom, pulse)
   ctx.restore()
 }
@@ -1139,6 +1147,9 @@ export function drawWorld(
       if (e) drawEnemy(ctx, e, cache, world.time)
     } else if (c.kind === 4 && !playerDrawn) {
       playerDrawn = true
+      const hero = world.player
+      drawFunnyBursts(ctx, dt, hero, 'near')
+      fx.drawWorld(ctx, hero, 'near')
       drawPlayer(ctx, world, cache)
     } else if (c.kind === 5) {
       const plot = world.farm.plots[c.idx]
@@ -1166,8 +1177,8 @@ export function drawWorld(
   }
 
   tickChaosFx(dt)
-  drawFunnyBursts(ctx, dt)
-  fx.drawWorld(ctx)
+  drawFunnyBursts(ctx, dt, world.player, 'far')
+  fx.drawWorld(ctx, world.player, 'far')
   ctx.restore()
 
   fx.drawScreen(ctx, cssW, cssH)

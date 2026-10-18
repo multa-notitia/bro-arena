@@ -1,4 +1,5 @@
 import { clamp, damp, Rng } from '../core/math.ts'
+import { CHAOS, getCameraZoom } from '../data/chaos.ts'
 import { FEEL } from '../feel.ts'
 import type {
   AudioApi,
@@ -89,7 +90,7 @@ export function syncViewport(world: World, canvas: HTMLCanvasElement): void {
   world.camera.w = Math.max(1, w)
   world.camera.h = Math.max(1, h)
   world.camera.zoom = clamp(
-    world.camera.w / FEEL.camera.worldWidth,
+    (world.camera.w / FEEL.camera.worldWidth) * getCameraZoom(),
     FEEL.camera.zoomMin,
     FEEL.camera.zoomMax,
   )
@@ -156,8 +157,12 @@ export function presentRenderPoses(world: World): () => void {
 export function updateCamera(world: World, dt: number): void {
   const cam = world.camera
   const p = world.player
-  cam.x = damp(cam.x, p.x, 8, dt)
-  cam.y = damp(cam.y, p.y, 8, dt)
+  const look = CHAOS.read.lookAhead
+  const lookMax = CHAOS.read.lookAheadMax
+  const tx = p.x + clamp(p.vx * look, -lookMax, lookMax)
+  const ty = p.y + clamp(p.vy * look, -lookMax, lookMax)
+  cam.x = damp(cam.x, tx, CHAOS.read.followRate, dt)
+  cam.y = damp(cam.y, ty, CHAOS.read.followRate, dt)
   const zoom = cam.zoom || 1
   const halfW = cam.w / (2 * zoom)
   const halfH = cam.h / (2 * zoom)

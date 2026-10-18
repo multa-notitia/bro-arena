@@ -45,7 +45,7 @@ import { updateWeapons } from './weapons.ts'
 import { beginWave, settleWave, updateDirector } from './waves.ts'
 import { clearPlots, plantView, selectCrop, syncFarmUnlocks, togglePlot } from './farm.ts'
 import { captureRenderPoses, createWorld, pinRenderPoses, syncViewport, updateCamera, updateTrees, type SimCtx } from './world.ts'
-import { getFxState, setFxFlag } from '../data/chaos.ts'
+import { getCameraZoom, getFxState, setCameraZoom, setFxFlag } from '../data/chaos.ts'
 import { consumeHitStop, getReducedJuice, resetFeel, setReducedJuice } from '../feel.ts'
 import { applyChaosDemo } from './chaosDemo.ts'
 import { chaosDemoRequested, resetChaosDirector } from './chaosDirector.ts'
@@ -612,6 +612,8 @@ export class Run {
       setReducedJuice: (v: boolean) => this.changeReducedJuice(v),
       fx: getFxState(),
       setFx: (flag, value) => setFxFlag(flag, value),
+      zoom: getCameraZoom(),
+      setZoom: (value) => setCameraZoom(value),
     })
   }
 

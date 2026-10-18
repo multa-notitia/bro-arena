@@ -305,6 +305,22 @@ button {
   height: 16px;
 }
 
+.opt-row.opt-slider {
+  cursor: default;
+}
+
+.opt-row.opt-slider input[type='range'] {
+  width: 120px;
+  height: 16px;
+  flex: 1;
+}
+
+.opt-row.opt-slider #opt-zoom-val {
+  min-width: 2.4em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .bag-count.is-pop {
   animation: bag-pop 0.28s ease-out;
 }

@@ -947,6 +947,8 @@ export interface UiApi {
       setReducedJuice(v: boolean): void
       fx: Record<FxToggle, boolean>
       setFx(flag: FxToggle, value: boolean): void
+      zoom: number
+      setZoom(value: number): void
     },
   ): void
   renderGameOver(summary: RunSummary, handlers: { retry(): void; title(): void }): void
@@ -1023,7 +1025,7 @@ export interface FxApi {
   flash(color: string, strength: number): void
   update(dt: number): void
   /** Draw world-space fx. Caller has already applied the camera transform. */
-  drawWorld(ctx: CanvasRenderingContext2D): void
+  drawWorld(ctx: CanvasRenderingContext2D, hero?: Vec, layer?: 'near' | 'far'): void
   /** Draw screen-space fx (transition, flash, vignette). Called in screen space. */
   drawScreen(ctx: CanvasRenderingContext2D, w: number, h: number): void
   clear(): void

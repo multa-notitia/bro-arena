@@ -31,7 +31,8 @@
  */
 import { clamp, lerp } from '../core/math.ts'
 import { CHAOS } from '../data/chaos.ts'
-import type { AnimState, EnemyKind, Form, ModelDir, Species } from '../core/types.ts'
+import type { AnimState, EnemyKind, Form, ModelDir, Species, Vec } from '../core/types.ts'
+import { heroBurstAlpha, isSparkClip, nearHeroFx, registerSparkCounter, sparksFull } from './sparkBudget.ts'
 
 export interface SheetAnchor {
   x: number
@@ -176,6 +177,14 @@ interface InkBurst {
 
 const inkBursts: InkBurst[] = []
 const INK_CAP = 48
+
+registerSparkCounter(() => {
+  let n = 0
+  for (let i = 0; i < inkBursts.length; i++) {
+    if (isSparkClip(inkBursts[i]!.clip)) n++
+  }
+  return n
+})
 
 const ground: { lo: HTMLImageElement | null; hi: HTMLImageElement | null } = { lo: null, hi: null }
 
@@ -910,6 +919,20 @@ export function spawnInkClip(
   const sheet = resolveSheet(['fx-ink'])
   const clip = sheet?.manifest.clips[name]
   if (!sheet || !clip) return false
+  if (isSparkClip(name) && sparksFull()) {
+    let oldest = -1
+    let worst = -1
+    for (let i = 0; i < inkBursts.length; i++) {
+      const b = inkBursts[i]
+      if (!b || !isSparkClip(b.clip)) continue
+      if (b.elapsed > worst) {
+        worst = b.elapsed
+        oldest = i
+      }
+    }
+    if (oldest >= 0) inkBursts.splice(oldest, 1)
+    else return false
+  }
   if (inkBursts.length >= INK_CAP) inkBursts.shift()
   inkBursts.push({
     clip: name,
@@ -929,7 +952,8 @@ export function tickInkClips(dt: number): void {
   for (let i = inkBursts.length - 1; i >= 0; i--) {
     const b = inkBursts[i]
     if (!b) continue
-    b.elapsed += step
+    const rate = isSparkClip(b.clip) ? 1 / Math.max(0.2, CHAOS.read.sparkLife) : 1
+    b.elapsed += step * rate
     if (b.elapsed >= b.duration) inkBursts.splice(i, 1)
   }
 }
@@ -973,10 +997,20 @@ export function blitCell(ctx: CanvasRenderingContext2D, cell: CanvasImageSource,
   ctx.restore()
 }
 
-export function drawInkClips(ctx: CanvasRenderingContext2D): void {
+export function drawInkClips(ctx: CanvasRenderingContext2D, hero?: Vec, layer?: 'near' | 'far'): void {
   const sheet = cache.get('fx-ink')
   if (!sheet || inkBursts.length === 0) return
   for (const b of inkBursts) {
+    const spark = isSparkClip(b.clip)
+    if (hero && layer) {
+      const close = nearHeroFx(b.x, b.y, hero.x, hero.y)
+      if (spark) {
+        if (layer === 'near' && !close) continue
+        if (layer === 'far' && close) continue
+      } else if (layer === 'near') {
+        continue
+      }
+    }
     const clip = sheet.manifest.clips[b.clip]
     if (!clip) continue
     const { frame } = locate(clip, b.elapsed)
@@ -987,7 +1021,9 @@ export function drawInkClips(ctx: CanvasRenderingContext2D): void {
     const anchor = clip.anchor ?? sheet.manifest.anchor
     const cell = frameCell(sheet.img, `ink:${b.clip}:${frame.i}`, col * fw, row * fh, fw, fh)
     if (!cell) continue
+    const dim = hero && spark ? heroBurstAlpha(b.x, b.y, hero.x, hero.y) : 1
     ctx.save()
+    ctx.globalAlpha = dim
     ctx.translate(b.x, b.y)
     if (b.rotate) ctx.rotate(b.angle)
     ctx.scale(b.scale, b.scale)

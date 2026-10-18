@@ -17,6 +17,7 @@ import { clamp } from '../core/math.ts'
 
 const STORAGE_CHAOS = 'bro.chaos'
 const STORAGE_FX = 'bro.fx'
+const STORAGE_ZOOM = 'bro.zoom'
 
 export type DeathStyle = 'slice' | 'smash' | 'normal'
 export type FxFlag = 'telegraphs' | 'damageNumbers' | 'combo' | 'shake' | 'hitStop'
@@ -88,6 +89,25 @@ export const CHAOS = {
     separateCell: 36,
     weaponMelee: 1.3,
     weaponRanged: 1.2,
+    /**
+     * Camera multiplier on the authored worldWidth fit. 1.25 is the Brotato-like
+     * default; Pause → Options exposes 1.0–1.5.
+     */
+    zoom: 1.25,
+    zoomMin: 1,
+    zoomMax: 1.5,
+    followRate: 11,
+    /** Seconds of velocity lookahead, clamped in world px. */
+    lookAhead: 0.12,
+    lookAheadMax: 24,
+    sparkCap: 12,
+    /** Multiplier on spark / star clip and particle life. */
+    sparkLife: 0.55,
+    heroFxRadius: 60,
+    /** Burst alpha next to the hero (40% dim). */
+    heroFxAlpha: 0.6,
+    coinScale: 0.75,
+    coinSat: 0.72,
   },
 
   director: {
@@ -168,6 +188,7 @@ export const CHAOS = {
     chainRadius: 56,
     chainFrac: 0.32,
     bigKillHp: 80,
+    /** Expanding lime stroke on a chunky kill. Ground marks. ~48 world px. */
     bigKillRadius: 48,
   },
 
@@ -223,7 +244,7 @@ export const CHAOS = {
 export type ChaosConfig = typeof CHAOS
 
 export const FX_DEFAULTS: Record<FxFlag, boolean> = {
-  telegraphs: true,
+  telegraphs: false,
   damageNumbers: true,
   combo: true,
   shake: true,
@@ -240,6 +261,7 @@ const FX_URL: Record<FxFlag, readonly string[]> = {
 
 let chaosOverride: boolean | null = null
 let fxState: Record<FxFlag, boolean> = { ...FX_DEFAULTS }
+let zoomMul: number = CHAOS.read.zoom
 
 function parseFlag(raw: string | null): boolean | undefined {
   if (raw === null) return undefined
@@ -286,9 +308,32 @@ function writeFxStored(): void {
   }
 }
 
+function readZoomStored(): number | null {
+  try {
+    if (typeof localStorage === 'undefined') return null
+    const raw = localStorage.getItem(STORAGE_ZOOM)
+    if (raw === null) return null
+    const n = Number(raw)
+    if (!Number.isFinite(n)) return null
+    return clamp(n, CHAOS.read.zoomMin, CHAOS.read.zoomMax)
+  } catch {
+    return null
+  }
+}
+
+function writeZoomStored(): void {
+  try {
+    if (typeof localStorage === 'undefined') return
+    localStorage.setItem(STORAGE_ZOOM, String(zoomMul))
+  } catch {
+    /* private mode */
+  }
+}
+
 /** Load Pause options from localStorage, then overlay URL params (`circles=0`). */
 export function applyFxFromEnvironment(): void {
   fxState = { ...FX_DEFAULTS, ...readFxStored() }
+  zoomMul = readZoomStored() ?? CHAOS.read.zoom
   if (typeof location === 'undefined') return
   const q = new URLSearchParams(location.search)
   for (const flag of Object.keys(FX_URL) as FxFlag[]) {
@@ -300,6 +345,20 @@ export function applyFxFromEnvironment(): void {
       }
     }
   }
+  const zoomRaw = q.get('zoom')
+  if (zoomRaw !== null) {
+    const n = Number(zoomRaw)
+    if (Number.isFinite(n)) zoomMul = clamp(n, CHAOS.read.zoomMin, CHAOS.read.zoomMax)
+  }
+}
+
+export function getCameraZoom(): number {
+  return zoomMul
+}
+
+export function setCameraZoom(value: number): void {
+  zoomMul = clamp(value, CHAOS.read.zoomMin, CHAOS.read.zoomMax)
+  writeZoomStored()
 }
 
 export function fxOn(flag: FxFlag): boolean {
