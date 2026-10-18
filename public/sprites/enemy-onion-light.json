@@ -12,6 +12,10 @@
    "loop": true,
    "frames": [
     {
+     "i": 0,
+     "ms": 90
+    },
+    {
      "i": 1,
      "ms": 90
     },
@@ -46,16 +50,16 @@
     {
      "i": 9,
      "ms": 90
-    },
-    {
-     "i": 10,
-     "ms": 90
     }
    ]
   },
   "walk": {
    "loop": true,
    "frames": [
+    {
+     "i": 10,
+     "ms": 47
+    },
     {
      "i": 11,
      "ms": 47
@@ -86,7 +90,7 @@
     },
     {
      "i": 18,
-     "ms": 47
+     "ms": 46
     },
     {
      "i": 19,
@@ -99,10 +103,6 @@
     {
      "i": 21,
      "ms": 46
-    },
-    {
-     "i": 22,
-     "ms": 46
     }
    ]
   },
@@ -110,16 +110,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 23,
+     "i": 22,
      "ms": 40,
      "event": "hurt"
     },
     {
-     "i": 24,
+     "i": 23,
      "ms": 60
     },
     {
-     "i": 25,
+     "i": 24,
      "ms": 80
     }
    ]
@@ -128,23 +128,23 @@
    "loop": false,
    "frames": [
     {
-     "i": 40,
+     "i": 41,
      "ms": 60,
      "ox": -0.8,
      "event": "attack_windup"
     },
     {
-     "i": 41,
+     "i": 42,
      "ms": 60,
      "ox": -1.6
     },
     {
-     "i": 42,
+     "i": 43,
      "ms": 45,
      "ox": 3.2
     },
     {
-     "i": 43,
+     "i": 44,
      "ms": 65,
      "ox": 8.7,
      "events": [
@@ -155,22 +155,22 @@
      ]
     },
     {
-     "i": 44,
+     "i": 45,
      "ms": 50,
      "ox": 7.9
     },
     {
-     "i": 45,
+     "i": 46,
      "ms": 70,
      "ox": 4.7
     },
     {
-     "i": 46,
+     "i": 47,
      "ms": 70,
      "ox": 2.0
     },
     {
-     "i": 47,
+     "i": 48,
      "ms": 60,
      "event": "attack_done"
     }
@@ -180,15 +180,15 @@
    "loop": false,
    "frames": [
     {
-     "i": 48,
+     "i": 49,
      "ms": 60
     },
     {
-     "i": 49,
+     "i": 50,
      "ms": 70
     },
     {
-     "i": 50,
+     "i": 51,
      "ms": 45,
      "events": [
       "spawnFx",
@@ -196,27 +196,27 @@
      ]
     },
     {
-     "i": 51,
+     "i": 52,
      "ms": 50
     },
     {
-     "i": 52,
+     "i": 53,
      "ms": 55
     },
     {
-     "i": 53,
+     "i": 54,
      "ms": 65
     },
     {
-     "i": 54,
+     "i": 55,
      "ms": 75
     },
     {
-     "i": 55,
+     "i": 56,
      "ms": 85
     },
     {
-     "i": 56,
+     "i": 57,
      "ms": 950
     }
    ]
@@ -225,16 +225,12 @@
    "loop": false,
    "frames": [
     {
-     "i": 29,
-     "ms": 35
-    },
-    {
      "i": 30,
      "ms": 35
     },
     {
      "i": 31,
-     "ms": 40
+     "ms": 35
     },
     {
      "i": 32,
@@ -242,7 +238,7 @@
     },
     {
      "i": 33,
-     "ms": 30
+     "ms": 40
     },
     {
      "i": 34,
@@ -266,6 +262,10 @@
     },
     {
      "i": 39,
+     "ms": 30
+    },
+    {
+     "i": 40,
      "ms": 70
     }
    ]
@@ -274,11 +274,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 57,
+     "i": 58,
      "ms": 45
     },
     {
-     "i": 58,
+     "i": 59,
      "ms": 55,
      "events": [
       "spawnFx",
@@ -286,23 +286,23 @@
      ]
     },
     {
-     "i": 59,
+     "i": 60,
      "ms": 60
     },
     {
-     "i": 60,
+     "i": 61,
      "ms": 65
     },
     {
-     "i": 61,
+     "i": 62,
      "ms": 70
     },
     {
-     "i": 62,
+     "i": 63,
      "ms": 75
     },
     {
-     "i": 63,
+     "i": 64,
      "ms": 950
     }
    ]
@@ -311,12 +311,8 @@
    "loop": false,
    "frames": [
     {
-     "i": 64,
-     "ms": 40
-    },
-    {
      "i": 65,
-     "ms": 45
+     "ms": 40
     },
     {
      "i": 66,
@@ -324,6 +320,10 @@
     },
     {
      "i": 67,
+     "ms": 45
+    },
+    {
+     "i": 68,
      "ms": 65,
      "events": [
       "spawnFx",
@@ -332,19 +332,19 @@
      ]
     },
     {
-     "i": 68,
+     "i": 71,
      "ms": 75
     },
     {
-     "i": 71,
+     "i": 72,
      "ms": 300
     },
     {
-     "i": 72,
+     "i": 73,
      "ms": 110
     },
     {
-     "i": 73,
+     "i": 74,
      "ms": 110
     }
    ]
@@ -362,31 +362,31 @@
      "ms": 80
     },
     {
-     "i": 130,
+     "i": 136,
      "ms": 70
     },
     {
-     "i": 131,
+     "i": 137,
      "ms": 60
     },
     {
-     "i": 132,
+     "i": 138,
      "ms": 60
     },
     {
-     "i": 133,
+     "i": 139,
      "ms": 60
     },
     {
-     "i": 134,
+     "i": 140,
      "ms": 70
     },
     {
-     "i": 135,
+     "i": 141,
      "ms": 70
     },
     {
-     "i": 1,
+     "i": 0,
      "ms": 80,
      "event": "emerged"
     }
@@ -396,32 +396,32 @@
    "loop": false,
    "frames": [
     {
-     "i": 123,
+     "i": 129,
      "ms": 80
     },
     {
-     "i": 124,
+     "i": 130,
      "ms": 70
     },
     {
-     "i": 125,
+     "i": 131,
      "ms": 60,
      "event": "peel"
     },
     {
-     "i": 126,
+     "i": 132,
      "ms": 60
     },
     {
-     "i": 127,
+     "i": 133,
      "ms": 70
     },
     {
-     "i": 128,
+     "i": 134,
      "ms": 80
     },
     {
-     "i": 129,
+     "i": 135,
      "ms": 80
     }
    ]
@@ -429,10 +429,6 @@
   "idle_peeled": {
    "loop": true,
    "frames": [
-    {
-     "i": 74,
-     "ms": 127
-    },
     {
      "i": 75,
      "ms": 127
@@ -447,10 +443,14 @@
     },
     {
      "i": 78,
-     "ms": 126
+     "ms": 127
     },
     {
      "i": 79,
+     "ms": 126
+    },
+    {
+     "i": 80,
      "ms": 126
     }
    ]
@@ -458,10 +458,6 @@
   "walk_peeled": {
    "loop": true,
    "frames": [
-    {
-     "i": 80,
-     "ms": 65
-    },
     {
      "i": 81,
      "ms": 65
@@ -489,6 +485,10 @@
     {
      "i": 87,
      "ms": 65
+    },
+    {
+     "i": 88,
+     "ms": 65
     }
    ]
   },
@@ -496,16 +496,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 88,
+     "i": 89,
      "ms": 40,
      "event": "hurt"
     },
     {
-     "i": 89,
+     "i": 90,
      "ms": 60
     },
     {
-     "i": 90,
+     "i": 91,
      "ms": 80
     }
    ]
@@ -551,15 +551,15 @@
    "loop": false,
    "frames": [
     {
-     "i": 91,
+     "i": 97,
      "ms": 60
     },
     {
-     "i": 92,
+     "i": 98,
      "ms": 70
     },
     {
-     "i": 93,
+     "i": 99,
      "ms": 45,
      "events": [
       "spawnFx",
@@ -567,27 +567,27 @@
      ]
     },
     {
-     "i": 94,
+     "i": 100,
      "ms": 50
     },
     {
-     "i": 95,
+     "i": 101,
      "ms": 55
     },
     {
-     "i": 96,
+     "i": 110,
      "ms": 65
     },
     {
-     "i": 97,
+     "i": 111,
      "ms": 75
     },
     {
-     "i": 98,
+     "i": 112,
      "ms": 85
     },
     {
-     "i": 99,
+     "i": 113,
      "ms": 950
     }
    ]
@@ -596,15 +596,15 @@
    "loop": false,
    "frames": [
     {
-     "i": 115,
+     "i": 121,
      "ms": 40
     },
     {
-     "i": 116,
+     "i": 122,
      "ms": 50
     },
     {
-     "i": 117,
+     "i": 123,
      "ms": 50,
      "events": [
       "spawnFx",
@@ -612,23 +612,23 @@
      ]
     },
     {
-     "i": 118,
+     "i": 124,
      "ms": 55
     },
     {
-     "i": 119,
+     "i": 125,
      "ms": 65
     },
     {
-     "i": 120,
+     "i": 126,
      "ms": 75
     },
     {
-     "i": 121,
+     "i": 127,
      "ms": 85
     },
     {
-     "i": 122,
+     "i": 128,
      "ms": 950
     }
    ]
@@ -637,11 +637,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 100,
+     "i": 114,
      "ms": 45
     },
     {
-     "i": 101,
+     "i": 115,
      "ms": 55,
      "events": [
       "spawnFx",
@@ -649,23 +649,23 @@
      ]
     },
     {
-     "i": 110,
+     "i": 116,
      "ms": 60
     },
     {
-     "i": 111,
+     "i": 117,
      "ms": 65
     },
     {
-     "i": 112,
+     "i": 118,
      "ms": 70
     },
     {
-     "i": 113,
+     "i": 119,
      "ms": 75
     },
     {
-     "i": 114,
+     "i": 120,
      "ms": 950
     }
    ]
@@ -674,13 +674,13 @@
    "loop": false,
    "frames": [
     {
-     "i": 26,
-     "ms": 40,
+     "i": 25,
+     "ms": 30,
      "event": "turn"
     },
     {
-     "i": 0,
-     "ms": 55
+     "i": 26,
+     "ms": 35
     },
     {
      "i": 27,
@@ -688,7 +688,38 @@
     },
     {
      "i": 28,
-     "ms": 45,
+     "ms": 35
+    },
+    {
+     "i": 29,
+     "ms": 30,
+     "event": "turn_done"
+    }
+   ]
+  },
+  "turn_peeled": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 92,
+     "ms": 30,
+     "event": "turn"
+    },
+    {
+     "i": 93,
+     "ms": 35
+    },
+    {
+     "i": 94,
+     "ms": 40
+    },
+    {
+     "i": 95,
+     "ms": 35
+    },
+    {
+     "i": 96,
+     "ms": 30,
      "event": "turn_done"
     }
    ]
@@ -698,7 +729,6 @@
   "title": "Garden onion (light): peels a layer per hit, big peel at half hp, pops into a tear-gas cloud; nfvar layers | side view v2",
   "source": "derived_light.png",
   "cells": [
-   "idle0",
    "sv_idle_0",
    "sv_idle_1",
    "sv_idle_2",
@@ -725,8 +755,10 @@
    "sv_hurt_1",
    "sv_hurt_2",
    "sv_turn_0",
+   "sv_turn_1",
    "sv_turn_2",
    "sv_turn_3",
+   "sv_turn_4",
    "sv_taunt_0",
    "sv_taunt_1",
    "sv_taunt_2",
@@ -766,9 +798,9 @@
    "sv_death_smash_1",
    "sv_death_smash_2",
    "sv_death_smash_3",
-   "sv_death_smash_4",
    "emerge0",
    "emerge1",
+   "sv_death_smash_4",
    "sv_death_smash_5",
    "sv_death_smash_6",
    "sv_death_smash_7",
@@ -789,17 +821,16 @@
    "sv_hurt_peeled_0",
    "sv_hurt_peeled_1",
    "sv_hurt_peeled_2",
+   "sv_turn_peeled_0",
+   "sv_turn_peeled_1",
+   "sv_turn_peeled_2",
+   "sv_turn_peeled_3",
+   "sv_turn_peeled_4",
    "sv_death_peeled_0",
    "sv_death_peeled_1",
    "sv_death_peeled_2",
    "sv_death_peeled_3",
    "sv_death_peeled_4",
-   "sv_death_peeled_5",
-   "sv_death_peeled_6",
-   "sv_death_peeled_7",
-   "sv_death_peeled_8",
-   "sv_death_slice_peeled_0",
-   "sv_death_slice_peeled_1",
    "gas_cloud0",
    "gas_cloud1",
    "gas_cloud2",
@@ -808,6 +839,12 @@
    "gas_cloud5",
    "gas_cloud6",
    "gas_cloud7",
+   "sv_death_peeled_5",
+   "sv_death_peeled_6",
+   "sv_death_peeled_7",
+   "sv_death_peeled_8",
+   "sv_death_slice_peeled_0",
+   "sv_death_slice_peeled_1",
    "sv_death_slice_peeled_2",
    "sv_death_slice_peeled_3",
    "sv_death_slice_peeled_4",

@@ -123,6 +123,10 @@ export function familyClip(e: Enemy, clip: string | null): string | null {
     if (clip === 'idle') return 'idle_peeled'
     if (clip === 'walk') return 'walk_peeled'
     if (clip === 'hurt') return 'hurt_peeled'
+    if (clip === 'turn') {
+      const sheet = resolveEnemySheet(e.kind, e.form)
+      if (hasClip(sheet, 'turn_peeled')) return 'turn_peeled'
+    }
     if (clip === 'death' || clip === 'death_slice' || clip === 'death_smash') {
       const peeled = `${clip}_peeled`
       const sheet = resolveEnemySheet(e.kind, e.form)

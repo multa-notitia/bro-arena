@@ -9,6 +9,8 @@ import { cellOrigin, clipDrawScale, clipTileWorldPx, drawNamedClip, drawProp, fr
 const HEDGE_H_FALLBACK = 256
 const HEDGE_V_FALLBACK = 174
 const GATE_GAP = 136
+const GATE_SIDE_FALLBACK = 162
+const OVER_QUADS = ['overgrowth_q00', 'overgrowth_q10', 'overgrowth_q01', 'overgrowth_q11'] as const
 const SIGN_DX = 92
 const SHADE_SEC = 0.4
 const HEDGE_STAGGER = 0.035
@@ -136,6 +138,7 @@ function paint(
   alpha: number,
   rect: Rect | null,
   sortY: number,
+  facing: 1 | -1 = 1,
 ): void {
   if (alpha <= 0.01) return
   if (rect && (rect.w < 0.5 || rect.h < 0.5)) return
@@ -147,7 +150,7 @@ function paint(
       g.save()
       g.translate(x, y)
       g.globalAlpha *= alpha
-      drawNamedClip(g, sheet, key, clip, 0, { scale: clipDrawScale(sheet, clip) })
+      drawNamedClip(g, sheet, key, clip, 0, { scale: clipDrawScale(sheet, clip), facing })
       g.restore()
     }
     if (!rect) {
@@ -185,9 +188,9 @@ function paintShade(ctx: CanvasRenderingContext2D, bed: BedDef): void {
   ctx.fillStyle = 'rgb(158, 163, 184)'
   ctx.fillRect(bed.x, bed.y, bed.w, bed.h)
   ctx.restore()
-  const over = tilePattern(ctx, BED_SHEET.locked, 'overgrowth')
+  const over = overgrowthPattern(ctx)
   if (!over) return
-  const size = tileStep(BED_SHEET.locked, 'overgrowth', 0)
+  const size = over.size
   const seed = bed.id.charCodeAt(0) * 13 + bed.rows.length
   const phaseX = size > 0 ? Math.round(u01(seed) * size) : 0
   const phaseY = size > 0 ? Math.round(u01(seed + 17) * size) : 0
@@ -197,9 +200,52 @@ function paintShade(ctx: CanvasRenderingContext2D, bed: BedDef): void {
   ctx.clip()
   ctx.globalAlpha = shade
   ctx.translate(phaseX, phaseY)
-  ctx.fillStyle = over
+  ctx.fillStyle = over.pat
   ctx.fillRect(bed.x - phaseX, bed.y - phaseY, bed.w, bed.h)
   ctx.restore()
+}
+
+/** 2×2 hi-res overgrowth. Falls back to the single `overgrowth` tile. */
+function overgrowthPattern(ctx: CanvasRenderingContext2D): { pat: CanvasPattern; size: number } | null {
+  const sheet = resolveSheet([BED_SHEET.locked])
+  if (!sheet || sheet.img.naturalWidth < 1) return null
+  const ready = OVER_QUADS.every((name) => sheet.manifest.clips[name]?.frames[0])
+  if (!ready) {
+    const pat = tilePattern(ctx, BED_SHEET.locked, 'overgrowth')
+    if (!pat) return null
+    return { pat, size: tileStep(BED_SHEET.locked, 'overgrowth', 0) }
+  }
+  const fw = sheet.manifest.frameWidth
+  const fh = sheet.manifest.frameHeight
+  const quadWorld = clipTileWorldPx(sheet, 'overgrowth_q00')
+  const block = quadWorld * 2
+  const key = `${sheet.id}:overgrowth-quad:${fw}x${fh}:${block}`
+  const hit = patterns.get(key)
+  if (hit) return { pat: hit, size: block }
+  const bake = document.createElement('canvas')
+  bake.width = fw * 2
+  bake.height = fh * 2
+  const g = bake.getContext('2d')
+  if (!g) return null
+  const spots = [
+    ['overgrowth_q00', 0, 0],
+    ['overgrowth_q10', fw, 0],
+    ['overgrowth_q01', 0, fh],
+    ['overgrowth_q11', fw, fh],
+  ] as const
+  for (const [name, dx, dy] of spots) {
+    const frame = sheet.manifest.clips[name]!.frames[0]!
+    const { sx, sy } = cellOrigin(fw, fh, sheet.columns, frame.i)
+    const cell = frameCell(sheet.img, `${sheet.id}:${sx}:${sy}:${fw}x${fh}`, sx, sy, fw, fh)
+    if (!cell) return null
+    g.drawImage(cell, dx, dy)
+  }
+  const pat = ctx.createPattern(bake, 'repeat')
+  if (!pat) return null
+  const scale = block / bake.width
+  pat.setTransform(new DOMMatrix().scale(scale, scale))
+  patterns.set(key, pat)
+  return { pat, size: block }
 }
 
 function hSpans(x0: number, x1: number, step: number, gap: [number, number] | null, fn: (tileX: number, a: number, b: number) => void): void {
@@ -212,6 +258,19 @@ function hSpans(x0: number, x1: number, step: number, gap: [number, number] | nu
     }
     if (a < gap[0]) fn(x, a, Math.min(b, gap[0]))
     if (b > gap[1]) fn(x, Math.max(a, gap[1]), b)
+  }
+}
+
+function vSpans(y0: number, y1: number, step: number, gap: [number, number] | null, fn: (tileY: number, a: number, b: number) => void): void {
+  for (let y = y0; y < y1 - 0.5; y += step) {
+    const a = y
+    const b = Math.min(y + step, y1)
+    if (!gap || b <= gap[0] || a >= gap[1]) {
+      fn(y, a, b)
+      continue
+    }
+    if (a < gap[0]) fn(y, a, Math.min(b, gap[0]))
+    if (b > gap[1]) fn(y, Math.max(a, gap[1]), b)
   }
 }
 
@@ -231,8 +290,13 @@ function hedgeSegs(bed: BedDef): Seg[] {
   const mouth = bedMouth(bed)
   const hedgeH = tileStep(BED_SHEET.locked, 'hedge_h', HEDGE_H_FALLBACK)
   const hedgeV = tileStep(BED_SHEET.locked, 'hedge_v', HEDGE_V_FALLBACK)
+  const sideGap = tileStep(BED_SHEET.locked, 'gate_side', GATE_SIDE_FALLBACK)
   const gap = (side: Side): [number, number] | null => {
     if (!bed.gate || bed.gate !== side) return null
+    if (side === 'left' || side === 'right') {
+      const gy = bed.y + bed.h * 0.5
+      return [gy - sideGap * 0.5, gy + sideGap * 0.5]
+    }
     const gx = bed.x + bed.w * 0.5
     return [gx - GATE_GAP * 0.5, gx + GATE_GAP * 0.5]
   }
@@ -257,19 +321,18 @@ function hedgeSegs(bed: BedDef): Seg[] {
     }
     const x = side === 'left' ? bed.x : bed.x + bed.w
     const y1 = bed.y + bed.h
-    for (let y = bed.y; y < y1 - 0.5; y += hedgeV) {
-      const end = Math.min(y + hedgeV, y1)
-      const partial = end < y + hedgeV - 0.5
+    vSpans(bed.y, y1, hedgeV, gap(side), (tileY, a, b) => {
+      const partial = b - a < hedgeV - 0.5
       out.push({
         clip: 'hedge_v',
         collapse: 'hedge_v_collapse',
         x,
-        y,
-        rect: partial ? { x: x - 80, y, w: 160, h: Math.max(1, end - y) } : null,
-        dist: Math.hypot(x - mouth.x, end - mouth.y),
-        sortY: end,
+        y: tileY,
+        rect: partial ? { x: x - 80, y: a, w: 160, h: Math.max(1, b - a) } : null,
+        dist: Math.hypot(x - mouth.x, b - mouth.y),
+        sortY: b,
       })
-    }
+    })
   }
   return out
 }
@@ -310,17 +373,27 @@ function drawHedges(bed: BedDef): void {
 function drawGate(bed: BedDef): void {
   if (!bed.gate || bedPhase(bed.id) === 'open') return
   const mouth = bedMouth(bed)
+  const side = bed.gate === 'left' || bed.gate === 'right'
+  const gateLen = side ? tileStep(BED_SHEET.locked, 'gate_side', GATE_SIDE_FALLBACK) : 0
+  const x = mouth.x
+  const y = side ? mouth.y - gateLen * 0.5 : mouth.y
+  const face: 1 | -1 = bed.gate === 'left' ? -1 : 1
+  const lockedClip = side ? 'gate_side' : 'gate'
+  const openClip = side ? 'gate_unlock_side' : 'gate_unlock'
+  const sortY = side ? y + gateLen : mouth.y + 0.45
   const age = bedRevealAge()
   const opening = age?.id === bed.id ? age.t : null
   if (opening != null) {
     if (opening < GATE_MS / 1000) {
-      paint(BED_SHEET.unlock, 'gate_unlock', mouth.x, mouth.y, `gate:${bed.id}`, opening * 1000, 1, null, mouth.y + 0.45)
+      paint(BED_SHEET.unlock, openClip, x, y, `gate:${bed.id}`, opening * 1000, 1, null, sortY, face)
     }
   } else {
-    paint(BED_SHEET.locked, 'gate', mouth.x, mouth.y, `gate:${bed.id}`, null, 1, null, mouth.y + 0.45)
+    paint(BED_SHEET.locked, lockedClip, x, y, `gate:${bed.id}`, null, 1, null, sortY, face)
   }
   const signA = opening == null ? 1 : shadeOf(bed.id)
-  paint(BED_SHEET.locked, 'sign', mouth.x + SIGN_DX, mouth.y, `sign:${bed.id}`, null, signA, null, mouth.y + 0.55)
+  const signX = side ? x + (bed.gate === 'left' ? -SIGN_DX : SIGN_DX) : mouth.x + SIGN_DX
+  const signY = side ? mouth.y : mouth.y
+  paint(BED_SHEET.locked, 'sign', signX, signY, `sign:${bed.id}`, null, signA, null, (side ? mouth.y : mouth.y) + 0.55, 1)
 }
 
 function drawFluff(bed: BedDef): void {

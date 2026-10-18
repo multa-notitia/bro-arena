@@ -12,6 +12,10 @@
    "loop": true,
    "frames": [
     {
+     "i": 0,
+     "ms": 115
+    },
+    {
      "i": 1,
      "ms": 115
     },
@@ -46,16 +50,16 @@
     {
      "i": 9,
      "ms": 115
-    },
-    {
-     "i": 10,
-     "ms": 115
     }
    ]
   },
   "walk": {
    "loop": true,
    "frames": [
+    {
+     "i": 10,
+     "ms": 64
+    },
     {
      "i": 11,
      "ms": 64
@@ -70,7 +74,7 @@
     },
     {
      "i": 14,
-     "ms": 64
+     "ms": 63
     },
     {
      "i": 15,
@@ -99,10 +103,6 @@
     {
      "i": 21,
      "ms": 63
-    },
-    {
-     "i": 22,
-     "ms": 63
     }
    ]
   },
@@ -110,16 +110,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 23,
+     "i": 22,
      "ms": 40,
      "event": "hurt"
     },
     {
-     "i": 24,
+     "i": 23,
      "ms": 60
     },
     {
-     "i": 25,
+     "i": 24,
      "ms": 80
     }
    ]
@@ -128,23 +128,23 @@
    "loop": false,
    "frames": [
     {
-     "i": 47,
+     "i": 48,
      "ms": 60,
      "ox": -0.9,
      "event": "attack_windup"
     },
     {
-     "i": 48,
+     "i": 49,
      "ms": 60,
      "ox": -1.9
     },
     {
-     "i": 49,
+     "i": 50,
      "ms": 45,
      "ox": 3.8
     },
     {
-     "i": 50,
+     "i": 51,
      "ms": 65,
      "ox": 10.4,
      "events": [
@@ -154,22 +154,22 @@
      ]
     },
     {
-     "i": 51,
+     "i": 52,
      "ms": 50,
      "ox": 9.5
     },
     {
-     "i": 52,
+     "i": 53,
      "ms": 70,
      "ox": 5.7
     },
     {
-     "i": 53,
+     "i": 54,
      "ms": 70,
      "ox": 2.4
     },
     {
-     "i": 54,
+     "i": 55,
      "ms": 60,
      "event": "attack_done"
     }
@@ -179,15 +179,15 @@
    "loop": false,
    "frames": [
     {
-     "i": 55,
+     "i": 56,
      "ms": 60
     },
     {
-     "i": 56,
+     "i": 57,
      "ms": 70
     },
     {
-     "i": 57,
+     "i": 58,
      "ms": 45,
      "events": [
       "spawnFx",
@@ -195,27 +195,27 @@
      ]
     },
     {
-     "i": 58,
+     "i": 59,
      "ms": 50
     },
     {
-     "i": 59,
+     "i": 60,
      "ms": 55
     },
     {
-     "i": 60,
+     "i": 61,
      "ms": 65
     },
     {
-     "i": 61,
+     "i": 62,
      "ms": 75
     },
     {
-     "i": 62,
+     "i": 63,
      "ms": 85
     },
     {
-     "i": 63,
+     "i": 64,
      "ms": 950
     }
    ]
@@ -224,55 +224,55 @@
    "loop": false,
    "frames": [
     {
-     "i": 29,
+     "i": 30,
      "ms": 120,
      "event": "scream_windup"
     },
     {
-     "i": 30,
+     "i": 31,
      "ms": 100
     },
     {
-     "i": 31,
+     "i": 32,
      "ms": 60,
      "event": "scream"
     },
     {
-     "i": 32,
+     "i": 33,
      "ms": 70,
      "ox": 1.6
     },
     {
-     "i": 33,
+     "i": 34,
      "ms": 70,
      "ox": -1.6
     },
     {
-     "i": 34,
+     "i": 35,
      "ms": 70,
      "ox": 1.4
     },
     {
-     "i": 35,
+     "i": 36,
      "ms": 70,
      "ox": -1.4
     },
     {
-     "i": 36,
+     "i": 37,
      "ms": 70,
      "ox": 1.0
     },
     {
-     "i": 37,
+     "i": 38,
      "ms": 70,
      "ox": -0.8
     },
     {
-     "i": 38,
+     "i": 39,
      "ms": 80
     },
     {
-     "i": 39,
+     "i": 40,
      "ms": 70,
      "event": "scream_done"
     }
@@ -282,11 +282,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 64,
+     "i": 65,
      "ms": 45
     },
     {
-     "i": 65,
+     "i": 66,
      "ms": 55,
      "events": [
       "spawnFx",
@@ -294,23 +294,23 @@
      ]
     },
     {
-     "i": 66,
+     "i": 67,
      "ms": 60
     },
     {
-     "i": 67,
+     "i": 70,
      "ms": 65
     },
     {
-     "i": 70,
+     "i": 71,
      "ms": 70
     },
     {
-     "i": 71,
+     "i": 72,
      "ms": 75
     },
     {
-     "i": 72,
+     "i": 73,
      "ms": 950
     }
    ]
@@ -319,12 +319,8 @@
    "loop": false,
    "frames": [
     {
-     "i": 73,
-     "ms": 40
-    },
-    {
      "i": 74,
-     "ms": 45
+     "ms": 40
     },
     {
      "i": 75,
@@ -332,6 +328,10 @@
     },
     {
      "i": 76,
+     "ms": 45
+    },
+    {
+     "i": 77,
      "ms": 65,
      "events": [
       "spawnFx",
@@ -340,19 +340,19 @@
      ]
     },
     {
-     "i": 77,
+     "i": 86,
      "ms": 75
     },
     {
-     "i": 86,
+     "i": 87,
      "ms": 300
     },
     {
-     "i": 87,
+     "i": 88,
      "ms": 110
     },
     {
-     "i": 88,
+     "i": 89,
      "ms": 110
     }
    ]
@@ -370,16 +370,12 @@
      "ms": 100
     },
     {
-     "i": 89,
+     "i": 90,
      "ms": 90
     },
     {
-     "i": 90,
-     "ms": 80
-    },
-    {
      "i": 91,
-     "ms": 70
+     "ms": 80
     },
     {
      "i": 92,
@@ -391,14 +387,18 @@
     },
     {
      "i": 94,
-     "ms": 60
+     "ms": 70
     },
     {
      "i": 95,
      "ms": 60
     },
     {
-     "i": 1,
+     "i": 96,
+     "ms": 60
+    },
+    {
+     "i": 0,
      "ms": 70,
      "event": "emerged"
     }
@@ -445,17 +445,17 @@
    "loop": false,
    "frames": [
     {
-     "i": 40,
+     "i": 41,
      "ms": 50,
      "event": "bite_windup"
     },
     {
-     "i": 41,
+     "i": 42,
      "ms": 70,
      "ox": -1.0
     },
     {
-     "i": 42,
+     "i": 43,
      "ms": 40,
      "events": [
       "bite_hit",
@@ -465,22 +465,22 @@
      "ox": 3.5
     },
     {
-     "i": 43,
+     "i": 44,
      "ms": 40,
      "ox": 2.6
     },
     {
-     "i": 44,
+     "i": 45,
      "ms": 60,
      "ox": 0.8
     },
     {
-     "i": 45,
+     "i": 46,
      "ms": 60,
      "ox": 0.2
     },
     {
-     "i": 46,
+     "i": 47,
      "ms": 80,
      "event": "bite_done"
     }
@@ -490,13 +490,13 @@
    "loop": false,
    "frames": [
     {
-     "i": 26,
-     "ms": 40,
+     "i": 25,
+     "ms": 30,
      "event": "turn"
     },
     {
-     "i": 0,
-     "ms": 55
+     "i": 26,
+     "ms": 35
     },
     {
      "i": 27,
@@ -504,7 +504,11 @@
     },
     {
      "i": 28,
-     "ms": 45,
+     "ms": 35
+    },
+    {
+     "i": 29,
+     "ms": 30,
      "event": "turn_done"
     }
    ]
@@ -514,7 +518,6 @@
   "title": "Mud onion (scary): slimy layer per hit, HARD-snap scream, pops into toxic gas; nfvar layers | side view v2",
   "source": "derived_mud.png",
   "cells": [
-   "idle0",
    "sv_idle_0",
    "sv_idle_1",
    "sv_idle_2",
@@ -541,8 +544,10 @@
    "sv_hurt_1",
    "sv_hurt_2",
    "sv_turn_0",
+   "sv_turn_1",
    "sv_turn_2",
    "sv_turn_3",
+   "sv_turn_4",
    "sv_scream_0",
    "sv_scream_1",
    "sv_scream_2",
@@ -581,9 +586,9 @@
    "sv_death_slice_0",
    "sv_death_slice_1",
    "sv_death_slice_2",
-   "sv_death_slice_3",
    "emerge0",
    "emerge1",
+   "sv_death_slice_3",
    "sv_death_slice_4",
    "sv_death_slice_5",
    "sv_death_slice_6",
@@ -591,7 +596,6 @@
    "sv_death_smash_1",
    "sv_death_smash_2",
    "sv_death_smash_3",
-   "sv_death_smash_4",
    "gas_cloud0",
    "gas_cloud1",
    "gas_cloud2",
@@ -600,6 +604,7 @@
    "gas_cloud5",
    "gas_cloud6",
    "gas_cloud7",
+   "sv_death_smash_4",
    "sv_death_smash_5",
    "sv_death_smash_6",
    "sv_death_smash_7",

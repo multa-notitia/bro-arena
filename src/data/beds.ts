@@ -10,8 +10,8 @@
  *   N  1024×448 at (-512, -832)     S  1024×448 at (-512, 384)
  *
  * All seven together span x -1632..1632 and y -832..832.
- * Locked extras use props-bed-locked / props-bed-unlock. The face-on gate
- * sits on N (south edge) and S (north edge). L and R are hedge only.
+ * Locked extras use props-bed-locked / props-bed-unlock. N and S use the
+ * face-on gate. L and R use gate_side on the inner vertical edge.
  */
 
 export type BedId = 'C' | 'L1' | 'L2' | 'R1' | 'R2' | 'N' | 'S'
@@ -38,10 +38,10 @@ export interface BedDef {
   /** Shop line while the inner bed is still shut. */
   gated: string
   /**
-   * Face-on padlock. `bottom` is the south edge, `top` the north edge.
-   * Side beds stay null until a side gate exists.
+   * Padlock edge. `bottom` / `top` are the face-on gate. `left` / `right`
+   * are `gate_side` on a vertical seam (anchor at the top of the gap).
    */
-  gate: 'top' | 'bottom' | null
+  gate: 'top' | 'bottom' | 'left' | 'right' | null
   /** Furrow centres. C is the sown rows. The extras are the same props. */
   rows: readonly GardenRow[]
 }
@@ -90,7 +90,7 @@ export const BEDS: readonly BedDef[] = [
     requires: null,
     cost: 12,
     gated: '',
-    gate: null,
+    gate: 'right',
     rows: [
       { x: -860, y: -150 },
       { x: -720, y: 170 },
@@ -106,7 +106,7 @@ export const BEDS: readonly BedDef[] = [
     requires: 'L1',
     cost: 36,
     gated: 'Open the west bed first',
-    gate: null,
+    gate: 'right',
     rows: [
       { x: -1420, y: -160 },
       { x: -1280, y: 150 },
@@ -122,7 +122,7 @@ export const BEDS: readonly BedDef[] = [
     requires: null,
     cost: 12,
     gated: '',
-    gate: null,
+    gate: 'left',
     rows: [
       { x: 720, y: -150 },
       { x: 860, y: 170 },
@@ -138,7 +138,7 @@ export const BEDS: readonly BedDef[] = [
     requires: 'R1',
     cost: 36,
     gated: 'Open the east bed first',
-    gate: null,
+    gate: 'left',
     rows: [
       { x: 1280, y: -160 },
       { x: 1420, y: 150 },
@@ -183,10 +183,12 @@ export function bedById(id: string): BedDef | null {
   return null
 }
 
-/** Where the unlock reads from: the gate, or the inner hedge on a side bed. */
+/** Where the unlock reads from: the middle of the gate edge. */
 export function bedMouth(bed: BedDef): { x: number; y: number } {
   if (bed.gate === 'bottom') return { x: bed.x + bed.w * 0.5, y: bed.y + bed.h }
   if (bed.gate === 'top') return { x: bed.x + bed.w * 0.5, y: bed.y }
+  if (bed.gate === 'right') return { x: bed.x + bed.w, y: bed.y + bed.h * 0.5 }
+  if (bed.gate === 'left') return { x: bed.x, y: bed.y + bed.h * 0.5 }
   if (bed.x + bed.w <= 0) return { x: bed.x + bed.w, y: bed.y + bed.h * 0.5 }
   return { x: bed.x, y: bed.y + bed.h * 0.5 }
 }
