@@ -144,7 +144,9 @@
   "raised": {
    "front": "windup",
    "weaponZ": 9.4,
-   "note": "keys with raised:true on a FRONT-layer arm swap the arm for this painting (club over the shoulder); the weapon goes through its fist, behind the body"
+   "note": "keys with raised:true on a FRONT-layer arm swap the arm for this painting (club over the shoulder); the weapon goes through its fist, behind the body",
+   "back": "raised_dark",
+   "backNote": "weapons_v2: back-layer slots on raised:true keys swap their arm for this dark painting (same rule as front: placed at the slot with shoulder on the slot, rotated by rrot; weapon through its grip at weaponZ). Before this, back slots dropped raised and used raise/elbow."
   }
  },
  "behindBodyZ": 10.0,

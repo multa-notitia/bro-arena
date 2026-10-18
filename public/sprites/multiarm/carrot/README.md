@@ -113,3 +113,9 @@ FX on the key whose show contains "release":
   take the family keys; replaying the hero's own attack would add its raise twice).
 - `families.json` = the spud's motion templates; `handD` 6, `handRot` 22.
 - Hero-only (not runtime): the two-arm draw (far arm IK onto the painted pinch hand of the long-band drawn slingshot).
+
+## Weapons v2 (2026-10-18)
+`parts.png` carries the bold v2 weapon paintings, **baked bigger** (`weapons.json` → `bakedScale` is informational).
+The game's weapon drawScale (chaos.ts `read.weaponMelee/weaponRanged`) must be **1.0**. `weapons.json` has keys for every game
+weapon id, so `paintName()` finds them directly. If `sockets.arms.raised.back` is present, back-layer slots on `raised:true`
+keys use that dark painting (see compose_ref). Details: art/WEAPONS_V2.md.

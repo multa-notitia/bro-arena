@@ -133,8 +133,9 @@ class MultiArm:
         if key:
             base_raise = pose.get("raise", 0.0)
             pose = {k: v for k, v in key.items() if k not in ("ms", "ev", "weaponBehind")}
-            if pose.get("raised") and not (front_slot := slot["z"] > self.sock["behindBodyZ"]):
-                pose.pop("raised", None)          # back slots have no raised art: raise/elbow fallback
+            if pose.get("raised") and not (front_slot := slot["z"] > self.sock["behindBodyZ"]) \
+                    and not (self.sock["arms"].get("raised") or {}).get("back"):
+                pose.pop("raised", None)          # back slots without dark raised art: raise/elbow fallback
             pose["raise"] = pose.get("raise", 0.0) + 0.3 * base_raise
             ref = key.get("aim", ref)
         aim_c = (pose.get("aim", (w["restAim"] + pose.get("wrist", 0.0)) if w else 0.0))
@@ -152,7 +153,7 @@ class MultiArm:
         z = slot["z"]
         out = []
         # polish (= chili): painted raised/windup arm for keys with "raised": true on FRONT slots, weapon through its fist
-        raised_art = (self.sock["arms"].get("raised") or {}).get("front") if front else None
+        raised_art = (self.sock["arms"].get("raised") or {}).get("front" if front else "back")   # weapons_v2: back = dark raised art
         if pose.get("raised") and raised_art:
             ra = self.parts[raised_art]
             sh, gp = ra["points"]["shoulder"], ra["points"]["grip"]

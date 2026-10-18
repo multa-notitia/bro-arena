@@ -64,7 +64,7 @@ function loadRig(hero: string): { rig: ComposeRig; slotsOf: (n: number) => Slot[
     native?: Record<string, string>
     sprouted?: { front?: string; back?: string; scale?: number }
     emptyHand?: string | null
-    raised?: { front?: string; weaponZ?: number }
+    raised?: { front?: string; back?: string; weaponZ?: number }
   }
   const emptyHand = Object.prototype.hasOwnProperty.call(arms, 'emptyHand') ? (arms.emptyHand ?? null) : 'palm'
   const famRules = (fam.loadoutRules ?? {}) as Record<string, unknown>
@@ -92,6 +92,7 @@ function loadRig(hero: string): { rig: ComposeRig; slotsOf: (n: number) => Slot[
     secondary: (track.secondary ?? {}) as ComposeRig['secondary'],
     emptyHand,
     raisedFront: arms.raised?.front ?? null,
+    raisedBack: arms.raised?.back ?? null,
     raisedWeaponZ: num(arms.raised?.weaponZ, 9.5),
     bud: budRaw === null ? null : { sproutedOnly: !!(budRaw && typeof budRaw === 'object' && (budRaw as { sproutedOnly?: boolean }).sproutedOnly) },
     woodGroup,

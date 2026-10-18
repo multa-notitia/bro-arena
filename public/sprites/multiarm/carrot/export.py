@@ -324,6 +324,10 @@ def main():
               open(os.path.join(OUT, "families.json"), "w"), indent=1)
     print("wrote", sorted(f for f in os.listdir(OUT) if not f.endswith(".py")))
 
+    # weapons v2 (bold side-view weapon set, baked bigger; code weapon drawScale -> 1.0): tools/weapons_v2/weapons_v2_apply.py
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "..", "tools", "weapons_v2"))
+    import weapons_v2_apply as weapons_v2
+    weapons_v2.apply(OUT, "carrot")
 
 if __name__ == "__main__":
     main()

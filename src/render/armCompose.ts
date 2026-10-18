@@ -101,6 +101,8 @@ export interface ComposeRig {
   /** null: the painted arm already ends in a fist. Absent palms use 'palm'. */
   emptyHand: string | null
   raisedFront: string | null
+  /** Dark windup for back-layer slots. Null keeps the raise/elbow fallback. */
+  raisedBack: string | null
   raisedWeaponZ: number
   /** null: painted shoulders, no bud. sproutedOnly skips the hero's own arm. */
   bud: { sproutedOnly: boolean } | null
@@ -360,7 +362,7 @@ export function composeArmLayers(
   const front = slot.z > rig.behindZ
   const z = slot.z
   const out: Layer[] = []
-  const raisedArt = front ? rig.raisedFront : null
+  const raisedArt = front ? rig.raisedFront : rig.raisedBack
   if (pose.raised && raisedArt && rig.parts[raisedArt]) {
     const ra = rig.parts[raisedArt]!
     const sh = pointOf(ra, 'shoulder')

@@ -147,7 +147,7 @@ class MultiArm:
         front = slot["z"] > self.sock["behindBodyZ"]
         z = slot["z"]
         out = []
-        raised_art = (self.sock["arms"].get("raised") or {}).get("front") if front else None
+        raised_art = (self.sock["arms"].get("raised") or {}).get("front" if front else "back")   # weapons_v2: back = dark raised art
         if pose.get("raised") and raised_art:       # SIDE: painted raised arm (windup), weapon behind the body
             ra = self.parts[raised_art]
             sh, gp = ra["points"]["shoulder"], ra["points"]["grip"]
