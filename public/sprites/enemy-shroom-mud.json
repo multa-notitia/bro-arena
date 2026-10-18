@@ -582,6 +582,14 @@
    "tool": "tools/sideview/build.py",
    "src": "tools/sideview/src/shroom_mud_side_v1.jpg",
    "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
+  },
+  "smashV3": {
+   "version": 3,
+   "date": "2026-10-18",
+   "tool": "tools/smash_v3/build_v3.py",
+   "pancake": "unchanged (v2 painting already side-facing)",
+   "chunks": "organic torn re-cut + painted torn chunks",
+   "note": "clip names/frames/ms/events unchanged; see tools/smash_v3/README.md"
   }
  }
 }
