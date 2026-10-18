@@ -363,10 +363,12 @@ function hpArc(
 function drawTrail(ctx: CanvasRenderingContext2D, p: Projectile): void {
   const pts = p.trail
   if (pts.length < 2 || p.def.trail === 'none') return
+  const player = p.owner === 'player'
   ctx.save()
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
-  for (let i = 1; i < pts.length; i++) {
+  const start = player ? Math.max(1, pts.length - 4) : 1
+  for (let i = start; i < pts.length; i++) {
     const a = pts[i - 1]
     const b = pts[i]
     if (!a || !b) continue
@@ -378,11 +380,11 @@ function drawTrail(ctx: CanvasRenderingContext2D, p: Projectile): void {
           ? '#e8f6ff'
           : p.def.paint === 'spit'
             ? '#b8e05a'
-            : p.owner === 'player'
-              ? '#ffe28a'
+            : player
+              ? '#e2b45a'
               : '#2a221c'
-    ctx.strokeStyle = rgba(col, 0.22 + u * 0.55)
-    ctx.lineWidth = p.r * (0.7 + u * 1.15)
+    ctx.strokeStyle = rgba(col, player ? 0.2 + u * 0.35 : 0.22 + u * 0.55)
+    ctx.lineWidth = player ? Math.max(1.4, p.r * 0.55) : p.r * (0.7 + u * 1.15)
     ctx.beginPath()
     ctx.moveTo(a.x, a.y)
     ctx.lineTo(b.x, b.y)
@@ -398,17 +400,19 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile, cache: Spr
   ctx.translate(p.x, p.y)
   ctx.rotate(p.angle)
   const spd = Math.hypot(p.vx, p.vy)
-  const stretch = 1 + clamp(spd / 520, 0, FEEL.projectile.stretch)
+  const stretch = p.owner === 'player' ? 1 : 1 + clamp(spd / 520, 0, FEEL.projectile.stretch)
   ctx.scale(stretch, 1 / Math.sqrt(stretch))
   const sc = (p.r * 2.4) / 14
   if (p.owner === 'player') {
     ctx.save()
-    ctx.globalCompositeOperation = 'lighter'
-    ctx.globalAlpha = 0.55
-    ctx.fillStyle = '#fff4c0'
+    ctx.globalAlpha = 0.8
+    ctx.strokeStyle = '#e2b45a'
+    ctx.lineWidth = 1.6
+    ctx.lineCap = 'round'
     ctx.beginPath()
-    ctx.ellipse(0, 0, p.r * 2.2, p.r * 1.1, 0, 0, TAU)
-    ctx.fill()
+    ctx.moveTo(-p.r * 0.8, 0)
+    ctx.lineTo(p.r * 1.6, 0)
+    ctx.stroke()
     ctx.restore()
   }
   blit(ctx, spr, sc, clamp(p.life / Math.max(0.05, p.maxLife), 0.45, 1))

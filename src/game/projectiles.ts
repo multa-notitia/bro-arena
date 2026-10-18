@@ -94,7 +94,7 @@ export function updateProjectiles(world: World, dt: number, ctx: SimCtx): void {
     p.angle = Math.atan2(p.vy, p.vx)
 
     p.trail.push({ x: p.x, y: p.y })
-    const maxTrail = FEEL.projectile.trailPts
+    const maxTrail = p.owner === 'player' ? 4 : FEEL.projectile.trailPts
     if (p.trail.length > maxTrail) p.trail.splice(0, p.trail.length - maxTrail)
 
     let dead = false
