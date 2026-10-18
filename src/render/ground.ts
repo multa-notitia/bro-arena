@@ -1,7 +1,9 @@
 import { TAU, clamp, hashNoise, lerp } from '../core/math.ts'
 import { getPaintStyle, lookKey } from './look.ts'
 import { paperColor } from './paintLang.ts'
-import { gardenGround } from './sheets.ts'
+import { gardenGroundVariant } from './sheets.ts'
+import { tileVariant } from './groundHash.ts'
+import { drawGroundDecals } from './decals.ts'
 import {
   granulate,
   makeCanvas,
@@ -476,12 +478,15 @@ export function drawPaddock(
   ah: number,
   q: number,
 ): void {
-  const garden = gardenGround(q >= 2)
+  const hi = q >= 2
+  const painted = (tx: number, ty: number): CanvasImageSource | null => gardenGroundVariant(hi, tileVariant(tx, ty))
+  const garden = painted(0, 0)
   if (garden) {
     ctx.save()
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = 'high'
-    tileFill(ctx, viewL, viewT, viewW, viewH, () => garden)
+    tileFill(ctx, viewL, viewT, viewW, viewH, (tx, ty) => painted(tx, ty) ?? garden)
+    drawGroundDecals(ctx, viewL, viewT, viewW, viewH)
     ctx.beginPath()
     ctx.rect(viewL, viewT, viewW, viewH)
     ctx.rect(-aw, -ah, aw * 2, ah * 2)

@@ -1,0 +1,230 @@
+{
+ "image": "props-ground-decals.webp",
+ "frameWidth": 512,
+ "frameHeight": 384,
+ "columns": 4,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.5
+ },
+ "clips": {
+  "grass": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 1000
+    }
+   ]
+  },
+  "clover": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 1,
+     "ms": 1000
+    }
+   ]
+  },
+  "moss": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 2,
+     "ms": 1000
+    }
+   ]
+  },
+  "path": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 3,
+     "ms": 1000
+    }
+   ]
+  },
+  "weeds": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 4,
+     "ms": 1000
+    }
+   ]
+  },
+  "thyme": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 5,
+     "ms": 1000
+    }
+   ]
+  },
+  "leaves_autumn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 6,
+     "ms": 1000
+    }
+   ]
+  },
+  "petals_pink": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 7,
+     "ms": 1000
+    }
+   ]
+  },
+  "daisies": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 8,
+     "ms": 1000
+    }
+   ]
+  },
+  "flowers_violet": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 9,
+     "ms": 1000
+    }
+   ]
+  },
+  "petals_white": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 10,
+     "ms": 1000
+    }
+   ]
+  },
+  "leaves_oak": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 11,
+     "ms": 1000
+    }
+   ]
+  },
+  "path_long": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 12,
+     "ms": 1000
+    }
+   ]
+  },
+  "puddle_a": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 13,
+     "ms": 1000
+    }
+   ]
+  },
+  "puddle_b": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 14,
+     "ms": 1000
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Ground decals (painted, top-down, soft-edged)",
+  "drawScale": 0.5,
+  "note": "static, one frame per clip; draw under everything except the ground tile; anchor = centre; free rotation and x/y flip are fine; see README scatter section.",
+  "decals": {
+   "grass": {
+    "category": "patch",
+    "worldW": 250,
+    "worldH": 178
+   },
+   "clover": {
+    "category": "patch",
+    "worldW": 250,
+    "worldH": 178
+   },
+   "moss": {
+    "category": "patch",
+    "worldW": 250,
+    "worldH": 178
+   },
+   "path": {
+    "category": "path",
+    "worldW": 250,
+    "worldH": 172
+   },
+   "weeds": {
+    "category": "patch",
+    "worldW": 250,
+    "worldH": 181
+   },
+   "thyme": {
+    "category": "patch",
+    "worldW": 250,
+    "worldH": 178
+   },
+   "leaves_autumn": {
+    "category": "litter",
+    "worldW": 250,
+    "worldH": 166
+   },
+   "petals_pink": {
+    "category": "petals",
+    "worldW": 250,
+    "worldH": 168
+   },
+   "daisies": {
+    "category": "flowers",
+    "worldW": 250,
+    "worldH": 170
+   },
+   "flowers_violet": {
+    "category": "flowers",
+    "worldW": 236,
+    "worldH": 186
+   },
+   "petals_white": {
+    "category": "petals",
+    "worldW": 250,
+    "worldH": 167
+   },
+   "leaves_oak": {
+    "category": "litter",
+    "worldW": 250,
+    "worldH": 174
+   },
+   "path_long": {
+    "category": "path",
+    "worldW": 252,
+    "worldH": 74
+   },
+   "puddle_a": {
+    "category": "water",
+    "worldW": 110,
+    "worldH": 117
+   },
+   "puddle_b": {
+    "category": "water",
+    "worldW": 102,
+    "worldH": 106
+   }
+  },
+  "pngFallback": "props-ground-decals.png"
+ }
+}

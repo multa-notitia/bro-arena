@@ -52,6 +52,7 @@ import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { arenaActorProps, drawArenaGround, drawArenaProp, drawPaintedTree } from '../game/arenaProps.ts'
 import { drawPaddock } from './ground.ts'
 import { drawBedBadges, drawGardenBeds, takeBedDepth } from './beds.ts'
+import { perimeterFenceDepth } from './fence.ts'
 import { plotBounds } from '../data/beds.ts'
 import { paperColor } from './paintLang.ts'
 import { drawMultiArm, multiArmSheet, potatoMultiArm } from './multiarm.ts'
@@ -1381,7 +1382,7 @@ export function drawWorld(
     x >= cam.x - hw - pad && x <= cam.x + hw + pad && y >= cam.y - hh - pad && y <= cam.y + hh + pad
   drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale))
   drawGardenBeds(ctx, qScale >= 2)
-  const bedDepth = takeBedDepth()
+  const bedDepth = takeBedDepth().concat(perimeterFenceDepth())
   drawFarmRows(ctx, world.farm.plots, qScale >= 2, world.waveTime)
   drawFarmBeds(ctx, world.farm.plots, qScale >= 2)
   drawArenaGround(ctx, world, dt)

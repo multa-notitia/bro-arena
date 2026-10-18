@@ -33,6 +33,7 @@ import { clamp, lerp } from '../core/math.ts'
 import { CHAOS } from '../data/chaos.ts'
 import type { AnimState, EnemyKind, Form, ModelDir, Species, Vec } from '../core/types.ts'
 import { dustFull, heroBurstAlpha, isSparkClip, nearHeroFx, registerDustCounter, registerSparkCounter, sparksFull, underHeroClip } from './sparkBudget.ts'
+import { GROUND_VARIANTS } from './groundHash.ts'
 
 export interface SheetAnchor {
   x: number
@@ -142,6 +143,7 @@ export const SHEET_PRELOAD: string[] = [
   'props-bed-edge',
   'props-bed-locked',
   'props-bed-unlock',
+  'props-ground-decals',
 ]
 
 const cache = new Map<string, LoadedSheet>()
@@ -225,6 +227,12 @@ registerDustCounter(() => {
 })
 
 const ground: { lo: HTMLImageElement | null; hi: HTMLImageElement | null } = { lo: null, hi: null }
+const variantGround: { lo: HTMLImageElement | null; hi: HTMLImageElement | null }[] = [
+  { lo: null, hi: null },
+  { lo: null, hi: null },
+  { lo: null, hi: null },
+  { lo: null, hi: null },
+]
 
 let bootDone = false
 
@@ -468,16 +476,33 @@ function requestSheet(id: string): Promise<LoadedSheet | null> {
   return p
 }
 
-async function loadGround(): Promise<void> {
+async function loadGroundPair(id: string): Promise<{ lo: HTMLImageElement | null; hi: HTMLImageElement | null }> {
+  let lo: HTMLImageElement | null = null
+  let hi: HTMLImageElement | null = null
   try {
-    ground.lo = await loadImageWithFallback('ground-garden.webp', 'ground-garden.png')
+    lo = await loadImageWithFallback(`${id}.webp`, `${id}.png`)
   } catch {
-    ground.lo = null
+    lo = null
   }
   try {
-    ground.hi = await loadImage(imageUrl('ground-garden@2x.png'))
+    hi = await loadImage(imageUrl(`${id}@2x.png`))
   } catch {
-    ground.hi = null
+    hi = null
+  }
+  return { lo, hi }
+}
+
+async function loadGround(): Promise<void> {
+  const [legacy, ...variants] = await Promise.all([
+    loadGroundPair('ground-garden'),
+    ...GROUND_VARIANTS.map((name) => loadGroundPair(`ground-garden-${name}`)),
+  ])
+  ground.lo = legacy?.lo ?? null
+  ground.hi = legacy?.hi ?? null
+  for (let i = 0; i < GROUND_VARIANTS.length; i++) {
+    const slot = variants[i]
+    if (!slot) continue
+    variantGround[i] = slot
   }
 }
 
@@ -510,10 +535,20 @@ export function sheetById(id: string): LoadedSheet | null {
   return resolveSheet([id])
 }
 
-/** Painted garden tile. `@2x` when the caller is on a dense viewport. */
+/** Painted garden tile. `@2x` when the caller is on a dense viewport. Variant a, kept so the old id still loads. */
 export function gardenGround(hi: boolean): HTMLImageElement | null {
   if (hi && ground.hi) return ground.hi
   return ground.lo
+}
+
+/** `ground-garden-a` … `d`. Falls back to the single garden tile. */
+export function gardenGroundVariant(hi: boolean, index: number): HTMLImageElement | null {
+  const slot = variantGround[index]
+  if (slot) {
+    if (hi && slot.hi) return slot.hi
+    if (slot.lo) return slot.lo
+  }
+  return gardenGround(hi)
 }
 
 export function chooseClip(

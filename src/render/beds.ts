@@ -4,6 +4,7 @@ import { BEDS, BED_OPEN_AT, BED_SHEET, bedMouth, plotBounds, type BedDef, type B
 import { cameraShakeOffset, FEEL } from '../feel.ts'
 import { bedPhase, bedRevealAge } from '../game/beds.ts'
 import { cellOrigin, clipDrawScale, clipTileWorldPx, drawNamedClip, drawProp, frameCell, resolveSheet, seekActorClip } from './sheets.ts'
+import { BARRIER_CLIPS, BED_BARRIER } from './barrierArt.ts'
 
 /** Used only until the locked sheet has loaded. The live step comes from meta.tileWorldPx. */
 const HEDGE_H_FALLBACK = 256
@@ -288,9 +289,9 @@ function hedgeSegs(bed: BedDef): Seg[] {
   const out: Seg[] = []
   if (bed.cost <= 0 || bedPhase(bed.id) === 'open') return out
   const mouth = bedMouth(bed)
-  const hedgeH = tileStep(BED_SHEET.locked, 'hedge_h', HEDGE_H_FALLBACK)
-  const hedgeV = tileStep(BED_SHEET.locked, 'hedge_v', HEDGE_V_FALLBACK)
-  const sideGap = tileStep(BED_SHEET.locked, 'gate_side', GATE_SIDE_FALLBACK)
+  const hedgeH = tileStep(BED_BARRIER.locked, BARRIER_CLIPS.h, HEDGE_H_FALLBACK)
+  const hedgeV = tileStep(BED_BARRIER.locked, BARRIER_CLIPS.v, HEDGE_V_FALLBACK)
+  const sideGap = tileStep(BED_BARRIER.locked, BARRIER_CLIPS.gateSide, GATE_SIDE_FALLBACK)
   const gap = (side: Side): [number, number] | null => {
     if (!bed.gate || bed.gate !== side) return null
     if (side === 'left' || side === 'right') {
@@ -308,8 +309,8 @@ function hedgeSegs(bed: BedDef): Seg[] {
       hSpans(bed.x, bed.x + bed.w, hedgeH, gap(side), (tileX, a, b) => {
         const mid = (a + b) * 0.5
         out.push({
-          clip: 'hedge_h',
-          collapse: 'hedge_h_collapse',
+          clip: BARRIER_CLIPS.h,
+          collapse: BARRIER_CLIPS.hCollapse,
           x: tileX,
           y,
           rect: { x: a, y: y - 170, w: b - a, h: 240 },
@@ -324,8 +325,8 @@ function hedgeSegs(bed: BedDef): Seg[] {
     vSpans(bed.y, y1, hedgeV, gap(side), (tileY, a, b) => {
       const partial = b - a < hedgeV - 0.5
       out.push({
-        clip: 'hedge_v',
-        collapse: 'hedge_v_collapse',
+        clip: BARRIER_CLIPS.v,
+        collapse: BARRIER_CLIPS.vCollapse,
         x,
         y: tileY,
         rect: partial ? { x: x - 80, y: a, w: 160, h: Math.max(1, b - a) } : null,
@@ -357,7 +358,7 @@ function drawHedges(bed: BedDef): void {
       }
     }
     paint(
-      clip === seg.clip ? BED_SHEET.locked : BED_SHEET.unlock,
+      clip === seg.clip ? BED_BARRIER.locked : BED_BARRIER.reveal,
       clip,
       seg.x,
       seg.y,
@@ -374,26 +375,26 @@ function drawGate(bed: BedDef): void {
   if (!bed.gate || bedPhase(bed.id) === 'open') return
   const mouth = bedMouth(bed)
   const side = bed.gate === 'left' || bed.gate === 'right'
-  const gateLen = side ? tileStep(BED_SHEET.locked, 'gate_side', GATE_SIDE_FALLBACK) : 0
+  const gateLen = side ? tileStep(BED_BARRIER.locked, BARRIER_CLIPS.gateSide, GATE_SIDE_FALLBACK) : 0
   const x = mouth.x
   const y = side ? mouth.y - gateLen * 0.5 : mouth.y
   const face: 1 | -1 = bed.gate === 'left' ? -1 : 1
-  const lockedClip = side ? 'gate_side' : 'gate'
-  const openClip = side ? 'gate_unlock_side' : 'gate_unlock'
+  const lockedClip = side ? BARRIER_CLIPS.gateSide : BARRIER_CLIPS.gate
+  const openClip = side ? BARRIER_CLIPS.gateSideOpen : BARRIER_CLIPS.gateOpen
   const sortY = side ? y + gateLen : mouth.y + 0.45
   const age = bedRevealAge()
   const opening = age?.id === bed.id ? age.t : null
   if (opening != null) {
     if (opening < GATE_MS / 1000) {
-      paint(BED_SHEET.unlock, openClip, x, y, `gate:${bed.id}`, opening * 1000, 1, null, sortY, face)
+      paint(BED_BARRIER.reveal, openClip, x, y, `gate:${bed.id}`, opening * 1000, 1, null, sortY, face)
     }
   } else {
-    paint(BED_SHEET.locked, lockedClip, x, y, `gate:${bed.id}`, null, 1, null, sortY, face)
+    paint(BED_BARRIER.locked, lockedClip, x, y, `gate:${bed.id}`, null, 1, null, sortY, face)
   }
   const signA = opening == null ? 1 : shadeOf(bed.id)
   const signX = side ? x + (bed.gate === 'left' ? -SIGN_DX : SIGN_DX) : mouth.x + SIGN_DX
   const signY = side ? mouth.y : mouth.y
-  paint(BED_SHEET.locked, 'sign', signX, signY, `sign:${bed.id}`, null, signA, null, (side ? mouth.y : mouth.y) + 0.55, 1)
+  paint(BED_BARRIER.locked, BARRIER_CLIPS.sign, signX, signY, `sign:${bed.id}`, null, signA, null, (side ? mouth.y : mouth.y) + 0.55, 1)
 }
 
 function drawFluff(bed: BedDef): void {
