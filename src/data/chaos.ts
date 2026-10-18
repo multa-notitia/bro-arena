@@ -151,6 +151,24 @@ export const CHAOS = {
     dustCap: 6,
     /** Comic POP bursts on screen. */
     popCap: 3,
+    /**
+     * Smash juice. Prior splat scale (r/18 * 0.25) plus full-size death_smash
+     * mash read as neon lakes over the potato.
+     */
+    splatScale: 0.45,
+    splatAlpha: 0.65,
+    /** Multiply-blend extra darken (1 = unchanged, 0.8 = 20% darker). */
+    splatDarken: 0.8,
+    splatHold: 1.5,
+    splatGone: 4,
+    splatCap: 40,
+    /** CSS px of the top HUD band; ground decals clip below this. */
+    splatHudClip: 92,
+    smashDeathScale: 0.7,
+    /** I-frame / hurt blink. Never below lo, never held faded. */
+    heroIframeHz: 8,
+    heroIframeHi: 1,
+    heroIframeLo: 0.55,
   },
 
   director: {

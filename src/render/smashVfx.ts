@@ -1,11 +1,10 @@
 import type { Enemy } from '../core/types.ts'
+import { CHAOS } from '../data/chaos.ts'
 import { resolveEnemySheet } from './chaosSheets.ts'
 import { clipDrawScale, drawNamedClip, resolveSheet, restartActorClip } from './sheets.ts'
 
 const SPLAT_ID = 'vfx-splat'
 const PUFF_ID = 'vfx-gas-puff'
-const SPLAT_CAP = 40
-const SPLAT_FADE = 4
 const PUFF_LIFE = 0.605
 
 interface SplatDecal {
@@ -52,7 +51,7 @@ export function tickSmashVfx(dt: number): void {
     const s = splats[i]
     if (!s) continue
     s.t += step
-    if (s.t >= SPLAT_FADE) splats.splice(i, 1)
+    if (s.t >= CHAOS.read.splatGone) splats.splice(i, 1)
   }
   for (let i = puffs.length - 1; i >= 0; i--) {
     const p = puffs[i]
@@ -69,14 +68,14 @@ export function spawnSmashSplat(e: Enemy, pick: number): void {
   const n = ((pick % 3) + 3) % 3
   const clip = `${group}_${n}`
   if (!sheet.manifest.clips[clip]) return
-  while (splats.length >= SPLAT_CAP) splats.shift()
+  while (splats.length >= CHAOS.read.splatCap) splats.shift()
   const draw = clipDrawScale(sheet, clip)
   const key = `splat:${nextFx++}`
   restartActorClip(key, clip)
   splats.push({
     x: e.x,
     y: e.y + 0.62 * e.r,
-    scale: (e.r / 18) * draw,
+    scale: (e.r / 18) * draw * CHAOS.read.splatScale,
     facing: pick & 1 ? 1 : -1,
     clip,
     key,
@@ -106,16 +105,29 @@ export function spawnOnionPuff(e: Enemy): void {
   })
 }
 
+function splatFade(t: number): number {
+  const hold = CHAOS.read.splatHold
+  const gone = CHAOS.read.splatGone
+  if (t <= hold) return 1
+  return Math.max(0, 1 - (t - hold) / Math.max(0.01, gone - hold))
+}
+
 export function drawSmashSplats(ctx: CanvasRenderingContext2D, dt: number): void {
   const sheet = splatSheet()
   if (!sheet) return
+  ctx.save()
+  ctx.globalCompositeOperation = 'multiply'
+  if (CHAOS.read.splatDarken < 0.999) ctx.filter = `brightness(${CHAOS.read.splatDarken})`
   for (const s of splats) {
-    const alpha = Math.max(0, 1 - s.t / SPLAT_FADE)
+    const alpha = CHAOS.read.splatAlpha * splatFade(s.t)
+    if (alpha <= 0.01) continue
     ctx.save()
     ctx.translate(s.x, s.y)
     drawNamedClip(ctx, sheet, s.key, s.clip, dt, { scale: s.scale, facing: s.facing, alpha })
     ctx.restore()
   }
+  ctx.filter = 'none'
+  ctx.restore()
 }
 
 export function drawGasPuffs(ctx: CanvasRenderingContext2D, dt: number): void {

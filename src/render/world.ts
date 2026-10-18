@@ -661,8 +661,9 @@ function drawEnemy(
     ctx.globalAlpha = appear * (1 - (deathName && dyingSheet ? 0 : death))
     ctx.scale(squash, 1 / squash)
     if (clip) {
+      const smash = clip === 'death_smash' || clip.startsWith('death_smash')
       drawActorSheet(ctx, sheet, playKey, clip, {
-        r: paintR,
+        r: paintR * (smash ? CHAOS.read.smashDeathScale : 1),
         facing,
         alpha: 1,
       })
@@ -963,6 +964,15 @@ function drawOrbitWeapons(ctx: CanvasRenderingContext2D, world: World, cache: Sp
   }
 }
 
+/** I-frames and hurt flash blink 1.0 / 0.55. Never fully ghosted, never held faded. */
+function heroPaintAlpha(p: Player): number {
+  const flashing = p.invuln > 0 || p.anim.hitFlash > 0.05
+  if (!flashing) return 1
+  const hz = CHAOS.read.heroIframeHz
+  const on = Math.sin(p.anim.t * hz * Math.PI * 2) >= 0
+  return on ? CHAOS.read.heroIframeHi : CHAOS.read.heroIframeLo
+}
+
 function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCache): void {
   const p = world.player
   const pal = p.character.palette
@@ -1013,9 +1023,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     held[1] = { x: x + localL.x * sx * c - localL.y * sy * s, y: y + localL.x * sx * s + localL.y * sy * c }
   }
 
-  // Gameplay i-frames (including the long demo spawn window) must not ghost the
-  // potato. A hurt skip-blink may flash for ~90ms, then alpha is 1.
-  const alpha = p.anim.hitFlash > 0.64 && Math.sin(p.anim.t * 90) <= 0 ? 0 : 1
+  const alpha = heroPaintAlpha(p)
 
   ctx.save()
   ctx.globalAlpha = 1
@@ -1225,7 +1233,13 @@ export function drawWorld(
   fx.drawFloor(ctx)
   drawChaosFloor(ctx)
   darkenGround(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
+  ctx.save()
+  const hudWorld = CHAOS.read.splatHudClip / zoom
+  ctx.beginPath()
+  ctx.rect(cam.x - hw, cam.y - hh + hudWorld, hw * 2, hh * 2 - hudWorld)
+  ctx.clip()
   drawSmashSplats(ctx, dt)
+  ctx.restore()
   if (night) drawWarmPool(ctx, world.player.x, world.player.y)
   drawGasClouds(ctx, dt, world.player.x, world.player.y)
   for (let i = 0; i < world.enemies.length; i++) {

@@ -49,6 +49,6 @@ export function applyChaosDemo(world: World): number {
   const floorHp = early ? 18 : 160
   p.stats = { ...p.stats, maxHp: Math.max(p.stats.maxHp, floorHp) }
   p.hp = p.stats.maxHp
-  p.invuln = early ? 1.2 : 8
+  p.invuln = 1.2
   return wave
 }
