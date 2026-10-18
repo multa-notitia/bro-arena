@@ -48,11 +48,12 @@ import { boardKnifeSlash, getPaintStyle, proceduralModel, usesBoardArt, usesPain
 import { drawPaintedChili } from './conceptA.ts'
 import { drawBoard, drawBoardShadow, poseBoard, boardHeld, type BoardHero } from './board.ts'
 import { ambushGardenJobs, drawGardenJob } from '../game/garden.ts'
-import { drawFarmPlant } from './crops.ts'
+import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { arenaActorProps, drawArenaGround, drawArenaProp, drawPaintedTree } from '../game/arenaProps.ts'
 import { drawPaddock } from './ground.ts'
 import { drawBedBadges, drawGardenBeds, takeBedDepth } from './beds.ts'
-import { drawGardenFloor, gardenDepth } from './garden.ts'
+import { drawGardenFloor, drawRowsGround, gardenDepth } from './garden.ts'
+import { arenaMap } from '../data/mapMode.ts'
 import { plotBounds } from '../data/beds.ts'
 import { paperColor } from './paintLang.ts'
 import { drawMultiArm, multiArmSheet, potatoMultiArm } from './multiarm.ts'
@@ -1381,8 +1382,14 @@ export function drawWorld(
   const onScreen = (x: number, y: number, pad = 120): boolean =>
     x >= cam.x - hw - pad && x <= cam.x + hw + pad && y >= cam.y - hh - pad && y <= cam.y + hh + pad
   drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale))
-  drawGardenFloor(ctx, qScale >= 2, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
-  drawGardenBeds(ctx)
+  if (arenaMap() === 'tidy') {
+    drawGardenFloor(ctx, qScale >= 2, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
+  } else {
+    if (arenaMap() === 'rows') drawRowsGround(ctx)
+    drawFarmRows(ctx, world.farm.plots, qScale >= 2, world.waveTime)
+    drawFarmBeds(ctx, world.farm.plots, qScale >= 2)
+  }
+  drawGardenBeds(ctx, qScale >= 2)
   const bedDepth = takeBedDepth().concat(gardenDepth())
   drawArenaGround(ctx, world, dt)
   fx.drawFloor(ctx)

@@ -1,13 +1,16 @@
 import { clamp, lerp, uid } from '../core/math.ts'
 import type { CropId, EnemyKind, Farm, PlantView, Plot, World } from '../core/types.ts'
 import { CROP_IDS, STARTER_CROP_IDS } from '../core/types.ts'
-import { BEDS } from '../data/beds.ts'
+import { activeBeds } from '../data/beds.ts'
 import layout from '../data/garden_layout_v2.json'
-import { CROPS, CROP_LIST, cropByEnemy, cropUnlockedAt } from '../data/crops.ts'
+import { CROPS, CROP_LIST, cropByEnemy, cropUnlockedAt, GARDEN_ROWS } from '../data/crops.ts'
+import { FEEL } from '../feel.ts'
+import { arenaMap } from '../data/mapMode.ts'
 
 /**
- * Planting lives in the six raised beds. The centre lawn has no rows.
+ * Tidy planting lives in the six raised beds. The centre lawn has no rows.
  * Each layout row is one furrow; plots sit in the dips at row.y + 4.
+ * Rows and classic sow a 3×4 in the centre, the way those maps did.
  */
 const BED_ORDER = ['L1', 'L2', 'R1', 'R2', 'N', 'S'] as const
 
@@ -18,13 +21,13 @@ interface Spot {
   y: number
 }
 
-function layoutSpots(): { spots: Spot[]; names: string[] } {
+function tidySpots(): { spots: Spot[]; names: string[] } {
   const spots: Spot[] = []
   const names: string[] = []
   let row = 0
   for (const id of BED_ORDER) {
     const bed = layout.beds[id]
-    const label = BEDS.find((b) => b.id === id)?.label ?? id
+    const label = activeBeds().find((b) => b.id === id)?.label ?? id
     for (let i = 0; i < bed.rows.length; i++) {
       const pair = bed.rows[i]
       const x = pair?.[0] ?? 0
@@ -37,6 +40,41 @@ function layoutSpots(): { spots: Spot[]; names: string[] } {
     }
   }
   return { spots, names }
+}
+
+function centreSpots(origins: readonly { x: number; y: number }[]): Spot[] {
+  const scale = FEEL.garden.scale
+  const cols = [-210, -70, 70, 210].map((v) => Math.round(v * scale))
+  const jx = Math.round(10 * scale)
+  const jy = Math.round(7 * scale)
+  const spots: Spot[] = []
+  for (let r = 0; r < origins.length; r++) {
+    const origin = origins[r] ?? { x: 0, y: 0 }
+    for (let c = 0; c < cols.length; c++) {
+      spots.push({
+        row: r,
+        col: c,
+        x: origin.x + (cols[c] ?? 0) + ((r + c) % 2 === 0 ? -jx : jx),
+        y: origin.y + (c % 2 === 0 ? -jy : jy),
+      })
+    }
+  }
+  return spots
+}
+
+function layoutSpots(): { spots: Spot[]; names: string[] } {
+  const map = arenaMap()
+  if (map === 'tidy') return tidySpots()
+  if (map === 'classic') {
+    const scale = FEEL.garden.scale
+    const ys = [-150, 48, 218].map((v) => Math.round(v * scale))
+    return {
+      spots: centreSpots(ys.map((y) => ({ x: 0, y }))),
+      names: [...GARDEN_ROWS],
+    }
+  }
+  const centre = activeBeds().find((bed) => bed.id === 'C')
+  return { spots: centreSpots(centre?.rows ?? []), names: [...GARDEN_ROWS] }
 }
 
 const LAID = layoutSpots()

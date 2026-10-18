@@ -15,8 +15,14 @@
  * N bottom, S top.
  * All seven regions together span x -1632..1632 and y -832..832.
  * Locked beds use props-bed-locked / props-bed-unlock.
+ *
+ * On the tidy map the west bed starts open and costs nothing. The other
+ * five are priced so a typical wave-1 bag buys one of them.
+ * `?map=rows` uses the earlier scattered-row geometry. `?map=classic`
+ * is the single paddock from before the beds.
  */
 import layout from './garden_layout_v2.json'
+import { arenaMap } from './mapMode.ts'
 
 export type BedId = 'C' | 'L1' | 'L2' | 'R1' | 'R2' | 'N' | 'S'
 
@@ -110,7 +116,7 @@ export const BEDS: readonly BedDef[] = [
     w: 560,
     h: 768,
     requires: null,
-    cost: 12,
+    cost: 0,
     gated: '',
     gate: 'right',
     raised: raisedOf('L1'),
@@ -124,7 +130,7 @@ export const BEDS: readonly BedDef[] = [
     w: 560,
     h: 768,
     requires: 'L1',
-    cost: 36,
+    cost: 44,
     gated: 'Open the west bed first',
     gate: 'right',
     raised: raisedOf('L2'),
@@ -138,7 +144,7 @@ export const BEDS: readonly BedDef[] = [
     w: 560,
     h: 768,
     requires: null,
-    cost: 12,
+    cost: 22,
     gated: '',
     gate: 'left',
     raised: raisedOf('R1'),
@@ -152,7 +158,7 @@ export const BEDS: readonly BedDef[] = [
     w: 560,
     h: 768,
     requires: 'R1',
-    cost: 36,
+    cost: 44,
     gated: 'Open the east bed first',
     gate: 'left',
     raised: raisedOf('R2'),
@@ -166,7 +172,7 @@ export const BEDS: readonly BedDef[] = [
     w: 1024,
     h: 448,
     requires: null,
-    cost: 18,
+    cost: 28,
     gated: '',
     gate: 'bottom',
     raised: raisedOf('N'),
@@ -180,7 +186,7 @@ export const BEDS: readonly BedDef[] = [
     w: 1024,
     h: 448,
     requires: null,
-    cost: 18,
+    cost: 28,
     gated: '',
     gate: 'top',
     raised: raisedOf('S'),
@@ -188,8 +194,157 @@ export const BEDS: readonly BedDef[] = [
   },
 ]
 
+/** Scattered rows from before the tidy layout. Centre holds the sown rows. */
+const ROWS_BEDS: readonly BedDef[] = [
+  {
+    id: 'C',
+    label: 'Centre',
+    x: -512,
+    y: -384,
+    w: 1024,
+    h: 768,
+    requires: null,
+    cost: 0,
+    gated: '',
+    gate: null,
+    raised: null,
+    rows: [
+      { x: -220, y: -230 },
+      { x: 80, y: 10 },
+      { x: -40, y: 250 },
+    ],
+  },
+  {
+    id: 'L1',
+    label: 'West bed',
+    x: -1072,
+    y: -384,
+    w: 560,
+    h: 768,
+    requires: null,
+    cost: 12,
+    gated: '',
+    gate: 'right',
+    raised: null,
+    rows: [
+      { x: -860, y: -150 },
+      { x: -720, y: 170 },
+    ],
+  },
+  {
+    id: 'L2',
+    label: 'Far west',
+    x: -1632,
+    y: -384,
+    w: 560,
+    h: 768,
+    requires: 'L1',
+    cost: 36,
+    gated: 'Open the west bed first',
+    gate: 'right',
+    raised: null,
+    rows: [
+      { x: -1420, y: -160 },
+      { x: -1280, y: 150 },
+    ],
+  },
+  {
+    id: 'R1',
+    label: 'East bed',
+    x: 512,
+    y: -384,
+    w: 560,
+    h: 768,
+    requires: null,
+    cost: 12,
+    gated: '',
+    gate: 'left',
+    raised: null,
+    rows: [
+      { x: 720, y: -150 },
+      { x: 860, y: 170 },
+    ],
+  },
+  {
+    id: 'R2',
+    label: 'Far east',
+    x: 1072,
+    y: -384,
+    w: 560,
+    h: 768,
+    requires: 'R1',
+    cost: 36,
+    gated: 'Open the east bed first',
+    gate: 'left',
+    raised: null,
+    rows: [
+      { x: 1280, y: -160 },
+      { x: 1420, y: 150 },
+    ],
+  },
+  {
+    id: 'N',
+    label: 'North bed',
+    x: -512,
+    y: -832,
+    w: 1024,
+    h: 448,
+    requires: null,
+    cost: 18,
+    gated: '',
+    gate: 'bottom',
+    raised: null,
+    rows: [
+      { x: -240, y: -680 },
+      { x: 220, y: -520 },
+    ],
+  },
+  {
+    id: 'S',
+    label: 'South bed',
+    x: -512,
+    y: 384,
+    w: 1024,
+    h: 448,
+    requires: null,
+    cost: 18,
+    gated: '',
+    gate: 'top',
+    raised: null,
+    rows: [
+      { x: -200, y: 520 },
+      { x: 240, y: 700 },
+    ],
+  },
+]
+
+/** The paddock before unlockable beds: 1700×1150, half-extents 850×575. */
+const CLASSIC_BEDS: readonly BedDef[] = [
+  {
+    id: 'C',
+    label: 'Centre',
+    x: -850,
+    y: -575,
+    w: 1700,
+    h: 1150,
+    requires: null,
+    cost: 0,
+    gated: '',
+    gate: null,
+    raised: null,
+    rows: [],
+  },
+]
+
+export function activeBeds(): readonly BedDef[] {
+  const map = arenaMap()
+  if (map === 'rows') return ROWS_BEDS
+  if (map === 'classic') return CLASSIC_BEDS
+  return BEDS
+}
+
 export function bedById(id: string): BedDef | null {
-  for (const bed of BEDS) if (bed.id === id) return bed
+  for (const bed of activeBeds()) if (bed.id === id) return bed
   return null
 }
 
@@ -227,5 +382,5 @@ export function boundsOf(beds: readonly BedDef[]): BedBounds {
 
 /** Union of every bed, locked or not. The dark void starts outside this. */
 export function plotBounds(): BedBounds {
-  return boundsOf(BEDS)
+  return boundsOf(activeBeds())
 }

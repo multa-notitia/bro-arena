@@ -1,0 +1,262 @@
+{
+ "image": "props-fence-v1.webp",
+ "frameWidth": 256,
+ "frameHeight": 384,
+ "columns": 6,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.78125
+ },
+ "clips": {
+  "fence_n_a": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.78125
+   },
+   "frames": [
+    {
+     "i": 0,
+     "ms": 1000
+    }
+   ]
+  },
+  "fence_n_b": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.78125
+   },
+   "frames": [
+    {
+     "i": 1,
+     "ms": 1000
+    }
+   ]
+  },
+  "fence_s_a": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.78125
+   },
+   "frames": [
+    {
+     "i": 2,
+     "ms": 1000
+    }
+   ]
+  },
+  "fence_s_low_a": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.78125
+   },
+   "frames": [
+    {
+     "i": 3,
+     "ms": 1000
+    }
+   ]
+  },
+  "fence_s_b": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.78125
+   },
+   "frames": [
+    {
+     "i": 4,
+     "ms": 1000
+    }
+   ]
+  },
+  "fence_s_low_b": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.78125
+   },
+   "frames": [
+    {
+     "i": 5,
+     "ms": 1000
+    }
+   ]
+  },
+  "fence_w": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.3125
+   },
+   "frames": [
+    {
+     "i": 6,
+     "ms": 1000
+    }
+   ]
+  },
+  "fence_e": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.3125
+   },
+   "frames": [
+    {
+     "i": 7,
+     "ms": 1000
+    }
+   ]
+  },
+  "fence_w_b": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.3125
+   },
+   "frames": [
+    {
+     "i": 8,
+     "ms": 1000
+    }
+   ]
+  },
+  "fence_e_b": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.3125
+   },
+   "frames": [
+    {
+     "i": 9,
+     "ms": 1000
+    }
+   ]
+  },
+  "corner_nw": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 10,
+     "ms": 1000
+    }
+   ]
+  },
+  "corner_ne": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 11,
+     "ms": 1000
+    }
+   ]
+  },
+  "corner_sw": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 12,
+     "ms": 1000
+    }
+   ]
+  },
+  "corner_se": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 13,
+     "ms": 1000
+    }
+   ]
+  },
+  "post": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 14,
+     "ms": 1000
+    }
+   ]
+  },
+  "broken_n": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.78125
+   },
+   "frames": [
+    {
+     "i": 15,
+     "ms": 1000
+    }
+   ]
+  },
+  "gate_decor_n": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.78125
+   },
+   "frames": [
+    {
+     "i": 16,
+     "ms": 1000
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Perimeter fence: old weathered wooden garden fence (runs, corners, broken section, rickety gate)",
+  "drawScale": 0.5,
+  "pngFallback": "props-fence-v1.png",
+  "source": "tools/garden/src/*.jpg (GenerateImage, magenta keyed)",
+  "tool": "tools/garden/build_garden.py",
+  "date": "2026-10-18",
+  "cells": [
+   "fence_n_a",
+   "fence_n_b",
+   "fence_s_a",
+   "fence_s_low_a",
+   "fence_s_b",
+   "fence_s_low_b",
+   "fence_w",
+   "fence_e",
+   "fence_w_b",
+   "fence_e_b",
+   "corner_nw",
+   "corner_ne",
+   "corner_sw",
+   "corner_se",
+   "post",
+   "broken_n",
+   "gate_decor_n"
+  ],
+  "groundLineY": 300,
+  "tileWorldPx": {
+   "fence_n_a": 78,
+   "fence_n_b": 78,
+   "fence_s_a": 78,
+   "fence_s_b": 78,
+   "fence_s_low_a": 78,
+   "fence_s_low_b": 78,
+   "fence_w": 78,
+   "fence_w_b": 78,
+   "fence_e": 78,
+   "fence_e_b": 78,
+   "broken_n": 41,
+   "gate_decor_n": 48
+  },
+  "heightWorldPx": {
+   "fence_n": 56,
+   "fence_s": 56,
+   "fence_s_low": 28,
+   "fence_w": 56
+  },
+  "note": "See README \"Perimeter fence\". Runs: anchor = left end at the ground line (n/s) or base of the top post (w/e); step 78 world px. Corners/post: anchor = post foot."
+ }
+}

@@ -5,6 +5,7 @@
  * The south run is the low see-through clip. Its alpha is already in the art.
  */
 import { FEEL } from '../feel.ts'
+import { arenaMap } from '../data/mapMode.ts'
 import {
   FENCE_LINES,
   GARDEN_FENCE,
@@ -13,10 +14,10 @@ import {
   RAISED_BEDS,
   type GardenMark,
 } from '../data/garden.ts'
+import { ROWS_DECOR, ROWS_FENCE, ROWS_FENCE_LINES, ROWS_GROUND } from '../data/gardenRows.ts'
 import type { BedDepth } from './beds.ts'
 import { clipDrawScale, drawNamedClip, drawProp, gardenPathGravel, resolveSheet, type LoadedSheet } from './sheets.ts'
 
-const FENCE_SHEET = 'props-fence'
 const RAISED_SHEET = 'props-raised-beds'
 const FURROW_W = Math.round(613 * FEEL.garden.scale)
 const DIP_W = Math.round(118 * FEEL.garden.scale)
@@ -62,6 +63,16 @@ function seen(x: number, y: number, viewL: number, viewT: number, viewR: number,
   return x >= viewL - pad && x <= viewR + pad && y >= viewT - pad && y <= viewB + pad
 }
 
+/** Stepping stones and soil stamps from the garden-v1 layout. */
+export function drawRowsGround(ctx: CanvasRenderingContext2D): void {
+  if (arenaMap() !== 'rows') return
+  for (let i = 0; i < ROWS_GROUND.length; i++) {
+    const mark = ROWS_GROUND[i]
+    if (!mark) continue
+    paintMark(ctx, mark, `rows-ground:${mark.clip}:${i}`)
+  }
+}
+
 /** Gravel paths, raised-bed sprites, furrows, and planting dips. No centre rows. */
 export function drawGardenFloor(
   ctx: CanvasRenderingContext2D,
@@ -71,6 +82,7 @@ export function drawGardenFloor(
   viewW: number,
   viewH: number,
 ): void {
+  if (arenaMap() !== 'tidy') return
   const viewR = viewL + viewW
   const viewB = viewT + viewH
   ctx.save()
@@ -130,41 +142,47 @@ function fenceSortY(mark: GardenMark): number {
   return mark.y
 }
 
-/** Outer fence and the six layout props, y-sorted with the actors. */
-export function gardenDepth(): BedDepth[] {
+function depthOf(fence: readonly GardenMark[], props: readonly GardenMark[], key: string): BedDepth[] {
   const out: BedDepth[] = []
-  if (resolveSheet([FENCE_SHEET])) {
-    for (let i = 0; i < GARDEN_FENCE.length; i++) {
-      const mark = GARDEN_FENCE[i]
-      if (!mark) continue
-      const sortY = fenceSortY(mark)
-      out.push({
-        x: mark.x,
-        y: mark.y,
-        sortY,
-        draw: (ctx) => paintMark(ctx, mark, `garden-fence:${mark.clip}:${i}`),
-      })
-    }
+  for (let i = 0; i < fence.length; i++) {
+    const mark = fence[i]
+    if (!mark) continue
+    if (!resolveSheet([mark.sheet])) continue
+    const sortY = fenceSortY(mark)
+    out.push({
+      x: mark.x,
+      y: mark.y,
+      sortY,
+      draw: (ctx) => paintMark(ctx, mark, `${key}-fence:${mark.clip}:${i}`),
+    })
   }
-  for (let i = 0; i < GARDEN_PROPS.length; i++) {
-    const mark = GARDEN_PROPS[i]
+  for (let i = 0; i < props.length; i++) {
+    const mark = props[i]
     if (!mark) continue
     out.push({
       x: mark.x,
       y: mark.y,
       sortY: mark.y,
-      draw: (ctx) => paintMark(ctx, mark, `garden-prop:${mark.clip}:${i}`),
+      draw: (ctx) => paintMark(ctx, mark, `${key}-prop:${mark.clip}:${i}`),
     })
   }
   return out
 }
 
+/** Outer fence and the layout props, y-sorted with the actors. */
+export function gardenDepth(): BedDepth[] {
+  if (arenaMap() === 'classic') return []
+  if (arenaMap() === 'rows') return depthOf(ROWS_FENCE, ROWS_DECOR, 'rows')
+  return depthOf(GARDEN_FENCE, GARDEN_PROPS, 'tidy')
+}
+
 /** Outside this rect the lawn falls off. The fence sits just inside it. */
 export function gardenFadeRect(): { x: number; y: number; w: number; h: number } {
+  const lines = arenaMap() === 'rows' ? ROWS_FENCE_LINES : FENCE_LINES
   const pad = 72
-  const x0 = FENCE_LINES.x0 - pad
-  const y0 = FENCE_LINES.y0 - pad
-  const x1 = FENCE_LINES.x1 + pad
-  const y1 = FENCE_LINES.y1 + pad
+  const x0 = lines.x0 - pad
+  const y0 = lines.y0 - pad
+  const x1 = lines.x1 + pad
+  const y1 = lines.y1 + pad
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }
 }

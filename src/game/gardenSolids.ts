@@ -1,4 +1,6 @@
 import { GARDEN_PROPS, GARDEN_SOLID } from '../data/garden.ts'
+import { ROWS_DECOR, ROWS_SOLID } from '../data/gardenRows.ts'
+import { arenaMap } from '../data/mapMode.ts'
 
 export interface GardenSolid {
   x: number
@@ -10,9 +12,12 @@ let solids: GardenSolid[] | null = null
 
 export function gardenSolids(): readonly GardenSolid[] {
   if (solids) return solids
+  const map = arenaMap()
+  const marks = map === 'rows' ? ROWS_DECOR : map === 'tidy' ? GARDEN_PROPS : []
+  const radii = map === 'rows' ? ROWS_SOLID : GARDEN_SOLID
   const out: GardenSolid[] = []
-  for (const mark of GARDEN_PROPS) {
-    const r = GARDEN_SOLID[mark.clip]
+  for (const mark of marks) {
+    const r = radii[mark.clip]
     if (!r) continue
     out.push({ x: mark.x, y: mark.y, r })
   }

@@ -27,6 +27,7 @@ import type { CropId } from '../core/types.ts'
 import { CROPS } from '../data/crops.ts'
 import { MODEL_LABELS, PAINT_STYLE_LABELS, PAINT_STYLES, defaultModelForSpecies, getLastModel, lookKey, modelsForSpecies } from '../render/look.ts'
 import { seedIconDataUrl } from '../render/crops.ts'
+import { MAP_CHOICES, arenaMap, setArenaMap } from '../data/mapMode.ts'
 
 const OVERLAYS: readonly Exclude<RunPhase, 'wave'>[] = [
   'boot',
@@ -187,6 +188,10 @@ const SKELETON = `
       <div id="title-paint" class="paint-row"></div>
       <button id="btn-title-juice" class="btn ghost juice-btn" type="button" aria-pressed="false">Ease the shake</button>
     </div>
+    <fieldset class="options-panel" id="title-map">
+      <legend class="paint-kicker">Garden map</legend>
+      <div class="map-pick" role="group" aria-label="Garden map"></div>
+    </fieldset>
     <ul class="howto">
       <li>WASD or arrows to move. P holds still. 1–4 pick. M quiets.</li>
       <li>Between waves, sow the rows. They come up from those beds. Seeds you sow are spent.</li>
@@ -333,6 +338,7 @@ const SKELETON = `
         <input type="range" id="opt-zoom" min="0.7" max="1.5" step="0.05" />
         <span id="opt-zoom-val">1.25</span>
       </label>
+      <div class="map-pick" id="pause-map" role="group" aria-label="Garden map"></div>
     </fieldset>
     <div class="actions">
       <button id="btn-resume" class="btn primary" type="button">Keep going</button>
@@ -429,6 +435,21 @@ export function createUi(
   art: { icon: RenderApi['icon']; portrait: RenderApi['portrait'] },
 ): UiApi {
   root.innerHTML = SKELETON
+
+  const currentMap = arenaMap()
+  root.querySelectorAll<HTMLElement>('.map-pick').forEach((host) => {
+    host.replaceChildren(
+      ...MAP_CHOICES.map((choice) => {
+        const btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'btn ghost'
+        btn.textContent = choice.label
+        btn.setAttribute('aria-pressed', choice.id === currentMap ? 'true' : 'false')
+        btn.addEventListener('click', () => setArenaMap(choice.id))
+        return btn
+      }),
+    )
+  })
 
   const must = <T extends HTMLElement>(sel: string): T => {
     const n = root.querySelector<T>(sel)

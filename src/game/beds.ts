@@ -1,10 +1,11 @@
 import { clamp } from '../core/math.ts'
 import type { BedOffer, World } from '../core/types.ts'
+import { arenaMap } from '../data/mapMode.ts'
 import {
   BED_OPEN_AT,
   BED_PEEK,
   BED_REVEAL_SEC,
-  BEDS,
+  activeBeds,
   bedById,
   bedMouth,
   boundsOf,
@@ -35,7 +36,7 @@ function bedsAllRequested(): boolean {
 }
 
 function unionOf(ids: ReadonlySet<BedId>): BedBounds {
-  return boundsOf(BEDS.filter((b) => ids.has(b.id)))
+  return boundsOf(activeBeds().filter((b) => ids.has(b.id)))
 }
 
 function writeBounds(world: World, b: BedBounds): void {
@@ -58,12 +59,14 @@ function beginReveal(): void {
 
 /** New run. `?beds=all` opens every bed with no reveal. */
 export function resetBeds(world: World): void {
-  owned = new Set<BedId>([CENTRE])
-  revealed = new Set<BedId>([CENTRE])
+  const start: BedId[] = [CENTRE]
+  if (arenaMap() === 'tidy') start.push('L1')
+  owned = new Set<BedId>(start)
+  revealed = new Set<BedId>(start)
   pending = []
   reveal = null
   if (bedsAllRequested()) {
-    for (const bed of BEDS) {
+    for (const bed of activeBeds()) {
       owned.add(bed.id)
       revealed.add(bed.id)
     }
@@ -148,7 +151,7 @@ export function cameraLimits(world: World): BedBounds {
   }
   const openIds = new Set<BedId>(revealed)
   if (reveal) openIds.add(reveal.id)
-  for (const bed of BEDS) {
+  for (const bed of activeBeds()) {
     if (openIds.has(bed.id)) continue
     const right = bed.x + bed.w
     const bottom = bed.y + bed.h
@@ -160,10 +163,12 @@ export function cameraLimits(world: World): BedBounds {
     if (xOverlap && Math.abs(bed.y - maxY) < 1.5) maxY += Math.min(BED_PEEK, bed.h)
   }
   const plot = plotBounds()
-  if (minX <= plot.minX + 0.5) minX = plot.minX - FENCE_PEEK
-  if (maxX >= plot.maxX - 0.5) maxX = plot.maxX + FENCE_PEEK
-  if (minY <= plot.minY + 0.5) minY = plot.minY - FENCE_PEEK
-  if (maxY >= plot.maxY - 0.5) maxY = plot.maxY + FENCE_PEEK
+  if (arenaMap() !== 'classic') {
+    if (minX <= plot.minX + 0.5) minX = plot.minX - FENCE_PEEK
+    if (maxX >= plot.maxX - 0.5) maxX = plot.maxX + FENCE_PEEK
+    if (minY <= plot.minY + 0.5) minY = plot.minY - FENCE_PEEK
+    if (maxY >= plot.maxY - 0.5) maxY = plot.maxY + FENCE_PEEK
+  }
   return { minX, maxX, minY, maxY }
 }
 
@@ -205,7 +210,7 @@ export function tryBuyBed(world: World, id: string): BedDef | null {
 }
 
 export function bedOffers(materials: number): BedOffer[] {
-  return BEDS.filter((bed) => bed.cost > 0).map((bed) => {
+  return activeBeds().filter((bed) => bed.cost > 0).map((bed) => {
     if (owned.has(bed.id) || bed.cost <= 0) {
       return {
         id: bed.id,

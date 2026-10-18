@@ -1,0 +1,28 @@
+{
+ "image": "prop-furrow-v1.webp",
+ "frameWidth": 613,
+ "frameHeight": 146,
+ "columns": 1,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.5
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 1000
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Garden furrow strip",
+  "source": "image2.jpg",
+  "image2x": "prop-furrow-v1@2x.webp",
+  "note": "static prop; draw at 1x for normal zoom, @2x for hi-dpi.",
+  "pngFallback": "prop-furrow-v1.png"
+ }
+}

@@ -1,9 +1,10 @@
 import { clamp } from '../core/math.ts'
 import type { World } from '../core/types.ts'
-import { BEDS, BED_OPEN_AT, BED_SHEET, bedMouth, type BedDef, type BedId } from '../data/beds.ts'
-import { cameraShakeOffset } from '../feel.ts'
+import { activeBeds, BED_OPEN_AT, bedMouth, type BedDef, type BedId } from '../data/beds.ts'
+import { arenaMap } from '../data/mapMode.ts'
+import { cameraShakeOffset, FEEL } from '../feel.ts'
 import { bedPhase, bedRevealAge } from '../game/beds.ts'
-import { clipDrawScale, clipTileWorldPx, drawNamedClip, resolveSheet, seekActorClip } from './sheets.ts'
+import { clipDrawScale, clipTileWorldPx, drawNamedClip, drawProp, resolveSheet, seekActorClip } from './sheets.ts'
 import { BARRIER_CLIPS, BED_BARRIER } from './barrierArt.ts'
 
 /** Used only until the locked sheet has loaded. The live step comes from meta.tileWorldPx. */
@@ -45,7 +46,7 @@ export function takeBedDepth(): BedDepth[] {
 type Side = 'left' | 'right' | 'top' | 'bottom'
 
 function neighbor(bed: BedDef, side: Side): BedDef | null {
-  for (const other of BEDS) {
+  for (const other of activeBeds()) {
     if (other.id === bed.id) continue
     if (side === 'left' && Math.abs(other.x + other.w - bed.x) < 1.5 && overlapY(bed, other)) return other
     if (side === 'right' && Math.abs(other.x - (bed.x + bed.w)) < 1.5 && overlapY(bed, other)) return other
@@ -178,9 +179,9 @@ function hedgeSegs(bed: BedDef): Seg[] {
   const out: Seg[] = []
   if (bed.cost <= 0 || bedPhase(bed.id) === 'open') return out
   const mouth = bedMouth(bed)
-  const hedgeH = tileStep(BED_BARRIER.locked, BARRIER_CLIPS.h, HEDGE_H_FALLBACK)
-  const hedgeV = tileStep(BED_BARRIER.locked, BARRIER_CLIPS.v, HEDGE_V_FALLBACK)
-  const sideGap = tileStep(BED_BARRIER.locked, BARRIER_CLIPS.gateSide, GATE_SIDE_FALLBACK)
+  const hedgeH = tileStep(barrierSheet('locked'), BARRIER_CLIPS.h, HEDGE_H_FALLBACK)
+  const hedgeV = tileStep(barrierSheet('locked'), BARRIER_CLIPS.v, HEDGE_V_FALLBACK)
+  const sideGap = tileStep(barrierSheet('locked'), BARRIER_CLIPS.gateSide, GATE_SIDE_FALLBACK)
   const gap = (side: Side): [number, number] | null => {
     if (!bed.gate || bed.gate !== side) return null
     if (side === 'left' || side === 'right') {
@@ -247,7 +248,7 @@ function drawHedges(bed: BedDef): void {
       }
     }
     paint(
-      clip === seg.clip ? BED_BARRIER.locked : BED_BARRIER.reveal,
+      clip === seg.clip ? barrierSheet('locked') : barrierSheet('reveal'),
       clip,
       seg.x,
       seg.y,
@@ -264,7 +265,7 @@ function drawGate(bed: BedDef): void {
   if (!bed.gate || bedPhase(bed.id) === 'open') return
   const mouth = bedMouth(bed)
   const side = bed.gate === 'left' || bed.gate === 'right'
-  const gateLen = side ? tileStep(BED_BARRIER.locked, BARRIER_CLIPS.gateSide, GATE_SIDE_FALLBACK) : 0
+  const gateLen = side ? tileStep(barrierSheet('locked'), BARRIER_CLIPS.gateSide, GATE_SIDE_FALLBACK) : 0
   const x = mouth.x
   const y = side ? mouth.y - gateLen * 0.5 : mouth.y
   const face: 1 | -1 = bed.gate === 'left' ? -1 : 1
@@ -275,15 +276,30 @@ function drawGate(bed: BedDef): void {
   const opening = age?.id === bed.id ? age.t : null
   if (opening != null) {
     if (opening < GATE_MS / 1000) {
-      paint(BED_BARRIER.reveal, openClip, x, y, `gate:${bed.id}`, opening * 1000, 1, null, sortY, face)
+      paint(barrierSheet('reveal'), openClip, x, y, `gate:${bed.id}`, opening * 1000, 1, null, sortY, face)
     }
   } else {
-    paint(BED_BARRIER.locked, lockedClip, x, y, `gate:${bed.id}`, null, 1, null, sortY, face)
+    paint(barrierSheet('locked'), lockedClip, x, y, `gate:${bed.id}`, null, 1, null, sortY, face)
   }
   const signA = opening == null ? 1 : shadeOf(bed.id)
   const signX = side ? x + (bed.gate === 'left' ? -SIGN_DX : SIGN_DX) : mouth.x + SIGN_DX
   const signY = side ? mouth.y : mouth.y
-  paint(BED_BARRIER.locked, BARRIER_CLIPS.sign, signX, signY, `sign:${bed.id}`, null, signA, null, (side ? mouth.y : mouth.y) + 0.55, 1)
+  paint(barrierSheet('locked'), BARRIER_CLIPS.sign, signX, signY, `sign:${bed.id}`, null, signA, null, (side ? mouth.y : mouth.y) + 0.55, 1)
+}
+
+function barrierSheet(kind: 'locked' | 'reveal'): string {
+  if (arenaMap() === 'rows') return kind === 'locked' ? 'props-bed-locked-v1' : 'props-bed-unlock-v1'
+  return kind === 'locked' ? BED_BARRIER.locked : BED_BARRIER.reveal
+}
+
+function drawStrip(ctx: CanvasRenderingContext2D, x: number, y: number, hi: boolean): void {
+  const scale = FEEL.garden.scale
+  const furrowW = Math.round(613 * scale)
+  const bedW = Math.round(118 * scale)
+  drawProp(ctx, 'prop-furrow-v1', x, y + 6, { width: furrowW, hi })
+  for (const raw of [-210, -70, 70, 210]) {
+    drawProp(ctx, 'prop-bed-v1', x + Math.round(raw * scale), y + 4, { width: bedW, hi })
+  }
 }
 
 function drawFluff(bed: BedDef): void {
@@ -296,15 +312,21 @@ function drawFluff(bed: BedDef): void {
     if (age.t < start || age.t > start + FLUFF_MS / 1000) continue
     const x = bed.x + 56 + u01(seed * 19 + i) * (bed.w - 112)
     const y = bed.y + 48 + u01(seed * 23 + i * 7) * (bed.h - 96)
-    paint(BED_SHEET.unlock, 'soil_fluff', x, y, `fluff:${bed.id}:${i}`, (age.t - start) * 1000, 1, null, y + 0.3)
+    paint(barrierSheet('reveal'), 'soil_fluff', x, y, `fluff:${bed.id}:${i}`, (age.t - start) * 1000, 1, null, y + 0.3)
   }
 }
 
-/** Wooden fence around any bed that is still shut. Raised soil is drawn with the floor. */
-export function drawGardenBeds(ctx: CanvasRenderingContext2D): void {
+/** Wooden fence around any bed that is still shut. Tidy soil is drawn with the floor. */
+export function drawGardenBeds(ctx: CanvasRenderingContext2D, hi = false): void {
   depth.length = 0
-  void ctx
-  for (const bed of BEDS) {
+  if (arenaMap() === 'classic') return
+  if (arenaMap() === 'rows') {
+    for (const bed of activeBeds()) {
+      if (bed.cost <= 0) continue
+      for (const row of bed.rows) drawStrip(ctx, row.x, row.y, hi)
+    }
+  }
+  for (const bed of activeBeds()) {
     if (bed.cost <= 0) continue
     drawHedges(bed)
     drawGate(bed)
@@ -350,7 +372,7 @@ export function drawBedBadges(ctx: CanvasRenderingContext2D, world: World, cssW:
   ctx.font = '700 15px Palatino, Georgia, serif'
   ctx.textAlign = 'left'
   ctx.textBaseline = 'middle'
-  for (const bed of BEDS) {
+  for (const bed of activeBeds()) {
     if (bed.cost <= 0 || bedPhase(bed.id) === 'open') continue
     const alpha = bedPhase(bed.id) === 'opening' ? shadeOf(bed.id) : 1
     if (alpha < 0.04) continue

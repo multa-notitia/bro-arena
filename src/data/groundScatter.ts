@@ -4,7 +4,7 @@
  * an input, so a bed looks the same shut or open.
  */
 import { FEEL } from '../feel.ts'
-import { BEDS, plotBounds, type BedId } from './beds.ts'
+import { activeBeds, plotBounds, type BedId } from './beds.ts'
 import { h } from '../render/groundHash.ts'
 
 export interface GroundDecal {
@@ -64,7 +64,7 @@ const DENS = { out: 0.5, edge: 0.5, in: 0.48 } as const
 type Ctx = keyof typeof DENS
 
 function bedSeed(id: BedId): number {
-  const i = BEDS.findIndex((bed) => bed.id === id)
+  const i = activeBeds().findIndex((bed) => bed.id === id)
   return i * 977 + 101
 }
 
@@ -85,7 +85,7 @@ interface Rect {
 function furrowRects(): Rect[] {
   const { w, h } = furrowSize()
   const out: Rect[] = []
-  for (const bed of BEDS) {
+  for (const bed of activeBeds()) {
     for (const row of bed.rows) {
       out.push({ x: row.x - w / 2, y: row.y + 6 - h / 2, w, h })
     }
@@ -94,14 +94,14 @@ function furrowRects(): Rect[] {
 }
 
 export function bedAt(x: number, y: number): BedId | null {
-  for (const bed of BEDS) {
+  for (const bed of activeBeds()) {
     if (bed.x <= x && x < bed.x + bed.w && bed.y <= y && y < bed.y + bed.h) return bed.id
   }
   return null
 }
 
 function distEdge(x: number, y: number, id: BedId): number {
-  const bed = BEDS.find((item) => item.id === id)!
+  const bed = activeBeds().find((item) => item.id === id)!
   return Math.min(x - bed.x, bed.x + bed.w - x, y - bed.y, bed.y + bed.h - y)
 }
 

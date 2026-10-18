@@ -2,7 +2,8 @@
  * Painted ground decals, baked once per bed (and per outskirts tile) so a
  * frame is a handful of blits under the furrows, hedges, and actors.
  */
-import { BEDS, type BedId } from '../data/beds.ts'
+import { activeBeds, type BedId } from '../data/beds.ts'
+import { arenaMap } from '../data/mapMode.ts'
 import { bedAt, GROUND_DECALS_ON, scatterDecals, type GroundDecal } from '../data/groundScatter.ts'
 import { clipDrawScale, drawNamedClip, resolveSheet } from './sheets.ts'
 
@@ -86,7 +87,7 @@ function buildBakes(sheet: NonNullable<ReturnType<typeof resolveSheet>>): Bake[]
     const bake = bakeList(sheet, list, x, y, OUT_TILE + PAD * 2, OUT_TILE + PAD * 2)
     if (bake) out.push(bake)
   }
-  for (const bed of BEDS) {
+  for (const bed of activeBeds()) {
     const list = byBed.get(bed.id)
     if (!list) continue
     const x = bed.x - PAD
@@ -105,7 +106,7 @@ export function drawGroundDecals(
   viewW: number,
   viewH: number,
 ): void {
-  if (!GROUND_DECALS_ON) return
+  if (!GROUND_DECALS_ON && arenaMap() !== 'rows') return
   const sheet = resolveSheet([SHEET])
   if (!sheet || sheet.img.naturalWidth < 1) return
   const stamp = sheet.img.naturalWidth + sheet.img.naturalHeight * 4096

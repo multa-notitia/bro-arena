@@ -1,9 +1,11 @@
 import { TAU, clamp, hashNoise, lerp } from '../core/math.ts'
 import { getPaintStyle, lookKey } from './look.ts'
 import { paperColor } from './paintLang.ts'
-import { gardenGroundVariant, gardenLawnMown } from './sheets.ts'
+import { arenaMap } from '../data/mapMode.ts'
+import { gardenGround, gardenGroundVariant, gardenLawnMown } from './sheets.ts'
 import { tileVariant } from './groundHash.ts'
 import { gardenFadeRect } from './garden.ts'
+import { drawGroundDecals } from './decals.ts'
 import {
   granulate,
   makeCanvas,
@@ -479,7 +481,45 @@ export function drawPaddock(
   q: number,
 ): void {
   const hi = q >= 2
-  const mown = gardenLawnMown(hi)
+  const map = arenaMap()
+  if (map === 'rows') {
+    const painted = (tx: number, ty: number): CanvasImageSource | null => gardenGroundVariant(hi, tileVariant(tx, ty))
+    const garden = painted(0, 0) ?? gardenGroundVariant(false, tileVariant(0, 0))
+    if (garden) {
+      ctx.save()
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      tileFill(ctx, viewL, viewT, viewW, viewH, (tx, ty) => painted(tx, ty) ?? garden)
+      drawGroundDecals(ctx, viewL, viewT, viewW, viewH)
+      const fade = gardenFadeRect()
+      ctx.beginPath()
+      ctx.rect(viewL, viewT, viewW, viewH)
+      ctx.rect(fade.x, fade.y, fade.w, fade.h)
+      ctx.fillStyle = 'rgba(2, 4, 8, 0.58)'
+      ctx.fill('evenodd')
+      ctx.restore()
+      return
+    }
+  }
+  if (map === 'classic') {
+    const single = gardenGround(hi) ?? gardenGround(false)
+    if (single) {
+      ctx.save()
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      tileFill(ctx, viewL, viewT, viewW, viewH, () => single)
+      ctx.beginPath()
+      ctx.rect(viewL, viewT, viewW, viewH)
+      ctx.rect(-aw, -ah, aw * 2, ah * 2)
+      ctx.fillStyle = 'rgba(2, 4, 8, 0.58)'
+      ctx.fill('evenodd')
+      ctx.restore()
+      const overlay = borderOverlay(aw, ah)
+      ctx.drawImage(overlay, -aw - BORDER_PAD, -ah - BORDER_PAD)
+      return
+    }
+  }
+  const mown = map === 'tidy' ? gardenLawnMown(hi) ?? gardenLawnMown(false) : null
   if (mown) {
     ctx.save()
     ctx.imageSmoothingEnabled = true

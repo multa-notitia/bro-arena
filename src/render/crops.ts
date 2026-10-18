@@ -53,7 +53,7 @@ function furrow(ctx: CanvasRenderingContext2D, plots: readonly Plot[], row: numb
   const scale = FEEL.garden.scale
   const furrowW = Math.round(FURROW_NATIVE_W * scale)
   const furrowH = FURROW_NATIVE_H * (furrowW / FURROW_NATIVE_W)
-  if (drawProp(ctx, 'prop-furrow', midX, y + 6, { width: furrowW, hi })) {
+  if (drawProp(ctx, 'prop-furrow-v1', midX, y + 6, { width: furrowW, hi })) {
     ctx.save()
     ctx.translate(midX - furrowW * 0.42, y + 6 - furrowH * 0.5 - 14)
     paintRowLabel(ctx, GARDEN_ROWS[row] ?? '', labelAlpha, 0)
@@ -94,7 +94,7 @@ export function drawFarmRows(
 
 function bed(ctx: CanvasRenderingContext2D, plot: Plot, hi: boolean): void {
   const bedW = Math.round(BED_NATIVE_DRAW * FEEL.garden.scale)
-  if (drawProp(ctx, 'prop-bed', plot.x, plot.y + 4, { width: bedW, hi })) return
+  if (drawProp(ctx, 'prop-bed-v1', plot.x, plot.y + 4, { width: bedW, hi })) return
   ctx.save()
   ctx.translate(plot.x, plot.y)
   ctx.fillStyle = 'rgba(42, 28, 16, 0.28)'

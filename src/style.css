@@ -321,6 +321,23 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+.map-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.map-pick .btn {
+  flex: 1 1 7em;
+}
+
+.map-pick .btn[aria-pressed='true'] {
+  background: #c45b3c;
+  color: #f8eee0;
+  border-color: #5a2418;
+}
+
 .bag-count.is-pop {
   animation: bag-pop 0.28s ease-out;
 }
