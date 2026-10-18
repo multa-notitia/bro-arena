@@ -4,122 +4,122 @@
  "parts": {
   "arm_bent2_fore": {
    "rect": [
-    580,
+    609,
     0,
-    73,
-    88
+    81,
+    83
    ],
    "points": {
     "shoulder": [
-     27.74,
-     19.64
+     32.31,
+     23.56
     ],
     "elbow": [
-     24.66,
-     58.32
+     30.33,
+     49.58
     ],
     "wrist": [
-     47.28,
-     67.91
+     47.16,
+     53.7
     ]
    },
    "src": "side arm_bent2",
-   "dir0": 94.55,
-   "fore0": 22.98
+   "dir0": 94.35,
+   "fore0": 13.77
   },
   "arm_bent2_upper": {
    "rect": [
-    505,
+    526,
     0,
-    73,
-    88
+    81,
+    83
    ],
    "points": {
     "shoulder": [
-     27.74,
-     19.64
+     32.31,
+     23.56
     ],
     "elbow": [
-     24.66,
-     58.32
+     30.33,
+     49.58
     ],
     "wrist": [
-     47.28,
-     67.91
+     47.16,
+     53.7
     ]
    },
    "src": "side arm_bent2",
-   "dir0": 94.55,
-   "fore0": 22.98
+   "dir0": 94.35,
+   "fore0": 13.77
   },
   "arm_dark_bent2_fore": {
    "rect": [
-    253,
+    775,
     0,
-    63,
-    100
+    81,
+    83
    ],
    "points": {
     "shoulder": [
-     28.27,
-     20.48
+     32.31,
+     23.56
     ],
     "elbow": [
-     24.22,
-     48.2
+     30.33,
+     49.58
     ],
     "wrist": [
-     37.11,
-     76.32
+     47.16,
+     53.7
     ]
    },
    "src": "side arm_dark_bent2",
-   "dir0": 98.31,
-   "fore0": 65.37
+   "dir0": 94.35,
+   "fore0": 13.77
   },
   "arm_dark_bent2_upper": {
    "rect": [
-    188,
+    692,
     0,
-    63,
-    100
+    81,
+    83
    ],
    "points": {
     "shoulder": [
-     28.27,
-     20.48
+     32.31,
+     23.56
     ],
     "elbow": [
-     24.22,
-     48.2
+     30.33,
+     49.58
     ],
     "wrist": [
-     37.11,
-     76.32
+     47.16,
+     53.7
     ]
    },
    "src": "side arm_dark_bent2",
-   "dir0": 98.31,
-   "fore0": 65.37
+   "dir0": 94.35,
+   "fore0": 13.77
   },
   "bud": {
    "rect": [
-    260,
+    436,
     234,
-    27,
-    23
+    24,
+    21
    ],
    "points": {
     "center": [
-     13.53,
-     13.64
+     11.93,
+     12.35
     ]
    },
    "src": "side arm_straight top cap (shoulder joint)"
   },
   "club": {
    "rect": [
-    318,
+    339,
     0,
     108,
     98
@@ -139,7 +139,7 @@
   },
   "fist": {
    "rect": [
-    58,
+    198,
     234,
     56,
     52
@@ -154,7 +154,7 @@
   },
   "fist34": {
    "rect": [
-    721,
+    858,
     0,
     81,
     80
@@ -175,8 +175,8 @@
   },
   "fist_dark": {
    "rect": [
-    955,
-    0,
+    140,
+    234,
     56,
     54
    ],
@@ -190,7 +190,7 @@
   },
   "fx_dust": {
    "rect": [
-    222,
+    398,
     234,
     36,
     35
@@ -205,7 +205,7 @@
   },
   "fx_puff": {
    "rect": [
-    116,
+    256,
     234,
     104,
     49
@@ -235,7 +235,7 @@
   },
   "fx_streak": {
    "rect": [
-    289,
+    462,
     234,
     135,
     20
@@ -254,7 +254,7 @@
   },
   "knife": {
    "rect": [
-    804,
+    941,
     0,
     81,
     77
@@ -274,48 +274,48 @@
   },
   "long_cut": {
    "rect": [
-    655,
-    0,
-    30,
-    81
+    68,
+    234,
+    34,
+    59
    ],
    "points": {
     "shoulder": [
-     15.73,
-     9.92
+     18.81,
+     11.9
     ],
     "wrist": [
-     15.74,
-     72.4
+     15.93,
+     42.7
     ]
    },
    "src": "side arm_straight",
-   "dir0": 89.99
+   "dir0": 95.34
   },
   "long_dark_cut": {
    "rect": [
-    687,
-    0,
-    32,
-    80
+    104,
+    234,
+    34,
+    59
    ],
    "points": {
     "shoulder": [
-     17.68,
-     9.92
+     18.81,
+     11.9
     ],
     "wrist": [
-     18.42,
-     71.52
+     15.93,
+     42.7
     ]
    },
    "src": "side arm_dark_straight",
-   "dir0": 89.31
+   "dir0": 95.34
   },
   "palm": {
    "rect": [
-    887,
     0,
+    234,
     66,
     66
    ],
@@ -329,22 +329,22 @@
   },
   "palm_dark": {
    "rect": [
-    0,
+    362,
     234,
-    56,
-    54
+    34,
+    36
    ],
    "points": {
     "grip": [
-     27.23,
-     26.6
+     17.85,
+     18.25
     ]
    },
-   "src": "side fist_dark (no dark palm painted)"
+   "src": "heroes_inbetween_v1 dark open palm (polish)"
   },
   "sling_relaxed": {
    "rect": [
-    428,
+    449,
     0,
     75,
     98
@@ -361,6 +361,27 @@
    },
    "src": "frontal v1 sling_relaxed",
    "axis": -63.0
+  },
+  "windup": {
+   "rect": [
+    188,
+    0,
+    149,
+    157
+   ],
+   "points": {
+    "shoulder": [
+     87.0,
+     142.25
+    ],
+    "grip": [
+     108.08,
+     75.35
+    ]
+   },
+   "src": "heroes_inbetween_v1 potato row club-over-shoulder windup (polish)",
+   "axis": -150.43,
+   "note": "raised art: front slots on a raised:true key swap the arm for this piece; weapon drawn through the fist, behind the body"
   }
  }
 }

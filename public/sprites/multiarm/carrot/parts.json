@@ -4,153 +4,153 @@
  "parts": {
   "arm_L_fore": {
    "rect": [
-    0,
+    231,
     133,
-    102,
-    109
+    89,
+    89
    ],
    "points": {
     "shoulder": [
-     40.4,
-     27.6
+     34.12,
+     25.93
     ],
     "elbow": [
-     30.16,
-     68.56
+     33.0,
+     56.25
     ],
     "wrist": [
-     67.28,
-     76.24
+     49.06,
+     58.42
     ]
    },
    "src": "carrot side_v1 arm_L",
-   "dir0": 104.04,
-   "fore0": 11.69
+   "dir0": 92.11,
+   "fore0": 7.7
   },
   "arm_L_upper": {
    "rect": [
-    876,
-    0,
-    102,
-    109
+    140,
+    133,
+    89,
+    89
    ],
    "points": {
     "shoulder": [
-     40.4,
-     27.6
+     34.12,
+     25.93
     ],
     "elbow": [
-     30.16,
-     68.56
+     33.0,
+     56.25
     ],
     "wrist": [
-     67.28,
-     76.24
+     49.06,
+     58.42
     ]
    },
    "src": "carrot side_v1 arm_L",
-   "dir0": 104.04,
-   "fore0": 11.69
+   "dir0": 92.11,
+   "fore0": 7.7
   },
   "arm_bent_fore": {
    "rect": [
-    555,
-    0,
-    87,
-    122
+    588,
+    133,
+    82,
+    88
    ],
    "points": {
     "shoulder": [
-     38.48,
-     26.32
+     33.56,
+     25.75
     ],
     "elbow": [
-     31.44,
-     63.44
+     32.69,
+     56.25
     ],
     "wrist": [
-     53.84,
-     87.76
+     46.76,
+     56.56
     ]
    },
    "src": "carrot side_v1 arm_bent",
-   "dir0": 100.74,
-   "fore0": 47.35
+   "dir0": 91.63,
+   "fore0": 1.26
   },
   "arm_bent_upper": {
    "rect": [
-    466,
-    0,
-    87,
-    122
+    504,
+    133,
+    82,
+    88
    ],
    "points": {
     "shoulder": [
-     38.48,
-     26.32
+     33.56,
+     25.75
     ],
     "elbow": [
-     31.44,
-     63.44
+     32.69,
+     56.25
     ],
     "wrist": [
-     53.84,
-     87.76
+     46.76,
+     56.56
     ]
    },
    "src": "carrot side_v1 arm_bent",
-   "dir0": 100.74,
-   "fore0": 47.35
+   "dir0": 91.63,
+   "fore0": 1.26
   },
   "arm_dark_bent_fore": {
    "rect": [
-    723,
-    0,
-    77,
-    119
+    413,
+    133,
+    89,
+    89
    ],
    "points": {
     "shoulder": [
-     41.04,
-     26.32
+     34.12,
+     25.93
     ],
     "elbow": [
-     31.44,
-     57.68
+     33.0,
+     56.25
     ],
     "wrist": [
-     46.8,
-     84.56
+     49.06,
+     58.42
     ]
    },
    "src": "carrot side_v1 arm_dark_bent",
-   "dir0": 107.02,
-   "fore0": 60.26
+   "dir0": 92.11,
+   "fore0": 7.7
   },
   "arm_dark_bent_upper": {
    "rect": [
-    644,
-    0,
-    77,
-    119
+    322,
+    133,
+    89,
+    89
    ],
    "points": {
     "shoulder": [
-     41.04,
-     26.32
+     34.12,
+     25.93
     ],
     "elbow": [
-     31.44,
-     57.68
+     33.0,
+     56.25
     ],
     "wrist": [
-     46.8,
-     84.56
+     49.06,
+     58.42
     ]
    },
    "src": "carrot side_v1 arm_dark_bent",
-   "dir0": 107.02,
-   "fore0": 60.26
+   "dir0": 92.11,
+   "fore0": 7.7
   },
   "club": {
    "rect": [
@@ -174,38 +174,38 @@
   },
   "fist": {
    "rect": [
-    231,
-    244,
-    28,
-    29
+    754,
+    133,
+    75,
+    75
    ],
    "points": {
     "grip": [
-     12.5,
-     16.0
+     45.98,
+     53.16
     ]
    },
-   "src": "carrot side_v1 fist"
+   "src": "heroes_inbetween_v1 carrot stub arm, own painted fist (polish)"
   },
   "fist_dark": {
    "rect": [
-    31,
-    244,
-    29,
-    31
+    831,
+    133,
+    75,
+    75
    ],
    "points": {
     "grip": [
-     13.55,
-     16.0
+     45.98,
+     53.16
     ]
    },
-   "src": "carrot side_v1 fist_dark"
+   "src": "heroes_inbetween_v1 carrot stub arm, own painted fist (polish)"
   },
   "fx_dust": {
    "rect": [
-    883,
-    133,
+    265,
+    232,
     49,
     48
    ],
@@ -219,8 +219,8 @@
   },
   "fx_puff": {
    "rect": [
-    750,
-    133,
+    82,
+    232,
     131,
     64
    ],
@@ -249,8 +249,8 @@
   },
   "fx_streak": {
    "rect": [
-    62,
-    244,
+    396,
+    232,
     167,
     30
    ],
@@ -268,8 +268,8 @@
   },
   "knife": {
    "rect": [
-    104,
-    133,
+    877,
+    0,
     102,
     98
    ],
@@ -288,8 +288,8 @@
   },
   "palm": {
    "rect": [
-    934,
-    133,
+    360,
+    232,
     34,
     38
    ],
@@ -303,44 +303,44 @@
   },
   "palm_dark": {
    "rect": [
-    970,
-    133,
-    34,
-    38
+    316,
+    232,
+    42,
+    43
    ],
    "points": {
     "grip": [
-     16.0,
-     32.8
+     17.85,
+     19.91
     ]
    },
-   "src": "carrot side_v1 palm, tinted to the dark palette (no dark palm painted)"
+   "src": "heroes_inbetween_v1 chili row dark open palm, carrot dark palette (polish)"
   },
   "pinch": {
    "rect": [
-    0,
-    244,
-    29,
-    34
+    215,
+    232,
+    48,
+    57
    ],
    "points": {
     "grip": [
-     19.5,
-     16.0
+     33.0,
+     26.8
     ],
     "wrist": [
-     10.75,
-     30.0
+     17.5,
+     51.6
     ]
    },
    "src": "carrot side_v1 pinch"
   },
   "sling_drawn": {
    "rect": [
-    430,
-    133,
-    158,
-    86
+    399,
+    0,
+    167,
+    108
    ],
    "points": {
     "grip": [
@@ -362,10 +362,10 @@
   },
   "sling_drawn_dark": {
    "rect": [
-    590,
-    133,
-    158,
-    86
+    568,
+    0,
+    167,
+    108
    ],
    "points": {
     "grip": [
@@ -385,9 +385,59 @@
    "axis": -94.05,
    "note": "fist + stretched band + pinch hand baked together: the runtime hides the separate hand while shown"
   },
+  "sling_half": {
+   "rect": [
+    908,
+    133,
+    80,
+    69
+   ],
+   "points": {
+    "grip": [
+     63.0,
+     46.0
+    ],
+    "fork": [
+     57.0,
+     21.0
+    ],
+    "pouch": [
+     13.0,
+     34.0
+    ]
+   },
+   "axis": -103.5,
+   "src": "heroes_inbetween_v1 carrot row half-drawn slingshot (mirrored; painted carrot hand)",
+   "note": "painted hand included: the runtime hides the separate hand while shown"
+  },
+  "sling_half_dark": {
+   "rect": [
+    0,
+    232,
+    80,
+    69
+   ],
+   "points": {
+    "grip": [
+     63.0,
+     46.0
+    ],
+    "fork": [
+     57.0,
+     21.0
+    ],
+    "pouch": [
+     13.0,
+     34.0
+    ]
+   },
+   "axis": -103.5,
+   "src": "heroes_inbetween_v1 carrot row half-drawn slingshot (mirrored; painted carrot hand, recoloured dark)",
+   "note": "painted hand included: the runtime hides the separate hand while shown"
+  },
   "sling_relaxed": {
    "rect": [
-    348,
+    672,
     133,
     80,
     86
@@ -407,7 +457,7 @@
   },
   "spear": {
    "rect": [
-    208,
+    0,
     133,
     138,
     97
@@ -431,43 +481,43 @@
   },
   "straight": {
    "rect": [
-    399,
+    737,
     0,
-    65,
-    126
+    68,
+    104
    ],
    "points": {
     "shoulder": [
-     32.72,
-     26.32
+     32.94,
+     25.13
     ],
     "wrist": [
-     36.56,
-     90.32
+     35.42,
+     69.33
     ]
    },
    "src": "carrot side_v1 arm_straight",
-   "dir0": 86.57
+   "dir0": 86.79
   },
   "straight_dark": {
    "rect": [
-    802,
+    807,
     0,
-    72,
-    118
+    68,
+    104
    ],
    "points": {
     "shoulder": [
-     40.4,
-     26.32
+     32.94,
+     25.13
     ],
     "wrist": [
-     41.04,
-     82.64
+     35.42,
+     69.33
     ]
    },
    "src": "carrot side_v1 arm_dark_straight",
-   "dir0": 89.35
+   "dir0": 86.79
   }
  }
 }

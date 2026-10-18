@@ -9,11 +9,11 @@
  "slots": {
   "midF": {
    "pos": [
-    137.0,
-    166.0
+    139.0,
+    178.0
    ],
    "side": 1,
-   "dir": 62.0,
+   "dir": 52.0,
    "z": 11.0,
    "native": true,
    "layer": "front",

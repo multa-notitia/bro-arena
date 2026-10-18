@@ -68,6 +68,10 @@ interface EnemyExtra {
   tauntCd: number
   /** The emerge clip has been started. AI stays off until its `emerged` event. */
   emerge: boolean
+  /** This spawn hangs from a plant and plays `emerge_vine` when the sheet has it. */
+  dropFromPlant: boolean
+  /** Chosen once the sheet is loaded. Empty until then. */
+  spawnClip: string
 }
 
 const extras = new WeakMap<Enemy, EnemyExtra>()
@@ -93,10 +97,27 @@ function extra(e: Enemy): EnemyExtra {
       sawHero: false,
       tauntCd: 3,
       emerge: false,
+      dropFromPlant: false,
+      spawnClip: '',
     }
     extras.set(e, x)
   }
   return x
+}
+
+const PLANT_REACH = 150
+
+function dropsFromPlant(world: World, x: number, y: number): boolean {
+  for (const tree of world.trees) {
+    if (dist(tree.x, tree.y, x, y) <= PLANT_REACH) return true
+  }
+  return false
+}
+
+/** Clip the spawner chose. Draw uses this so the vine drop and the mud emerge stay apart. */
+export function enemySpawnClip(e: Enemy): string | null {
+  const name = extras.get(e)?.spawnClip
+  return name ? name : null
 }
 
 export function resetEnemyRuntime(): void {
@@ -204,6 +225,8 @@ export function spawnEnemy(
     sawHero: false,
     tauntCd: 3,
     emerge: false,
+    dropFromPlant: dropsFromPlant(world, pos.x, pos.y),
+    spawnClip: '',
   })
   if (boss) enemy.cooldown = 1.15
   world.enemies.push(enemy)

@@ -1,11 +1,11 @@
 {
  "image": "enemy-tomato-light.webp",
- "frameWidth": 224,
- "frameHeight": 224,
- "columns": 9,
+ "frameWidth": 204,
+ "frameHeight": 208,
+ "columns": 10,
  "anchor": {
   "x": 0.5,
-  "y": 0.745
+  "y": 0.7638
  },
  "clips": {
   "idle": {
@@ -53,87 +53,108 @@
   "attack": {
    "loop": false,
    "frames": [
-    { "i": 27, "ms": 90 },
-    { "i": 28, "ms": 80 },
-    { "i": 29, "ms": 70 },
-    { "i": 30, "ms": 70 },
-    { "i": 31, "ms": 60 },
+    { "i": 27, "ms": 60 },
+    { "i": 28, "ms": 55 },
+    { "i": 29, "ms": 55 },
+    { "i": 30, "ms": 55 },
+    { "i": 31, "ms": 50 },
     { "i": 32, "ms": 50 },
-    { "i": 33, "ms": 50, "events": [ "release", "spawnFx" ] },
-    { "i": 34, "ms": 60 },
-    { "i": 35, "ms": 70 },
-    { "i": 36, "ms": 80 },
-    { "i": 37, "ms": 900 }
+    { "i": 33, "ms": 45 },
+    { "i": 34, "ms": 50 },
+    { "i": 35, "ms": 45, "events": [ "release", "spawnFx" ] },
+    { "i": 36, "ms": 45 },
+    { "i": 37, "ms": 50 },
+    { "i": 38, "ms": 55 },
+    { "i": 39, "ms": 60 },
+    { "i": 40, "ms": 65 },
+    { "i": 41, "ms": 70 },
+    { "i": 42, "ms": 80 },
+    { "i": 43, "ms": 690 }
    ]
   },
   "death": {
    "loop": false,
    "frames": [
-    { "i": 38, "ms": 50 },
+    { "i": 44, "ms": 50 },
+    { "i": 45, "ms": 60 },
+    { "i": 35, "ms": 45, "event": "spawnFx" },
+    { "i": 36, "ms": 45 },
+    { "i": 37, "ms": 50 },
+    { "i": 38, "ms": 55 },
     { "i": 39, "ms": 60 },
-    { "i": 40, "ms": 50, "event": "spawnFx" },
-    { "i": 41, "ms": 60 },
-    { "i": 42, "ms": 70 },
-    { "i": 43, "ms": 80 },
-    { "i": 44, "ms": 900 }
+    { "i": 40, "ms": 65 },
+    { "i": 41, "ms": 70 },
+    { "i": 42, "ms": 80 },
+    { "i": 43, "ms": 690 }
    ]
   },
   "taunt": {
    "loop": false,
    "frames": [
-    { "i": 45, "ms": 70 },
-    { "i": 46, "ms": 80 },
-    { "i": 47, "ms": 60 },
-    { "i": 48, "ms": 60 },
-    { "i": 49, "ms": 60 },
-    { "i": 50, "ms": 70 }
+    { "i": 46, "ms": 35 },
+    { "i": 47, "ms": 35 },
+    { "i": 48, "ms": 40 },
+    { "i": 49, "ms": 40 },
+    { "i": 50, "ms": 30 },
+    { "i": 51, "ms": 30 },
+    { "i": 52, "ms": 30 },
+    { "i": 53, "ms": 30 },
+    { "i": 54, "ms": 30 },
+    { "i": 55, "ms": 30 },
+    { "i": 56, "ms": 70 }
    ]
   },
   "death_slice": {
    "loop": false,
    "frames": [
-    { "i": 51, "ms": 45 },
-    { "i": 52, "ms": 50, "event": "spawnFx" },
-    { "i": 53, "ms": 55 },
-    { "i": 54, "ms": 55 },
-    { "i": 55, "ms": 60 },
-    { "i": 56, "ms": 70 },
-    { "i": 57, "ms": 60 },
-    { "i": 58, "ms": 900 }
+    { "i": 57, "ms": 45 },
+    { "i": 58, "ms": 50, "event": "spawnFx" },
+    { "i": 59, "ms": 55 },
+    { "i": 60, "ms": 55 },
+    { "i": 61, "ms": 60 },
+    { "i": 62, "ms": 65 },
+    { "i": 63, "ms": 70 },
+    { "i": 64, "ms": 895 }
    ]
   },
   "death_smash": {
    "loop": false,
    "frames": [
-    { "i": 59, "ms": 40 },
-    { "i": 60, "ms": 50 },
-    { "i": 61, "ms": 50, "event": "spawnFx" },
-    { "i": 62, "ms": 60 },
-    { "i": 63, "ms": 70 },
-    { "i": 64, "ms": 80 },
-    { "i": 65, "ms": 900 }
+    { "i": 65, "ms": 40 },
+    { "i": 66, "ms": 50 },
+    { "i": 67, "ms": 50, "event": "spawnFx" },
+    { "i": 68, "ms": 50 },
+    { "i": 69, "ms": 55 },
+    { "i": 70, "ms": 60 },
+    { "i": 71, "ms": 65 },
+    { "i": 72, "ms": 70 },
+    { "i": 73, "ms": 810 }
    ]
   },
   "emerge": {
    "loop": false,
    "frames": [
-    { "i": 66, "ms": 140, "oy": -14.88 },
-    { "i": 67, "ms": 110, "oy": -14.88 },
-    { "i": 68, "ms": 100, "oy": -14.88 },
-    { "i": 69, "ms": 90, "oy": -14.88 },
-    { "i": 70, "ms": 50, "oy": -14.88 },
-    { "i": 71, "ms": 60, "oy": -9.3 },
-    { "i": 72, "ms": 50, "oy": -4.34 },
-    { "i": 73, "ms": 70, "event": "emerge_fx" },
-    { "i": 74, "ms": 70 },
-    { "i": 75, "ms": 80 },
-    { "i": 76, "ms": 90, "event": "emerged" }
+    { "i": 74, "ms": 70, "oy": -14.88 },
+    { "i": 75, "ms": 70, "oy": -14.88 },
+    { "i": 76, "ms": 55, "oy": -14.88 },
+    { "i": 77, "ms": 55, "oy": -14.88 },
+    { "i": 78, "ms": 50, "oy": -14.88 },
+    { "i": 78, "ms": 50, "oy": -14.26 },
+    { "i": 79, "ms": 90, "oy": -13.64 },
+    { "i": 80, "ms": 50, "oy": -13.64 },
+    { "i": 81, "ms": 60, "oy": -9.3 },
+    { "i": 82, "ms": 50, "oy": -4.34 },
+    { "i": 83, "ms": 70, "event": "emerge_fx" },
+    { "i": 84, "ms": 70 },
+    { "i": 85, "ms": 40 },
+    { "i": 86, "ms": 40 },
+    { "i": 87, "ms": 90, "event": "emerged" }
    ]
   },
   "prop_vine": {
    "loop": false,
    "frames": [
-    { "i": 77, "ms": 1000, "scaleX": 1.492, "scaleY": 1.492, "oy": -4.271 }
+    { "i": 88, "ms": 1000, "scaleX": 1.492, "scaleY": 1.492, "oy": -4.271 }
    ]
   }
  },
@@ -179,19 +200,25 @@
    "attack8",
    "attack9",
    "attack10",
+   "attack11",
+   "attack12",
+   "attack13",
+   "attack14",
+   "attack15",
+   "attack16",
    "death0",
    "death1",
-   "death2",
-   "death3",
-   "death4",
-   "death5",
-   "death6",
    "taunt0",
    "taunt1",
    "taunt2",
    "taunt3",
    "taunt4",
    "taunt5",
+   "taunt6",
+   "taunt7",
+   "taunt8",
+   "taunt9",
+   "taunt10",
    "death_slice0",
    "death_slice1",
    "death_slice2",
@@ -207,24 +234,38 @@
    "death_smash4",
    "death_smash5",
    "death_smash6",
+   "death_smash7",
+   "death_smash8",
    "emerge0",
    "emerge1",
    "emerge2",
    "emerge3",
    "emerge4",
-   "emerge5",
    "emerge6",
    "emerge7",
    "emerge8",
    "emerge9",
    "emerge10",
+   "emerge11",
+   "emerge12",
+   "emerge13",
+   "emerge14",
    "prop_vine0"
   ],
-  "feetY": 201.6,
+  "feetY": 193.6,
   "gameRadius": 14,
   "gameFit": 0.25,
   "rig": "figures/enemy-tomato-light/rig.py (cut-out animation, tools/rig)",
   "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
-  "pngFallback": "enemy-tomato-light.png"
+  "pngFallback": "enemy-tomato-light.png",
+  "cellCrop": {
+   "from": [
+    224,
+    224
+   ],
+   "x0": 10,
+   "y0": 8,
+   "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
+  }
  }
 }

@@ -42,6 +42,7 @@ import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { drawPaddock } from './ground.ts'
 import { paperColor } from './paintLang.ts'
 import { drawMultiArm, multiArmSheet, potatoMultiArm } from './multiarm.ts'
+import { enemySpawnClip } from '../game/enemies.ts'
 import { presentRenderPoses } from '../game/world.ts'
 import {
   actorClipActive,
@@ -443,7 +444,17 @@ function drawEnemy(
   const dying = e.anim.deathT >= 0
   const death = dying ? clamp(e.anim.deathT, 0, 1) : 0
   // Authored emerge is the body. The shadow only arrives over the clip's second half.
-  const emerging = e.state === 'spawning' && !!sheet?.manifest.clips.emerge
+  // emerge_vine is the plant drop; it falls back to emerge when that clip is absent.
+  const spawnName = enemySpawnClip(e)
+  const spawnClip =
+    spawnName && sheet?.manifest.clips[spawnName]
+      ? spawnName
+      : sheet?.manifest.clips.emerge
+        ? 'emerge'
+        : sheet?.manifest.clips.emerge_vine
+          ? 'emerge_vine'
+          : null
+  const emerging = e.state === 'spawning' && !!spawnClip
   const appear = emerging ? 1 : ease.outCubic(spawn)
   const shadowIn = emerging ? (spawn <= 0.5 ? 0 : (spawn - 0.5) / 0.5) : appear
   const scream = resolveScream(e.anim, e.state, e.stateT)

@@ -103,10 +103,18 @@ def build_parts(lib):
         note="handle runs along +x through the curl; draw the weapon UNDER it")
     # camera-facing hands: painted upright (out = -90); pre-turned so the runtime's R(d_fore - 22) points them along
     # the forearm. No dark palm on the sheet: palm_dark = the dark fist (a closed far hand reads fine behind the body)
-    for n, src, hp in (("fist", lib.fist, sp.FIST), ("fist_dark", lib.fist_dark, sp.FIST_DARK), ("palm", lib.palm, sp.PALM),
-                       ("palm_dark", lib.fist_dark, sp.FIST_DARK)):
+    for n, src, hp in (("fist", lib.fist, sp.FIST), ("fist_dark", lib.fist_dark, sp.FIST_DARK), ("palm", lib.palm, sp.PALM)):
         img, M = turned(src, sp.RT_HAND_OUT - hp["out"], sp.SC["hand"])
-        add(n, img, {"grip": sp.ap(M, hp["grip"])}, src="side " + ("fist_dark (no dark palm painted)" if n == "palm_dark" else n))
+        add(n, img, {"grip": sp.ap(M, hp["grip"])}, src="side " + n)
+    # polish: painted dark open palm (heroes_inbetween_v1 chili row, recoloured to the spud's dark arm)
+    img, M = turned(lib.palm_dark, sp.RT_HAND_OUT - sp.PALM_DARK["out"], sp.SC["palm_dark"])
+    add("palm_dark", img, {"grip": sp.ap(M, sp.PALM_DARK["grip"])}, src="heroes_inbetween_v1 dark open palm (polish)")
+    # polish: painted club-over-shoulder windup arm (mirrored, painted club removed outside the fist)
+    wp = sp.PTS_P["arm_windup"]
+    img, M = scaled(lib.windup, sp.SC["windup"] * sp.SC["arm"] / sp.SC["arm"])
+    add("windup", img, {"shoulder": sp.ap(M, wp["shoulder"]), "grip": sp.ap(M, wp["grip"])},
+        src="heroes_inbetween_v1 potato row club-over-shoulder windup (polish)", axis=wp["axis"],
+        note="raised art: front slots on a raised:true key swap the arm for this piece; weapon drawn through the fist, behind the body")
     img, M = scaled(lib.bud, sp.SC["bud"])
     add("bud", img, {"center": sp.ap(M, lib.bud_c)}, src="side arm_straight top cap (shoulder joint)")
     # weapons: the side sheet's spiked club; knife + slingshot borrowed from the frontal spud sheet (no hand painted in)
@@ -202,7 +210,7 @@ FAMILIES = {
     # same keys as the hero's attack clip (rig.py ATTACK). weaponBehind: draw the weapon behind the body on that
     # key (front slots only; the over-the-shoulder windup), optional, ignored by older compositors.
     "melee-swing": [
-        {"ms": 60, "raise": 100, "elbow": -40, "aim": -98, "squash": 0.02, "weaponBehind": True},
+        {"ms": 60, "raise": 100, "elbow": -40, "aim": -108, "squash": 0.02, "weaponBehind": True, "raised": True, "rrot": 24.0},
         {"ms": 45, "raise": 36, "elbow": -62, "aim": 6, "thrust": 2, "show": ["release"], "ev": ["release"], "squash": -0.02},
         {"ms": 70, "raise": 10, "elbow": -56, "aim": 26, "thrust": 1, "squash": 0.025},
         {"ms": 80, "raise": 6, "elbow": -8, "aim": -40},
@@ -308,7 +316,10 @@ def main():
                           "back": "far side: behind the body (z < behindBodyZ), dark arm + dark hand"},
                "slots": SLOTS, "layouts": {n: {"slots": s, "override": o} for n, (s, o) in LAYOUTS.items()},
                "arms": {"native": {"midR": "arm_bent2", "midL": "arm_dark_bent2", "kind": "bent", "scale": 1.0},
-                        "sprouted": {"front": "long_cut", "back": "long_dark_cut", "kind": "straight", "scale": SPROUT_SCALE}},
+                        "sprouted": {"front": "long_cut", "back": "long_dark_cut", "kind": "straight", "scale": SPROUT_SCALE},
+                        "raised": {"front": "windup", "weaponZ": 9.4,
+                                   "note": "keys with raised:true on a FRONT-layer arm swap the arm for this painting (club over "
+                                           "the shoulder); the weapon goes through its fist, behind the body"}},
                "behindBodyZ": 10.0, "bud": {"part": "bud", "frontOnly": True}}
     json.dump(sockets, open(os.path.join(OUT, "sockets.json"), "w"), indent=1)
     json.dump({"weapons": WEAPONS, "fist34HandleAlongPlusX": True}, open(os.path.join(OUT, "weapons.json"), "w"), indent=1)

@@ -12,10 +12,10 @@
    },
    "alt": {
     "imgs": [
-     "sling_drawn"
+     "sling_half"
     ],
     "imgsBack": [
-     "sling_drawn_dark"
+     "sling_half_dark"
     ],
     "pick": "slotIndex % 1",
     "hidesHand": true

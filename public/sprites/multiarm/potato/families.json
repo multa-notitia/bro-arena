@@ -5,9 +5,11 @@
     "ms": 60,
     "raise": 100,
     "elbow": -40,
-    "aim": -98,
+    "aim": -108,
     "squash": 0.02,
-    "weaponBehind": true
+    "weaponBehind": true,
+    "raised": true,
+    "rrot": 24.0
    },
    {
     "ms": 45,

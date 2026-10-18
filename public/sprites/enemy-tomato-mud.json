@@ -1,8 +1,8 @@
 {
  "image": "enemy-tomato-mud.webp",
- "frameWidth": 224,
+ "frameWidth": 204,
  "frameHeight": 224,
- "columns": 9,
+ "columns": 10,
  "anchor": {
   "x": 0.5,
   "y": 0.712
@@ -36,101 +36,118 @@
     { "i": 17, "ms": 60 },
     { "i": 18, "ms": 60 },
     { "i": 19, "ms": 60 },
-    { "i": 14, "ms": 60 },
     { "i": 20, "ms": 60 },
     { "i": 21, "ms": 60 },
     { "i": 22, "ms": 60 },
     { "i": 23, "ms": 60 },
-    { "i": 24, "ms": 60 }
+    { "i": 24, "ms": 60 },
+    { "i": 25, "ms": 60 }
    ]
   },
   "hurt": {
    "loop": false,
    "frames": [
-    { "i": 25, "ms": 40, "event": "hurt" },
-    { "i": 26, "ms": 60 },
-    { "i": 27, "ms": 80 }
+    { "i": 26, "ms": 40, "event": "hurt" },
+    { "i": 27, "ms": 60 },
+    { "i": 28, "ms": 80 }
    ]
   },
   "attack": {
    "loop": false,
    "frames": [
-    { "i": 28, "ms": 80 },
-    { "i": 29, "ms": 40 },
-    { "i": 30, "ms": 60, "event": "hit" },
-    { "i": 31, "ms": 80 },
-    { "i": 32, "ms": 70 },
-    { "i": 33, "ms": 80 }
+    { "i": 29, "ms": 80 },
+    { "i": 30, "ms": 40 },
+    { "i": 31, "ms": 60, "event": "hit" },
+    { "i": 32, "ms": 80 },
+    { "i": 33, "ms": 70 },
+    { "i": 34, "ms": 80 }
    ]
   },
   "death": {
    "loop": false,
    "frames": [
-    { "i": 34, "ms": 60 },
     { "i": 35, "ms": 60 },
-    { "i": 36, "ms": 70, "event": "spawnFx" },
-    { "i": 37, "ms": 50 },
-    { "i": 38, "ms": 60 },
-    { "i": 39, "ms": 70 },
-    { "i": 40, "ms": 80 },
-    { "i": 41, "ms": 950 }
+    { "i": 36, "ms": 60 },
+    { "i": 37, "ms": 70, "event": "spawnFx" },
+    { "i": 38, "ms": 50 },
+    { "i": 39, "ms": 60 },
+    { "i": 40, "ms": 70 },
+    { "i": 41, "ms": 80 },
+    { "i": 42, "ms": 950 }
    ]
   },
   "scream": {
    "loop": false,
    "frames": [
-    { "i": 42, "ms": 110 },
-    { "i": 43, "ms": 90 },
-    { "i": 44, "ms": 50, "event": "scream" },
-    { "i": 45, "ms": 72 },
+    { "i": 43, "ms": 110 },
+    { "i": 44, "ms": 90 },
+    { "i": 45, "ms": 50, "event": "scream" },
     { "i": 46, "ms": 72 },
     { "i": 47, "ms": 72 },
     { "i": 48, "ms": 72 },
     { "i": 49, "ms": 72 },
-    { "i": 50, "ms": 70 },
-    { "i": 51, "ms": 90 },
-    { "i": 52, "ms": 60 }
+    { "i": 50, "ms": 72 },
+    { "i": 51, "ms": 70 },
+    { "i": 52, "ms": 90 },
+    { "i": 53, "ms": 60 }
    ]
   },
   "death_slice": {
    "loop": false,
    "frames": [
-    { "i": 53, "ms": 45 },
-    { "i": 54, "ms": 50, "event": "spawnFx" },
-    { "i": 55, "ms": 55 },
+    { "i": 54, "ms": 45 },
+    { "i": 55, "ms": 50, "event": "spawnFx" },
     { "i": 56, "ms": 55 },
-    { "i": 57, "ms": 60 },
-    { "i": 58, "ms": 70 },
-    { "i": 59, "ms": 60 },
-    { "i": 60, "ms": 950 }
+    { "i": 57, "ms": 55 },
+    { "i": 58, "ms": 60 },
+    { "i": 59, "ms": 70 },
+    { "i": 60, "ms": 60 },
+    { "i": 61, "ms": 950 }
    ]
   },
   "death_smash": {
    "loop": false,
    "frames": [
-    { "i": 61, "ms": 40 },
-    { "i": 62, "ms": 50 },
-    { "i": 63, "ms": 50, "event": "spawnFx" },
-    { "i": 64, "ms": 60 },
-    { "i": 65, "ms": 70 },
-    { "i": 66, "ms": 80 },
-    { "i": 67, "ms": 950 }
+    { "i": 62, "ms": 40 },
+    { "i": 63, "ms": 50 },
+    { "i": 64, "ms": 50, "event": "spawnFx" },
+    { "i": 65, "ms": 60 },
+    { "i": 66, "ms": 70 },
+    { "i": 67, "ms": 80 },
+    { "i": 68, "ms": 950 }
    ]
   },
   "emerge": {
    "loop": false,
    "frames": [
-    { "i": 68, "ms": 90 },
-    { "i": 69, "ms": 80, "event": "emerge_fx" },
-    { "i": 70, "ms": 90 },
+    { "i": 69, "ms": 90 },
+    { "i": 70, "ms": 80, "event": "emerge_fx" },
     { "i": 71, "ms": 90 },
-    { "i": 72, "ms": 80 },
+    { "i": 72, "ms": 90 },
     { "i": 73, "ms": 80 },
-    { "i": 74, "ms": 70 },
-    { "i": 75, "ms": 80 },
-    { "i": 76, "ms": 90 },
-    { "i": 77, "ms": 80 },
-    { "i": 78, "ms": 100, "event": "emerged" }
+    { "i": 74, "ms": 80 },
+    { "i": 75, "ms": 70 },
+    { "i": 76, "ms": 80 },
+    { "i": 77, "ms": 90 },
+    { "i": 78, "ms": 80 },
+    { "i": 0, "ms": 100, "event": "emerged" }
+   ]
+  },
+  "emerge_vine": {
+   "loop": false,
+   "frames": [
+    { "i": 79, "ms": 130, "oy": -17.05 },
+    { "i": 80, "ms": 130, "oy": -17.05 },
+    { "i": 81, "ms": 140, "oy": -17.05 },
+    { "i": 82, "ms": 80, "oy": -17.05 },
+    { "i": 83, "ms": 50, "oy": -17.05 },
+    { "i": 84, "ms": 40, "oy": -17.05 },
+    { "i": 85, "ms": 40, "oy": -17.05 },
+    { "i": 86, "ms": 35 },
+    { "i": 87, "ms": 70, "event": "emerge_fx" },
+    { "i": 88, "ms": 80 },
+    { "i": 89, "ms": 80 },
+    { "i": 0, "ms": 100, "event": "emerged" }
    ]
   }
  },
@@ -158,6 +175,7 @@
    "walk3",
    "walk4",
    "walk5",
+   "walk6",
    "walk7",
    "walk8",
    "walk9",
@@ -216,13 +234,32 @@
    "emerge7",
    "emerge8",
    "emerge9",
-   "emerge10"
+   "emerge_vine0",
+   "emerge_vine1",
+   "emerge_vine2",
+   "emerge_vine3",
+   "emerge_vine4",
+   "emerge_vine5",
+   "emerge_vine6",
+   "emerge_vine7",
+   "emerge_vine8",
+   "emerge_vine9",
+   "emerge_vine10"
   ],
   "feetY": 201.6,
   "gameRadius": 17,
   "gameFit": 0.25,
   "rig": "figures/enemy-tomato-mud/rig.py (cut-out animation, tools/rig)",
   "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
-  "pngFallback": "enemy-tomato-mud.png"
+  "pngFallback": "enemy-tomato-mud.png",
+  "cellCrop": {
+   "from": [
+    224,
+    224
+   ],
+   "x0": 10,
+   "y0": 0,
+   "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
+  }
  }
 }

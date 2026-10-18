@@ -26,6 +26,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FIG = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(FIG, "src"))
 import carrot as cr  # noqa: E402
+import polishkit  # noqa: E402
 import numpy as np  # noqa: E402
 from PIL import Image  # noqa: E402
 import rigkit  # noqa: E402
@@ -81,12 +82,19 @@ def build_parts(lib):
         sh, wr = cr.ap(M, a["shoulder"]), cr.ap(M, a["wrist"])
         add(out, img, {"shoulder": sh, "wrist": wr}, src="carrot side_v1 " + n, dir0=r2(cr.ang(sh, wr)))
     # hands: fists (light / dark painted), palms (light painted, dark = palette tint of the light one)
-    for n, img0 in (("fist", lib.fist), ("fist_dark", lib.fist_dark)):
+    # polish: the stub arm's own painted fist (pre-turned for R(d_fore - 22)), at the arm's scale
+    for n, img0, gp in (("fist", lib.fist, lib.fist_grip), ("fist_dark", lib.fist_dark, lib.fist_dark_grip)):
         img, M = scaled(img0, cr.SC["hand"])
-        add(n, img, {"grip": cr.ap(M, cr.PTS[n]["grip"])}, src="carrot side_v1 " + n)
-    for n, img0, note in (("palm", lib.palm, "carrot side_v1 palm"), ("palm_dark", lib.palm_dark, "carrot side_v1 palm, tinted to the dark palette (no dark palm painted)")):
-        img, M = scaled(img0, cr.SC["hand"])
-        add(n, img, {"grip": cr.ap(M, cr.PTS["palm"]["wrist"])}, src=note)
+        add(n, img, {"grip": cr.ap(M, gp)}, src="heroes_inbetween_v1 carrot stub arm, own painted fist (polish)")
+    img, M = scaled(lib.palm, cr.SC["palm"])
+    add("palm", img, {"grip": cr.ap(M, cr.PTS["palm"]["wrist"])}, src="carrot side_v1 palm")
+    # painted dark open palm (fingers up as painted): pre-turned 90 + 22 so compose_ref's R(d_fore - 22) points the
+    # fingers along the forearm; grip = handD (body px) up the fingers from the painted wrist
+    pw = cr.PTS["palm_dark"]["wrist"]
+    pdi, Mp = polishkit.rot_about(lib.palm_dark, 90.0 + cr.HAND_ROT, pw)
+    gpd = (pw[0], pw[1] - cr.HAND_D / cr.SC["palm_dark"])
+    img, M = scaled(pdi, cr.SC["palm_dark"])
+    add("palm_dark", img, {"grip": cr.ap(M @ Mp, gpd)}, src="heroes_inbetween_v1 chili row dark open palm, carrot dark palette (polish)")
     img, M = scaled(lib.pinch, cr.SC["hand"])
     add("pinch", img, {"grip": cr.ap(M, cr.PTS["pinch"]["grip"]), "wrist": cr.ap(M, cr.PTS["pinch"]["wrist"])}, src="carrot side_v1 pinch")
     # slingshot (relaxed, as painted: band loop trails back)
@@ -100,7 +108,7 @@ def build_parts(lib):
         imd, ptsd, axisd = cr.drawn_sling(stretch=1.0, dark_pinch=dark)
         ls = cr.S(cr.SC["sling"]) @ cr.T(-ptsd["grip"][0], -ptsd["grip"][1])          # grip at (0, 0), axis unchanged
         fist = lib.fist_dark if dark else lib.fist
-        gp = cr.PTS["fist_dark" if dark else "fist"]["grip"]
+        gp = lib.fist_dark_grip if dark else lib.fist_grip
         # fist as the runtime places it for a forearm along d_fore with the slingshot at aim: relative rot = d_fore - 22 - (aim - axis)
         rel = (-10.0 - cr.HAND_ROT) - (-90.0 - axisd)
         lf = cr.R(rel) @ cr.S(cr.SC["hand"]) @ cr.T(-gp[0], -gp[1])
@@ -116,6 +124,17 @@ def build_parts(lib):
         add(nm, can, {"grip": cr.ap(sh, (0, 0)), "fork": cr.ap(sh @ ls, ptsd["fork"]), "pouch": cr.ap(sh @ ls, ptsd["pouch"])},
             src="carrot side_v1 sling_drawn (mirrored; painted pinch hand" + (", tinted dark" if dark else "") + ") + fist on the grip",
             axis=r2(axisd), note="fist + stretched band + pinch hand baked together: the runtime hides the separate hand while shown")
+    # polish: one-arm windup alt = the PAINTED half-drawn slingshot in a carrot hand (heroes_inbetween_v1), mirrored
+    # to shoot right; light hand for front slots, hand recoloured dark for back slots (the hand is part of the painting)
+    for nm, img0 in (("sling_half", lib.sling_half), ("sling_half_dark", lib.sling_half_dark)):
+        sp = cr.PTS["sling_half"]
+        W = img0.shape[1]
+        im = img0[:, ::-1].copy()
+        q = {k: (W - 1 - v[0], v[1]) for k, v in sp.items()}
+        img, M = scaled(im, cr.SC["sling_half"])
+        add(nm, img, {k: cr.ap(M, v) for k, v in q.items()}, axis=r2(cr.ang(q["grip"], q["fork"])),
+            src="heroes_inbetween_v1 carrot row half-drawn slingshot (mirrored; painted carrot hand" + (", recoloured dark" if "dark" in nm else "") + ")",
+            note="painted hand included: the runtime hides the separate hand while shown")
     # carrot spear (frontal v2 painting) + shared spud club / knife / fx, frontal body px -> side body px (x KF)
     fj = json.load(open(os.path.join(FRONTAL_MA, "parts.json")))
     fatlas = np.asarray(Image.open(os.path.join(FRONTAL_MA, fj["image"])).convert("RGBA")).astype(np.float32) / 255
@@ -182,7 +201,7 @@ LAYOUTS = {"1": (["midN", "midF"], {}), "2": (["midN", "midF"], ARMED_FAR), "3":
 WEAPONS = {
     "slingshot": {"img": "sling_relaxed", "family": "ranged-recoil", "wood": True, "restAim": cr.HERO["rest_aim"], "shotOffset": 90.0,
                   "hand": {"front": "fist", "back": "fist_dark"},
-                  "alt": {"imgs": ["sling_drawn"], "imgsBack": ["sling_drawn_dark"], "pick": "slotIndex % 1", "hidesHand": True},
+                  "alt": {"imgs": ["sling_half"], "imgsBack": ["sling_half_dark"], "pick": "slotIndex % 1", "hidesHand": True},
                   "fx": {"release": {"img": "fx_puff", "rule": "alongShot", "anchor": "cloud", "at": "fork",
                                      "params": {"ahead": 8.0, "side": 0.0}, "z": 14.0}}},
     "spear": {"img": "spear", "family": "melee-stab", "wood": True, "restAim": -50.0, "shotOffset": 0.0,
