@@ -11,6 +11,7 @@ import type {
   PaintStyle,
   PlantHandlers,
   PlantView,
+  BedOffer,
   FarmShopHandlers,
   FarmShopView,
   RenderApi,
@@ -57,6 +58,23 @@ function h<K extends keyof HTMLElementTagNameMap>(
   if (opts?.text !== undefined) n.textContent = opts.text
   if (opts?.id) n.id = opts.id
   return n
+}
+
+function fillBeds(host: HTMLElement, beds: BedOffer[], onBuy: (id: string) => void): void {
+  host.replaceChildren()
+  for (const bed of beds) {
+    const card = h('button', {
+      className: `bed-card is-${bed.state}${bed.affordable ? '' : ' is-broke'}`,
+    })
+    card.type = 'button'
+    card.disabled = bed.state !== 'ready' || !bed.affordable
+    card.append(h('span', { className: 'bed-name', text: bed.label }))
+    card.append(h('span', { className: 'bed-cost', text: bed.hint }))
+    if (bed.state === 'ready' && bed.affordable) {
+      card.addEventListener('click', () => onBuy(bed.id))
+    }
+    host.append(card)
+  }
 }
 
 function fmtNum(n: number): string {
@@ -226,6 +244,8 @@ const SKELETON = `
       <h1>Farm supplies</h1>
       <p id="farm-lede" class="lede"></p>
       <p class="bag-line">Bag <strong id="farm-bag">0</strong></p>
+      <h2 class="bed-kicker">Beds</h2>
+      <div id="farm-beds" class="bed-row" aria-label="Garden beds"></div>
     </header>
     <div class="shop-grid farm-shop-grid">
       <section class="shop-col">
@@ -265,6 +285,8 @@ const SKELETON = `
       <h1>The gardener's table</h1>
       <p id="shop-lede" class="lede"></p>
       <p class="bag-line">Bag <strong id="shop-bag">0</strong></p>
+      <h2 class="bed-kicker">Beds</h2>
+      <div id="shop-beds" class="bed-row" aria-label="Garden beds"></div>
     </header>
     <div class="shop-grid">
       <section class="shop-col">
@@ -308,7 +330,7 @@ const SKELETON = `
       <label class="opt-row"><input type="checkbox" id="opt-shake" /> Screen shake</label>
       <label class="opt-row"><input type="checkbox" id="opt-hitstop" /> Hit-stop</label>
       <label class="opt-row opt-slider" for="opt-zoom">Camera
-        <input type="range" id="opt-zoom" min="1" max="1.5" step="0.05" />
+        <input type="range" id="opt-zoom" min="0.7" max="1.5" step="0.05" />
         <span id="opt-zoom-val">1.25</span>
       </label>
     </fieldset>
@@ -511,6 +533,8 @@ export function createUi(
   const farmPouch = must<HTMLDivElement>('#farm-pouch')
   const farmBuffs = must<HTMLElement>('#farm-buffs')
   const farmNext = must<HTMLButtonElement>('#farm-next')
+  const farmBeds = must<HTMLDivElement>('#farm-beds')
+  const shopBeds = must<HTMLDivElement>('#shop-beds')
 
   const overlayEls: Record<OverlayId, HTMLElement> = {
     boot: must('#screen-boot'),
@@ -1340,6 +1364,7 @@ export function createUi(
         view.fertilizer || view.pesticide
           ? `On the row: ${view.fertilizer ? `fertilizer ×${view.fertilizer}` : ''}${view.fertilizer && view.pesticide ? ' · ' : ''}${view.pesticide ? `pesticide ×${view.pesticide}` : ''}. Lasts one wave.`
           : 'No fertilizer or pesticide on the row yet. One wave each.'
+      fillBeds(farmBeds, view.beds, (id) => handlers.buyBed(id))
 
       farmOffers.replaceChildren()
       if (view.offers.length === 0) {
@@ -1430,6 +1455,7 @@ export function createUi(
       shopReroll.textContent =
         view.freeRerolls > 0 ? 'Turn over · Free' : `Turn over · ${view.rerollPrice}`
       shopSlots.textContent = `${view.weapons.length} of ${view.weaponSlots} hands full.`
+      fillBeds(shopBeds, view.beds, (id) => handlers.buyBed(id))
 
       shopOffers.replaceChildren()
       for (const offer of view.offers) {

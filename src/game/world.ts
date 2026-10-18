@@ -1,6 +1,7 @@
 import { clamp, damp, Rng } from '../core/math.ts'
 import { CHAOS, getCameraZoom } from '../data/chaos.ts'
 import { FEEL } from '../feel.ts'
+import { cameraLimits, resetBeds, revealLook, zoomFloorForArena } from './beds.ts'
 import type {
   AudioApi,
   CharacterDef,
@@ -15,10 +16,11 @@ import type {
 import { createFarm } from './farm.ts'
 import { createPlayer } from './player.ts'
 
-export const ARENA_W = 1700
-export const ARENA_H = 1150
-export const ARENA_HALF_W = 850
-export const ARENA_HALF_H = 575
+/** Starting centre bed. Live bounds come from src/data/beds.ts. */
+export const ARENA_W = 1024
+export const ARENA_H = 768
+export const ARENA_HALF_W = 512
+export const ARENA_HALF_H = 384
 
 export interface SimCtx {
   render: RenderApi
@@ -35,12 +37,16 @@ export function createWorld(
   model: ModelDir = 'b',
 ): World {
   const player = createPlayer(character, model)
-  return {
+  const world = {
     time: 0,
     waveTime: 0,
     wave: wdef.index,
     waveDef: wdef,
     waveLeft: wdef.duration,
+    arenaMinX: -ARENA_HALF_W,
+    arenaMaxX: ARENA_HALF_W,
+    arenaMinY: -ARENA_HALF_H,
+    arenaMaxY: ARENA_HALF_H,
     arenaHalfW: ARENA_HALF_W,
     arenaHalfH: ARENA_HALF_H,
     player,
@@ -67,6 +73,8 @@ export function createWorld(
     paused: false,
     slowMo: 1,
   }
+  resetBeds(world)
+  return world
 }
 
 export function resetForWave(world: World, wdef: WaveDef): void {
@@ -89,18 +97,94 @@ export function syncViewport(world: World, canvas: HTMLCanvasElement): void {
   const h = canvas.clientHeight || canvas.height
   world.camera.w = Math.max(1, w)
   world.camera.h = Math.max(1, h)
-  world.camera.zoom = clamp(
+  let zoom = clamp(
     (world.camera.w / FEEL.camera.worldWidth) * getCameraZoom(),
     FEEL.camera.zoomMin,
     FEEL.camera.zoomMax,
   )
+  const floor = zoomFloorForArena(world, world.camera.w, world.camera.h)
+  if (zoom < floor) zoom = Math.min(floor, FEEL.camera.zoomMax)
+  world.camera.zoom = zoom
 }
 
 export function clampToArena(world: World, x: number, y: number, r: number): Vec {
   return {
-    x: clamp(x, -world.arenaHalfW + r, world.arenaHalfW - r),
-    y: clamp(y, -world.arenaHalfH + r, world.arenaHalfH - r),
+    x: clamp(x, world.arenaMinX + r, world.arenaMaxX - r),
+    y: clamp(y, world.arenaMinY + r, world.arenaMaxY - r),
   }
+}
+
+export interface ViewRect {
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
+}
+
+/** Visible world rect at the current zoom, grown by `pad` world px. */
+export function zoomedView(world: World, pad = 0): ViewRect {
+  const zoom = Math.max(0.05, world.camera.zoom || 1)
+  const hw = world.camera.w / (2 * zoom) + pad
+  const hh = world.camera.h / (2 * zoom) + pad
+  return {
+    minX: world.camera.x - hw,
+    maxX: world.camera.x + hw,
+    minY: world.camera.y - hh,
+    maxY: world.camera.y + hh,
+  }
+}
+
+export function inZoomedView(world: World, x: number, y: number, pad = 0): boolean {
+  const v = zoomedView(world, pad)
+  return x >= v.minX && x <= v.maxX && y >= v.minY && y <= v.maxY
+}
+
+/**
+ * A point inside the open beds and outside the zoomed view, so a spawn
+ * does not pop into a zoomed-out frame.
+ */
+export function spawnOutsideView(
+  world: World,
+  rng: { range(a: number, b: number): number },
+  minDist = 0,
+  margin = 28,
+): { x: number; y: number } {
+  const minX = world.arenaMinX + margin
+  const maxX = world.arenaMaxX - margin
+  const minY = world.arenaMinY + margin
+  const maxY = world.arenaMaxY - margin
+  if (maxX <= minX || maxY <= minY) {
+    return {
+      x: (world.arenaMinX + world.arenaMaxX) * 0.5,
+      y: (world.arenaMinY + world.arenaMaxY) * 0.5,
+    }
+  }
+  const view = zoomedView(world, 64)
+  const px = world.player.x
+  const py = world.player.y
+  for (let i = 0; i < 28; i++) {
+    const x = rng.range(minX, maxX)
+    const y = rng.range(minY, maxY)
+    if (x > view.minX && x < view.maxX && y > view.minY && y < view.maxY) continue
+    if (minDist > 0 && Math.hypot(x - px, y - py) < minDist) continue
+    return { x, y }
+  }
+  const corners = [
+    { x: minX, y: minY },
+    { x: maxX, y: minY },
+    { x: minX, y: maxY },
+    { x: maxX, y: maxY },
+  ]
+  let best = corners[0]!
+  let bestD = -1
+  for (const c of corners) {
+    const d = Math.hypot(c.x - world.camera.x, c.y - world.camera.y)
+    if (d > bestD) {
+      bestD = d
+      best = c
+    }
+  }
+  return best
 }
 
 /** Remember where everyone was so the next frame can blend into the new pose. */
@@ -159,17 +243,25 @@ export function updateCamera(world: World, dt: number): void {
   const p = world.player
   const look = CHAOS.read.lookAhead
   const lookMax = CHAOS.read.lookAheadMax
-  const tx = p.x + clamp(p.vx * look, -lookMax, lookMax)
-  const ty = p.y + clamp(p.vy * look, -lookMax, lookMax)
+  let tx = p.x + clamp(p.vx * look, -lookMax, lookMax)
+  let ty = p.y + clamp(p.vy * look, -lookMax, lookMax)
+  const lookAt = revealLook()
+  if (lookAt) {
+    tx = tx + (lookAt.x - tx) * lookAt.pull
+    ty = ty + (lookAt.y - ty) * lookAt.pull
+  }
   cam.x = damp(cam.x, tx, CHAOS.read.followRate, dt)
   cam.y = damp(cam.y, ty, CHAOS.read.followRate, dt)
   const zoom = cam.zoom || 1
   const halfW = cam.w / (2 * zoom)
   const halfH = cam.h / (2 * zoom)
-  const maxX = Math.max(0, world.arenaHalfW - halfW)
-  const maxY = Math.max(0, world.arenaHalfH - halfH)
-  cam.x = clamp(cam.x, -maxX, maxX)
-  cam.y = clamp(cam.y, -maxY, maxY)
+  const lim = cameraLimits(world)
+  const minCamX = lim.minX + halfW
+  const maxCamX = lim.maxX - halfW
+  const minCamY = lim.minY + halfH
+  const maxCamY = lim.maxY - halfH
+  cam.x = minCamX <= maxCamX ? clamp(cam.x, minCamX, maxCamX) : (lim.minX + lim.maxX) * 0.5
+  cam.y = minCamY <= maxCamY ? clamp(cam.y, minCamY, maxCamY) : (lim.minY + lim.maxY) * 0.5
   cam.shake = damp(cam.shake, 0, FEEL.shake.decay, dt)
   if (cam.shake < 0.05) {
     cam.shake = 0

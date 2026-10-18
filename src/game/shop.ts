@@ -22,6 +22,7 @@ import {
   weaponSlotCount,
 } from './player.ts'
 import type { SimCtx } from './world.ts'
+import { bedOffers } from './beds.ts'
 
 export interface ShopSession {
   offers: ShopOffer[]
@@ -317,6 +318,7 @@ export function buildShopView(world: World, session: ShopSession): ShopView {
     wave: world.wave,
     nextWave: world.wave + 1,
     materials: player.materials,
+    beds: bedOffers(player.materials),
     offers: session.offers,
     rerollPrice: currentRerollPrice(world, session),
     freeRerolls: freeRerollsLeft(world, session),

@@ -393,8 +393,8 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
 
   player.x += player.vx * dt
   player.y += player.vy * dt
-  player.x = clamp(player.x, -world.arenaHalfW + player.r, world.arenaHalfW - player.r)
-  player.y = clamp(player.y, -world.arenaHalfH + player.r, world.arenaHalfH - player.r)
+  player.x = clamp(player.x, world.arenaMinX + player.r, world.arenaMaxX - player.r)
+  player.y = clamp(player.y, world.arenaMinY + player.r, world.arenaMaxY - player.r)
 
   const spd = Math.hypot(player.vx, player.vy)
   anim.moving = spd > 18

@@ -751,6 +751,12 @@ export interface World {
   waveDef: WaveDef
   /** Seconds remaining in the wave. */
   waveLeft: number
+  /** Live walkable rect. Grows as beds open, so one side can extend alone. */
+  arenaMinX: number
+  arenaMaxX: number
+  arenaMinY: number
+  arenaMaxY: number
+  /** Max extent from the origin. Clamps use the rect above. */
   arenaHalfW: number
   arenaHalfH: number
   player: Player
@@ -831,10 +837,21 @@ export interface ShopOffer {
   affordable: boolean
 }
 
+export interface BedOffer {
+  id: string
+  label: string
+  cost: number
+  /** open = already yours, ready = can buy, gated = the inner bed is still shut. */
+  state: 'open' | 'ready' | 'gated'
+  affordable: boolean
+  hint: string
+}
+
 export interface ShopView {
   wave: number
   nextWave: number
   materials: number
+  beds: BedOffer[]
   offers: ShopOffer[]
   rerollPrice: number
   freeRerolls: number
@@ -867,6 +884,7 @@ export interface RunSummary {
 
 export interface ShopHandlers {
   buy(offerUid: number): void
+  buyBed(id: string): void
   toggleLock(offerUid: number): void
   reroll(): void
   sell(weaponUid: number): void
@@ -893,6 +911,7 @@ export interface FarmShopView {
   wave: number
   nextWave: number
   materials: number
+  beds: BedOffer[]
   offers: FarmOffer[]
   rerollPrice: number
   seeds: Record<CropId, number>
@@ -903,6 +922,7 @@ export interface FarmShopView {
 
 export interface FarmShopHandlers {
   buy(offerUid: number): void
+  buyBed(id: string): void
   toggleLock(offerUid: number): void
   reroll(): void
   next(): void
@@ -994,6 +1014,11 @@ export interface InputApi {
   sample(): Vec
   /** Returns true once per key press. */
   consume(code: string): boolean
+  /**
+   * Wheel notches since the last call, positive = zoom in.
+   * One mouse notch is about 1. Cleared on read.
+   */
+  consumeWheel(): number
   down(code: string): boolean
   readonly coarse: boolean
 }

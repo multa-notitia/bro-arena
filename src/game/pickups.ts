@@ -221,8 +221,8 @@ export function updatePickups(world: World, dt: number, ctx: SimCtx): void {
       p.vy = dampVel(p.vy, dt)
       p.x += p.vx * dt
       p.y += p.vy * dt
-      p.x = clamp(p.x, -world.arenaHalfW + 8, world.arenaHalfW - 8)
-      p.y = clamp(p.y, -world.arenaHalfH + 8, world.arenaHalfH - 8)
+      p.x = clamp(p.x, world.arenaMinX + 8, world.arenaMaxX - 8)
+      p.y = clamp(p.y, world.arenaMinY + 8, world.arenaMaxY - 8)
     }
     keep.push(p)
   }

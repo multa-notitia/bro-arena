@@ -133,6 +133,10 @@ export const SHEET_PRELOAD: string[] = [
   'props-garden-grow-b',
   'props-garden-grow-c',
   'props-arena',
+  'props-bed-soil',
+  'props-bed-edge',
+  'props-bed-locked',
+  'props-bed-unlock',
 ]
 
 const cache = new Map<string, LoadedSheet>()

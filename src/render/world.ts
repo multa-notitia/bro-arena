@@ -51,6 +51,8 @@ import { ambushGardenJobs, drawGardenJob } from '../game/garden.ts'
 import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { arenaActorProps, drawArenaGround, drawArenaProp, drawPaintedTree } from '../game/arenaProps.ts'
 import { drawPaddock } from './ground.ts'
+import { drawGardenBeds } from './beds.ts'
+import { plotBounds } from '../data/beds.ts'
 import { paperColor } from './paintLang.ts'
 import { drawMultiArm, multiArmSheet, potatoMultiArm } from './multiarm.ts'
 import { enemySpawnClip } from '../game/enemies.ts'
@@ -1281,12 +1283,16 @@ export function drawWorld(
 
   const hw = cssW / (2 * zoom) + Math.abs(shake) + 48
   const hh = cssH / (2 * zoom) + Math.abs(shake) + 48
-  const aw = world.arenaHalfW
-  const ah = world.arenaHalfH
+  const plot = plotBounds()
+  const aw = Math.max(-plot.minX, plot.maxX)
+  const ah = Math.max(-plot.minY, plot.maxY)
+  const onScreen = (x: number, y: number, pad = 120): boolean =>
+    x >= cam.x - hw - pad && x <= cam.x + hw + pad && y >= cam.y - hh - pad && y <= cam.y + hh + pad
   drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale))
+  drawGardenBeds(ctx)
   drawFarmRows(ctx, world.farm.plots, qScale >= 2, world.waveTime)
   drawFarmBeds(ctx, world.farm.plots, qScale >= 2)
-  drawArenaGround(ctx, dt)
+  drawArenaGround(ctx, world, dt)
   fx.drawFloor(ctx)
   drawChaosFloor(ctx)
   darkenGround(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
@@ -1301,6 +1307,7 @@ export function drawWorld(
   for (let i = 0; i < world.enemies.length; i++) {
     const e = world.enemies[i]
     if (!e) continue
+    if (!onScreen(e.x, e.y, 160)) continue
     const aimed = landingShadow(e)
     if (!aimed) continue
     const sheet = resolveEnemySheet(e.kind, e.form)
@@ -1311,27 +1318,27 @@ export function drawWorld(
   drawGasClouds(ctx, dt, world.player.x, world.player.y)
   for (let i = 0; i < world.enemies.length; i++) {
     const e = world.enemies[i]
-    if (e) drawFamilyGround(ctx, e, world.time)
+    if (e && onScreen(e.x, e.y, 180)) drawFamilyGround(ctx, e, world.time)
   }
 
   cmdN = 0
   for (let i = 0; i < world.trees.length; i++) {
     const t = world.trees[i]
-    if (t) pushCmd(t.y + 12, 2, 0, i)
+    if (t && onScreen(t.x, t.y, 160)) pushCmd(t.y + 12, 2, 0, i)
   }
   for (let i = 0; i < world.pickups.length; i++) {
     const p = world.pickups[i]
-    if (p) pushCmd(p.y, 1, 1, i)
+    if (p && onScreen(p.x, p.y)) pushCmd(p.y, 1, 1, i)
   }
   for (let i = 0; i < world.markers.length; i++) {
     const m = world.markers[i]
-    if (m) pushCmd(m.y, 0, 2, i)
+    if (m && onScreen(m.x, m.y)) pushCmd(m.y, 0, 2, i)
   }
   const heroY = world.player.y
   const crowdY = CHAOS.read.heroCrowdY
   for (let i = 0; i < world.enemies.length; i++) {
     const e = world.enemies[i]
-    if (!e) continue
+    if (!e || !onScreen(e.x, e.y, 180)) continue
     // In a close pack the potato paints on top, even if the foe's foot is a few px lower.
     const dy = e.y - heroY
     const sortY = Math.abs(dy) <= crowdY ? heroY - 0.5 + dy * 0.01 : e.y
@@ -1340,7 +1347,7 @@ export function drawWorld(
   pushCmd(heroY, 4, 4, 0)
   for (let i = 0; i < world.farm.plots.length; i++) {
     const plot = world.farm.plots[i]
-    if (plot?.crop) pushCmd(plot.y, 2, 5, i)
+    if (plot?.crop && onScreen(plot.x, plot.y, 80)) pushCmd(plot.y, 2, 5, i)
   }
   const ambush = ambushGardenJobs()
   for (let i = 0; i < ambush.length; i++) {
@@ -1350,7 +1357,7 @@ export function drawWorld(
   const decor = arenaActorProps()
   for (let i = 0; i < decor.length; i++) {
     const p = decor[i]
-    if (p) pushCmd(p.y, 1, 7, i)
+    if (p && onScreen(p.x, p.y, 140)) pushCmd(p.y, 1, 7, i)
   }
 
   const list = cmds.slice(0, cmdN)
@@ -1401,7 +1408,7 @@ export function drawWorld(
   const playerShots: Projectile[] = []
   for (let i = 0; i < world.projectiles.length; i++) {
     const p = world.projectiles[i]
-    if (!p) continue
+    if (!p || !onScreen(p.x, p.y, 80)) continue
     if (p.owner === 'enemy') enemyShots.push(p)
     else playerShots.push(p)
   }

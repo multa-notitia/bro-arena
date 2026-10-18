@@ -70,8 +70,10 @@ function nearestHoming(world: World, p: Projectile): { x: number; y: number } | 
 }
 
 export function updateProjectiles(world: World, dt: number, ctx: SimCtx): void {
-  const hw = world.arenaHalfW
-  const hh = world.arenaHalfH
+  const minX = world.arenaMinX
+  const maxX = world.arenaMaxX
+  const minY = world.arenaMinY
+  const maxY = world.arenaMaxY
   const keep: Projectile[] = []
 
   for (const p of world.projectiles) {
@@ -100,19 +102,19 @@ export function updateProjectiles(world: World, dt: number, ctx: SimCtx): void {
     if (p.trail.length > maxTrail) p.trail.splice(0, p.trail.length - maxTrail)
 
     let dead = false
-    if (p.x < -hw || p.x > hw) {
+    if (p.x < minX || p.x > maxX) {
       if (p.bounce > 0) {
         p.vx *= -1
         p.bounce -= 1
-        p.x = clamp(p.x, -hw + 1, hw - 1)
+        p.x = clamp(p.x, minX + 1, maxX - 1)
         p.angle = Math.atan2(p.vy, p.vx)
       } else dead = true
     }
-    if (p.y < -hh || p.y > hh) {
+    if (p.y < minY || p.y > maxY) {
       if (p.bounce > 0) {
         p.vy *= -1
         p.bounce -= 1
-        p.y = clamp(p.y, -hh + 1, hh - 1)
+        p.y = clamp(p.y, minY + 1, maxY - 1)
         p.angle = Math.atan2(p.vy, p.vx)
       } else dead = true
     }

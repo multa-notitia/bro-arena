@@ -7,8 +7,9 @@ import { beginDeath, maxEnemies, resetEnemyRuntime, spawnEnemy } from './enemies
 import { farmSpawnBatch, farmSpawnInterval, plantedPlots, tickFarm } from './farm.ts'
 import { magnetAll, payoutHarvest } from './pickups.ts'
 import { resetWeaponRuntime } from './weapons.ts'
-import { resetForWave } from './world.ts'
+import { resetForWave, spawnOutsideView } from './world.ts'
 import type { SimCtx } from './world.ts'
+import { hasOpenWing } from './beds.ts'
 import { chaosBatch, chaosInterval, onHorde, resetChaosDirector, tickChaosDirector } from './chaosDirector.ts'
 import { resetEmerge } from './emerge.ts'
 import { resetFamilies } from './families.ts'
@@ -52,24 +53,7 @@ function makeDirector(world: World): Director {
 }
 
 export function randomAway(world: World, ctx: SimCtx, minDist: number, margin = 48): { x: number; y: number } {
-  const hw = world.arenaHalfW - margin
-  const hh = world.arenaHalfH - margin
-  const px = world.player.x
-  const py = world.player.y
-  for (let i = 0; i < 28; i++) {
-    const x = ctx.rng.range(-hw, hw)
-    const y = ctx.rng.range(-hh, hh)
-    if (dist(x, y, px, py) >= minDist) return { x, y }
-  }
-  const ang = Math.atan2(py, px) + Math.PI
-  return {
-    x: clampRange(Math.cos(ang) * minDist + px, -hw, hw),
-    y: clampRange(Math.sin(ang) * minDist + py, -hh, hh),
-  }
-}
-
-function clampRange(v: number, a: number, b: number): number {
-  return Math.max(a, Math.min(b, v))
+  return spawnOutsideView(world, ctx.rng, minDist, margin)
 }
 
 const MUD_CHANCE = 0.28
@@ -96,6 +80,21 @@ function pickPool(world: World, ctx: SimCtx): EnemyKind {
 
 function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LIFE): void {
   if (world.enemies.length + world.markers.length + gardenPending() >= maxEnemies(world.wave)) return
+  if (hasOpenWing() && ctx.rng.chance(0.42)) {
+    const pos = spawnOutsideView(world, ctx.rng, 90, 36)
+    const kind = rollMud(pickPool(world, ctx), ctx)
+    const marker: SpawnMarker = {
+      kind,
+      x: pos.x,
+      y: pos.y,
+      t: 0,
+      life: life === MARKER_LIFE ? telegraphLife() : life,
+      style: 'crack',
+    }
+    world.markers.push(marker)
+    if (elite) eliteMarkers.add(marker)
+    return
+  }
   const sown = plantedPlots(world.farm)
   const plot = sown.length > 0 ? ctx.rng.pick(sown) : ctx.rng.pick(world.farm.plots)
   const crop = plot.crop
@@ -137,21 +136,21 @@ function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LI
 function placeTrees(world: World, ctx: SimCtx): void {
   const n = world.waveDef.trees
   for (let i = 0; i < n; i++) {
-    let pos = randomAway(world, ctx, 110, 420)
-    pos = {
-      x: clampRange(pos.x, -480, 480),
-      y: clampRange(pos.y, -340, 340),
-    }
+    const inset = 72
+    const spanX = Math.max(40, world.arenaMaxX - world.arenaMinX - inset * 2)
+    const spanY = Math.max(40, world.arenaMaxY - world.arenaMinY - inset * 2)
+    const sample = (): { x: number; y: number } => ({
+      x: ctx.rng.range(world.arenaMinX + inset, world.arenaMinX + inset + spanX),
+      y: ctx.rng.range(world.arenaMinY + inset, world.arenaMinY + inset + spanY),
+    })
+    let pos = sample()
     let guard = 0
     const blocked = (): boolean =>
       world.trees.some((t) => dist(t.x, t.y, pos.x, pos.y) < 90) ||
-      world.farm.plots.some((p) => dist(p.x, p.y, pos.x, pos.y) < 78)
+      world.farm.plots.some((p) => dist(p.x, p.y, pos.x, pos.y) < 78) ||
+      dist(pos.x, pos.y, world.player.x, world.player.y) < 110
     while (guard < 12 && blocked()) {
-      pos = randomAway(world, ctx, 90, 420)
-      pos = {
-        x: clampRange(pos.x, -480, 480),
-        y: clampRange(pos.y, -340, 340),
-      }
+      pos = sample()
       guard += 1
     }
     if (world.farm.plots.some((p) => dist(p.x, p.y, pos.x, pos.y) < 70)) continue

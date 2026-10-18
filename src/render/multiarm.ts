@@ -105,6 +105,9 @@ const HERO_QUERY: Record<string, string> = {
   ranger: 'ranger',
   chili: 'mage',
   mage: 'mage',
+  onion: 'loud',
+  loud: 'loud',
+  bull: 'bull',
 }
 const SPROUT_STAGGER = 320
 

@@ -4,6 +4,7 @@ export function createInput(stick: HTMLElement, knob: HTMLElement): InputApi {
   const keysDown = new Set<string>()
   const pressed = new Set<string>()
   const joy = { x: 0, y: 0 }
+  let wheelPx = 0
   let pointerId: number | null = null
   let coarse = window.matchMedia('(pointer: coarse)').matches
 
@@ -69,6 +70,15 @@ export function createInput(stick: HTMLElement, knob: HTMLElement): InputApi {
   })
 
   window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && (e.code === 'Equal' || e.code === 'Minus' || e.code === 'NumpadAdd' || e.code === 'NumpadSubtract')) {
+      return
+    }
+    const typing =
+      e.target instanceof HTMLElement &&
+      (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)
+    if (typing && (e.code === 'Equal' || e.code === 'Minus' || e.code === 'NumpadAdd' || e.code === 'NumpadSubtract')) {
+      return
+    }
     if (e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
       e.preventDefault()
     } else if (e.code === 'Space') {
@@ -90,8 +100,21 @@ export function createInput(stick: HTMLElement, knob: HTMLElement): InputApi {
   window.addEventListener('blur', () => {
     keysDown.clear()
     pressed.clear()
+    wheelPx = 0
     resetJoy()
   })
+
+  window.addEventListener(
+    'wheel',
+    (e) => {
+      const t = e.target
+      if (t instanceof Element && t.closest('.overlay:not([hidden])')) return
+      e.preventDefault()
+      const line = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 80 : 1
+      wheelPx += e.deltaY * line
+    },
+    { passive: false },
+  )
 
   function sample(): Vec {
     let x = joy.x
@@ -114,6 +137,11 @@ export function createInput(stick: HTMLElement, knob: HTMLElement): InputApi {
       if (!pressed.has(code)) return false
       pressed.delete(code)
       return true
+    },
+    consumeWheel(): number {
+      const steps = Math.max(-3, Math.min(3, -wheelPx / 100))
+      wheelPx = 0
+      return steps
     },
     down(code: string): boolean {
       return keysDown.has(code)

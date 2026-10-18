@@ -9,7 +9,7 @@ import {
   seekActorClip,
   type LoadedSheet,
 } from '../render/sheets.ts'
-import type { SimCtx } from './world.ts'
+import { zoomedView, type SimCtx } from './world.ts'
 
 export const ARENA_SHEET = 'props-arena'
 
@@ -93,12 +93,14 @@ function tryPlace(
   wobble = false,
   inset = 90,
 ): ArenaProp | null {
-  const aw = Math.min(world.arenaHalfW - inset, 480)
-  const ah = Math.min(world.arenaHalfH - inset, 340)
-  if (aw < 40 || ah < 40) return null
+  const minX = world.arenaMinX + inset
+  const maxX = world.arenaMaxX - inset
+  const minY = world.arenaMinY + inset
+  const maxY = world.arenaMaxY - inset
+  if (maxX - minX < 40 || maxY - minY < 40) return null
   for (let n = 0; n < 10; n++) {
-    const x = ctx.rng.range(-aw, aw)
-    const y = ctx.rng.range(-ah, ah)
+    const x = ctx.rng.range(minX, maxX)
+    const y = ctx.rng.range(minY, maxY)
     if (blocked(world, x, y, minPlot, extra)) continue
     const prop: ArenaProp = { uid: nextUid++, clip, x, y, halfW, height, wobble }
     extra.push(prop)
@@ -110,34 +112,41 @@ function tryPlace(
 }
 
 function edgeSpot(world: World, ctx: SimCtx): { x: number; y: number } {
-  const aw = world.arenaHalfW
-  const ah = world.arenaHalfH
+  const minX = world.arenaMinX
+  const maxX = world.arenaMaxX
+  const minY = world.arenaMinY
+  const maxY = world.arenaMaxY
   const inset = ctx.rng.range(22, 58)
   const side = ctx.rng.int(0, 3)
-  if (side === 0) return { x: ctx.rng.range(-aw + 40, aw - 40), y: -ah + inset }
-  if (side === 1) return { x: ctx.rng.range(-aw + 40, aw - 40), y: ah - inset }
-  if (side === 2) return { x: -aw + inset, y: ctx.rng.range(-ah + 40, ah - 40) }
-  return { x: aw - inset, y: ctx.rng.range(-ah + 40, ah - 40) }
+  if (side === 0) return { x: ctx.rng.range(minX + 40, maxX - 40), y: minY + inset }
+  if (side === 1) return { x: ctx.rng.range(minX + 40, maxX - 40), y: maxY - inset }
+  if (side === 2) return { x: minX + inset, y: ctx.rng.range(minY + 40, maxY - 40) }
+  return { x: maxX - inset, y: ctx.rng.range(minY + 40, maxY - 40) }
 }
 
-function placeFence(world: World): void {
-  const aw = world.arenaHalfW
-  const ah = world.arenaHalfH
-  const step = 36
-  for (let x = -aw + step * 0.5; x < aw; x += step) {
-    actors.push({ uid: nextUid++, clip: 'fence_segment', x, y: -ah, halfW: 20, height: 31, wobble: false })
-    actors.push({ uid: nextUid++, clip: 'fence_segment', x, y: ah, halfW: 20, height: 31, wobble: false })
-  }
-  for (let y = -ah + 28; y < ah - 16; y += 36) {
-    actors.push({ uid: nextUid++, clip: 'fence_post', x: -aw, y, halfW: 6, height: 32, wobble: false })
-    actors.push({ uid: nextUid++, clip: 'fence_post', x: aw, y, halfW: 6, height: 32, wobble: false })
+export function dressBed(
+  world: World,
+  ctx: SimCtx,
+  rect: { x: number; y: number; w: number; h: number },
+): void {
+  const inset = 48
+  const minX = rect.x + inset
+  const maxX = rect.x + rect.w - inset
+  const minY = rect.y + inset
+  const maxY = rect.y + rect.h - inset
+  if (maxX - minX < 30 || maxY - minY < 30) return
+  for (let i = 0; i < 4; i++) {
+    const clip = TUFTS[i % TUFTS.length] ?? 'tuft_grass'
+    const x = ctx.rng.range(minX, maxX)
+    const y = ctx.rng.range(minY, maxY)
+    if (blocked(world, x, y, 50, actors)) continue
+    actors.push({ uid: nextUid++, clip, x, y, halfW: 14, height: 22, wobble: true })
   }
 }
 
 export function placeArenaDecor(world: World, ctx: SimCtx): void {
   resetArenaProps()
-  placeFence(world)
-  const area = (world.arenaHalfW * 2 * world.arenaHalfH * 2) / 1_000_000
+  const area = ((world.arenaMaxX - world.arenaMinX) * (world.arenaMaxY - world.arenaMinY)) / 1_000_000
   const tuftN = Math.round(8 * area)
   const rockN = Math.round(3 * area)
   const puddleN = Math.max(1, Math.round(1.5 * area))
@@ -217,10 +226,12 @@ function paintClip(
   ctx.restore()
 }
 
-export function drawArenaGround(ctx: CanvasRenderingContext2D, dt: number): void {
+export function drawArenaGround(ctx: CanvasRenderingContext2D, world: World, dt: number): void {
   const s = sheet()
   if (!s) return
+  const view = zoomedView(world, 80)
   for (const p of ground) {
+    if (p.x < view.minX || p.x > view.maxX || p.y < view.minY || p.y > view.maxY) continue
     const shine = `${p.clip}_shine`
     const clip = s.manifest.clips[shine] ? shine : p.clip
     if (!s.manifest.clips[clip]) continue

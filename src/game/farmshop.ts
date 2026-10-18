@@ -5,6 +5,7 @@ import { CROPS, cropUnlockedAt } from '../data/crops.ts'
 import { rerollPrice } from '../data/economy.ts'
 import { addSeed, unlockCrop } from './farm.ts'
 import type { SimCtx } from './world.ts'
+import { bedOffers } from './beds.ts'
 
 export interface FarmShopSession {
   offers: FarmOffer[]
@@ -205,6 +206,7 @@ export function buildFarmShopView(world: World, session: FarmShopSession): FarmS
     wave: world.wave,
     nextWave: world.wave + 1,
     materials: world.player.materials,
+    beds: bedOffers(world.player.materials),
     offers: session.offers,
     rerollPrice: currentFarmRerollPrice(world, session),
     seeds: { ...world.farm.seeds },

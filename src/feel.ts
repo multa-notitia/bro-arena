@@ -17,7 +17,12 @@ export const FEEL = {
      * 12% of a 720p frame. Enemies share this zoom. zoomMin keeps a
      * narrower window from shrinking the hero; zoomMax leaves 1280 unclamped.
      */
-    zoomMin: 2.2,
+    /**
+     * Floor on the world-pixel zoom. Low enough that a 0.7× options zoom
+     * still zooms out on a ~1000px window (1008/441×0.7 ≈ 1.6). The arena
+     * fit in syncViewport raises this when the view would leave the beds.
+     */
+    zoomMin: 1.05,
     /** High enough for the 1.5× Options zoom on a 1280 window. */
     zoomMax: 5.2,
   },

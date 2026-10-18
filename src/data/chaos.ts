@@ -139,11 +139,11 @@ export const CHAOS = {
     weaponMelee: 1.0,
     weaponRanged: 1.0,
     /**
-     * Camera multiplier on the authored worldWidth fit. 1.25 is the Brotato-like
-     * default; Pause → Options exposes 1.0–1.5.
+     * Camera multiplier on the authored worldWidth fit. 1.25 is the default.
+     * Pause → Options, the wheel, and +/- cover 0.7 (out) to 1.5 (in).
      */
     zoom: 1.25,
-    zoomMin: 1,
+    zoomMin: 0.7,
     zoomMax: 1.5,
     followRate: 11,
     /** Seconds of velocity lookahead, clamped in world px. */
@@ -384,7 +384,8 @@ const FX_URL: Record<FxFlag, readonly string[]> = {
 
 let chaosOverride: boolean | null = null
 let fxState: Record<FxFlag, boolean> = { ...FX_DEFAULTS }
-let zoomMul: number = CHAOS.read.zoom
+let zoomTarget: number = CHAOS.read.zoom
+let zoomNow: number = CHAOS.read.zoom
 
 function parseFlag(raw: string | null): boolean | undefined {
   if (raw === null) return undefined
@@ -447,7 +448,7 @@ function readZoomStored(): number | null {
 function writeZoomStored(): void {
   try {
     if (typeof localStorage === 'undefined') return
-    localStorage.setItem(STORAGE_ZOOM, String(zoomMul))
+    localStorage.setItem(STORAGE_ZOOM, String(zoomTarget))
   } catch {
     /* private mode */
   }
@@ -456,7 +457,7 @@ function writeZoomStored(): void {
 /** Load Pause options from localStorage, then overlay URL params (`circles=0`). */
 export function applyFxFromEnvironment(): void {
   fxState = { ...FX_DEFAULTS, ...readFxStored() }
-  zoomMul = readZoomStored() ?? CHAOS.read.zoom
+  snapCameraZoom(readZoomStored() ?? CHAOS.read.zoom)
   if (typeof location === 'undefined') return
   const q = new URLSearchParams(location.search)
   for (const flag of Object.keys(FX_URL) as FxFlag[]) {
@@ -471,17 +472,39 @@ export function applyFxFromEnvironment(): void {
   const zoomRaw = q.get('zoom')
   if (zoomRaw !== null) {
     const n = Number(zoomRaw)
-    if (Number.isFinite(n)) zoomMul = clamp(n, CHAOS.read.zoomMin, CHAOS.read.zoomMax)
+    if (Number.isFinite(n)) snapCameraZoom(n)
   }
 }
 
+function snapCameraZoom(value: number): void {
+  zoomTarget = clamp(value, CHAOS.read.zoomMin, CHAOS.read.zoomMax)
+  zoomNow = zoomTarget
+}
+
+/** Tweened multiplier used by the world camera. */
 export function getCameraZoom(): number {
-  return zoomMul
+  return zoomNow
+}
+
+/** The value the slider and the wheel are aiming at. */
+export function getCameraZoomTarget(): number {
+  return zoomTarget
 }
 
 export function setCameraZoom(value: number): void {
-  zoomMul = clamp(value, CHAOS.read.zoomMin, CHAOS.read.zoomMax)
+  zoomTarget = clamp(value, CHAOS.read.zoomMin, CHAOS.read.zoomMax)
   writeZoomStored()
+}
+
+export function nudgeCameraZoom(delta: number): void {
+  setCameraZoom(zoomTarget + delta)
+}
+
+/** Ease the live zoom toward the target. Call once per frame. */
+export function tickCameraZoom(dt: number): void {
+  const k = 1 - Math.exp(-12 * Math.max(0, dt))
+  zoomNow += (zoomTarget - zoomNow) * k
+  if (Math.abs(zoomNow - zoomTarget) < 0.0008) zoomNow = zoomTarget
 }
 
 export function fxOn(flag: FxFlag): boolean {

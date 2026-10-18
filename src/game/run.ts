@@ -45,7 +45,9 @@ import { updateWeapons } from './weapons.ts'
 import { beginWave, settleWave, updateDirector } from './waves.ts'
 import { clearPlots, plantView, selectCrop, syncFarmUnlocks, togglePlot } from './farm.ts'
 import { captureRenderPoses, createWorld, pinRenderPoses, syncViewport, updateCamera, updateTrees, type SimCtx } from './world.ts'
-import { getCameraZoom, getFxState, setCameraZoom, setFxFlag } from '../data/chaos.ts'
+import { bedRevealActive, tickBeds, tryBuyBed } from './beds.ts'
+import { dressBed } from './arenaProps.ts'
+import { getCameraZoomTarget, getFxState, nudgeCameraZoom, setCameraZoom, setFxFlag, tickCameraZoom } from '../data/chaos.ts'
 import { consumeHitStop, getReducedJuice, resetFeel, setReducedJuice } from '../feel.ts'
 import { applyChaosDemo } from './chaosDemo.ts'
 import { chaosDemoRequested, resetChaosDirector } from './chaosDirector.ts'
@@ -91,6 +93,8 @@ export class Run {
   private plantFirst = true
   /** Leftover time since the last 1/60 sim step. Drawing blends across it. */
   private simAcc = 0
+  /** Shop phase hidden while a bed reveal plays on the garden. */
+  private bedCover: RunPhase | null = null
 
   constructor(deps: RunDeps) {
     this.deps = deps
@@ -149,6 +153,7 @@ export class Run {
     }
 
     this.handleGlobalInput()
+    this.applyZoomInput()
 
     if (this._phase === 'boot') {
       this.bootT += dt
@@ -160,7 +165,10 @@ export class Run {
 
     const world = this.world
     if (world) {
+      tickCameraZoom(dt)
+      const revealing = tickBeds(world, dt)
       syncViewport(world, this.deps.canvas)
+      this.syncBedCover(revealing)
       if (this._phase === 'wave' && !world.paused && !this.transitioning) {
         const step = 1 / 60
         this.simAcc += dt
@@ -172,10 +180,13 @@ export class Run {
         }
         if (this.simAcc > step) this.simAcc = step
         world.renderAlpha = clamp(this.simAcc / step, 0, 1)
-      } else if (this._phase === 'plant' || this._phase === 'farmshop') {
+      } else if ((this._phase === 'plant' || this._phase === 'farmshop') && !revealing) {
         for (const plot of world.farm.plots) plot.sway += dt
         world.camera.x = damp(world.camera.x, 0, 5, dt)
         world.camera.y = damp(world.camera.y, 0, 5, dt)
+        pinRenderPoses(world)
+      } else if (revealing) {
+        updateCamera(world, dt)
         pinRenderPoses(world)
       } else {
         pinRenderPoses(world)
@@ -194,6 +205,45 @@ export class Run {
       ui: this.deps.ui,
       rng: this.rng,
     }
+  }
+
+  private applyZoomInput(): void {
+    const { input } = this.deps
+    const zoomIn = input.consume('Equal') || input.consume('NumpadAdd')
+    const zoomOut = input.consume('Minus') || input.consume('NumpadSubtract')
+    const wheel = input.consumeWheel()
+    const live = this._phase === 'wave' || this._phase === 'paused' || bedRevealActive()
+    if (!live) return
+    let steps = wheel
+    if (zoomIn) steps += 1
+    if (zoomOut) steps -= 1
+    if (steps !== 0) nudgeCameraZoom(steps * 0.05)
+  }
+
+  private syncBedCover(revealing: boolean): void {
+    if (revealing) {
+      if (this.bedCover) return
+      if (this._phase !== 'shop' && this._phase !== 'farmshop') return
+      this.bedCover = this._phase
+      this.deps.ui.showScreen(null)
+      return
+    }
+    if (!this.bedCover) return
+    const phase = this.bedCover
+    this.bedCover = null
+    if (this._phase !== phase) return
+    this.deps.ui.showScreen(phase)
+    if (phase === 'shop') this.renderShop()
+    else if (phase === 'farmshop') this.renderFarmShop()
+  }
+
+  private buyBed(id: string): void {
+    if (!this.world) return
+    const bed = tryBuyBed(this.world, id)
+    if (!bed) return
+    dressBed(this.world, this.sim(), bed)
+    this.deps.audio.play('uiClick')
+    this.deps.ui.banner(bed.label, 'The hedge opens.', 1500)
   }
 
   private handleGlobalInput(): void {
@@ -392,6 +442,10 @@ export class Run {
         buyFarmOffer(world, this.sim(), this.farmShop, offerUid)
         this.renderFarmShop()
       },
+      buyBed: (id) => {
+        this.buyBed(id)
+        this.renderFarmShop()
+      },
       toggleLock: (offerUid) => {
         toggleFarmLock(this.sim(), this.farmShop, offerUid)
         this.renderFarmShop()
@@ -552,6 +606,10 @@ export class Run {
         if (buyOffer(world, this.sim(), this.shop, offerUid)) this.renderShop()
         else this.renderShop()
       },
+      buyBed: (id) => {
+        this.buyBed(id)
+        this.renderShop()
+      },
       toggleLock: (offerUid) => {
         toggleLock(this.sim(), this.shop, offerUid)
         this.renderShop()
@@ -612,7 +670,7 @@ export class Run {
       setReducedJuice: (v: boolean) => this.changeReducedJuice(v),
       fx: getFxState(),
       setFx: (flag, value) => setFxFlag(flag, value),
-      zoom: getCameraZoom(),
+      zoom: getCameraZoomTarget(),
       setZoom: (value) => setCameraZoom(value),
     })
   }

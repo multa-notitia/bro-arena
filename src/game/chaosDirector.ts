@@ -1,10 +1,10 @@
-import { clamp, dist, lerp } from '../core/math.ts'
+import { clamp, lerp } from '../core/math.ts'
 import type { EnemyKind, SpawnMarker, World } from '../core/types.ts'
 import { CHAOS, chaosDirectorOn, maxEnemies, telegraphLife } from '../data/chaos.ts'
 import { plantedPlots } from './farm.ts'
 import { beginPlantBurst, gardenPending } from './garden.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
-import type { SimCtx } from './world.ts'
+import { clampToArena, inZoomedView, spawnOutsideView, zoomedView, type SimCtx } from './world.ts'
 
 export type TelegraphStyle = 'crack' | 'ring' | 'patch'
 
@@ -49,20 +49,7 @@ function room(world: World): boolean {
 }
 
 function randomAway(world: World, ctx: SimCtx, minDist: number, margin = 48): { x: number; y: number } {
-  const hw = world.arenaHalfW - margin
-  const hh = world.arenaHalfH - margin
-  const px = world.player.x
-  const py = world.player.y
-  for (let i = 0; i < 20; i++) {
-    const x = ctx.rng.range(-hw, hw)
-    const y = ctx.rng.range(-hh, hh)
-    if (dist(x, y, px, py) >= minDist) return { x, y }
-  }
-  const ang = Math.atan2(py, px) + Math.PI
-  return {
-    x: clamp(Math.cos(ang) * minDist + px, -hw, hw),
-    y: clamp(Math.sin(ang) * minDist + py, -hh, hh),
-  }
+  return spawnOutsideView(world, ctx.rng, minDist, margin)
 }
 
 function pickKind(world: World, ctx: SimCtx, fallback: EnemyKind): EnemyKind {
@@ -112,15 +99,25 @@ function mixedPack(world: World, ctx: SimCtx): void {
 
 function ambushRing(world: World, ctx: SimCtx): void {
   const n = ctx.rng.int(CHAOS.director.ringCount[0], CHAOS.director.ringCount[1])
-  const r = CHAOS.director.ringRadius
+  const view = zoomedView(world, 0)
+  const r = Math.max(CHAOS.director.ringRadius, Math.hypot(view.maxX - view.minX, view.maxY - view.minY) * 0.5 + 56)
   const kindA = pickKind(world, ctx, 'blob-light')
   const kindB = pickKind(world, ctx, 'blob-mud')
   ctx.ui.banner('Ambush', 'They came up in a ring.', 1400)
   ctx.audio.play('mudRise')
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2 + ctx.rng.range(-0.08, 0.08)
-    const x = world.player.x + Math.cos(a) * r
-    const y = world.player.y + Math.sin(a) * r * 0.78
+    let x = world.player.x + Math.cos(a) * r
+    let y = world.player.y + Math.sin(a) * r * 0.78
+    const c = clampToArena(world, x, y, 18)
+    if (inZoomedView(world, c.x, c.y, 36)) {
+      const alt = spawnOutsideView(world, ctx.rng, 80, 24)
+      x = alt.x
+      y = alt.y
+    } else {
+      x = c.x
+      y = c.y
+    }
     queueCrack(world, i % 2 === 0 ? kindA : kindB, x, y, { style: 'ring', life: 0.55 })
   }
 }
