@@ -137,13 +137,21 @@ function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LI
 function placeTrees(world: World, ctx: SimCtx): void {
   const n = world.waveDef.trees
   for (let i = 0; i < n; i++) {
-    let pos = randomAway(world, ctx, 180, 80)
+    let pos = randomAway(world, ctx, 110, 420)
+    pos = {
+      x: clampRange(pos.x, -480, 480),
+      y: clampRange(pos.y, -340, 340),
+    }
     let guard = 0
     const blocked = (): boolean =>
       world.trees.some((t) => dist(t.x, t.y, pos.x, pos.y) < 90) ||
       world.farm.plots.some((p) => dist(p.x, p.y, pos.x, pos.y) < 78)
     while (guard < 12 && blocked()) {
-      pos = randomAway(world, ctx, 180, 80)
+      pos = randomAway(world, ctx, 90, 420)
+      pos = {
+        x: clampRange(pos.x, -480, 480),
+        y: clampRange(pos.y, -340, 340),
+      }
       guard += 1
     }
     if (world.farm.plots.some((p) => dist(p.x, p.y, pos.x, pos.y) < 70)) continue

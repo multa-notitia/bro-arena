@@ -93,8 +93,8 @@ function tryPlace(
   wobble = false,
   inset = 90,
 ): ArenaProp | null {
-  const aw = world.arenaHalfW - inset
-  const ah = world.arenaHalfH - inset
+  const aw = Math.min(world.arenaHalfW - inset, 480)
+  const ah = Math.min(world.arenaHalfH - inset, 340)
   if (aw < 40 || ah < 40) return null
   for (let n = 0; n < 10; n++) {
     const x = ctx.rng.range(-aw, aw)
