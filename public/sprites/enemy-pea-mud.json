@@ -120,20 +120,20 @@
    "loop": false,
    "frames": [
     {
-     "i": 77,
+     "i": 50,
      "ms": 80,
      "event": "attack_windup"
     },
     {
-     "i": 78,
+     "i": 51,
      "ms": 80
     },
     {
-     "i": 79,
+     "i": 52,
      "ms": 80
     },
     {
-     "i": 80,
+     "i": 53,
      "ms": 60,
      "events": [
       "release",
@@ -142,15 +142,15 @@
      ]
     },
     {
-     "i": 81,
+     "i": 54,
      "ms": 70
     },
     {
-     "i": 82,
+     "i": 55,
      "ms": 70
     },
     {
-     "i": 83,
+     "i": 56,
      "ms": 70,
      "event": "attack_done"
     }
@@ -160,56 +160,56 @@
    "loop": false,
    "frames": [
     {
-     "i": 84,
+     "i": 57,
      "ms": 60
     },
     {
-     "i": 85,
+     "i": 58,
      "ms": 70
     },
     {
-     "i": 32,
+     "i": 59,
      "ms": 38,
      "event": "spawnFx"
     },
     {
-     "i": 33,
+     "i": 60,
      "ms": 38
     },
     {
-     "i": 34,
+     "i": 61,
      "ms": 38
     },
     {
-     "i": 35,
+     "i": 62,
      "ms": 38
     },
     {
-     "i": 36,
+     "i": 63,
      "ms": 38
     },
     {
-     "i": 37,
+     "i": 64,
      "ms": 38
     },
     {
-     "i": 38,
+     "i": 65,
      "ms": 38
     },
     {
-     "i": 39,
+     "i": 66,
      "ms": 38
     },
     {
-     "i": 40,
+     "i": 67,
      "ms": 38
     },
     {
-     "i": 41,
+     "i": 68,
      "ms": 38
     },
     {
-     "i": 42,
+     "i": 72,
      "ms": 950
     }
    ]
@@ -242,31 +242,31 @@
      "ox": -1.6
     },
     {
-     "i": 43,
+     "i": 32,
      "ms": 70,
      "ox": 1.4
     },
     {
-     "i": 44,
+     "i": 33,
      "ms": 70,
      "ox": -1.4
     },
     {
-     "i": 45,
+     "i": 34,
      "ms": 70,
      "ox": 1.0
     },
     {
-     "i": 46,
+     "i": 35,
      "ms": 70,
      "ox": -0.8
     },
     {
-     "i": 47,
+     "i": 36,
      "ms": 80
     },
     {
-     "i": 48,
+     "i": 37,
      "ms": 70,
      "event": "scream_done"
     }
@@ -276,32 +276,32 @@
    "loop": false,
    "frames": [
     {
-     "i": 86,
+     "i": 73,
      "ms": 45
     },
     {
-     "i": 55,
+     "i": 74,
      "ms": 55,
      "event": "spawnFx"
     },
     {
-     "i": 56,
+     "i": 75,
      "ms": 60
     },
     {
-     "i": 57,
+     "i": 76,
      "ms": 65
     },
     {
-     "i": 58,
+     "i": 77,
      "ms": 70
     },
     {
-     "i": 59,
+     "i": 78,
      "ms": 75
     },
     {
-     "i": 60,
+     "i": 79,
      "ms": 950
     }
    ]
@@ -310,19 +310,19 @@
    "loop": false,
    "frames": [
     {
-     "i": 87,
+     "i": 80,
      "ms": 40
     },
     {
-     "i": 62,
+     "i": 81,
      "ms": 45
     },
     {
-     "i": 63,
+     "i": 82,
      "ms": 45
     },
     {
-     "i": 64,
+     "i": 83,
      "ms": 65,
      "events": [
       "spawnFx",
@@ -330,19 +330,19 @@
      ]
     },
     {
-     "i": 65,
+     "i": 84,
      "ms": 75
     },
     {
-     "i": 66,
+     "i": 85,
      "ms": 300
     },
     {
-     "i": 67,
+     "i": 86,
      "ms": 110
     },
     {
-     "i": 68,
+     "i": 87,
      "ms": 110
     }
    ]
@@ -402,16 +402,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 49,
+     "i": 38,
      "ms": 150,
      "event": "leap_windup"
     },
     {
-     "i": 50,
+     "i": 39,
      "ms": 100
     },
     {
-     "i": 51,
+     "i": 40,
      "ms": 60,
      "events": [
       "takeoff",
@@ -419,27 +419,27 @@
      ]
     },
     {
-     "i": 52,
+     "i": 41,
      "ms": 70
     },
     {
-     "i": 53,
+     "i": 42,
      "ms": 80
     },
     {
-     "i": 54,
+     "i": 43,
      "ms": 80
     },
     {
-     "i": 61,
+     "i": 44,
      "ms": 70
     },
     {
-     "i": 72,
+     "i": 45,
      "ms": 60
     },
     {
-     "i": 73,
+     "i": 46,
      "ms": 80,
      "events": [
       "leap_land",
@@ -447,15 +447,15 @@
      ]
     },
     {
-     "i": 74,
+     "i": 47,
      "ms": 70
     },
     {
-     "i": 75,
+     "i": 48,
      "ms": 60
     },
     {
-     "i": 76,
+     "i": 49,
      "ms": 60,
      "event": "leap_done"
     }
@@ -512,7 +512,7 @@
   }
  },
  "meta": {
-  "title": "Mud pea (scary): leaps from a thorn bush, leap (takeoff/land), HARD-snap scream, slime-pea spit; nfvar layers | side view v1",
+  "title": "Mud pea (scary): leaps from a thorn bush, leap (takeoff/land), HARD-snap scream, slime-pea spit; nfvar layers | side view v2",
   "source": "derived_mud.png",
   "cells": [
    "idle0",
@@ -547,17 +547,6 @@
    "sv_scream_2",
    "sv_scream_3",
    "sv_scream_4",
-   "death2",
-   "death3",
-   "death4",
-   "death5",
-   "death6",
-   "death7",
-   "death8",
-   "death9",
-   "death10",
-   "death11",
-   "death12",
    "sv_scream_5",
    "sv_scream_6",
    "sv_scream_7",
@@ -570,23 +559,7 @@
    "sv_leap_3",
    "sv_leap_4",
    "sv_leap_5",
-   "death_slice1",
-   "death_slice2",
-   "death_slice3",
-   "death_slice4",
-   "death_slice5",
-   "death_slice6",
    "sv_leap_6",
-   "death_smash1",
-   "death_smash_v2_flatten",
-   "death_smash_v2_mash",
-   "death_smash_v2_spread",
-   "death_smash_v2_settle",
-   "death_smash_v2_fade1",
-   "death_smash_v2_fade2",
-   "emerge0",
-   "emerge1",
-   "emerge2",
    "sv_leap_7",
    "sv_leap_8",
    "sv_leap_9",
@@ -601,8 +574,35 @@
    "sv_attack_6",
    "sv_death_0",
    "sv_death_1",
+   "sv_death_2",
+   "sv_death_3",
+   "sv_death_4",
+   "sv_death_5",
+   "sv_death_6",
+   "sv_death_7",
+   "sv_death_8",
+   "sv_death_9",
+   "sv_death_10",
+   "sv_death_11",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "sv_death_12",
    "sv_death_slice_0",
+   "sv_death_slice_1",
+   "sv_death_slice_2",
+   "sv_death_slice_3",
+   "sv_death_slice_4",
+   "sv_death_slice_5",
+   "sv_death_slice_6",
    "sv_death_smash_0",
+   "sv_death_smash_1",
+   "sv_death_smash_2",
+   "sv_death_smash_3",
+   "sv_death_smash_4",
+   "sv_death_smash_5",
+   "sv_death_smash_6",
+   "sv_death_smash_7",
    "sv_emerge_3",
    "sv_emerge_4",
    "sv_emerge_5",
@@ -670,7 +670,7 @@
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   },
   "sideview": {
-   "version": 1,
+   "version": 2,
    "date": "2026-10-18",
    "tool": "tools/sideview/build.py",
    "src": "tools/sideview/src/pea_mud_side_v1.jpg",

@@ -138,12 +138,12 @@
      "event": "attack_windup"
     },
     {
-     "i": 43,
+     "i": 39,
      "ms": 100,
      "ox": -1.4
     },
     {
-     "i": 49,
+     "i": 40,
      "ms": 50,
      "ox": 1.4,
      "events": [
@@ -153,12 +153,12 @@
      ]
     },
     {
-     "i": 71,
+     "i": 41,
      "ms": 90,
      "ox": 0.6
     },
     {
-     "i": 72,
+     "i": 42,
      "ms": 110,
      "event": "attack_done"
     }
@@ -217,28 +217,28 @@
    "loop": false,
    "frames": [
     {
-     "i": 73,
+     "i": 43,
      "ms": 50
     },
     {
-     "i": 74,
+     "i": 44,
      "ms": 50
     },
     {
-     "i": 39,
+     "i": 45,
      "ms": 50,
      "event": "spawnFx"
     },
     {
-     "i": 40,
+     "i": 46,
      "ms": 80
     },
     {
-     "i": 41,
+     "i": 47,
      "ms": 100
     },
     {
-     "i": 42,
+     "i": 48,
      "ms": 900
     }
    ]
@@ -247,28 +247,28 @@
    "loop": false,
    "frames": [
     {
-     "i": 75,
+     "i": 49,
      "ms": 40
     },
     {
-     "i": 44,
+     "i": 50,
      "ms": 60,
      "event": "spawnFx"
     },
     {
-     "i": 45,
+     "i": 51,
      "ms": 60
     },
     {
-     "i": 46,
+     "i": 52,
      "ms": 70
     },
     {
-     "i": 47,
+     "i": 53,
      "ms": 80
     },
     {
-     "i": 48,
+     "i": 54,
      "ms": 900
     }
    ]
@@ -277,19 +277,19 @@
    "loop": false,
    "frames": [
     {
-     "i": 76,
+     "i": 71,
      "ms": 40
     },
     {
-     "i": 50,
+     "i": 72,
      "ms": 45
     },
     {
-     "i": 51,
+     "i": 73,
      "ms": 45
     },
     {
-     "i": 52,
+     "i": 74,
      "ms": 65,
      "events": [
       "spawnFx",
@@ -297,11 +297,11 @@
      ]
     },
     {
-     "i": 53,
+     "i": 75,
      "ms": 75
     },
     {
-     "i": 54,
+     "i": 76,
      "ms": 300
     },
     {
@@ -459,7 +459,7 @@
   }
  },
  "meta": {
-  "title": "Rot toadstool (mud shroom, screaming spore caster) | side view v1",
+  "title": "Rot toadstool (mud shroom, screaming spore caster) | side view v2",
   "source": "parts/shroom_variants_v1.jpg",
   "cells": [
    "idle0",
@@ -501,22 +501,22 @@
    "sv_scream_7",
    "sv_scream_8",
    "sv_attack_0",
-   "death2",
-   "death3",
-   "death4",
-   "death5",
    "sv_attack_1",
-   "death_slice1",
-   "death_slice2",
-   "death_slice3",
-   "death_slice4",
-   "death_slice5",
    "sv_attack_2",
-   "death_smash1",
-   "death_smash_v2_flatten",
-   "death_smash_v2_mash",
-   "death_smash_v2_spread",
-   "death_smash_v2_settle",
+   "sv_attack_3",
+   "sv_attack_4",
+   "sv_death_0",
+   "sv_death_1",
+   "sv_death_2",
+   "sv_death_3",
+   "sv_death_4",
+   "sv_death_5",
+   "sv_death_slice_0",
+   "sv_death_slice_1",
+   "sv_death_slice_2",
+   "sv_death_slice_3",
+   "sv_death_slice_4",
+   "sv_death_slice_5",
    "fx_puff0",
    "fx_puff1",
    "fx_puff2",
@@ -533,14 +533,14 @@
    "emerge1",
    "emerge2",
    "emerge3",
-   "sv_attack_3",
-   "sv_attack_4",
-   "sv_death_0",
-   "sv_death_1",
-   "sv_death_slice_0",
    "sv_death_smash_0",
-   "death_smash_v2_fade1",
-   "death_smash_v2_fade2",
+   "sv_death_smash_1",
+   "sv_death_smash_2",
+   "sv_death_smash_3",
+   "sv_death_smash_4",
+   "sv_death_smash_5",
+   "sv_death_smash_6",
+   "sv_death_smash_7",
    "sv_emerge_4",
    "sv_emerge_5",
    "sv_emerge_6",
@@ -577,7 +577,7 @@
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   },
   "sideview": {
-   "version": 1,
+   "version": 2,
    "date": "2026-10-18",
    "tool": "tools/sideview/build.py",
    "src": "tools/sideview/src/shroom_mud_side_v1.jpg",

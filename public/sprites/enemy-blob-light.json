@@ -136,17 +136,56 @@
    "loop": false,
    "frames": [
     {
-     "i": 44,
+     "i": 36,
      "ms": 60,
      "event": "attack_windup"
     },
     {
-     "i": 45,
+     "i": 37,
      "ms": 45,
      "events": [
       "hit",
       "attack_hit"
      ]
+    },
+    {
+     "i": 38,
+     "ms": 35
+    },
+    {
+     "i": 39,
+     "ms": 35
+    },
+    {
+     "i": 40,
+     "ms": 80,
+     "event": "attack_done"
+    }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 41,
+     "ms": 50
+    },
+    {
+     "i": 42,
+     "ms": 60
+    },
+    {
+     "i": 43,
+     "ms": 50,
+     "event": "spawnFx"
+    },
+    {
+     "i": 44,
+     "ms": 30
+    },
+    {
+     "i": 45,
+     "ms": 30
     },
     {
      "i": 46,
@@ -157,54 +196,15 @@
      "ms": 35
     },
     {
-     "i": 59,
-     "ms": 80,
-     "event": "attack_done"
-    }
-   ]
-  },
-  "death": {
-   "loop": false,
-   "frames": [
-    {
-     "i": 67,
-     "ms": 50
-    },
-    {
-     "i": 68,
-     "ms": 60
-    },
-    {
-     "i": 34,
-     "ms": 50,
-     "event": "spawnFx"
-    },
-    {
-     "i": 35,
-     "ms": 30
-    },
-    {
-     "i": 36,
-     "ms": 30
-    },
-    {
-     "i": 37,
-     "ms": 35
-    },
-    {
-     "i": 38,
-     "ms": 35
-    },
-    {
-     "i": 39,
+     "i": 48,
      "ms": 40
     },
     {
-     "i": 40,
+     "i": 49,
      "ms": 40
     },
     {
-     "i": 41,
+     "i": 50,
      "ms": 900
     }
    ]
@@ -225,11 +225,11 @@
      "ms": 70
     },
     {
-     "i": 42,
+     "i": 34,
      "ms": 90
     },
     {
-     "i": 43,
+     "i": 35,
      "ms": 80
     }
    ]
@@ -238,49 +238,29 @@
    "loop": false,
    "frames": [
     {
-     "i": 71,
+     "i": 51,
      "ms": 45
     },
     {
-     "i": 48,
+     "i": 52,
      "ms": 50,
      "event": "spawnFx"
     },
     {
-     "i": 49,
-     "ms": 28
-    },
-    {
-     "i": 50,
-     "ms": 27
-    },
-    {
-     "i": 51,
-     "ms": 28
-    },
-    {
-     "i": 52,
-     "ms": 27
-    },
-    {
      "i": 53,
-     "ms": 30
-    },
-    {
-     "i": 53,
-     "ms": 30
+     "ms": 28
     },
     {
      "i": 54,
-     "ms": 35
+     "ms": 27
     },
     {
      "i": 55,
-     "ms": 35
+     "ms": 28
     },
     {
      "i": 56,
-     "ms": 30
+     "ms": 27
     },
     {
      "i": 57,
@@ -288,6 +268,26 @@
     },
     {
      "i": 58,
+     "ms": 30
+    },
+    {
+     "i": 59,
+     "ms": 35
+    },
+    {
+     "i": 60,
+     "ms": 35
+    },
+    {
+     "i": 61,
+     "ms": 30
+    },
+    {
+     "i": 62,
+     "ms": 30
+    },
+    {
+     "i": 63,
      "ms": 900
     }
    ]
@@ -296,19 +296,19 @@
    "loop": false,
    "frames": [
     {
-     "i": 72,
+     "i": 64,
      "ms": 40
     },
     {
-     "i": 60,
+     "i": 65,
      "ms": 45
     },
     {
-     "i": 61,
+     "i": 66,
      "ms": 45
     },
     {
-     "i": 62,
+     "i": 67,
      "ms": 65,
      "events": [
       "spawnFx",
@@ -316,19 +316,19 @@
      ]
     },
     {
-     "i": 63,
+     "i": 68,
      "ms": 75
     },
     {
-     "i": 64,
+     "i": 71,
      "ms": 300
     },
     {
-     "i": 65,
+     "i": 72,
      "ms": 110
     },
     {
-     "i": 66,
+     "i": 73,
      "ms": 110
     }
    ]
@@ -346,16 +346,12 @@
      "ms": 70
     },
     {
-     "i": 73,
-     "ms": 60
-    },
-    {
      "i": 74,
      "ms": 60
     },
     {
      "i": 75,
-     "ms": 70
+     "ms": 60
     },
     {
      "i": 76,
@@ -367,6 +363,10 @@
     },
     {
      "i": 78,
+     "ms": 70
+    },
+    {
+     "i": 79,
      "ms": 70
     },
     {
@@ -401,7 +401,7 @@
   }
  },
  "meta": {
-  "title": "Garden blob (light variant), blobvar layers + warp.py | side view v1",
+  "title": "Garden blob (light variant), blobvar layers + warp.py | side view v2",
   "source": "derived_light.png",
   "cells": [
    "idle0",
@@ -438,45 +438,46 @@
    "sv_taunt_0",
    "sv_taunt_1",
    "sv_taunt_2",
-   "death2",
-   "death3",
-   "death4",
-   "death5",
-   "death6",
-   "death7",
-   "death8",
-   "death9",
    "sv_taunt_3",
    "sv_taunt_4",
    "sv_attack_0",
    "sv_attack_1",
    "sv_attack_2",
    "sv_attack_3",
-   "death_slice1",
-   "death_slice2",
-   "death_slice3",
-   "death_slice4",
-   "death_slice5",
-   "death_slice6",
-   "death_slice8",
-   "death_slice9",
-   "death_slice10",
-   "death_slice11",
-   "death_slice12",
    "sv_attack_4",
-   "death_smash1",
-   "death_smash_v2_flatten",
-   "death_smash_v2_mash",
-   "death_smash_v2_spread",
-   "death_smash_v2_settle",
-   "death_smash_v2_fade1",
-   "death_smash_v2_fade2",
    "sv_death_0",
    "sv_death_1",
+   "sv_death_2",
+   "sv_death_3",
+   "sv_death_4",
+   "sv_death_5",
+   "sv_death_6",
+   "sv_death_7",
+   "sv_death_8",
+   "sv_death_9",
+   "sv_death_slice_0",
+   "sv_death_slice_1",
+   "sv_death_slice_2",
+   "sv_death_slice_3",
+   "sv_death_slice_4",
+   "sv_death_slice_5",
+   "sv_death_slice_6",
+   "sv_death_slice_7",
+   "sv_death_slice_8",
+   "sv_death_slice_9",
+   "sv_death_slice_10",
+   "sv_death_slice_11",
+   "sv_death_slice_12",
+   "sv_death_smash_0",
+   "sv_death_smash_1",
+   "sv_death_smash_2",
+   "sv_death_smash_3",
+   "sv_death_smash_4",
    "emerge0",
    "emerge1",
-   "sv_death_slice_0",
-   "sv_death_smash_0",
+   "sv_death_smash_5",
+   "sv_death_smash_6",
+   "sv_death_smash_7",
    "sv_emerge_2",
    "sv_emerge_3",
    "sv_emerge_4",
@@ -512,7 +513,7 @@
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   },
   "sideview": {
-   "version": 1,
+   "version": 2,
    "date": "2026-10-18",
    "tool": "tools/sideview/build.py",
    "src": "tools/sideview/src/blob_light_side_v1.jpg",

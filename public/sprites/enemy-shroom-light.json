@@ -165,12 +165,12 @@
      ]
     },
     {
-     "i": 46,
+     "i": 42,
      "ms": 80,
      "ox": 0.6
     },
     {
-     "i": 52,
+     "i": 43,
      "ms": 90,
      "event": "attack_done"
     }
@@ -213,28 +213,28 @@
    "loop": false,
    "frames": [
     {
-     "i": 71,
+     "i": 44,
      "ms": 50
     },
     {
-     "i": 72,
+     "i": 45,
      "ms": 50
     },
     {
-     "i": 42,
+     "i": 46,
      "ms": 50,
      "event": "spawnFx"
     },
     {
-     "i": 43,
+     "i": 47,
      "ms": 80
     },
     {
-     "i": 44,
+     "i": 48,
      "ms": 100
     },
     {
-     "i": 45,
+     "i": 49,
      "ms": 900
     }
    ]
@@ -243,28 +243,28 @@
    "loop": false,
    "frames": [
     {
-     "i": 73,
+     "i": 50,
      "ms": 40
     },
     {
-     "i": 47,
+     "i": 51,
      "ms": 60,
      "event": "spawnFx"
     },
     {
-     "i": 48,
+     "i": 52,
      "ms": 60
     },
     {
-     "i": 49,
+     "i": 53,
      "ms": 70
     },
     {
-     "i": 50,
+     "i": 54,
      "ms": 80
     },
     {
-     "i": 51,
+     "i": 55,
      "ms": 900
     }
    ]
@@ -273,19 +273,19 @@
    "loop": false,
    "frames": [
     {
-     "i": 74,
+     "i": 56,
      "ms": 40
     },
     {
-     "i": 53,
+     "i": 57,
      "ms": 45
     },
     {
-     "i": 54,
+     "i": 71,
      "ms": 45
     },
     {
-     "i": 55,
+     "i": 72,
      "ms": 65,
      "events": [
       "spawnFx",
@@ -293,19 +293,19 @@
      ]
     },
     {
-     "i": 56,
+     "i": 73,
      "ms": 75
     },
     {
-     "i": 57,
+     "i": 74,
      "ms": 300
     },
     {
-     "i": 78,
+     "i": 75,
      "ms": 110
     },
     {
-     "i": 79,
+     "i": 76,
      "ms": 110
     }
    ]
@@ -385,15 +385,15 @@
      "event": "emerge_fx"
     },
     {
-     "i": 75,
+     "i": 77,
      "ms": 70
     },
     {
-     "i": 76,
+     "i": 78,
      "ms": 60
     },
     {
-     "i": 77,
+     "i": 79,
      "ms": 60,
      "oy": -2.7
     },
@@ -446,7 +446,7 @@
   }
  },
  "meta": {
-  "title": "Toadstool (light shroom, spore caster) | side view v1",
+  "title": "Toadstool (light shroom, spore caster) | side view v2",
   "source": "parts/shroom_variants_v1.jpg",
   "cells": [
    "idle0",
@@ -491,22 +491,22 @@
    "sv_attack_0",
    "sv_attack_1",
    "sv_attack_2",
-   "death2",
-   "death3",
-   "death4",
-   "death5",
    "sv_attack_3",
-   "death_slice1",
-   "death_slice2",
-   "death_slice3",
-   "death_slice4",
-   "death_slice5",
    "sv_attack_4",
-   "death_smash1",
-   "death_smash_v2_flatten",
-   "death_smash_v2_mash",
-   "death_smash_v2_spread",
-   "death_smash_v2_settle",
+   "sv_death_0",
+   "sv_death_1",
+   "sv_death_2",
+   "sv_death_3",
+   "sv_death_4",
+   "sv_death_5",
+   "sv_death_slice_0",
+   "sv_death_slice_1",
+   "sv_death_slice_2",
+   "sv_death_slice_3",
+   "sv_death_slice_4",
+   "sv_death_slice_5",
+   "sv_death_smash_0",
+   "sv_death_smash_1",
    "fx_puff0",
    "fx_puff1",
    "fx_puff2",
@@ -520,15 +520,15 @@
    "fx_cloud6",
    "fx_cloud7",
    "emerge0",
-   "sv_death_0",
-   "sv_death_1",
-   "sv_death_slice_0",
-   "sv_death_smash_0",
+   "sv_death_smash_2",
+   "sv_death_smash_3",
+   "sv_death_smash_4",
+   "sv_death_smash_5",
+   "sv_death_smash_6",
+   "sv_death_smash_7",
    "sv_emerge_1",
    "sv_emerge_2",
    "sv_emerge_3",
-   "death_smash_v2_fade1",
-   "death_smash_v2_fade2",
    "sv_emerge_4",
    "sv_emerge_5",
    "sv_emerge_6",
@@ -562,7 +562,7 @@
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   },
   "sideview": {
-   "version": 1,
+   "version": 2,
    "date": "2026-10-18",
    "tool": "tools/sideview/build.py",
    "src": "tools/sideview/src/shroom_light_side_v1.jpg",

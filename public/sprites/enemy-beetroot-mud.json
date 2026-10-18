@@ -120,23 +120,23 @@
    "loop": false,
    "frames": [
     {
-     "i": 57,
+     "i": 44,
      "ms": 60,
      "ox": -1.2,
      "event": "attack_windup"
     },
     {
-     "i": 68,
+     "i": 45,
      "ms": 60,
      "ox": -2.4
     },
     {
-     "i": 69,
+     "i": 46,
      "ms": 45,
      "ox": 4.8
     },
     {
-     "i": 70,
+     "i": 47,
      "ms": 65,
      "ox": 13.3,
      "events": [
@@ -145,22 +145,22 @@
      ]
     },
     {
-     "i": 71,
+     "i": 48,
      "ms": 50,
      "ox": 12.1
     },
     {
-     "i": 72,
+     "i": 49,
      "ms": 70,
      "ox": 7.3
     },
     {
-     "i": 73,
+     "i": 50,
      "ms": 70,
      "ox": 3.0
     },
     {
-     "i": 74,
+     "i": 51,
      "ms": 60,
      "event": "attack_done"
     }
@@ -170,40 +170,40 @@
    "loop": false,
    "frames": [
     {
-     "i": 75,
+     "i": 52,
      "ms": 60
     },
     {
-     "i": 76,
+     "i": 53,
      "ms": 70
     },
     {
-     "i": 33,
+     "i": 54,
      "ms": 45,
      "event": "spawnFx"
     },
     {
-     "i": 34,
+     "i": 55,
      "ms": 50
     },
     {
-     "i": 35,
+     "i": 56,
      "ms": 55
     },
     {
-     "i": 36,
+     "i": 57,
      "ms": 65
     },
     {
-     "i": 37,
+     "i": 58,
      "ms": 75
     },
     {
-     "i": 38,
+     "i": 59,
      "ms": 85
     },
     {
-     "i": 39,
+     "i": 60,
      "ms": 950
     }
    ]
@@ -241,21 +241,21 @@
      "ox": 1.4
     },
     {
-     "i": 40,
+     "i": 33,
      "ms": 85,
      "ox": -1.4
     },
     {
-     "i": 41,
+     "i": 34,
      "ms": 70,
      "ox": 1.0
     },
     {
-     "i": 42,
+     "i": 35,
      "ms": 80
     },
     {
-     "i": 43,
+     "i": 36,
      "ms": 70,
      "event": "scream_done"
     }
@@ -265,32 +265,32 @@
    "loop": false,
    "frames": [
     {
-     "i": 77,
+     "i": 61,
      "ms": 45
     },
     {
-     "i": 51,
+     "i": 62,
      "ms": 55,
      "event": "spawnFx"
     },
     {
-     "i": 52,
+     "i": 63,
      "ms": 60
     },
     {
-     "i": 53,
+     "i": 64,
      "ms": 65
     },
     {
-     "i": 54,
+     "i": 68,
      "ms": 70
     },
     {
-     "i": 55,
+     "i": 69,
      "ms": 75
     },
     {
-     "i": 56,
+     "i": 70,
      "ms": 950
     }
    ]
@@ -299,19 +299,19 @@
    "loop": false,
    "frames": [
     {
-     "i": 84,
+     "i": 71,
      "ms": 40
     },
     {
-     "i": 58,
+     "i": 72,
      "ms": 45
     },
     {
-     "i": 59,
+     "i": 73,
      "ms": 45
     },
     {
-     "i": 60,
+     "i": 74,
      "ms": 65,
      "events": [
       "spawnFx",
@@ -319,19 +319,19 @@
      ]
     },
     {
-     "i": 61,
+     "i": 75,
      "ms": 75
     },
     {
-     "i": 62,
+     "i": 76,
      "ms": 300
     },
     {
-     "i": 63,
+     "i": 77,
      "ms": 110
     },
     {
-     "i": 64,
+     "i": 84,
      "ms": 110
     }
    ]
@@ -467,17 +467,17 @@
    "loop": false,
    "frames": [
     {
-     "i": 44,
+     "i": 37,
      "ms": 50,
      "event": "bite_windup"
     },
     {
-     "i": 45,
+     "i": 38,
      "ms": 70,
      "ox": -1.0
     },
     {
-     "i": 46,
+     "i": 39,
      "ms": 40,
      "events": [
       "bite_hit",
@@ -487,22 +487,22 @@
      "ox": 3.5
     },
     {
-     "i": 47,
+     "i": 40,
      "ms": 40,
      "ox": 2.6
     },
     {
-     "i": 48,
+     "i": 41,
      "ms": 60,
      "ox": 0.8
     },
     {
-     "i": 49,
+     "i": 42,
      "ms": 60,
      "ox": 0.2
     },
     {
-     "i": 50,
+     "i": 43,
      "ms": 80,
      "event": "bite_done"
     }
@@ -533,7 +533,7 @@
   }
  },
  "meta": {
-  "title": "Mud beetroot (scary): lava-crust tank, HARD-snap scream, burrows + resurfaces; nfvar layers | side view v1",
+  "title": "Mud beetroot (scary): lava-crust tank, HARD-snap scream, burrows + resurfaces; nfvar layers | side view v2",
   "source": "derived_mud.png",
   "cells": [
    "idle0",
@@ -569,13 +569,6 @@
    "sv_scream_3",
    "sv_scream_4",
    "sv_scream_5",
-   "death2",
-   "death3",
-   "death4",
-   "death5",
-   "death6",
-   "death7",
-   "death8",
    "sv_scream_6",
    "sv_scream_7",
    "sv_scream_8",
@@ -587,23 +580,7 @@
    "sv_bite_4",
    "sv_bite_5",
    "sv_bite_6",
-   "death_slice1",
-   "death_slice2",
-   "death_slice3",
-   "death_slice4",
-   "death_slice5",
-   "death_slice6",
    "sv_attack_0",
-   "death_smash1",
-   "death_smash_v2_flatten",
-   "death_smash_v2_mash",
-   "death_smash_v2_spread",
-   "death_smash_v2_settle",
-   "death_smash_v2_fade1",
-   "death_smash_v2_fade2",
-   "emerge0",
-   "emerge1",
-   "emerge2",
    "sv_attack_1",
    "sv_attack_2",
    "sv_attack_3",
@@ -613,14 +590,37 @@
    "sv_attack_7",
    "sv_death_0",
    "sv_death_1",
+   "sv_death_2",
+   "sv_death_3",
+   "sv_death_4",
+   "sv_death_5",
+   "sv_death_6",
+   "sv_death_7",
+   "sv_death_8",
    "sv_death_slice_0",
+   "sv_death_slice_1",
+   "sv_death_slice_2",
+   "sv_death_slice_3",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "sv_death_slice_4",
+   "sv_death_slice_5",
+   "sv_death_slice_6",
+   "sv_death_smash_0",
+   "sv_death_smash_1",
+   "sv_death_smash_2",
+   "sv_death_smash_3",
+   "sv_death_smash_4",
+   "sv_death_smash_5",
+   "sv_death_smash_6",
    "burrow4",
    "burrow5",
    "burrow6",
    "burrow7",
    "resurface0",
    "resurface1",
-   "sv_death_smash_0",
+   "sv_death_smash_7",
    "sv_emerge_3",
    "sv_emerge_4",
    "sv_emerge_5",
@@ -673,7 +673,7 @@
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   },
   "sideview": {
-   "version": 1,
+   "version": 2,
    "date": "2026-10-18",
    "tool": "tools/sideview/build.py",
    "src": "tools/sideview/src/beetroot_mud_side_v1.jpg",

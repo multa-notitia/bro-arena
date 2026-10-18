@@ -128,23 +128,23 @@
    "loop": false,
    "frames": [
     {
-     "i": 48,
+     "i": 40,
      "ms": 60,
      "ox": -0.8,
      "event": "attack_windup"
     },
     {
-     "i": 49,
+     "i": 41,
      "ms": 60,
      "ox": -1.6
     },
     {
-     "i": 50,
+     "i": 42,
      "ms": 45,
      "ox": 3.2
     },
     {
-     "i": 51,
+     "i": 43,
      "ms": 65,
      "ox": 8.7,
      "events": [
@@ -155,22 +155,22 @@
      ]
     },
     {
-     "i": 52,
+     "i": 44,
      "ms": 50,
      "ox": 7.9
     },
     {
-     "i": 53,
+     "i": 45,
      "ms": 70,
      "ox": 4.7
     },
     {
-     "i": 54,
+     "i": 46,
      "ms": 70,
      "ox": 2.0
     },
     {
-     "i": 61,
+     "i": 47,
      "ms": 60,
      "event": "attack_done"
     }
@@ -180,15 +180,15 @@
    "loop": false,
    "frames": [
     {
-     "i": 71,
+     "i": 48,
      "ms": 60
     },
     {
-     "i": 72,
+     "i": 49,
      "ms": 70
     },
     {
-     "i": 36,
+     "i": 50,
      "ms": 45,
      "events": [
       "spawnFx",
@@ -196,27 +196,27 @@
      ]
     },
     {
-     "i": 37,
+     "i": 51,
      "ms": 50
     },
     {
-     "i": 38,
+     "i": 52,
      "ms": 55
     },
     {
-     "i": 39,
+     "i": 53,
      "ms": 65
     },
     {
-     "i": 40,
+     "i": 54,
      "ms": 75
     },
     {
-     "i": 41,
+     "i": 55,
      "ms": 85
     },
     {
-     "i": 42,
+     "i": 56,
      "ms": 950
     }
    ]
@@ -237,8 +237,12 @@
      "ms": 40
     },
     {
-     "i": 33,
+     "i": 32,
      "ms": 40
+    },
+    {
+     "i": 33,
+     "ms": 30
     },
     {
      "i": 34,
@@ -249,23 +253,19 @@
      "ms": 30
     },
     {
-     "i": 43,
+     "i": 36,
      "ms": 30
     },
     {
-     "i": 44,
+     "i": 37,
      "ms": 30
     },
     {
-     "i": 45,
+     "i": 38,
      "ms": 30
     },
     {
-     "i": 46,
-     "ms": 30
-    },
-    {
-     "i": 47,
+     "i": 39,
      "ms": 70
     }
    ]
@@ -274,11 +274,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 73,
+     "i": 57,
      "ms": 45
     },
     {
-     "i": 55,
+     "i": 58,
      "ms": 55,
      "events": [
       "spawnFx",
@@ -286,23 +286,23 @@
      ]
     },
     {
-     "i": 56,
+     "i": 59,
      "ms": 60
     },
     {
-     "i": 57,
+     "i": 60,
      "ms": 65
     },
     {
-     "i": 58,
+     "i": 61,
      "ms": 70
     },
     {
-     "i": 59,
+     "i": 62,
      "ms": 75
     },
     {
-     "i": 60,
+     "i": 63,
      "ms": 950
     }
    ]
@@ -311,19 +311,19 @@
    "loop": false,
    "frames": [
     {
-     "i": 74,
+     "i": 64,
      "ms": 40
     },
     {
-     "i": 62,
+     "i": 65,
      "ms": 45
     },
     {
-     "i": 32,
+     "i": 66,
      "ms": 45
     },
     {
-     "i": 115,
+     "i": 67,
      "ms": 65,
      "events": [
       "spawnFx",
@@ -332,19 +332,19 @@
      ]
     },
     {
-     "i": 116,
+     "i": 68,
      "ms": 75
     },
     {
-     "i": 117,
+     "i": 71,
      "ms": 300
     },
     {
-     "i": 118,
+     "i": 72,
      "ms": 110
     },
     {
-     "i": 119,
+     "i": 73,
      "ms": 110
     }
    ]
@@ -362,27 +362,27 @@
      "ms": 80
     },
     {
-     "i": 111,
+     "i": 130,
      "ms": 70
     },
     {
-     "i": 112,
+     "i": 131,
      "ms": 60
     },
     {
-     "i": 114,
+     "i": 132,
      "ms": 60
     },
     {
-     "i": 120,
+     "i": 133,
      "ms": 60
     },
     {
-     "i": 121,
+     "i": 134,
      "ms": 70
     },
     {
-     "i": 122,
+     "i": 135,
      "ms": 70
     },
     {
@@ -396,32 +396,32 @@
    "loop": false,
    "frames": [
     {
-     "i": 96,
+     "i": 123,
      "ms": 80
     },
     {
-     "i": 97,
+     "i": 124,
      "ms": 70
     },
     {
-     "i": 98,
+     "i": 125,
      "ms": 60,
      "event": "peel"
     },
     {
-     "i": 99,
+     "i": 126,
      "ms": 60
     },
     {
-     "i": 100,
+     "i": 127,
      "ms": 70
     },
     {
-     "i": 101,
+     "i": 128,
      "ms": 80
     },
     {
-     "i": 110,
+     "i": 129,
      "ms": 80
     }
    ]
@@ -429,6 +429,10 @@
   "idle_peeled": {
    "loop": true,
    "frames": [
+    {
+     "i": 74,
+     "ms": 127
+    },
     {
      "i": 75,
      "ms": 127
@@ -443,14 +447,10 @@
     },
     {
      "i": 78,
-     "ms": 127
-    },
-    {
-     "i": 79,
      "ms": 126
     },
     {
-     "i": 80,
+     "i": 79,
      "ms": 126
     }
    ]
@@ -458,6 +458,10 @@
   "walk_peeled": {
    "loop": true,
    "frames": [
+    {
+     "i": 80,
+     "ms": 65
+    },
     {
      "i": 81,
      "ms": 65
@@ -485,10 +489,6 @@
     {
      "i": 87,
      "ms": 65
-    },
-    {
-     "i": 88,
-     "ms": 65
     }
    ]
   },
@@ -496,16 +496,16 @@
    "loop": false,
    "frames": [
     {
-     "i": 89,
+     "i": 88,
      "ms": 40,
      "event": "hurt"
     },
     {
-     "i": 90,
+     "i": 89,
      "ms": 60
     },
     {
-     "i": 91,
+     "i": 90,
      "ms": 80
     }
    ]
@@ -551,15 +551,15 @@
    "loop": false,
    "frames": [
     {
-     "i": 92,
+     "i": 91,
      "ms": 60
     },
     {
-     "i": 93,
+     "i": 92,
      "ms": 70
     },
     {
-     "i": 36,
+     "i": 93,
      "ms": 45,
      "events": [
       "spawnFx",
@@ -567,27 +567,27 @@
      ]
     },
     {
-     "i": 37,
+     "i": 94,
      "ms": 50
     },
     {
-     "i": 38,
+     "i": 95,
      "ms": 55
     },
     {
-     "i": 39,
+     "i": 96,
      "ms": 65
     },
     {
-     "i": 40,
+     "i": 97,
      "ms": 75
     },
     {
-     "i": 41,
+     "i": 98,
      "ms": 85
     },
     {
-     "i": 42,
+     "i": 99,
      "ms": 950
     }
    ]
@@ -596,15 +596,15 @@
    "loop": false,
    "frames": [
     {
-     "i": 95,
+     "i": 115,
      "ms": 40
     },
     {
-     "i": 113,
+     "i": 116,
      "ms": 50
     },
     {
-     "i": 63,
+     "i": 117,
      "ms": 50,
      "events": [
       "spawnFx",
@@ -612,23 +612,23 @@
      ]
     },
     {
-     "i": 64,
+     "i": 118,
      "ms": 55
     },
     {
-     "i": 65,
+     "i": 119,
      "ms": 65
     },
     {
-     "i": 66,
+     "i": 120,
      "ms": 75
     },
     {
-     "i": 67,
+     "i": 121,
      "ms": 85
     },
     {
-     "i": 68,
+     "i": 122,
      "ms": 950
     }
    ]
@@ -637,11 +637,11 @@
    "loop": false,
    "frames": [
     {
-     "i": 94,
+     "i": 100,
      "ms": 45
     },
     {
-     "i": 55,
+     "i": 101,
      "ms": 55,
      "events": [
       "spawnFx",
@@ -649,23 +649,23 @@
      ]
     },
     {
-     "i": 56,
+     "i": 110,
      "ms": 60
     },
     {
-     "i": 57,
+     "i": 111,
      "ms": 65
     },
     {
-     "i": 58,
+     "i": 112,
      "ms": 70
     },
     {
-     "i": 59,
+     "i": 113,
      "ms": 75
     },
     {
-     "i": 60,
+     "i": 114,
      "ms": 950
     }
    ]
@@ -695,7 +695,7 @@
   }
  },
  "meta": {
-  "title": "Garden onion (light): peels a layer per hit, big peel at half hp, pops into a tear-gas cloud; nfvar layers | side view v1",
+  "title": "Garden onion (light): peels a layer per hit, big peel at half hp, pops into a tear-gas cloud; nfvar layers | side view v2",
   "source": "derived_light.png",
   "cells": [
    "idle0",
@@ -730,17 +730,9 @@
    "sv_taunt_0",
    "sv_taunt_1",
    "sv_taunt_2",
-   "death_smash_v2_flatten",
    "sv_taunt_3",
    "sv_taunt_4",
    "sv_taunt_5",
-   "death2",
-   "death3",
-   "death4",
-   "death5",
-   "death6",
-   "death7",
-   "death8",
    "sv_taunt_6",
    "sv_taunt_7",
    "sv_taunt_8",
@@ -753,26 +745,33 @@
    "sv_attack_4",
    "sv_attack_5",
    "sv_attack_6",
-   "death_slice1",
-   "death_slice2",
-   "death_slice3",
-   "death_slice4",
-   "death_slice5",
-   "death_slice6",
    "sv_attack_7",
-   "death_smash1",
-   "death_smash2",
-   "death_smash3",
-   "death_smash4",
-   "death_smash5",
-   "death_smash6",
-   "death_smash7",
-   "emerge0",
-   "emerge1",
    "sv_death_0",
    "sv_death_1",
+   "sv_death_2",
+   "sv_death_3",
+   "sv_death_4",
+   "sv_death_5",
+   "sv_death_6",
+   "sv_death_7",
+   "sv_death_8",
    "sv_death_slice_0",
+   "sv_death_slice_1",
+   "sv_death_slice_2",
+   "sv_death_slice_3",
+   "sv_death_slice_4",
+   "sv_death_slice_5",
+   "sv_death_slice_6",
    "sv_death_smash_0",
+   "sv_death_smash_1",
+   "sv_death_smash_2",
+   "sv_death_smash_3",
+   "sv_death_smash_4",
+   "emerge0",
+   "emerge1",
+   "sv_death_smash_5",
+   "sv_death_smash_6",
+   "sv_death_smash_7",
    "sv_idle_peeled_0",
    "sv_idle_peeled_1",
    "sv_idle_peeled_2",
@@ -792,14 +791,15 @@
    "sv_hurt_peeled_2",
    "sv_death_peeled_0",
    "sv_death_peeled_1",
+   "sv_death_peeled_2",
+   "sv_death_peeled_3",
+   "sv_death_peeled_4",
+   "sv_death_peeled_5",
+   "sv_death_peeled_6",
+   "sv_death_peeled_7",
+   "sv_death_peeled_8",
    "sv_death_slice_peeled_0",
-   "sv_death_smash_peeled_0",
-   "sv_peel_0",
-   "sv_peel_1",
-   "sv_peel_2",
-   "sv_peel_3",
-   "sv_peel_4",
-   "sv_peel_5",
+   "sv_death_slice_peeled_1",
    "gas_cloud0",
    "gas_cloud1",
    "gas_cloud2",
@@ -808,16 +808,29 @@
    "gas_cloud5",
    "gas_cloud6",
    "gas_cloud7",
+   "sv_death_slice_peeled_2",
+   "sv_death_slice_peeled_3",
+   "sv_death_slice_peeled_4",
+   "sv_death_slice_peeled_5",
+   "sv_death_slice_peeled_6",
+   "sv_death_smash_peeled_0",
+   "sv_death_smash_peeled_1",
+   "sv_death_smash_peeled_2",
+   "sv_death_smash_peeled_3",
+   "sv_death_smash_peeled_4",
+   "sv_death_smash_peeled_5",
+   "sv_death_smash_peeled_6",
+   "sv_death_smash_peeled_7",
+   "sv_peel_0",
+   "sv_peel_1",
+   "sv_peel_2",
+   "sv_peel_3",
+   "sv_peel_4",
+   "sv_peel_5",
    "sv_peel_6",
    "sv_emerge_2",
    "sv_emerge_3",
-   "death_smash_peeled1",
    "sv_emerge_4",
-   "death_smash_v2_mash",
-   "death_smash_v2_spread",
-   "death_smash_v2_settle",
-   "death_smash_v2_fade1",
-   "death_smash_v2_fade2",
    "sv_emerge_5",
    "sv_emerge_6",
    "sv_emerge_7"
@@ -863,7 +876,7 @@
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
   },
   "sideview": {
-   "version": 1,
+   "version": 2,
    "date": "2026-10-18",
    "tool": "tools/sideview/build.py",
    "src": "tools/sideview/src/onion_light_side_v1.jpg",
