@@ -114,6 +114,11 @@ class MultiArm:
     def jitter(slot_index, cycle, seed=7):
         return random.Random(seed * 1000 + slot_index * 37 + cycle).uniform(80, 200)
 
+    def _wimg(self, w, front):
+        """pass 9: back-layer slots draw the dark far-side twin (weapons.json imgBack) when present; points stay w.img's."""
+        ib = w.get("imgBack")
+        return ib if (not front and ib in self.parts) else w["img"]
+
     # ------------------------------------------------------------------ one arm
     def arm_layers(self, slot, clip, fi, weapon, t_attack=None, grow=1.0, target=None):
         """returns [(part name, matrix part px -> body px, z)], all body px (apply body_track after)."""
@@ -161,7 +166,7 @@ class MultiArm:
                 wp = self.parts[w["img"]]
                 gw = wp["points"]["grip"]
                 Wm = T(*g) @ R(aim_c - wp["axis"]) @ S(k) @ T(-gw[0], -gw[1])
-                out.append((w["img"], Wm, self.sock["arms"]["raised"].get("weaponZ", 9.5)))
+                out.append((self._wimg(w, front), Wm, self.sock["arms"]["raised"].get("weaponZ", 9.5)))
             return out
         raise_ = pose.get("raise", 0.0)
         th = pose.get("thrust", 0.0)
@@ -212,7 +217,7 @@ class MultiArm:
                 wp = self.parts[w["img"]]
                 gw = wp["points"]["grip"]
                 Wm = T(*g) @ R(aim_c - wp["axis"]) @ S(k) @ T(-gw[0], -gw[1])
-                out += [(w["img"], Wm, z + 0.03), (hname, H, z + 0.06)]
+                out += [(self._wimg(w, front), Wm, z + 0.03), (hname, H, z + 0.06)]
             if key and "release" in (key.get("show") or []):
                 out += self.fx_layers(w, Wm, P, aim_c, k, z, front)
         elif self.sock["arms"].get("emptyHand", "palm") is not None:     # SIDE: null = the arm's own painted fist

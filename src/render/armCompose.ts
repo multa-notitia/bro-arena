@@ -61,6 +61,7 @@ export interface WeaponPaint {
   shotOffset: number
   hand: { front: string; back: string }
   alt?: { imgs: string[]; imgsBack?: string[] }
+  imgBack?: string
   fx?: {
     release: {
       img: string
@@ -371,12 +372,13 @@ export function composeArmLayers(
     const Lm = mul(mul(mul(T(P[0], P[1]), R((pose.rrot ?? 0) + rig.armTurnShare * dc)), Sm(k)), T(-sh[0], -sh[1]))
     out.push({ name: raisedArt, m: Lm, z })
     if (w) {
-      const wp = rig.parts[w.img]
+      const wImg = !front && w.imgBack && rig.parts[w.imgBack] ? w.imgBack : w.img
+      const wp = rig.parts[wImg]
       if (wp) {
         const g = ap(Lm, pointOf(ra, 'grip'))
         const gw = pointOf(wp, 'grip')
         const Wm = mul(mul(mul(T(g[0], g[1]), R(aimC - wp.axis)), Sm(wk)), T(-gw[0], -gw[1]))
-        out.push({ name: w.img, m: Wm, z: rig.raisedWeaponZ })
+        out.push({ name: wImg, m: Wm, z: rig.raisedWeaponZ })
       }
     }
     return mirrorSlot(out, sd, P)
@@ -445,12 +447,13 @@ export function composeArmLayers(
           }
         }
       } else {
-        const wp = rig.parts[w.img]
+        const wImg = !front && w.imgBack && rig.parts[w.imgBack] ? w.imgBack : w.img
+        const wp = rig.parts[wImg]
         if (wp) {
           const gw = pointOf(wp, 'grip')
           const Wm = mul(mul(mul(T(g[0], g[1]), R(aimC - wp.axis)), Sm(wk)), T(-gw[0], -gw[1]))
           const zw = front && key?.weaponBehind ? rig.behindZ - 0.6 : z + 0.03
-          out.push({ name: w.img, m: Wm, z: zw }, { name: hname, m: H, z: z + 0.06 })
+          out.push({ name: wImg, m: Wm, z: zw }, { name: hname, m: H, z: z + 0.06 })
           if (key && (key.show ?? []).includes('release') && w.fx?.release) {
             out.push(...fxLayers(rig, w, Wm, P, aimC, k, z, front))
           }

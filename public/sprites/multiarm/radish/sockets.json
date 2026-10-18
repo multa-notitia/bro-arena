@@ -34,58 +34,73 @@
   },
   "upB": {
    "pos": [
-    138,
-    134
+    134.0,
+    123.0
    ],
    "side": 1,
-   "dir": -14.0,
+   "dir": -95.4,
    "z": 4.2,
    "native": false,
-   "layer": "back"
+   "layer": "back",
+   "pass9": {
+    "restWristOffset": -65.0
+   }
   },
   "lowF": {
    "pos": [
-    120,
-    199
+    104.0,
+    208.0
    ],
    "side": 1,
-   "dir": 34.0,
+   "dir": 75.0,
    "z": 11.6,
    "native": false,
-   "layer": "front"
+   "layer": "front",
+   "pass9": {
+    "restWristOffset": 70.0
+   }
   },
   "lowB": {
    "pos": [
-    127,
-    190
+    46.0,
+    182.0
    ],
    "side": 1,
-   "dir": 16.0,
+   "dir": 144.2,
    "z": 4.4,
    "native": false,
-   "layer": "back"
+   "layer": "back",
+   "pass9": {
+    "restWristOffset": 182.0
+   }
   },
   "upF": {
    "pos": [
-    141,
-    121
+    131.0,
+    156.0
    ],
    "side": 1,
-   "dir": -38.0,
+   "dir": -67.9,
    "z": 11.4,
    "native": false,
-   "layer": "front"
+   "layer": "front",
+   "pass9": {
+    "restWristOffset": -26.8
+   }
   },
   "topB": {
    "pos": [
-    127,
-    104
+    29.0,
+    142.0
    ],
    "side": 1,
-   "dir": -52.0,
+   "dir": -134.5,
    "z": 4.6,
    "native": false,
-   "layer": "back"
+   "layer": "back",
+   "pass9": {
+    "restWristOffset": -150.3
+   }
   }
  },
  "layouts": {
@@ -166,5 +181,6 @@
   "part": "bud",
   "frontOnly": true,
   "sproutedOnly": true
- }
+ },
+ "pass9": "art pass 9 weapon spread (tools/pass9/spread_apply.py): sprouted slot pos/dir re-laid out, far native arm overridden for 2..6 weapons, per-slot rest wrist offsets baked into body_track (slots[*].pass9 lists them). Same schema; no code change needed for the spread."
 }

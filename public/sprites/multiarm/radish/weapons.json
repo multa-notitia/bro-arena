@@ -23,7 +23,8 @@
      "z": 14.0
     }
    },
-   "bakedScale": 1.35
+   "bakedScale": 1.35,
+   "imgBack": "knife_dark"
   },
   "cleaver": {
    "img": "cleaver",
@@ -46,7 +47,8 @@
      }
     }
    },
-   "bakedScale": 1.4
+   "bakedScale": 1.4,
+   "imgBack": "cleaver_dark"
   },
   "club": {
    "img": "club",
@@ -69,7 +71,8 @@
      }
     }
    },
-   "bakedScale": 1.5
+   "bakedScale": 1.5,
+   "imgBack": "club_dark"
   },
   "stick": {
    "img": "club",
@@ -92,7 +95,8 @@
      }
     }
    },
-   "bakedScale": 1.5
+   "bakedScale": 1.5,
+   "imgBack": "club_dark"
   },
   "sword": {
    "img": "sword",
@@ -115,7 +119,8 @@
      }
     }
    },
-   "bakedScale": 1.6
+   "bakedScale": 1.6,
+   "imgBack": "sword_dark"
   },
   "spear": {
    "img": "spear",
@@ -140,7 +145,8 @@
      "z": 14.0
     }
    },
-   "bakedScale": 2.0
+   "bakedScale": 2.0,
+   "imgBack": "spear_dark"
   },
   "hammer": {
    "img": "hammer",
@@ -163,7 +169,8 @@
      }
     }
    },
-   "bakedScale": 1.15
+   "bakedScale": 1.15,
+   "imgBack": "hammer_dark"
   },
   "scythe": {
    "img": "scythe",
@@ -186,7 +193,8 @@
      }
     }
    },
-   "bakedScale": 1.45
+   "bakedScale": 1.45,
+   "imgBack": "scythe_dark"
   },
   "pistol": {
    "img": "pistol",
@@ -211,7 +219,8 @@
      "z": 14.0
     }
    },
-   "bakedScale": 1.355
+   "bakedScale": 1.355,
+   "imgBack": "pistol_dark"
   },
   "smg": {
    "img": "smg",
@@ -236,7 +245,8 @@
      "z": 14.0
     }
    },
-   "bakedScale": 1.484
+   "bakedScale": 1.484,
+   "imgBack": "smg_dark"
   },
   "shotgun": {
    "img": "shotgun",
@@ -261,7 +271,8 @@
      "z": 14.0
     }
    },
-   "bakedScale": 1.419
+   "bakedScale": 1.419,
+   "imgBack": "shotgun_dark"
   },
   "slingshot": {
    "img": "sling_relaxed",
@@ -286,7 +297,8 @@
      "z": 14.0
     }
    },
-   "bakedScale": 1.419
+   "bakedScale": 1.419,
+   "imgBack": "sling_relaxed_dark"
   },
   "crossbow": {
    "img": "crossbow",
@@ -311,7 +323,8 @@
      "z": 14.0
     }
    },
-   "bakedScale": 1.484
+   "bakedScale": 1.484,
+   "imgBack": "crossbow_dark"
   },
   "wand": {
    "img": "wand",
@@ -336,7 +349,8 @@
      "z": 14.0
     }
    },
-   "bakedScale": 1.29
+   "bakedScale": 1.29,
+   "imgBack": "wand_dark"
   },
   "torch": {
    "img": "torch",
@@ -361,7 +375,8 @@
      "z": 14.0
     }
    },
-   "bakedScale": 1.355
+   "bakedScale": 1.355,
+   "imgBack": "torch_dark"
   },
   "flint": {
    "img": "flint",
@@ -386,10 +401,12 @@
      "z": 14.0
     }
    },
-   "bakedScale": 1.548
+   "bakedScale": 1.548,
+   "imgBack": "flint_dark"
   }
  },
  "fist34HandleAlongPlusX": true,
  "heroDefault": "pistol",
- "weaponsV2": "Bold side-view weapon set v2 (tools/weapons_v2). Art is baked bigger in parts.png (bakedScale = factor vs the v1 painting; informational, do NOT multiply). Code weapon drawScale must be 1.0. Keys are game weapon ids; 'fist' has no painting (PAINT fallback)."
+ "weaponsV2": "Bold side-view weapon set v2 (tools/weapons_v2). Art is baked bigger in parts.png (bakedScale = factor vs the v1 painting; informational, do NOT multiply). Code weapon drawScale must be 1.0. Keys are game weapon ids; 'fist' has no painting (PAINT fallback).",
+ "pass9": "imgBack = dark far-side twin of img (same size/points). Back-layer slots (z < behindBodyZ) should draw imgBack when present: armCompose.ts `const wImg = !front && w.imgBack && rig.parts[w.imgBack] ? w.imgBack : w.img` (weapon layer + raised path). Points/fx still come from w.img."
 }

@@ -57,6 +57,7 @@ import {
   actorClipActive,
   actorFootprint,
   drawActorSheet,
+  clipDrawScale,
   drawNamedClip,
   gardenGround,
   locomotionBlend,
@@ -425,12 +426,18 @@ function drawTrail(ctx: CanvasRenderingContext2D, p: Projectile): void {
 
 function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile, cache: SpriteCache): void {
   drawTrail(ctx, p)
-  if (p.sheetClip) {
+  // Actor clips named `pea` are the enemy's spit pose (full body). Only a
+  // dedicated spit cell is safe to draw as a shot.
+  if (p.sheetClip && p.sheetClip.clip !== 'pea') {
     const sheet = sheetById(p.sheetClip.sheet) ?? resolveSheet([p.sheetClip.sheet])
-    if (sheet) {
+    if (sheet?.manifest.clips[p.sheetClip.clip]) {
+      const lifeA = clamp(p.life / Math.max(0.05, p.maxLife), 0.45, 1)
       ctx.save()
       ctx.translate(p.x, p.y)
-      drawNamedClip(ctx, sheet, `shot:${p.uid}`, p.sheetClip.clip, 0, { scale: 0.18, alpha: 1 })
+      drawNamedClip(ctx, sheet, `shot:${p.uid}`, p.sheetClip.clip, 0, {
+        scale: Math.min(0.18, clipDrawScale(sheet, p.sheetClip.clip)),
+        alpha: lifeA,
+      })
       ctx.restore()
       return
     }

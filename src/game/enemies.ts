@@ -384,7 +384,6 @@ function fireAtPlayer(world: World, e: Enemy, proj: ProjectileDef, ctx: SimCtx, 
     effects: [],
     knockback: 4,
     weaponUid: 0,
-    sheetClip: proj.paint === 'pea' ? { sheet: `enemy-${e.kind}`, clip: 'pea' } : undefined,
   })
   if (!silent) {
     ctx.render.fx.muzzleFlash(e.x + Math.cos(ang) * muzzle, e.y + Math.sin(ang) * muzzle, ang, e.def.palette.accent)

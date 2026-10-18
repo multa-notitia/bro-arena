@@ -25,51 +25,66 @@
    "hero": "L",
    "dir": 108.0,
    "z": 4.0,
-   "native": true
+   "native": true,
+   "pass9": {
+    "restWristOffset": -96.6
+   }
   },
   "upN": {
    "pos": [
-    102,
-    112
+    95.0,
+    125.0
    ],
    "side": 1,
    "layer": "front",
-   "dir": -20.0,
+   "dir": -44.8,
    "z": 11.4,
-   "native": false
+   "native": false,
+   "pass9": {
+    "restWristOffset": -18.7
+   }
   },
   "upF": {
    "pos": [
-    46,
-    106
+    65.0,
+    80.0
    ],
    "side": 1,
    "layer": "back",
-   "dir": -5.0,
+   "dir": -115.0,
    "z": 4.2,
-   "native": false
+   "native": false,
+   "pass9": {
+    "restWristOffset": -134.3
+   }
   },
   "lowN": {
    "pos": [
-    97,
-    180
+    85.0,
+    177.0
    ],
    "side": 1,
    "layer": "front",
-   "dir": 40.0,
+   "dir": 31.3,
    "z": 11.2,
-   "native": false
+   "native": false,
+   "pass9": {
+    "restWristOffset": 34.5
+   }
   },
   "lowF": {
    "pos": [
-    50,
-    172
+    50.0,
+    168.0
    ],
    "side": 1,
    "layer": "back",
-   "dir": 115.0,
+   "dir": 165.3,
    "z": 3.8,
-   "native": false
+   "native": false,
+   "pass9": {
+    "restWristOffset": 174.4
+   }
   }
  },
  "layouts": {
@@ -85,7 +100,15 @@
     "midN",
     "midF"
    ],
-   "override": {}
+   "override": {
+    "midF": {
+     "pos": [
+      47.0,
+      146.0
+     ],
+     "dir": -120.0
+    }
+   }
   },
   "3": {
    "slots": [
@@ -93,7 +116,15 @@
     "midF",
     "upN"
    ],
-   "override": {}
+   "override": {
+    "midF": {
+     "pos": [
+      47.0,
+      146.0
+     ],
+     "dir": -120.0
+    }
+   }
   },
   "4": {
    "slots": [
@@ -102,7 +133,15 @@
     "upN",
     "upF"
    ],
-   "override": {}
+   "override": {
+    "midF": {
+     "pos": [
+      47.0,
+      146.0
+     ],
+     "dir": -120.0
+    }
+   }
   },
   "5": {
    "slots": [
@@ -112,7 +151,15 @@
     "upF",
     "lowN"
    ],
-   "override": {}
+   "override": {
+    "midF": {
+     "pos": [
+      47.0,
+      146.0
+     ],
+     "dir": -120.0
+    }
+   }
   },
   "6": {
    "slots": [
@@ -123,7 +170,15 @@
     "lowN",
     "lowF"
    ],
-   "override": {}
+   "override": {
+    "midF": {
+     "pos": [
+      47.0,
+      146.0
+     ],
+     "dir": -120.0
+    }
+   }
   }
  },
  "arms": {
@@ -148,5 +203,6 @@
   }
  },
  "behindBodyZ": 10.0,
- "bud": null
+ "bud": null,
+ "pass9": "art pass 9 weapon spread (tools/pass9/spread_apply.py): sprouted slot pos/dir re-laid out, far native arm overridden for 2..6 weapons, per-slot rest wrist offsets baked into body_track (slots[*].pass9 lists them). Same schema; no code change needed for the spread."
 }
