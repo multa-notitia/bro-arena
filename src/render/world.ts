@@ -124,16 +124,25 @@ function blit(
 
 let rimBake: HTMLCanvasElement | null = null
 let rimBakeCtx: CanvasRenderingContext2D | null = null
+let rimRing: HTMLCanvasElement | null = null
+let rimRingCtx: CanvasRenderingContext2D | null = null
 const RIM_BAKE = 384
 
-function rimLayer(): CanvasRenderingContext2D | null {
+function ensureRimCanvases(): { body: CanvasRenderingContext2D; ring: CanvasRenderingContext2D } | null {
   if (!rimBake) {
     rimBake = document.createElement('canvas')
     rimBake.width = RIM_BAKE
     rimBake.height = RIM_BAKE
     rimBakeCtx = rimBake.getContext('2d')
   }
-  return rimBakeCtx
+  if (!rimRing) {
+    rimRing = document.createElement('canvas')
+    rimRing.width = RIM_BAKE
+    rimRing.height = RIM_BAKE
+    rimRingCtx = rimRing.getContext('2d')
+  }
+  if (!rimBakeCtx || !rimRingCtx) return null
+  return { body: rimBakeCtx, ring: rimRingCtx }
 }
 
 /** Tight cream outline: dilate sprite alpha, no blur. */
@@ -143,12 +152,14 @@ function paintWithRim(
   originY: number,
   paint: (c: CanvasRenderingContext2D) => void,
 ): void {
-  const g = rimLayer()
+  const layers = ensureRimCanvases()
   const bake = rimBake
-  if (!g || !bake) {
+  const ring = rimRing
+  if (!layers || !bake || !ring) {
     paint(ctx)
     return
   }
+  const { body: g, ring: rg } = layers
   const m = ctx.getTransform()
   const zoom = (Math.hypot(m.a, m.b) + Math.hypot(m.c, m.d)) * 0.5 || 1
   const o = CHAOS.read.heroRimPx * zoom
@@ -170,17 +181,24 @@ function paintWithRim(
   g.fillRect(0, 0, RIM_BAKE, RIM_BAKE)
   g.globalCompositeOperation = 'source-over'
 
+  rg.setTransform(1, 0, 0, 1, 0, 0)
+  rg.clearRect(0, 0, RIM_BAKE, RIM_BAKE)
+  const steps = 8
+  for (let i = 0; i < steps; i++) {
+    const a = (i / steps) * TAU
+    rg.drawImage(bake, Math.cos(a) * o, Math.sin(a) * o)
+  }
+  rg.globalCompositeOperation = 'destination-out'
+  rg.drawImage(bake, 0, 0)
+  rg.globalCompositeOperation = 'source-over'
+
   const sx = m.a * originX + m.c * originY + m.e
   const sy = m.b * originX + m.d * originY + m.f
   ctx.save()
   ctx.setTransform(1, 0, 0, 1, 0, 0)
   ctx.imageSmoothingEnabled = false
   ctx.globalAlpha *= CHAOS.read.heroRimAlpha
-  const steps = 8
-  for (let i = 0; i < steps; i++) {
-    const a = (i / steps) * TAU
-    ctx.drawImage(bake, sx - mid + Math.cos(a) * o, sy - mid + Math.sin(a) * o)
-  }
+  ctx.drawImage(ring, sx - mid, sy - mid)
   ctx.restore()
   paint(ctx)
 }
