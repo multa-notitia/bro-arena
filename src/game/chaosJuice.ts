@@ -9,8 +9,8 @@ import type { SimCtx } from './world.ts'
 
 export function juiceFamilyOf(enemy: Enemy): JuiceFamily {
   const fam = enemyFamily(enemy.kind)
-  if (fam === 'tomato' || fam === 'beetle' || fam === 'crab') return 'red'
-  if (fam === 'charger') return 'orange'
+  if (fam === 'tomato' || fam === 'beetle' || fam === 'crab' || fam === 'beetroot') return 'red'
+  if (fam === 'charger' || fam === 'onion') return 'orange'
   if (enemy.kind.endsWith('-mud') || enemy.form === 'nightmare') return enemy.def.juiceFamily ?? 'mud'
   return enemy.def.juiceFamily ?? 'green'
 }

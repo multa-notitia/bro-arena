@@ -58,6 +58,13 @@ export const CHAOS = {
       lord: 52,
       beetle: 76,
       shroom: 44,
+      beetroot: 60,
+      beetrootMud: 50,
+      onion: 90,
+      onionMud: 80,
+      onionPeeled: 100,
+      pea: 105,
+      peaMud: 95,
     } as Record<string, number>,
     /** Brotato wave lengths: +5s through wave 8, 60s mid, 90s finale. */
     waveSeconds: [20, 25, 30, 35, 40, 45, 50, 55, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 90] as const,
@@ -250,6 +257,29 @@ export const CHAOS = {
       tomato: ['enemy-tomato'],
       bean: ['enemy-bean'],
     } as Record<string, string[]>,
+  },
+
+  families: {
+    beetroot: {
+      underSpeed: 150,
+      warn: 0.6,
+      range: 150,
+      interval: [4, 6] as const,
+      hitPad: 12,
+    },
+    onion: {
+      peelAt: 0.5,
+      gasR: 30,
+      gasLife: 1.5,
+      slow: 0.75,
+      mudTick: 1,
+    },
+    pea: {
+      keep: 135,
+      spit: 200,
+      bushFade: 0.4,
+      cooldown: [1.6, 2.2] as const,
+    },
   },
 } as const
 

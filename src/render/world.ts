@@ -2,6 +2,13 @@ import { TAU, clamp, dist, ease, hashNoise, lerp } from '../core/math.ts'
 import { CHAOS, fxOn } from '../data/chaos.ts'
 import { comboCount, corpseClipName, deathClipName } from '../game/chaosJuice.ts'
 import { vineOf } from '../game/emerge.ts'
+import {
+  drawFamilyGround,
+  drawGasClouds,
+  drawGasOverlay,
+  familyClip,
+  familyHidden,
+} from '../game/families.ts'
 import { hopHeight, isLeaping } from '../game/leap.ts'
 import { cameraShakeOffset, FEEL } from '../feel.ts'
 import type {
@@ -394,6 +401,16 @@ function drawTrail(ctx: CanvasRenderingContext2D, p: Projectile): void {
 
 function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile, cache: SpriteCache): void {
   drawTrail(ctx, p)
+  if (p.sheetClip) {
+    const sheet = sheetById(p.sheetClip.sheet) ?? resolveSheet([p.sheetClip.sheet])
+    if (sheet) {
+      ctx.save()
+      ctx.translate(p.x, p.y)
+      drawNamedClip(ctx, sheet, `shot:${p.uid}`, p.sheetClip.clip, 0, { scale: 0.18, alpha: 1 })
+      ctx.restore()
+      return
+    }
+  }
   const spr = projectileSprite(cache, p.def.paint, qScale)
   ctx.save()
   ctx.translate(p.x, p.y)
@@ -590,7 +607,7 @@ function drawEnemy(
     const deathName = corpseClipName(e) ?? (e.corpse && sheet.manifest.clips[e.corpse] ? e.corpse : deathClipName(e))
     const leaping = isLeaping(e) && hasClip(sheet, 'leap')
     const screaming = e.state === 'screaming' && hasClip(sheet, 'scream')
-    const clip = dyingSheet && deathName && sheet.manifest.clips[deathName]
+    const clipRaw = dyingSheet && deathName && sheet.manifest.clips[deathName]
       ? deathName
       : emerging
         ? 'emerge'
@@ -604,6 +621,7 @@ function drawEnemy(
                   attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
                   hurt: !dyingSheet && actorClipActive(playKey, 'hurt'),
                 })
+    const clip = familyClip(e, clipRaw)
     const squash = clamp(e.anim.squash || 1, 0.45, 1.8)
     ctx.globalAlpha = appear * (1 - (deathName && dyingSheet ? 0 : death))
     ctx.scale(squash, 1 / squash)
@@ -1229,7 +1247,10 @@ export function drawWorld(
       if (m) drawMarker(ctx, m, cache, world.time)
     } else if (c.kind === 3) {
       const e = world.enemies[c.idx]
-      if (e) drawEnemy(ctx, e, cache, world.time)
+      if (e) {
+        drawFamilyGround(ctx, e, world.time)
+        if (!familyHidden(e)) drawEnemy(ctx, e, cache, world.time)
+      }
     } else if (c.kind === 4 && !playerDrawn) {
       playerDrawn = true
       const hero = world.player
@@ -1261,6 +1282,7 @@ export function drawWorld(
     if (p) drawProjectile(ctx, p, cache)
   }
 
+  drawGasClouds(ctx, dt)
   tickChaosFx(dt)
   drawFunnyBursts(ctx, dt, world.player, 'far')
   fx.drawWorld(ctx, world.player, 'far')
@@ -1270,6 +1292,7 @@ export function drawWorld(
   drawComboHud(ctx, cssW, cssH, comboCount())
   drawOffscreen(ctx, world, cssW, cssH)
   vignette(ctx, cssW, cssH, night ? 0.72 : 0.4)
+  drawGasOverlay(ctx, cssW, cssH)
   ctx.restore()
   } finally {
     restorePoses()

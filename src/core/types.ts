@@ -193,6 +193,7 @@ export type ProjectilePaint =
   | 'spit'
   | 'spore'
   | 'orb'
+  | 'pea'
 
 /** Enemy silhouettes are vegetable species. */
 export type EnemyPaint = Species
@@ -400,6 +401,12 @@ export type EnemyKind =
   | 'tomato-mud'
   | 'bean-light'
   | 'bean-mud'
+  | 'beetroot-light'
+  | 'beetroot-mud'
+  | 'onion-light'
+  | 'onion-mud'
+  | 'pea-light'
+  | 'pea-mud'
 
 export interface BossPhase {
   /** Phase active while hp fraction is above this value. */
@@ -590,6 +597,9 @@ export type EnemyState =
   | 'recover'
   | 'screaming'
   | 'dying'
+  | 'burrowing'
+  | 'resurfacing'
+  | 'peeling'
 
 export interface Enemy extends Vec {
   /** Pose at the previous sim step. The renderer blends toward x/y. */
@@ -651,6 +661,8 @@ export interface Projectile extends Vec {
   weaponUid: number
   /** Homing strength copied from def for convenience. */
   homing: number
+  /** Authored projectile cell, e.g. the pea spit clip. */
+  sheetClip?: { sheet: string; clip: string }
 }
 
 export type PickupType = 'material' | 'materialBig' | 'fruit' | 'chest' | 'seed'

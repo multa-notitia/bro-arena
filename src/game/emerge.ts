@@ -1,5 +1,6 @@
 import { CHAOS, chaosOn, fxOn } from '../data/chaos.ts'
 import type { Enemy } from '../core/types.ts'
+import { familyUntargetable, markPeaBush } from './families.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
 import { hasClip, resolveEnemySheet } from '../render/chaosSheets.ts'
 import { actorClipDone, actorClipFraction, clipHasEvent, restartActorClip } from '../render/sheets.ts'
@@ -15,6 +16,7 @@ export function resetEmerge(): void {
 
 export function collisionOn(e: Enemy): boolean {
   if (e.state === 'dying') return false
+  if (familyUntargetable(e)) return false
   if (e.state !== 'spawning') return true
   return ready.has(e)
 }
@@ -30,6 +32,7 @@ export function beginEmerge(e: Enemy): void {
   }
   const sheet = resolveEnemySheet(e.kind, e.form)
   if (hasClip(sheet, 'emerge')) restartActorClip(`e:${e.uid}`, 'emerge')
+  markPeaBush(e)
   if (e.kind === 'tomato' && e.form !== 'nightmare' && hasClip(sheet, 'prop_vine')) {
     vines.set(e, { x: e.x, y: e.y, alpha: 1 })
   }

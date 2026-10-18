@@ -1,6 +1,7 @@
 import { clamp, damp, ease, uid, wrapAngle } from '../core/math.ts'
 import { FEEL } from '../feel.ts'
 import { CHAOS, walkPlaybackRate } from '../data/chaos.ts'
+import { playerGasSlow } from './families.ts'
 import type {
   AnimState,
   CharacterDef,
@@ -372,7 +373,7 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
   player.invuln = Math.max(0, player.invuln - dt)
   anim.hitFlash = Math.max(0, anim.hitFlash - dt * 4)
 
-  const maxSpeed = CHAOS.pace.playerSpeed * (1 + player.stats.speed / 100)
+  const maxSpeed = CHAOS.pace.playerSpeed * (1 + player.stats.speed / 100) * playerGasSlow()
   const mag = Math.hypot(move.x, move.y)
   if (mag > 0.08) {
     const nx = move.x / mag

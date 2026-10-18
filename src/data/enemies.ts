@@ -9,6 +9,15 @@ const SPIT: ProjectileDef = {
   paint: 'spit',
 }
 
+const PEA_SHOT: ProjectileDef = {
+  speed: 200,
+  radius: 5,
+  life: 1.6,
+  pierce: 0,
+  trail: 'none',
+  paint: 'pea',
+}
+
 const SPORE: ProjectileDef = {
   speed: 185,
   radius: 7,
@@ -480,6 +489,71 @@ const BEAN: EnemyDef = {
   damageScale: 0.06,
 }
 
+const BEETROOT: EnemyDef = {
+  kind: 'beetroot-light',
+  name: 'Beetroot',
+  species: 'beet',
+  nightmareName: 'Mud Beetroot',
+  form: 'normal',
+  screamInterval: 8,
+  rank: 'basic',
+  hp: 32,
+  speed: 60,
+  damage: 2,
+  radius: 19,
+  materials: 2,
+  behavior: { type: 'chase' },
+  palette: beet,
+  paint: 'beet',
+  knockbackResist: 0.35,
+  hpScale: 0.16,
+  damageScale: 0.07,
+  juiceColor: beet.body,
+}
+
+const ONION: EnemyDef = {
+  kind: 'onion-light',
+  name: 'Onion',
+  species: 'onion',
+  nightmareName: 'Mud Onion',
+  form: 'normal',
+  screamInterval: 8,
+  rank: 'basic',
+  hp: 16,
+  speed: 90,
+  damage: 1,
+  radius: 15,
+  materials: 1,
+  behavior: { type: 'chase' },
+  palette: veg('#d8c46a', '#8a7a32', '#f0e8c4', '#ffe28a', '#3a3010', '#1c1408'),
+  paint: 'onion',
+  knockbackResist: 0.05,
+  hpScale: 0.14,
+  damageScale: 0.06,
+}
+
+const PEA_SPROUT: EnemyDef = {
+  kind: 'pea-light',
+  name: 'Pea Sprout',
+  species: 'pea',
+  nightmareName: 'Mud Pea Sprout',
+  form: 'normal',
+  screamInterval: 8,
+  rank: 'basic',
+  hp: 8,
+  speed: 105,
+  damage: 1,
+  radius: 14,
+  materials: 1,
+  behavior: { type: 'shoot', range: 220, cooldown: 1.8, projectile: PEA_SHOT, keepDistance: 135 },
+  palette: pea,
+  paint: 'pea',
+  knockbackResist: 0,
+  hpScale: 0.14,
+  damageScale: 0.06,
+  leap: { range: 200, cooldown: 2.1, height: 21, duration: 0.9 },
+}
+
 const SHROOM: EnemyDef = {
   kind: 'shroom-light',
   name: 'Toadstool',
@@ -517,6 +591,12 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   'tomato-mud': variant(TOMATO, 'tomato-mud', 'mud', 17, 'Mud Tomato'),
   'bean-light': BEAN,
   'bean-mud': variant(BEAN, 'bean-mud', 'mud', 19, 'Mud Bean'),
+  'beetroot-light': BEETROOT,
+  'beetroot-mud': { ...variant(BEETROOT, 'beetroot-mud', 'mud', 23, 'Mud Beetroot'), speed: 50 },
+  'onion-light': ONION,
+  'onion-mud': { ...variant(ONION, 'onion-mud', 'mud', 18, 'Mud Onion'), speed: 80 },
+  'pea-light': PEA_SPROUT,
+  'pea-mud': { ...variant(PEA_SPROUT, 'pea-mud', 'mud', 17, 'Mud Pea Sprout'), speed: 95 },
 }
 
 const SLICE_WEAPONS = new Set<WeaponId>(['knife', 'sword', 'scythe'])

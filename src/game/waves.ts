@@ -11,6 +11,7 @@ import { resetForWave } from './world.ts'
 import type { SimCtx } from './world.ts'
 import { chaosBatch, chaosInterval, onHorde, resetChaosDirector, tickChaosDirector } from './chaosDirector.ts'
 import { resetEmerge } from './emerge.ts'
+import { resetFamilies } from './families.ts'
 import { telegraphLife } from '../data/chaos.ts'
 
 const MARKER_LIFE = 1
@@ -141,6 +142,7 @@ export function beginWave(world: World, ctx: SimCtx, index: number): void {
   resetEnemyRuntime()
   resetChaosDirector()
   resetEmerge()
+  resetFamilies()
   director = makeDirector(world)
   placeTrees(world, ctx)
   for (const w of world.player.weapons) {

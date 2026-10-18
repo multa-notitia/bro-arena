@@ -74,27 +74,35 @@ const LATE: Pool = [
   ...mix('tomato-light', 'tomato-mud', 16),
 ]
 
+const BEETROOTS = mix('beetroot-light', 'beetroot-mud', 16)
+const ONIONS = mix('onion-light', 'onion-mud', 16)
+const PEAS = mix('pea-light', 'pea-mud', 16)
+
+function withPack(base: Pool, extra: Pool): Pool {
+  return [...base, ...extra]
+}
+
 export const WAVES: WaveDef[] = [
   w(1, EARLY),
   w(2, EARLY),
-  w(3, MID),
-  w(4, MID),
-  w(5, MID),
-  w(6, MID),
-  w(7, MID),
-  w(8, LATE),
-  w(9, LATE),
-  w(10, LATE, { boss: 'eliteBlob' }),
-  w(11, LATE),
-  w(12, LATE),
-  w(13, LATE),
-  w(14, LATE),
-  w(15, LATE),
-  w(16, LATE),
-  w(17, LATE),
-  w(18, LATE),
-  w(19, LATE),
-  w(20, LATE, { boss: 'eliteBlob' }),
+  w(3, withPack(MID, [...BEETROOTS, ...PEAS])),
+  w(4, withPack(MID, [...ONIONS, ...PEAS])),
+  w(5, withPack(MID, [...BEETROOTS, ...ONIONS])),
+  w(6, withPack(MID, [...BEETROOTS, ...ONIONS, ...PEAS])),
+  w(7, withPack(MID, [...ONIONS, ...PEAS])),
+  w(8, withPack(LATE, [...BEETROOTS, ...PEAS])),
+  w(9, withPack(LATE, [...ONIONS, ...BEETROOTS])),
+  w(10, withPack(LATE, [...PEAS, ...ONIONS]), { boss: 'eliteBlob' }),
+  w(11, withPack(LATE, [...BEETROOTS, ...ONIONS, ...PEAS])),
+  w(12, withPack(LATE, [...BEETROOTS, ...PEAS])),
+  w(13, withPack(LATE, [...ONIONS, ...PEAS])),
+  w(14, withPack(LATE, [...BEETROOTS, ...ONIONS])),
+  w(15, withPack(LATE, [...BEETROOTS, ...ONIONS, ...PEAS])),
+  w(16, withPack(LATE, [...PEAS, ...ONIONS])),
+  w(17, withPack(LATE, [...BEETROOTS, ...PEAS])),
+  w(18, withPack(LATE, [...ONIONS, ...BEETROOTS])),
+  w(19, withPack(LATE, [...PEAS, ...BEETROOTS])),
+  w(20, withPack(LATE, [...BEETROOTS, ...ONIONS, ...PEAS]), { boss: 'eliteBlob' }),
 ]
 
 export const WAVE_COUNT = WAVES.length

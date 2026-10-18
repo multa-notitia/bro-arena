@@ -1,0 +1,290 @@
+{
+ "image": "enemy-pea-mud.webp",
+ "frameWidth": 204,
+ "frameHeight": 227,
+ "columns": 10,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.7341
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 110 },
+    { "i": 1, "ms": 110 },
+    { "i": 2, "ms": 110 },
+    { "i": 3, "ms": 110 },
+    { "i": 4, "ms": 110 },
+    { "i": 5, "ms": 110 },
+    { "i": 6, "ms": 110 },
+    { "i": 7, "ms": 110 },
+    { "i": 8, "ms": 110 },
+    { "i": 9, "ms": 110 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 10, "ms": 64 },
+    { "i": 11, "ms": 64 },
+    { "i": 12, "ms": 64 },
+    { "i": 13, "ms": 64 },
+    { "i": 14, "ms": 64 },
+    { "i": 15, "ms": 64 },
+    { "i": 16, "ms": 64 },
+    { "i": 17, "ms": 64 },
+    { "i": 18, "ms": 64 },
+    { "i": 19, "ms": 64 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 20, "ms": 40, "event": "hurt" },
+    { "i": 21, "ms": 60 },
+    { "i": 22, "ms": 80 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 23, "ms": 80 },
+    { "i": 24, "ms": 80 },
+    { "i": 25, "ms": 80 },
+    { "i": 26, "ms": 60, "events": [ "release", "spawnFx" ] },
+    { "i": 27, "ms": 70 },
+    { "i": 28, "ms": 70 },
+    { "i": 29, "ms": 70 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 30, "ms": 60 },
+    { "i": 31, "ms": 70 },
+    { "i": 32, "ms": 45, "event": "spawnFx" },
+    { "i": 33, "ms": 50 },
+    { "i": 34, "ms": 55 },
+    { "i": 35, "ms": 65 },
+    { "i": 36, "ms": 75 },
+    { "i": 37, "ms": 85 },
+    { "i": 38, "ms": 950 }
+   ]
+  },
+  "scream": {
+   "loop": false,
+   "frames": [
+    { "i": 39, "ms": 120 },
+    { "i": 40, "ms": 100 },
+    { "i": 41, "ms": 60, "event": "scream" },
+    { "i": 42, "ms": 70 },
+    { "i": 43, "ms": 70 },
+    { "i": 44, "ms": 70 },
+    { "i": 45, "ms": 70 },
+    { "i": 46, "ms": 70 },
+    { "i": 47, "ms": 70 },
+    { "i": 48, "ms": 80 },
+    { "i": 49, "ms": 70 }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    { "i": 50, "ms": 45 },
+    { "i": 51, "ms": 55, "event": "spawnFx" },
+    { "i": 52, "ms": 60 },
+    { "i": 53, "ms": 65 },
+    { "i": 54, "ms": 70 },
+    { "i": 55, "ms": 75 },
+    { "i": 56, "ms": 950 }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    { "i": 57, "ms": 40 },
+    { "i": 58, "ms": 50 },
+    { "i": 59, "ms": 50, "event": "spawnFx" },
+    { "i": 60, "ms": 55 },
+    { "i": 61, "ms": 65 },
+    { "i": 62, "ms": 75 },
+    { "i": 63, "ms": 85 },
+    { "i": 64, "ms": 950 }
+   ]
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    { "i": 65, "ms": 100 },
+    { "i": 66, "ms": 90 },
+    { "i": 67, "ms": 80 },
+    { "i": 68, "ms": 60, "event": "emerge_fx" },
+    { "i": 69, "ms": 70 },
+    { "i": 70, "ms": 70 },
+    { "i": 71, "ms": 60 },
+    { "i": 72, "ms": 80 },
+    { "i": 73, "ms": 70 },
+    { "i": 74, "ms": 70 },
+    { "i": 75, "ms": 80, "event": "emerged" }
+   ]
+  },
+  "leap": {
+   "loop": false,
+   "frames": [
+    { "i": 76, "ms": 110 },
+    { "i": 77, "ms": 100 },
+    { "i": 78, "ms": 60, "event": "takeoff" },
+    { "i": 79, "ms": 70 },
+    { "i": 80, "ms": 80 },
+    { "i": 81, "ms": 80 },
+    { "i": 82, "ms": 70 },
+    { "i": 83, "ms": 60 },
+    { "i": 77, "ms": 80, "event": "land" },
+    { "i": 73, "ms": 70 },
+    { "i": 74, "ms": 60 },
+    { "i": 75, "ms": 60 }
+   ]
+  },
+  "pea": {
+   "loop": true,
+   "frames": [
+    { "i": 84, "ms": 60 },
+    { "i": 85, "ms": 60 },
+    { "i": 86, "ms": 60 }
+   ]
+  },
+  "prop_bush": {
+   "loop": false,
+   "frames": [
+    { "i": 87, "ms": 1000 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Mud pea (scary): leaps from a thorn bush, leap (takeoff/land), HARD-snap scream, slime-pea spit; nfvar layers",
+  "source": "derived_mud.png",
+  "cells": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "idle6",
+   "idle7",
+   "idle8",
+   "idle9",
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "walk8",
+   "walk9",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "attack4",
+   "attack5",
+   "attack6",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4",
+   "death5",
+   "death6",
+   "death7",
+   "death8",
+   "scream0",
+   "scream1",
+   "scream2",
+   "scream3",
+   "scream4",
+   "scream5",
+   "scream6",
+   "scream7",
+   "scream8",
+   "scream9",
+   "scream10",
+   "death_slice0",
+   "death_slice1",
+   "death_slice2",
+   "death_slice3",
+   "death_slice4",
+   "death_slice5",
+   "death_slice6",
+   "death_smash0",
+   "death_smash1",
+   "death_smash2",
+   "death_smash3",
+   "death_smash4",
+   "death_smash5",
+   "death_smash6",
+   "death_smash7",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "emerge3",
+   "emerge4",
+   "emerge5",
+   "emerge6",
+   "emerge7",
+   "emerge8",
+   "emerge9",
+   "emerge10",
+   "leap0",
+   "leap1",
+   "leap2",
+   "leap3",
+   "leap4",
+   "leap5",
+   "leap6",
+   "leap7",
+   "pea0",
+   "pea1",
+   "pea2",
+   "prop_bush0"
+  ],
+  "feetY": 208.68,
+  "gameRadius": 17,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-pea-mud/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-pea-mud.png",
+  "airOffsetY": {
+   "leap": [
+    0,
+    0,
+    -3,
+    -11,
+    -17,
+    -18,
+    -14,
+    -6,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "faces": "+x (three-quarter right; mirror when moving left)",
+  "cellCrop": {
+   "from": [
+    288,
+    288
+   ],
+   "x0": 42,
+   "y0": 39,
+   "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
+  }
+ }
+}

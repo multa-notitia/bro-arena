@@ -1,0 +1,323 @@
+{
+ "image": "enemy-onion-light.webp",
+ "frameWidth": 186,
+ "frameHeight": 204,
+ "columns": 11,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.76
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 90 },
+    { "i": 1, "ms": 90 },
+    { "i": 2, "ms": 90 },
+    { "i": 3, "ms": 90 },
+    { "i": 4, "ms": 90 },
+    { "i": 5, "ms": 90 },
+    { "i": 6, "ms": 90 },
+    { "i": 7, "ms": 90 },
+    { "i": 8, "ms": 90 },
+    { "i": 9, "ms": 90 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 10, "ms": 47 },
+    { "i": 11, "ms": 47 },
+    { "i": 12, "ms": 47 },
+    { "i": 13, "ms": 47 },
+    { "i": 14, "ms": 47 },
+    { "i": 15, "ms": 47 },
+    { "i": 16, "ms": 47 },
+    { "i": 17, "ms": 47 },
+    { "i": 18, "ms": 46 },
+    { "i": 19, "ms": 46 },
+    { "i": 20, "ms": 46 },
+    { "i": 21, "ms": 46 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 22, "ms": 40, "event": "hurt" },
+    { "i": 23, "ms": 60 },
+    { "i": 24, "ms": 80 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 25, "ms": 90 },
+    { "i": 26, "ms": 70 },
+    { "i": 27, "ms": 70 },
+    { "i": 28, "ms": 60 },
+    { "i": 29, "ms": 60, "events": [ "release", "spawnFx" ] },
+    { "i": 30, "ms": 70 },
+    { "i": 31, "ms": 80 },
+    { "i": 32, "ms": 90 },
+    { "i": 33, "ms": 60 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 34, "ms": 60 },
+    { "i": 35, "ms": 70 },
+    { "i": 36, "ms": 45, "events": [ "spawnFx", "gas" ] },
+    { "i": 37, "ms": 50 },
+    { "i": 38, "ms": 55 },
+    { "i": 39, "ms": 65 },
+    { "i": 40, "ms": 75 },
+    { "i": 41, "ms": 85 },
+    { "i": 42, "ms": 950 }
+   ]
+  },
+  "taunt": {
+   "loop": false,
+   "frames": [
+    { "i": 43, "ms": 35 },
+    { "i": 44, "ms": 35 },
+    { "i": 45, "ms": 40 },
+    { "i": 46, "ms": 40 },
+    { "i": 47, "ms": 30 },
+    { "i": 48, "ms": 30 },
+    { "i": 49, "ms": 30 },
+    { "i": 50, "ms": 30 },
+    { "i": 51, "ms": 30 },
+    { "i": 52, "ms": 30 },
+    { "i": 53, "ms": 70 }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    { "i": 54, "ms": 45 },
+    { "i": 55, "ms": 55, "events": [ "spawnFx", "gas" ] },
+    { "i": 56, "ms": 60 },
+    { "i": 57, "ms": 65 },
+    { "i": 58, "ms": 70 },
+    { "i": 59, "ms": 75 },
+    { "i": 60, "ms": 950 }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    { "i": 61, "ms": 40 },
+    { "i": 62, "ms": 50 },
+    { "i": 63, "ms": 50, "events": [ "spawnFx", "gas" ] },
+    { "i": 64, "ms": 55 },
+    { "i": 65, "ms": 65 },
+    { "i": 66, "ms": 75 },
+    { "i": 67, "ms": 85 },
+    { "i": 68, "ms": 950 }
+   ]
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    { "i": 69, "ms": 100, "event": "emerge_fx" },
+    { "i": 70, "ms": 80 },
+    { "i": 71, "ms": 70 },
+    { "i": 72, "ms": 60 },
+    { "i": 73, "ms": 60 },
+    { "i": 74, "ms": 60 },
+    { "i": 75, "ms": 70 },
+    { "i": 76, "ms": 70 },
+    { "i": 77, "ms": 80, "event": "emerged" }
+   ]
+  },
+  "peel": {
+   "loop": false,
+   "frames": [
+    { "i": 78, "ms": 80 },
+    { "i": 79, "ms": 70 },
+    { "i": 80, "ms": 60, "event": "peel" },
+    { "i": 81, "ms": 60 },
+    { "i": 82, "ms": 70 },
+    { "i": 83, "ms": 80 },
+    { "i": 84, "ms": 80 }
+   ]
+  },
+  "idle_peeled": {
+   "loop": true,
+   "frames": [
+    { "i": 85, "ms": 127 },
+    { "i": 86, "ms": 127 },
+    { "i": 87, "ms": 127 },
+    { "i": 88, "ms": 127 },
+    { "i": 89, "ms": 126 },
+    { "i": 90, "ms": 126 }
+   ]
+  },
+  "walk_peeled": {
+   "loop": true,
+   "frames": [
+    { "i": 91, "ms": 65 },
+    { "i": 92, "ms": 65 },
+    { "i": 93, "ms": 65 },
+    { "i": 94, "ms": 65 },
+    { "i": 95, "ms": 65 },
+    { "i": 96, "ms": 65 },
+    { "i": 97, "ms": 65 },
+    { "i": 98, "ms": 65 }
+   ]
+  },
+  "hurt_peeled": {
+   "loop": false,
+   "frames": [
+    { "i": 99, "ms": 40, "event": "hurt" },
+    { "i": 100, "ms": 60 },
+    { "i": 101, "ms": 80 }
+   ]
+  },
+  "gas_cloud": {
+   "loop": false,
+   "frames": [
+    { "i": 102, "ms": 80 },
+    { "i": 103, "ms": 90 },
+    { "i": 104, "ms": 110 },
+    { "i": 105, "ms": 140 },
+    { "i": 106, "ms": 180 },
+    { "i": 107, "ms": 220 },
+    { "i": 108, "ms": 260 },
+    { "i": 109, "ms": 300 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Garden onion (light): peels a layer per hit, big peel at half hp, pops into a tear-gas cloud; nfvar layers",
+  "source": "derived_light.png",
+  "cells": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "idle6",
+   "idle7",
+   "idle8",
+   "idle9",
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "walk8",
+   "walk9",
+   "walk10",
+   "walk11",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "attack4",
+   "attack5",
+   "attack6",
+   "attack7",
+   "attack8",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4",
+   "death5",
+   "death6",
+   "death7",
+   "death8",
+   "taunt0",
+   "taunt1",
+   "taunt2",
+   "taunt3",
+   "taunt4",
+   "taunt5",
+   "taunt6",
+   "taunt7",
+   "taunt8",
+   "taunt9",
+   "taunt10",
+   "death_slice0",
+   "death_slice1",
+   "death_slice2",
+   "death_slice3",
+   "death_slice4",
+   "death_slice5",
+   "death_slice6",
+   "death_smash0",
+   "death_smash1",
+   "death_smash2",
+   "death_smash3",
+   "death_smash4",
+   "death_smash5",
+   "death_smash6",
+   "death_smash7",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "emerge3",
+   "emerge4",
+   "emerge5",
+   "emerge6",
+   "emerge7",
+   "emerge8",
+   "peel0",
+   "peel1",
+   "peel2",
+   "peel3",
+   "peel4",
+   "peel5",
+   "peel6",
+   "idle_peeled0",
+   "idle_peeled1",
+   "idle_peeled2",
+   "idle_peeled3",
+   "idle_peeled4",
+   "idle_peeled5",
+   "walk_peeled0",
+   "walk_peeled1",
+   "walk_peeled2",
+   "walk_peeled3",
+   "walk_peeled4",
+   "walk_peeled5",
+   "walk_peeled6",
+   "walk_peeled7",
+   "hurt_peeled0",
+   "hurt_peeled1",
+   "hurt_peeled2",
+   "gas_cloud0",
+   "gas_cloud1",
+   "gas_cloud2",
+   "gas_cloud3",
+   "gas_cloud4",
+   "gas_cloud5",
+   "gas_cloud6",
+   "gas_cloud7"
+  ],
+  "feetY": 192.16,
+  "gameRadius": 15,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-onion-light/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-onion-light.png",
+  "cellCrop": {
+   "from": [
+    256,
+    256
+   ],
+   "x0": 35,
+   "y0": 28,
+   "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
+  }
+ }
+}

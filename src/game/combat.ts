@@ -12,6 +12,7 @@ import {
   juiceOnKill,
   rememberDeathStyle,
 } from './chaosJuice.ts'
+import { familyUntargetable, maybePeel } from './families.ts'
 import { extraState, countSpecial, healPlayer } from './player.ts'
 import { spawnMaterial } from './pickups.ts'
 import type { SimCtx } from './world.ts'
@@ -50,6 +51,7 @@ export function dealDamageToEnemy(
 ): number {
   if (base <= 0) return 0
   if (enemy.state === 'dying' || enemy.state === 'spawning') return 0
+  if (familyUntargetable(enemy)) return 0
   if (enemy.hp <= 0) return 0
 
   const stats = world.player.stats
@@ -64,6 +66,7 @@ export function dealDamageToEnemy(
 
   dmg = Math.max(1, Math.round(dmg))
   enemy.hp -= dmg
+  if (enemy.hp > 0) maybePeel(enemy)
   world.player.damageDealt += dmg
   enemy.anim.hitFlash = 1
   kickHurtClip(`e:${enemy.uid}`)

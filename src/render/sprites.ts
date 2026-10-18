@@ -284,6 +284,9 @@ function paintProjectile(ctx: CanvasRenderingContext2D, paint: ProjectilePaint):
       ctx.globalAlpha = 1
       inkStroke(ctx, 0, 0, 8.4, 8.4, '#1c1428', { seed, width: 1, n: 8, close: 0.8 })
       break
+    case 'pea':
+      wash(ctx, 0, 0, 6, 6, '#7fae4a', { seed, shade: '#4f7a2a', n: 6, wobble: 0.2 })
+      break
     default: {
       const _never: never = paint
       void _never

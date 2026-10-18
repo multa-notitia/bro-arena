@@ -1,6 +1,6 @@
 import { dist, ease } from '../core/math.ts'
 import { CHAOS, chaosOn } from '../data/chaos.ts'
-import { enemyFamily } from '../data/enemies.ts'
+import { enemyFamily, variantTone } from '../data/enemies.ts'
 import type { Enemy, World } from '../core/types.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
 import { hasClip, resolveEnemySheet } from '../render/chaosSheets.ts'
@@ -51,13 +51,14 @@ function playKey(e: Enemy): string {
 
 function leapDef(e: Enemy): { range: number; cooldown: number; duration: number; dist: number } | null {
   if (!chaosOn() || !CHAOS.leap.enabled) return null
-  if (!e.def.leap && enemyFamily(e.kind) !== 'bean') return null
-  const mud = e.form === 'nightmare'
+  if (!e.def.leap && enemyFamily(e.kind) !== 'bean' && enemyFamily(e.kind) !== 'pea') return null
+  const mud = e.form === 'nightmare' || variantTone(e.kind) === 'mud'
+  const pea = enemyFamily(e.kind) === 'pea'
   return {
     range: e.def.leap?.range ?? 190,
     cooldown: e.def.leap?.cooldown ?? CHAOS.leap.cooldown[0],
-    duration: e.def.leap?.duration ?? CHAOS.leap.flight,
-    dist: mud ? CHAOS.leap.mudDist : CHAOS.leap.lightDist,
+    duration: e.def.leap?.duration ?? (pea ? 0.9 : CHAOS.leap.flight),
+    dist: pea ? (mud ? 52 : 65) : mud ? CHAOS.leap.mudDist : CHAOS.leap.lightDist,
   }
 }
 
@@ -67,8 +68,10 @@ export function beginLeap(world: World, e: Enemy, ctx: SimCtx): boolean {
   const p = world.player
   const d = dist(e.x, e.y, p.x, p.y)
   if (d < 36 || d > def.range) return false
-  const ang = Math.atan2(p.y - e.y, p.x - e.x)
-  const reach = Math.min(def.dist, d * 0.92)
+  const keep = e.def.behavior.type === 'shoot' ? e.def.behavior.keepDistance : 0
+  const away = enemyFamily(e.kind) === 'pea' && keep > 0 && d < keep
+  const ang = away ? Math.atan2(e.y - p.y, e.x - p.x) : Math.atan2(p.y - e.y, p.x - e.x)
+  const reach = Math.min(def.dist, away ? def.dist : d * 0.92)
   const live: LeapLive = {
     airborne: false,
     playing: true,
@@ -160,7 +163,18 @@ export function maybeLeap(world: World, e: Enemy, dt: number, ctx: SimCtx): bool
   if (tickLeap(e, dt, ctx)) return true
   const def = leapDef(e)
   if (!def) return false
-  if (e.state === 'spawning' || e.state === 'dying' || e.state === 'screaming' || e.state === 'windup') return false
+  if (
+    e.state === 'spawning' ||
+    e.state === 'dying' ||
+    e.state === 'screaming' ||
+    e.state === 'windup' ||
+    e.state === 'shooting' ||
+    e.state === 'burrowing' ||
+    e.state === 'resurfacing' ||
+    e.state === 'peeling'
+  ) {
+    return false
+  }
   if (e.def.behavior.type === 'kamikaze') return false
   e.cooldown -= dt
   if (e.cooldown > 0) return false

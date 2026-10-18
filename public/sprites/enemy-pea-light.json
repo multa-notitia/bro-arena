@@ -1,0 +1,306 @@
+{
+ "image": "enemy-pea-light.webp",
+ "frameWidth": 186,
+ "frameHeight": 204,
+ "columns": 11,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.7713
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 69 },
+    { "i": 1, "ms": 69 },
+    { "i": 2, "ms": 69 },
+    { "i": 3, "ms": 69 },
+    { "i": 4, "ms": 68 },
+    { "i": 5, "ms": 68 },
+    { "i": 6, "ms": 68 },
+    { "i": 7, "ms": 68 },
+    { "i": 8, "ms": 68 },
+    { "i": 9, "ms": 68 },
+    { "i": 10, "ms": 68 },
+    { "i": 11, "ms": 68 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 12, "ms": 44 },
+    { "i": 13, "ms": 44 },
+    { "i": 14, "ms": 44 },
+    { "i": 15, "ms": 44 },
+    { "i": 16, "ms": 43 },
+    { "i": 17, "ms": 43 },
+    { "i": 18, "ms": 43 },
+    { "i": 19, "ms": 43 },
+    { "i": 20, "ms": 43 },
+    { "i": 21, "ms": 43 },
+    { "i": 22, "ms": 43 },
+    { "i": 23, "ms": 43 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 24, "ms": 40, "event": "hurt" },
+    { "i": 25, "ms": 60 },
+    { "i": 26, "ms": 80 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 27, "ms": 80 },
+    { "i": 28, "ms": 80 },
+    { "i": 29, "ms": 80 },
+    { "i": 30, "ms": 50, "events": [ "release", "spawnFx" ] },
+    { "i": 31, "ms": 60 },
+    { "i": 32, "ms": 70 },
+    { "i": 33, "ms": 70 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 34, "ms": 60 },
+    { "i": 35, "ms": 70 },
+    { "i": 36, "ms": 45, "event": "spawnFx" },
+    { "i": 37, "ms": 45 },
+    { "i": 38, "ms": 50 },
+    { "i": 39, "ms": 55 },
+    { "i": 40, "ms": 60 },
+    { "i": 41, "ms": 65 },
+    { "i": 42, "ms": 75 },
+    { "i": 43, "ms": 950 }
+   ]
+  },
+  "taunt": {
+   "loop": false,
+   "frames": [
+    { "i": 44, "ms": 35 },
+    { "i": 45, "ms": 35 },
+    { "i": 46, "ms": 40 },
+    { "i": 47, "ms": 40 },
+    { "i": 48, "ms": 30 },
+    { "i": 49, "ms": 30 },
+    { "i": 50, "ms": 30 },
+    { "i": 51, "ms": 30 },
+    { "i": 52, "ms": 30 },
+    { "i": 53, "ms": 30 },
+    { "i": 54, "ms": 70 }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    { "i": 55, "ms": 45 },
+    { "i": 56, "ms": 50, "event": "spawnFx" },
+    { "i": 57, "ms": 55 },
+    { "i": 58, "ms": 55 },
+    { "i": 59, "ms": 60 },
+    { "i": 60, "ms": 65 },
+    { "i": 61, "ms": 70 },
+    { "i": 62, "ms": 950 }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    { "i": 63, "ms": 40 },
+    { "i": 64, "ms": 50 },
+    { "i": 65, "ms": 50, "event": "spawnFx" },
+    { "i": 66, "ms": 50 },
+    { "i": 67, "ms": 55 },
+    { "i": 68, "ms": 60 },
+    { "i": 69, "ms": 65 },
+    { "i": 70, "ms": 70 },
+    { "i": 71, "ms": 950 }
+   ]
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    { "i": 72, "ms": 100 },
+    { "i": 73, "ms": 90 },
+    { "i": 74, "ms": 80 },
+    { "i": 75, "ms": 60, "event": "emerge_fx" },
+    { "i": 76, "ms": 70 },
+    { "i": 77, "ms": 70 },
+    { "i": 78, "ms": 60 },
+    { "i": 79, "ms": 80 },
+    { "i": 80, "ms": 70 },
+    { "i": 81, "ms": 70 },
+    { "i": 82, "ms": 80, "event": "emerged" }
+   ]
+  },
+  "leap": {
+   "loop": false,
+   "frames": [
+    { "i": 83, "ms": 110 },
+    { "i": 84, "ms": 100 },
+    { "i": 85, "ms": 60, "event": "takeoff" },
+    { "i": 86, "ms": 70 },
+    { "i": 87, "ms": 80 },
+    { "i": 88, "ms": 80 },
+    { "i": 89, "ms": 70 },
+    { "i": 90, "ms": 60 },
+    { "i": 79, "ms": 80, "event": "land" },
+    { "i": 91, "ms": 70 },
+    { "i": 92, "ms": 60 },
+    { "i": 82, "ms": 60 }
+   ]
+  },
+  "pea": {
+   "loop": true,
+   "frames": [
+    { "i": 93, "ms": 60 },
+    { "i": 94, "ms": 60 },
+    { "i": 95, "ms": 60 }
+   ]
+  },
+  "prop_bush": {
+   "loop": false,
+   "frames": [
+    { "i": 96, "ms": 1000 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Pea sprout (light): leaps from a pea bush, hop-walk, leap (takeoff/land), spits peas; nfvar layers",
+  "source": "derived_light.png",
+  "cells": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "idle6",
+   "idle7",
+   "idle8",
+   "idle9",
+   "idle10",
+   "idle11",
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "walk8",
+   "walk9",
+   "walk10",
+   "walk11",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "attack4",
+   "attack5",
+   "attack6",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4",
+   "death5",
+   "death6",
+   "death7",
+   "death8",
+   "death9",
+   "taunt0",
+   "taunt1",
+   "taunt2",
+   "taunt3",
+   "taunt4",
+   "taunt5",
+   "taunt6",
+   "taunt7",
+   "taunt8",
+   "taunt9",
+   "taunt10",
+   "death_slice0",
+   "death_slice1",
+   "death_slice2",
+   "death_slice3",
+   "death_slice4",
+   "death_slice5",
+   "death_slice6",
+   "death_slice7",
+   "death_smash0",
+   "death_smash1",
+   "death_smash2",
+   "death_smash3",
+   "death_smash4",
+   "death_smash5",
+   "death_smash6",
+   "death_smash7",
+   "death_smash8",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "emerge3",
+   "emerge4",
+   "emerge5",
+   "emerge6",
+   "emerge7",
+   "emerge8",
+   "emerge9",
+   "emerge10",
+   "leap0",
+   "leap1",
+   "leap2",
+   "leap3",
+   "leap4",
+   "leap5",
+   "leap6",
+   "leap7",
+   "leap9",
+   "leap10",
+   "pea0",
+   "pea1",
+   "pea2",
+   "prop_bush0"
+  ],
+  "feetY": 192.16,
+  "gameRadius": 14,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-pea-light/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-pea-light.png",
+  "airOffsetY": {
+   "leap": [
+    0,
+    0,
+    -3,
+    -12,
+    -19,
+    -21,
+    -16,
+    -7,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "faces": "+x (three-quarter right; mirror when moving left)",
+  "cellCrop": {
+   "from": [
+    256,
+    256
+   ],
+   "x0": 35,
+   "y0": 28,
+   "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
+  }
+ }
+}

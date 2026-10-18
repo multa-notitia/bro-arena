@@ -23,6 +23,16 @@ import {
   markKamikazeCorpse,
 } from './chaosJuice.ts'
 import { beginEmerge, collisionOn, emergeEvents, tickEmerge } from './emerge.ts'
+import {
+  familyClip,
+  consumeGasMudTick,
+  familyEvents,
+  familyHidden,
+  familyUntargetable,
+  takeFamilyHit,
+  tickFamily,
+  tickGas,
+} from './families.ts'
 import { isAirborne, isLeaping, leapEvents, maybeLeap } from './leap.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
 import {
@@ -152,8 +162,11 @@ export function spawnEnemy(
   let hp = enemyHpAtWave(def, world.wave)
   let damage = enemyDamageAtWave(def, world.wave)
   let r = def.radius
-  let speed = paceEnemySpeed(enemyFamily(kind), def.speed)
-  if (variantTone(kind) === 'mud') speed = Math.max(8, Math.round(speed * 0.9))
+    const famName = enemyFamily(kind)
+    let speed = paceEnemySpeed(famName, def.speed)
+    if (variantTone(kind) === 'mud') {
+      speed = CHAOS.pace.enemy[`${famName}Mud`] ?? Math.max(8, Math.round(speed * 0.9))
+    }
   const elite = def.rank === 'elite' || asElite
   const boss = def.rank === 'boss'
   if (asElite && def.rank === 'basic') {
@@ -371,6 +384,7 @@ function fireAtPlayer(world: World, e: Enemy, proj: ProjectileDef, ctx: SimCtx, 
     effects: [],
     knockback: 4,
     weaponUid: 0,
+    sheetClip: proj.paint === 'pea' ? { sheet: `enemy-${e.kind}`, clip: 'pea' } : undefined,
   })
   if (!silent) {
     ctx.render.fx.muzzleFlash(e.x + Math.cos(ang) * muzzle, e.y + Math.sin(ang) * muzzle, ang, e.def.palette.accent)
@@ -778,7 +792,7 @@ function sheetEvents(world: World, e: Enemy, clip: string, events: readonly stri
   }
   if (events.includes('hit') && !ex.attackFired) {
     const fam = enemyFamily(e.kind)
-    if ((fam === 'blob' || fam === 'beetle') && e.state === 'windup') {
+    if ((fam === 'blob' || fam === 'beetle' || fam === 'beetroot' || fam === 'onion') && e.state === 'windup') {
       ex.attackFired = true
       blobMelee(world, e, ctx)
     } else if (e.kind === 'eliteBlob' && e.state === 'windup') {
@@ -790,6 +804,10 @@ function sheetEvents(world: World, e: Enemy, clip: string, events: readonly stri
       ex.attackFired = true
       blobMelee(world, e, ctx)
     }
+  }
+  if (events.includes('release') && !ex.attackFired && enemyFamily(e.kind) === 'onion' && e.state === 'windup') {
+    ex.attackFired = true
+    blobMelee(world, e, ctx)
   }
   if (events.includes('emerge_fx') || events.includes('emerged')) emergeEvents(e, events, ctx)
   if (events.includes('takeoff') || events.includes('land')) leapEvents(e, events, ctx)
@@ -830,7 +848,7 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const leaping = isLeaping(e) && hasClip(sheet, 'leap')
   const screamingClip = e.state === 'screaming' && hasClip(sheet, 'scream')
   const performing = !dead && e.perform && sheet.manifest.clips[e.perform] ? e.perform : ''
-  const clip = dead
+  const clipRaw = dead
     ? corpseName && sheet.manifest.clips[corpseName]
       ? corpseName
       : null
@@ -853,6 +871,7 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
                     : sheet.manifest.clips.walk
                       ? 'walk'
                       : null
+  const clip = familyClip(e, clipRaw)
   // Hurt is painted on top, but the attack or scream clock keeps running.
   if (hurt && attacking && sheet.manifest.clips.attack && clip !== 'attack') {
     const ev = advanceActorSheet(enemyKey(e), sheet, 'attack', dt)
@@ -874,9 +893,19 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
     clip === 'emerge' ||
     clip === 'leap' ||
     clip === 'scream' ||
+    clip === 'burrow' ||
+    clip === 'resurface' ||
+    clip === 'peel' ||
     clip === e.perform
   ) {
     sheetEvents(world, e, clip, events, ctx)
+    familyEvents(world, e, clip, events, ctx)
+    if (takeFamilyHit(e)) {
+      const pad = CHAOS.families.beetroot.hitPad
+      if (dist(e.x, e.y, world.player.x, world.player.y) <= e.r + world.player.r + pad) {
+        damagePlayer(world, e.damage, ctx, e.form === 'nightmare' ? e.def.nightmareName : e.def.name, e)
+      }
+    }
   }
   if (e.perform && clip === e.perform && actorClipDone(enemyKey(e), e.perform)) e.perform = undefined
 }
@@ -885,6 +914,7 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const b = e.def.behavior
   const p = world.player
   const spd = currentSpeed(e)
+  if (tickFamily(world, e, dt, ctx)) return
   if (maybeLeap(world, e, dt, ctx)) return
 
   if (b.type === 'kamikaze') {
@@ -901,7 +931,7 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
       return
     }
     const fam = enemyFamily(e.kind)
-    if ((fam === 'blob' || fam === 'beetle') && enemySheet(e)?.manifest.clips.attack) {
+    if ((fam === 'blob' || fam === 'beetle' || fam === 'beetroot' || fam === 'onion') && enemySheet(e)?.manifest.clips.attack) {
       updateBlobMelee(world, e, dt, ctx)
       return
     }
@@ -1307,7 +1337,7 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     }
 
     const tone = variantTone(e.kind)
-    if (!e.perform && tone === 'mud' && !ex.sawHero && dist(e.x, e.y, player.x, player.y) < SEE_RANGE) {
+    if (!e.perform && tone === 'mud' && !ex.sawHero && dist(e.x, e.y, player.x, player.y) < SEE_RANGE && !familyUntargetable(e)) {
       ex.sawHero = true
       // charger-mud's attack clip already contains the scream. Don't play one in front of it.
       if (enemyFamily(e.kind) !== 'charger' && e.kind !== 'tomato' && e.kind !== 'bean') beginPerform(e, 'scream')
@@ -1341,8 +1371,13 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
       updateBehavior(world, e, dt, ctx)
     }
     if (enemySheet(e)) stepEnemySheet(world, e, dt, ctx)
-    e.x += (e.vx + e.knock.x) * dt
-    e.y += (e.vy + e.knock.y) * dt
+    if (familyHidden(e)) {
+      e.knock.x = 0
+      e.knock.y = 0
+    } else {
+      e.x += (e.vx + e.knock.x) * dt
+      e.y += (e.vy + e.knock.y) * dt
+    }
     const c = clampToArena(world, e.x, e.y, e.r)
     e.x = c.x
     e.y = c.y
@@ -1392,9 +1427,9 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     }
 
     const fam = enemyFamily(e.kind)
-    const sheetStrike = posed && (((fam === 'blob' || fam === 'beetle') && e.state === 'windup') || (e.kind === 'eliteBlob' && (e.state === 'windup' || e.state === 'recover')))
+    const sheetStrike = posed && (((fam === 'blob' || fam === 'beetle' || fam === 'beetroot' || fam === 'onion') && e.state === 'windup') || (e.kind === 'eliteBlob' && (e.state === 'windup' || e.state === 'recover')))
     const kamikazeWindup = e.def.behavior.type === 'kamikaze' && e.form !== 'nightmare' && e.state === 'windup'
-    if (!sheetStrike && !kamikazeWindup && player.hp > 0 && player.invuln <= 0 && collisionOn(e) && !isAirborne(e)) {
+    if (!sheetStrike && !kamikazeWindup && player.hp > 0 && player.invuln <= 0 && collisionOn(e) && !isAirborne(e) && !familyHidden(e)) {
       const rad = e.r + player.r
       if (dist2(e.x, e.y, player.x, player.y) <= rad * rad) {
         damagePlayer(world, e.damage, ctx, e.form === 'nightmare' ? e.def.nightmareName : e.def.name, e)
@@ -1409,6 +1444,8 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
   // uid back resurrected the corpse, and the fresh playhead was the cream
   // first cell of the death clip. Only actors spawned during this pass join.
   world.enemies = retainSpawned(roster, world.enemies, keep)
+  tickGas(world, dt)
+  if (consumeGasMudTick()) damagePlayer(world, CHAOS.families.onion.mudTick, ctx, 'toxic gas')
   separate(world)
 
   world.boss = null

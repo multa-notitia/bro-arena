@@ -16,6 +16,7 @@ export interface FireSpec {
   effects: StatusEffect[]
   knockback: number
   weaponUid: number
+  sheetClip?: { sheet: string; clip: string }
 }
 
 export function spawnProjectile(world: World, spec: FireSpec): Projectile {
@@ -42,6 +43,7 @@ export function spawnProjectile(world: World, spec: FireSpec): Projectile {
     hitUids: [],
     weaponUid: spec.weaponUid,
     homing: spec.def.homing ?? 0,
+    sheetClip: spec.sheetClip,
   }
   world.projectiles.push(p)
   return p
