@@ -634,6 +634,7 @@
    "tool": "tools/smash_v3/burst_old.py",
    "chunks": "death burst re-rendered: organic torn re-cut + painted torn chunks",
    "note": "clips/frames/ms/events unchanged; see tools/smash_v3/README.md"
-  }
+  },
+  "rimV2": "motion v2: soft light-directed amber rim (was a hard 2 px ring)"
  }
 }

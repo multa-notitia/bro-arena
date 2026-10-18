@@ -3,6 +3,7 @@ import { CHAOS, chaosJuiceOn, fxOn, type DeathStyle } from '../data/chaos.ts'
 import type { Enemy, JuiceFamily, World } from '../core/types.ts'
 import { addTrauma, juiceScale, requestHitStopMs } from '../feel.ts'
 import { spawnFunnyClip, spawnSplatDecal } from '../render/chaosFx.ts'
+import { noteEnemyHit } from '../render/hitMark.ts'
 import { pickDeathClip, resolveEnemySheet } from '../render/chaosSheets.ts'
 import { enemyFamily } from '../data/enemies.ts'
 import type { SimCtx } from './world.ts'
@@ -159,6 +160,7 @@ export function chainBurst(world: World, enemy: Enemy, ctx: SimCtx, sourceDamage
     if (dist2(enemy.x, enemy.y, other.x, other.y) > radius * radius) continue
     other.hp -= splash
     other.anim.hitFlash = 1
+    noteEnemyHit(other, color, Math.atan2(other.y - enemy.y, other.x - enemy.x))
     other.anim.squash = CHAOS.juice.squash
     other.knock.x += (other.x - enemy.x) * 0.35
     other.knock.y += (other.y - enemy.y) * 0.35

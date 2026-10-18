@@ -4,6 +4,7 @@ import type { DeathStyle } from '../data/chaos.ts'
 import { CHAOS, chaosJuiceOn, deathStyleForWeapon } from '../data/chaos.ts'
 import { corpseClipFor } from '../data/enemies.ts'
 import { addTrauma, flashStrength, requestHitStop } from '../feel.ts'
+import { noteEnemyHit } from '../render/hitMark.ts'
 import { kickHurtClip } from '../render/sheets.ts'
 import {
   chainBurst,
@@ -76,6 +77,8 @@ export function dealDamageToEnemy(
     opts.dirX ?? world.player.x - enemy.x,
     opts.dirY ?? world.player.y - enemy.y,
   )
+  const hitColor = opts.burnTick ? '#e07038' : (opts.color ?? enemy.def.palette.accent)
+  noteEnemyHit(enemy, hitColor, Math.atan2(dir.y, dir.x))
   // Knock away from the player unless a shot direction was given.
   const kx = opts.dirX !== undefined ? dir.x : -dir.x
   const ky = opts.dirY !== undefined ? dir.y : -dir.y

@@ -57,11 +57,11 @@ import { paperColor } from './paintLang.ts'
 import { drawMultiArm, multiArmSheet, potatoMultiArm } from './multiarm.ts'
 import { enemySpawnClip } from '../game/enemies.ts'
 import { presentRenderPoses } from '../game/world.ts'
+import { enemyHitMark } from './hitMark.ts'
 import {
   actorClipActive,
   actorFootprint,
   drawActorSheet,
-  drawCreamHurt,
   clipDrawScale,
   drawNamedClip,
   gardenGround,
@@ -447,7 +447,51 @@ function drawTrail(ctx: CanvasRenderingContext2D, p: Projectile): void {
   ctx.restore()
 }
 
+/** Pea pellet plus a short taper. Not the beige stroke and not the ink dots. */
+function drawSeedShot(ctx: CanvasRenderingContext2D, p: Projectile): void {
+  const lifeA = clamp(p.life / Math.max(0.05, p.maxLife), 0.55, 1)
+  const len = 13
+  ctx.save()
+  ctx.translate(p.x, p.y)
+  ctx.rotate(p.angle)
+  ctx.globalAlpha = lifeA
+  const g = ctx.createLinearGradient(-len, 0, 2.2, 0)
+  g.addColorStop(0, 'rgba(198, 232, 106, 0)')
+  g.addColorStop(0.5, 'rgba(214, 236, 120, 0.22)')
+  g.addColorStop(1, 'rgba(255, 248, 210, 0.8)')
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.moveTo(2.2, 0)
+  ctx.lineTo(-len, 0.2)
+  ctx.lineTo(-len * 0.22, 1.45)
+  ctx.closePath()
+  ctx.fill()
+  ctx.beginPath()
+  ctx.moveTo(2.2, 0)
+  ctx.lineTo(-len, -0.2)
+  ctx.lineTo(-len * 0.22, -1.45)
+  ctx.closePath()
+  ctx.fill()
+  ctx.fillStyle = '#5a9a28'
+  ctx.beginPath()
+  ctx.ellipse(1.5, 0.25, 2.55, 2.1, 0.25, 0, TAU)
+  ctx.fill()
+  ctx.fillStyle = '#b6e25a'
+  ctx.beginPath()
+  ctx.ellipse(1.15, -0.1, 1.75, 1.35, -0.35, 0, TAU)
+  ctx.fill()
+  ctx.fillStyle = '#f4ffd4'
+  ctx.beginPath()
+  ctx.ellipse(0.5, -0.7, 0.65, 0.42, -0.5, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
 function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile, cache: SpriteCache): void {
+  if (p.def.paint === 'seed') {
+    drawSeedShot(ctx, p)
+    return
+  }
   drawTrail(ctx, p)
   // Actor clips named `pea` are the enemy's spit pose (full body). Only a
   // dedicated spit cell is safe to draw as a shot.
@@ -701,7 +745,7 @@ function drawEnemy(
                 ? e.perform
                 : pickClip(sheet, e.anim, {
                   attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
-                  // Cream hurt cells stay an overlay. Never the body.
+                  // Hurt cells stay off the body. A nick is drawn after the squash.
                   hurt: false,
                 })
     const clip = familyClip(e, clipRaw)
@@ -716,18 +760,12 @@ function drawEnemy(
         facing,
         alpha: 1,
       })
-      if (!dyingSheet && e.anim.hitFlash > 0.02) {
-        const flash = familyClip(e, 'hurt')
-        if (flash) {
-          drawCreamHurt(ctx, sheet, flash, {
-            r: bodyR,
-            facing,
-            alpha: e.anim.hitFlash * 0.62,
-          })
-        }
-      }
     }
     ctx.restore()
+    if (!dyingSheet && e.anim.hitFlash > 0.02) {
+      const mark = enemyHitMark(e)
+      drawHitNick(ctx, ox, oy, paintR, e.anim.hitFlash, mark?.color ?? pal.accent, mark?.angle ?? 0)
+    }
     if (e.burn > 0) drawEmbers(ctx, ox, oy, e.r, time, e.uid)
     if (e.elite || e.boss) {
       hpArc(ctx, ox, oy - e.r - 8, e.boss ? 22 : 14, e.maxHp > 0 ? e.hp / e.maxHp : 0, e.boss)
@@ -800,6 +838,54 @@ function drawEnemy(
     ctx.stroke()
     ctx.restore()
   }
+}
+
+/** Short slash nick in the hit colour. Not the cream body cell, which the squash stretches into a pale column. */
+function drawHitNick(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  flash: number,
+  color: string,
+  angle: number,
+): void {
+  const len = Math.min(12, Math.max(6, r * 0.34))
+  const wide = Math.min(3.1, len * 0.26)
+  ctx.save()
+  ctx.translate(x + Math.cos(angle) * r * 0.28, y + Math.sin(angle) * r * 0.2)
+  ctx.rotate(angle + 0.65)
+  ctx.globalAlpha = 0.9 * flash
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(len * 0.42, 0)
+  ctx.quadraticCurveTo(0, wide, -len * 0.55, wide * 0.12)
+  ctx.quadraticCurveTo(-len * 0.12, 0, -len * 0.55, -wide * 0.12)
+  ctx.quadraticCurveTo(0, -wide, len * 0.42, 0)
+  ctx.closePath()
+  ctx.fill()
+  ctx.restore()
+}
+
+/** Small bright pop at the barrel. `t` is swing progress 0..1 over 180 ms. */
+function drawMuzzlePop(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, t: number): void {
+  const u = clamp(1 - t / 0.7, 0, 1)
+  if (u <= 0) return
+  const px = x + Math.cos(angle) * 18
+  const py = y + Math.sin(angle) * 18
+  ctx.save()
+  ctx.translate(px, py)
+  ctx.globalAlpha = u * 0.95
+  ctx.fillStyle = '#e8a030'
+  ctx.beginPath()
+  ctx.arc(0, 0, 3.4 + 3.6 * u, 0, TAU)
+  ctx.fill()
+  ctx.globalAlpha = u
+  ctx.fillStyle = '#fff6d0'
+  ctx.beginPath()
+  ctx.arc(0, 0, 1.7 + 1.8 * u, 0, TAU)
+  ctx.fill()
+  ctx.restore()
 }
 
 function muzzleFlash(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, t: number): void {
@@ -957,6 +1043,10 @@ function drawPlayerWeapons(
       ctx.stroke()
       ctx.restore()
     }
+    if (hideHeld && w.id === 'pistol' && behavior.type === 'shoot' && w.swingT >= 0 && w.swingT < 0.7) {
+      const ang = w.angle
+      drawMuzzlePop(ctx, player.x + Math.cos(ang) * 4, player.y + Math.sin(ang) * 2, ang, w.swingT)
+    }
     if (!hideHeld) {
       const spr = weaponSprite(cache, look.paint, look.paint === 'torch' || look.paint === 'wand' ? frame : 0, qScale)
       ctx.save()
@@ -965,8 +1055,9 @@ function drawPlayerWeapons(
       if (heldPos) ctx.translate(10, 0)
       blit(ctx, spr, 0.7)
       ctx.restore()
-      if (behavior.type === 'shoot' && w.swingT >= 0 && w.swingT < 0.18) {
-        muzzleFlash(ctx, pose.x, pose.y, pose.rot, w.swingT)
+      if (behavior.type === 'shoot' && w.swingT >= 0 && w.swingT < (w.id === 'pistol' ? 0.7 : 0.18)) {
+        if (w.id === 'pistol') drawMuzzlePop(ctx, pose.x, pose.y, pose.rot, w.swingT)
+        else muzzleFlash(ctx, pose.x, pose.y, pose.rot, w.swingT)
       }
     }
     if (behavior.type === 'chain' && w.swingT >= 0 && w.targetUid != null) {

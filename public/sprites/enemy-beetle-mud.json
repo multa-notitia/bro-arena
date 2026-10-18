@@ -621,6 +621,7 @@
     "turn"
    ],
    "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
-  }
+  },
+  "rimV2": "motion v2: soft light-directed amber rim (was a hard 2 px ring)"
  }
 }

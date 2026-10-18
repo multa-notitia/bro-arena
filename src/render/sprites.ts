@@ -287,6 +287,10 @@ function paintProjectile(ctx: CanvasRenderingContext2D, paint: ProjectilePaint):
     case 'pea':
       wash(ctx, 0, 0, 6, 6, '#7fae4a', { seed, shade: '#4f7a2a', n: 6, wobble: 0.2 })
       break
+    case 'seed':
+      wash(ctx, 0.4, 0.2, 2.6, 2.15, '#7fbe3a', { seed, shade: '#4f7a22', n: 6, wobble: 0.12, passes: 2 })
+      wash(ctx, -0.2, -0.45, 1.15, 0.8, '#e8f6a8', { seed: seed + 1, n: 5, wobble: 0.08, passes: 2 })
+      break
     default: {
       const _never: never = paint
       void _never

@@ -194,6 +194,7 @@ export type ProjectilePaint =
   | 'spore'
   | 'orb'
   | 'pea'
+  | 'seed'
 
 /** Enemy silhouettes are vegetable species. */
 export type EnemyPaint = Species

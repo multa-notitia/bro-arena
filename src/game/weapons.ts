@@ -192,7 +192,8 @@ function fireShot(
   const my = player.y + Math.sin(angle) * muzzle
   const heroSheet = resolveSheet(sheetKeysForPlayer(player.character.species, player.model))
   const authoredFlash = !!heroSheet && clipHasEvent(heroSheet, 'attack', 'spawnFx')
-  if (!immediate && !authoredFlash) {
+  // The pistol pop is drawn on the barrel. The ink starburst reads as a beige burst.
+  if (!immediate && !authoredFlash && def.id !== 'pistol') {
     ctx.render.fx.hitSpark(mx, my, angle, color)
     ctx.render.fx.muzzleFlash(mx, my, angle, color)
   }
@@ -532,6 +533,7 @@ export function updateWeapons(world: World, dt: number, ctx: SimCtx): void {
       const range = weaponRange(def, w.tier, player.stats)
       if (b.type === 'shoot') {
         fireShot(world, w, def, ctx, w.angle, true)
+        if (def.id === 'pistol') w.swingT = 0
         if (w.burstLeft > 0) {
           w.burstLeft -= 1
           if (w.burstLeft <= 0) w.cooldown = weaponCooldown(def, w.tier, player.stats)
