@@ -382,6 +382,20 @@ export type EnemyKind =
   | 'eliteBrute'
   | 'mother'
   | 'lord'
+  | 'blob-light'
+  | 'blob-mud'
+  | 'charger-light'
+  | 'charger-mud'
+  | 'spitter-light'
+  | 'spitter-mud'
+  | 'beetle-light'
+  | 'beetle-mud'
+  | 'shroom-light'
+  | 'shroom-mud'
+  | 'tomato-light'
+  | 'tomato-mud'
+  | 'bean-light'
+  | 'bean-mud'
 
 export interface BossPhase {
   /** Phase active while hp fraction is above this value. */
@@ -506,6 +520,9 @@ export interface WeaponInstance {
 }
 
 export interface Player extends Vec {
+  /** Pose at the previous sim step. The renderer blends toward x/y. */
+  prevX: number
+  prevY: number
   vx: number
   vy: number
   r: number
@@ -547,6 +564,9 @@ export type EnemyState =
   | 'dying'
 
 export interface Enemy extends Vec {
+  /** Pose at the previous sim step. The renderer blends toward x/y. */
+  prevX: number
+  prevY: number
   uid: number
   kind: EnemyKind
   def: EnemyDef
@@ -572,6 +592,10 @@ export interface Enemy extends Vec {
   boss: boolean
   /** Killing slash hid the body. Watercolor chunks are the corpse. */
   sliced: boolean
+  /** Authored death clip chosen from the killing weapon. Holds, then fades. */
+  corpse?: string
+  /** Sheet clip that owns the body right now: taunt or scream. */
+  perform?: string
   phaseIndex: number
   /** Charge direction when charging. */
   aim: Vec
@@ -658,6 +682,9 @@ export interface SpawnMarker extends Vec {
 }
 
 export interface Camera extends Vec {
+  /** Pose at the previous sim step, blended with x/y when drawing. */
+  prevX: number
+  prevY: number
   /** Viewport size in css px. */
   w: number
   h: number
@@ -686,6 +713,11 @@ export interface World {
   markers: SpawnMarker[]
   farm: Farm
   camera: Camera
+  /**
+   * 0 draws the previous sim pose, 1 draws the pose just integrated.
+   * In between, the frame shows the motion that happened this step.
+   */
+  renderAlpha: number
   /** Set when a boss is alive for the HUD. */
   boss: Enemy | null
   paused: boolean

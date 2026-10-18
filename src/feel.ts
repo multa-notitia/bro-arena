@@ -8,10 +8,16 @@ const JUICE_KEY = 'bro.reducedJuice'
 
 export const FEEL = {
   camera: {
-    /** Smaller = closer. Was 780. */
-    worldWidth: 640,
-    zoomMin: 1.08,
-    zoomMax: 2.7,
+    /** Smaller = closer. 441 world px across a 1280 css window is zoom ~2.90. */
+    worldWidth: 441,
+    /**
+     * The potato body is ~29.8 world px tall at the authored fit of 0.25
+     * (119 cell px of painted figure). 29.8 × (1280/441) ≈ 86 css px,
+     * 12% of a 720p frame. Enemies share this zoom. zoomMin keeps a
+     * narrower window from shrinking the hero; zoomMax leaves 1280 unclamped.
+     */
+    zoomMin: 2.2,
+    zoomMax: 3.35,
   },
   shake: {
     max: 22,
@@ -54,8 +60,18 @@ export const FEEL = {
     footEvery: 0.48,
   },
   shadow: {
-    alpha: 0.5,
-    scale: 1.28,
+    /** Peak alpha of the soft ground shadow. */
+    alpha: 0.35,
+    /** Width as a fraction of the sprite footprint. Stay under 0.8. */
+    footprint: 0.74,
+  },
+  garden: {
+    /**
+     * Furrow art is 146 px tall. At 0.4 a bed's world height stays within
+     * about 3× the hero's body width once the camera sits at the default
+     * zoom. Plot spacing uses the same factor so the beds stay on the strip.
+     */
+    scale: 0.4,
   },
   projectile: {
     trailPts: 10,

@@ -1,4 +1,4 @@
-import { damp, Rng } from '../core/math.ts'
+import { clamp, damp, Rng } from '../core/math.ts'
 import type {
   AudioApi,
   CharacterDef,
@@ -44,11 +44,12 @@ import { hudSnapshot, runSummary } from './snapshots.ts'
 import { updateWeapons } from './weapons.ts'
 import { beginWave, settleWave, updateDirector } from './waves.ts'
 import { clearPlots, plantView, selectCrop, syncFarmUnlocks, togglePlot } from './farm.ts'
-import { createWorld, syncViewport, updateCamera, updateTrees, type SimCtx } from './world.ts'
+import { captureRenderPoses, createWorld, pinRenderPoses, syncViewport, updateCamera, updateTrees, type SimCtx } from './world.ts'
 import { consumeHitStop, getReducedJuice, resetFeel, setReducedJuice } from '../feel.ts'
 import { defaultModelForSpecies, getLastModel, getPaintStyle, modelsForSpecies, setLastModel, setPaintStyle } from '../render/look.ts'
 import { isConceptAReady, preloadConceptA } from '../render/conceptA.ts'
 import { isBoardReady, preloadBoard } from '../render/board.ts'
+import { debugHeroId, isMultiArmSettled, preloadMultiArm } from '../render/multiarm.ts'
 import { isSpriteSheetsReady, preloadSpriteSheets, resetSheetPlayback } from '../render/sheets.ts'
 
 export interface RunDeps {
@@ -83,6 +84,8 @@ export class Run {
   private levelOptions: LevelUpOption[] = []
   private musicT = 0
   private plantFirst = true
+  /** Leftover time since the last 1/60 sim step. Drawing blends across it. */
+  private simAcc = 0
 
   constructor(deps: RunDeps) {
     this.deps = deps
@@ -110,6 +113,9 @@ export class Run {
     })
     void preloadSpriteSheets().catch(() => {
       /* painted sheets are optional; procedural / Board / Painted stay */
+    })
+    void preloadMultiArm().catch(() => {
+      /* potato falls back to the single-body sheet if the arm data fails */
     })
     ui.onPauseRequest(() => this.requestPause())
     ui.onTitle({
@@ -142,8 +148,8 @@ export class Run {
     if (this._phase === 'boot') {
       this.bootT += dt
       if (this.bootT > 0.2) this.deps.ui.setBootCopy('The soil is settling.')
-      if (this.bootT > 0.45 && isConceptAReady() && isBoardReady() && isSpriteSheetsReady()) this.enterTitle()
-      else if (this.bootT > 1.8) this.enterTitle()
+      if (this.bootT > 0.45 && isConceptAReady() && isBoardReady() && isSpriteSheetsReady() && isMultiArmSettled()) this.enterTitle()
+      else if (this.bootT > 8) this.enterTitle()
       return
     }
 
@@ -151,11 +157,23 @@ export class Run {
     if (world) {
       syncViewport(world, this.deps.canvas)
       if (this._phase === 'wave' && !world.paused && !this.transitioning) {
-        this.tickWave(world, dt)
+        const step = 1 / 60
+        this.simAcc += dt
+        let steps = 0
+        while (this.simAcc >= step && steps < 4) {
+          this.tickWave(world, step)
+          this.simAcc -= step
+          steps += 1
+        }
+        if (this.simAcc > step) this.simAcc = step
+        world.renderAlpha = clamp(this.simAcc / step, 0, 1)
       } else if (this._phase === 'plant' || this._phase === 'farmshop') {
         for (const plot of world.farm.plots) plot.sway += dt
         world.camera.x = damp(world.camera.x, 0, 5, dt)
         world.camera.y = damp(world.camera.y, 0, 5, dt)
+        pinRenderPoses(world)
+      } else {
+        pinRenderPoses(world)
       }
       this.deps.render.draw(this.deps.ctx, world, dt)
       if (this._phase === 'wave' || this._phase === 'paused') {
@@ -206,6 +224,11 @@ export class Run {
     const { audio } = this.deps
     audio.unlock()
     audio.play('uiClick')
+    const hero = debugHeroId()
+    if (hero) {
+      this.pickCharacter(hero)
+      return
+    }
     this.enterCharSelect()
   }
 
@@ -384,6 +407,7 @@ export class Run {
   }
 
   private tickWave(world: World, dt: number): void {
+    captureRenderPoses(world)
     const ctx = this.sim()
     const simDt = consumeHitStop(dt) * world.slowMo
     world.time += simDt
@@ -396,8 +420,7 @@ export class Run {
 
     if (this.dying) {
       this.deathTimer -= dt
-      updatePlayer(world, simDt, { x: 0, y: 0 }, ctx)
-      world.player.anim.deathT = Math.min(1, (0.6 - this.deathTimer) / 0.45)
+      updatePlayer(world, dt, { x: 0, y: 0 }, ctx)
       updateEnemies(world, simDt, ctx)
       updateProjectiles(world, simDt, ctx)
       updatePickups(world, simDt, ctx)
@@ -436,7 +459,7 @@ export class Run {
 
     if (world.player.hp <= 0 && !this.dying) {
       this.dying = true
-      this.deathTimer = 0.6
+      this.deathTimer = 0.72
       world.slowMo = 0.22
       world.player.anim.deathT = 0
       this.killedBy = peekKillSource() ?? takeKillSource() ?? 'the soil'

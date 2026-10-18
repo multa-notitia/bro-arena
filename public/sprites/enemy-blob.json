@@ -1,0 +1,111 @@
+{
+ "image": "enemy-blob.webp",
+ "frameWidth": 160,
+ "frameHeight": 160,
+ "columns": 6,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.643
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 170 },
+    { "i": 1, "ms": 140 },
+    { "i": 2, "ms": 140 },
+    { "i": 3, "ms": 170 },
+    { "i": 4, "ms": 90 },
+    { "i": 5, "ms": 150 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 6, "ms": 40 },
+    { "i": 7, "ms": 70 },
+    { "i": 8, "ms": 60 },
+    { "i": 9, "ms": 40, "oy": -2.0 },
+    { "i": 10, "ms": 50, "oy": -6.0 },
+    { "i": 11, "ms": 60, "oy": -10.0 },
+    { "i": 12, "ms": 50, "oy": -8.0 },
+    { "i": 13, "ms": 40, "oy": -2.5 },
+    { "i": 14, "ms": 60 },
+    { "i": 15, "ms": 50 },
+    { "i": 16, "ms": 50 },
+    { "i": 17, "ms": 50 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 18, "ms": 40, "ox": -2.5, "event": "hurt" },
+    { "i": 19, "ms": 60, "ox": -2.0 },
+    { "i": 20, "ms": 80, "ox": -1.0 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 21, "ms": 60, "ox": -1.0 },
+    { "i": 22, "ms": 45, "ox": 3.0, "event": "hit" },
+    { "i": 23, "ms": 70, "ox": 1.5 },
+    { "i": 24, "ms": 80 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 25, "ms": 50 },
+    { "i": 26, "ms": 60 },
+    { "i": 27, "ms": 60 },
+    { "i": 28, "ms": 50, "scaleX": 0.85, "scaleY": 0.85, "event": "spawnFx" },
+    { "i": 29, "ms": 100, "scaleX": 1.08, "scaleY": 1.08 },
+    { "i": 29, "ms": 70 },
+    { "i": 29, "ms": 50, "scaleX": 0.75, "scaleY": 0.75 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Mud blob (Pea / Mud Pea), warp-rigged",
+  "source": "image12.jpg",
+  "cells": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "walk8",
+   "walk9",
+   "walk10",
+   "walk11",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4"
+  ],
+  "feetY": 137.6,
+  "gameRadius": 14,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-blob/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-blob.png"
+ }
+}

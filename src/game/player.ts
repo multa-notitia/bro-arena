@@ -18,6 +18,16 @@ import { ITEMS } from '../data/items.ts'
 import { computeStats } from '../data/stats.ts'
 import { xpForLevel } from '../data/economy.ts'
 import type { SimCtx } from './world.ts'
+import { debugHeroWeapons, multiArmSheet, potatoMultiArm, resetMultiArm } from '../render/multiarm.ts'
+import {
+  actorClipActive,
+  advanceActorSheet,
+  consumeHurtKick,
+  notePlayerRelease,
+  resolveSheet,
+  restartActorClip,
+  sheetKeysForPlayer,
+} from '../render/sheets.ts'
 
 const START_RICH = 40
 const MOVE_ACCEL = 2100
@@ -162,10 +172,12 @@ export function extraState(player: Player): PlayerExtra {
 }
 
 export function createPlayer(character: CharacterDef, model: ModelDir = 'b'): Player {
+  const debugArms = debugHeroWeapons(character.species)
+  const base = debugArms ?? character.startingWeapons
   const starters =
-    character.species === 'chili' && model === 'board'
-      ? [{ id: 'knife' as const, tier: 1 as const }, ...character.startingWeapons]
-      : character.startingWeapons
+    !debugArms && character.species === 'chili' && model === 'board' && !base.some((w) => w.id === 'knife')
+      ? [{ id: 'knife' as const, tier: 1 as const }, ...base]
+      : base
   const weapons = starters.map((w, i) => makeWeapon(w.id, w.tier, i))
   const items: string[] = []
   const form: Form = 'normal'
@@ -179,6 +191,8 @@ export function createPlayer(character: CharacterDef, model: ModelDir = 'b'): Pl
   const player: Player = {
     x: 0,
     y: 0,
+    prevX: 0,
+    prevY: 0,
     vx: 0,
     vy: 0,
     r: 17,
@@ -204,6 +218,7 @@ export function createPlayer(character: CharacterDef, model: ModelDir = 'b'): Pl
     materialsCollected: 0,
   }
   bonusByPlayer.set(player, {})
+  resetMultiArm()
   extraByPlayer.set(player, {
     squashT: 1,
     matHeal: 0,
@@ -274,6 +289,62 @@ export function countSpecial(player: Player, special: ItemSpecial): number {
   return n
 }
 
+function stepPlayerSheet(world: World, dt: number, ctx: SimCtx): void {
+  const player = world.player
+  const armed = potatoMultiArm(player.character.species)
+  const sheet = armed ? multiArmSheet(player.character.species) : resolveSheet(sheetKeysForPlayer(player.character.species, player.model))
+  if (!sheet) return
+  const anim = player.anim
+  const swinging = player.weapons.some((w) => w.swingT >= 0)
+  const dead = anim.deathT >= 0 || player.hp <= 0
+  const hurtClip = !dead && !!sheet.manifest.clips.hurt
+  const hurtPlaying = hurtClip && actorClipActive('player', 'hurt')
+  const kicked = hurtClip && consumeHurtKick('player')
+  // Cream is only the first hurt cell. A second hit during the recovery must not rewind it.
+  if (kicked && !hurtPlaying) restartActorClip('player', 'hurt')
+  // The potato's attack lives on each arm. The body stays on walk / idle / hurt / death.
+  const attacking = !armed && !!sheet.manifest.clips.attack && (swinging || actorClipActive('player', 'attack'))
+  const hurt = hurtPlaying || kicked
+  const clip = dead
+    ? sheet.manifest.clips.death
+      ? 'death'
+      : null
+    : hurt
+      ? 'hurt'
+      : attacking
+        ? 'attack'
+        : anim.moving && sheet.manifest.clips.walk
+          ? 'walk'
+          : sheet.manifest.clips.idle
+            ? 'idle'
+            : null
+  const flash = (events: string[], from: string) => {
+    if (!events.includes('spawnFx')) return
+    if (from === 'death') ctx.render.fx.inkBurst(player.x, player.y, player.r * 1.6)
+    else {
+      const ang = player.facingAngle
+      ctx.render.fx.muzzleFlash(player.x + Math.cos(ang) * 16, player.y + Math.sin(ang) * 10, ang)
+    }
+  }
+  if (hurt && attacking) {
+    const ev = advanceActorSheet('player', sheet, 'attack', dt)
+    flash(ev, 'attack')
+    if (ev.includes('release')) notePlayerRelease()
+  }
+  if (clip) {
+    // Walk keeps the phase it had before idle, hurt, or attack. Rate matches
+    // travel speed so the feet don't skate at a crawl or a sprint.
+    const spd = Math.hypot(player.vx, player.vy)
+    const cruise = BASE_SPEED * (1 + player.stats.speed / 100)
+    const walkRate = clamp(cruise > 1 ? spd / cruise : 1, 0.45, 1.7)
+    const ev = advanceActorSheet('player', sheet, clip, dt, walkRate)
+    flash(ev, clip)
+    if (clip === 'attack' && ev.includes('release')) notePlayerRelease()
+  }
+  anim.bob = 0
+  anim.squash = 1
+}
+
 export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): void {
   const player = world.player
   const anim = player.anim
@@ -288,13 +359,14 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
     player.vx = 0
     player.vy = 0
     anim.moving = false
-    anim.bob = Math.sin(anim.t * 2) * 0.4
+    anim.bob = 0
     anim.kick.x = damp(anim.kick.x, 0, 8, dt)
     anim.kick.y = damp(anim.kick.y, 0, 8, dt)
     if (anim.deathT < 0) anim.deathT = 0
     anim.deathT = Math.min(1, anim.deathT + dt / 0.55)
     anim.scream = -1
     anim.mouth = 0.2
+    stepPlayerSheet(world, dt, ctx)
     return
   }
 
@@ -381,6 +453,8 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
   }
 
   player.facingAngle = wrapAngle(player.facingAngle)
+
+  stepPlayerSheet(world, dt, ctx)
 
   const screaming = extra.screamLeft > 0
   tickFaceAnim(anim, dt, extra, {

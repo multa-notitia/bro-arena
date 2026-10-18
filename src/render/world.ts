@@ -37,10 +37,19 @@ import { drawBoard, drawBoardShadow, poseBoard, boardHeld, type BoardHero } from
 import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { drawPaddock } from './ground.ts'
 import { paperColor } from './paintLang.ts'
+import { drawMultiArm, multiArmSheet, potatoMultiArm } from './multiarm.ts'
+import { enemySpawnClip } from '../game/enemies.ts'
+import { presentRenderPoses } from '../game/world.ts'
 import {
+  actorClipActive,
+  actorFootprint,
   drawActorSheet,
+  drawNamedClip,
+  gardenGround,
+  locomotionBlend,
   pickClip,
   resolveSheet,
+  sheetById,
   sheetKeysForEnemy,
   sheetKeysForPlayer,
 } from './sheets.ts'
@@ -108,23 +117,68 @@ function blit(
   ctx.restore()
 }
 
-function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, alpha = 0.3): void {
+/** Soft contact shadow. `footprint` is the painted body width; the ellipse stays under 0.8× that. */
+function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, footprint: number, strength = 1): void {
+  const width = Math.max(6, footprint * FEEL.shadow.footprint)
+  const peak = FEEL.shadow.alpha * clamp(strength, 0, 1)
+  if (peak < 0.02) return
+  const radius = width * 0.5
   ctx.save()
-  ctx.translate(x, y + r * 0.62)
-  ctx.scale(1, 0.38)
-  ctx.globalAlpha = alpha * (FEEL.shadow.alpha / 0.3)
-  ctx.fillStyle = '#070604'
+  ctx.translate(x, y + 1)
+  ctx.scale(1, 0.42)
+  const g = ctx.createRadialGradient(0, 0, radius * 0.08, 0, 0, radius)
+  g.addColorStop(0, `rgba(58, 36, 22, ${peak.toFixed(3)})`)
+  g.addColorStop(0.62, `rgba(58, 36, 22, ${(peak * 0.4).toFixed(3)})`)
+  g.addColorStop(1, 'rgba(58, 36, 22, 0)')
+  ctx.fillStyle = g
   ctx.beginPath()
-  ctx.arc(0, 0, r * 1.18 * FEEL.shadow.scale, 0, TAU)
+  ctx.arc(0, 0, radius, 0, TAU)
   ctx.fill()
   ctx.restore()
 }
 
-function applySheetEvents(fx: FxApi, x: number, y: number, events: readonly string[]): void {
-  for (const name of events) {
-    if (name === 'spawnFx') fx.sparkle(x, y, '#fff6e8')
-    else if (name === 'hit') fx.hitSpark(x, y, 0, '#fff6e8')
-  }
+/** Faint warm pool so painted figures separate from the soil. */
+function drawReadHalo(ctx: CanvasRenderingContext2D, x: number, y: number, footprint: number, strength = 1): void {
+  const rx = Math.max(8, footprint * 1.15)
+  const peak = 0.28 * clamp(strength, 0, 1)
+  if (peak < 0.02) return
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.scale(1, 0.46)
+  const g = ctx.createRadialGradient(0, 0, rx * 0.2, 0, 0, rx)
+  g.addColorStop(0, `rgba(255, 228, 186, ${peak.toFixed(3)})`)
+  g.addColorStop(1, 'rgba(255, 228, 186, 0)')
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.arc(0, 0, rx, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
+/** Screen-blend pool around the hero so the night edge stays dark and the figure stays warm. */
+function drawWarmPool(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  const r = 220
+  const g = ctx.createRadialGradient(x, y + 8, 16, x, y, r)
+  g.addColorStop(0, 'rgba(255, 198, 120, 0.42)')
+  g.addColorStop(0.38, 'rgba(255, 156, 72, 0.16)')
+  g.addColorStop(0.72, 'rgba(180, 90, 40, 0.05)')
+  g.addColorStop(1, 'rgba(120, 60, 20, 0)')
+  ctx.save()
+  ctx.globalCompositeOperation = 'screen'
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
+/** About 12% darker and a little less saturated, warm. Actors are drawn after this. */
+function darkenGround(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
+  ctx.save()
+  ctx.globalCompositeOperation = 'multiply'
+  ctx.fillStyle = '#e0d8cc'
+  ctx.fillRect(x, y, w, h)
+  ctx.restore()
 }
 
 function drawOffscreen(
@@ -262,11 +316,20 @@ function drawTree(ctx: CanvasRenderingContext2D, t: Tree, cache: SpriteCache): v
   ctx.restore()
 }
 
-function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache, time: number): void {
-  const spr = pickupSprite(cache, p.type, qScale, p.crop)
-  const bob = Math.sin(p.t * 3.2 + time) * 3
+const PICKUP_CLIP: Record<Pickup['type'], string> = {
+  material: 'coin',
+  materialBig: 'xpLarge',
+  fruit: 'heart',
+  chest: 'chest',
+  seed: 'xpSmall',
+}
+
+function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache, time: number, dt: number): void {
+  const sheet = sheetById('pickups')
+  const clip = PICKUP_CLIP[p.type]
   const pr = p.type === 'chest' ? 12 : p.type === 'materialBig' ? 10 : 8
-  drawShadow(ctx, p.x, p.y + bob + 4, pr, 0.28)
+  const bob = sheet ? Math.sin(p.t * 3.2 + time) * 1.2 : Math.sin(p.t * 3.2 + time) * 3
+  drawShadow(ctx, p.x, p.y + bob + 2, pr * 1.6, 0.75)
   ctx.save()
   ctx.translate(p.x, p.y + bob)
   if (p.magnet) {
@@ -276,8 +339,12 @@ function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache
     const stretch = 1 + clamp(spd / 380, 0, 0.85)
     ctx.scale(stretch, 1 / Math.sqrt(stretch))
   }
-  const sc = p.type === 'chest' ? 0.85 : p.type === 'materialBig' ? 0.95 : 0.72
-  blit(ctx, spr, sc)
+  const scale = p.type === 'chest' ? 0.22 : p.type === 'materialBig' ? 0.2 : 0.17
+  if (!sheet || !drawNamedClip(ctx, sheet, `pick:${p.uid}`, clip, dt, { scale })) {
+    const spr = pickupSprite(cache, p.type, qScale, p.crop)
+    const sc = p.type === 'chest' ? 0.85 : p.type === 'materialBig' ? 0.95 : 0.72
+    blit(ctx, spr, sc)
+  }
   ctx.restore()
 }
 
@@ -326,21 +393,34 @@ function drawEnemy(
   e: Enemy,
   cache: SpriteCache,
   time: number,
-  dt: number,
-  fx: FxApi,
 ): void {
-  if (e.sliced) return
   const species = resolveSpecies(e.def.paint, e.def.species, e.kind)
   const form: Form = e.form ?? e.def.form ?? 'normal'
   const model = foeModel(form)
   const pal = e.def.palette ?? SPECIES_PALETTES[species]
   const artR = sizeBucket(e.r)
   const sheet = resolveSheet(sheetKeysForEnemy(e.kind, form))
+  // A killing slash used to hide the body and leave watercolor chunks.
+  // Authored deaths play the sheet instead; that clip is the corpse.
+  if (e.sliced && !sheet?.manifest.clips.death) return
   const spr = sheet ? null : creatureSprite(cache, species, pal, form, artR, qScale, model, true)
   const spawn = clamp(e.anim.spawnT, 0, 1)
   const dying = e.anim.deathT >= 0
   const death = dying ? clamp(e.anim.deathT, 0, 1) : 0
-  const appear = ease.outCubic(spawn)
+  // Authored emerge is the body. The shadow only arrives over the clip's second half.
+  // emerge_vine is the plant drop; it falls back to emerge when that clip is absent.
+  const spawnName = enemySpawnClip(e)
+  const spawnClip =
+    spawnName && sheet?.manifest.clips[spawnName]
+      ? spawnName
+      : sheet?.manifest.clips.emerge
+        ? 'emerge'
+        : sheet?.manifest.clips.emerge_vine
+          ? 'emerge_vine'
+          : null
+  const emerging = e.state === 'spawning' && !!spawnClip
+  const appear = emerging ? 1 : ease.outCubic(spawn)
+  const shadowIn = emerging ? (spawn <= 0.5 ? 0 : (spawn - 0.5) / 0.5) : appear
   const scream = resolveScream(e.anim, e.state, e.stateT)
   const ss = screamScale(scream)
   const mouth = resolveMouth(e.anim, form, scream)
@@ -348,25 +428,41 @@ function drawEnemy(
   const blink = e.anim.blink ?? -1
   const facing = e.anim.facing ?? 1
   let ox = e.x + e.anim.kick.x
-  let oy = e.y + e.anim.kick.y + e.anim.bob
-  if (e.state === 'windup' || e.state === 'charging') {
+  let oy = e.y + e.anim.kick.y + (sheet ? 0 : e.anim.bob)
+  if (!sheet && (e.state === 'windup' || e.state === 'charging')) {
     const mag = e.state === 'windup' ? 2.4 : 0.9
     ox += (hashNoise(Math.floor(time * 48), e.uid) - 0.5) * mag * 2
     oy += (hashNoise(Math.floor(time * 48), e.uid + 9) - 0.5) * mag * 2
   }
-  drawShadow(ctx, ox, e.y, e.r, 0.55 * appear * (1 - death))
+  const foot = sheet ? actorFootprint(sheet, e.r) : e.r * 1.7
+  const shade = shadowIn * (1 - death)
+  if (sheet) drawReadHalo(ctx, ox, e.y, foot, shade)
+  drawShadow(ctx, ox, sheet ? e.y : e.y + e.r * 0.45, foot, shade)
   ctx.save()
   ctx.translate(ox, oy)
   if (sheet) {
-    const clip = pickClip(sheet, e.anim, { swinging: e.state === 'windup' || e.state === 'charging' })
-    ctx.globalAlpha = appear * (1 - (sheet.manifest.clips.death ? 0 : death))
+    const playKey = `e:${e.uid}`
+    const dyingSheet = e.state === 'dying' || e.anim.deathT >= 0
+    const corpseName = e.corpse && sheet.manifest.clips[e.corpse] ? e.corpse : 'death'
+    const clip = dyingSheet
+      ? sheet.manifest.clips[corpseName]
+        ? corpseName
+        : null
+      : emerging && spawnClip
+        ? spawnClip
+        : e.perform && sheet.manifest.clips[e.perform]
+          ? e.perform
+          : pickClip(sheet, e.anim, {
+              attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
+              hurt: actorClipActive(playKey, 'hurt'),
+            })
+    ctx.globalAlpha = appear * (1 - death)
     if (clip) {
-      const ev = drawActorSheet(ctx, sheet, `e:${e.uid}`, clip, dt, {
+      drawActorSheet(ctx, sheet, playKey, clip, {
         r: e.r,
         facing,
         alpha: 1,
       })
-      applySheetEvents(fx, ox, oy, ev)
     }
     ctx.restore()
     if (e.burn > 0) drawEmbers(ctx, ox, oy, e.r, time, e.uid)
@@ -413,7 +509,7 @@ function drawEnemy(
     model,
   })
   ctx.restore()
-  if (e.anim.hitFlash > 0.02) {
+  if (e.anim.hitFlash > 0.02 && e.anim.deathT < 0 && e.state !== 'dying') {
     ctx.save()
     ctx.globalAlpha = e.anim.hitFlash * 0.65
     ctx.fillStyle = '#fff6e8'
@@ -565,6 +661,7 @@ function drawPlayerWeapons(
   cache: SpriteCache,
   behind: boolean,
   held?: Record<number, { x: number; y: number; rot?: number }>,
+  hideHeld = false,
 ): void {
   const player = world.player
   const frame = Math.floor(world.time * 8) % 4
@@ -585,7 +682,7 @@ function drawPlayerWeapons(
     const pose = heldPos
       ? { x: heldPos.x, y: heldPos.y, rot: heldPos.rot ?? w.angle, smear: undefined as { a0: number; a1: number; r: number } | undefined }
       : weaponAngleAndPos(player, w.slot, w.angle, w.swingT, behavior)
-    if (!heldPos && pose.smear && w.swingT >= 0) {
+    if (!hideHeld && !heldPos && pose.smear && w.swingT >= 0) {
       ctx.save()
       ctx.globalAlpha = 0.38 * Math.sin(clamp(w.swingT, 0, 1) * Math.PI)
       ctx.strokeStyle = '#f0e0b0'
@@ -596,7 +693,7 @@ function drawPlayerWeapons(
       ctx.stroke()
       ctx.restore()
     }
-    if (heldPos && w.swingT >= 0) {
+    if (!hideHeld && heldPos && w.swingT >= 0) {
       const t = clamp(w.swingT, 0, 1)
       const pulse = Math.sin(t * Math.PI)
       ctx.save()
@@ -611,15 +708,17 @@ function drawPlayerWeapons(
       ctx.stroke()
       ctx.restore()
     }
-    const spr = weaponSprite(cache, look.paint, look.paint === 'torch' || look.paint === 'wand' ? frame : 0, qScale)
-    ctx.save()
-    ctx.translate(pose.x, pose.y)
-    ctx.rotate(pose.rot)
-    if (heldPos) ctx.translate(10, 0)
-    blit(ctx, spr, 0.7)
-    ctx.restore()
-    if (behavior.type === 'shoot' && w.swingT >= 0 && w.swingT < 0.18) {
-      muzzleFlash(ctx, pose.x, pose.y, pose.rot, w.swingT)
+    if (!hideHeld) {
+      const spr = weaponSprite(cache, look.paint, look.paint === 'torch' || look.paint === 'wand' ? frame : 0, qScale)
+      ctx.save()
+      ctx.translate(pose.x, pose.y)
+      ctx.rotate(pose.rot)
+      if (heldPos) ctx.translate(10, 0)
+      blit(ctx, spr, 0.7)
+      ctx.restore()
+      if (behavior.type === 'shoot' && w.swingT >= 0 && w.swingT < 0.18) {
+        muzzleFlash(ctx, pose.x, pose.y, pose.rot, w.swingT)
+      }
     }
     if (behavior.type === 'chain' && w.swingT >= 0 && w.targetUid != null) {
       const jumps = behavior.jumps
@@ -675,7 +774,7 @@ function drawOrbitWeapons(ctx: CanvasRenderingContext2D, world: World, cache: Sp
   }
 }
 
-function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCache, dt: number, fx: FxApi): void {
+function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCache): void {
   const p = world.player
   const pal = p.character.palette
   const species = resolveSpecies(p.character.species ?? 'potato', p.character.species, p.character.id)
@@ -689,7 +788,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const procModel = proceduralModel(model)
   const spr = imageHero ? null : creatureSprite(cache, species, pal, form, artR, qScale, procModel)
   const x = p.x + p.anim.kick.x
-  const y = board ? p.y + p.anim.kick.y : p.y + p.anim.kick.y + p.anim.bob
+  const y = board || sheet ? p.y + p.anim.kick.y : p.y + p.anim.kick.y + p.anim.bob
   const scream = resolveScream(p.anim, undefined, undefined)
   const ss = screamScale(scream)
   const mouth = resolveMouth(p.anim, form, scream)
@@ -698,10 +797,14 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const facing = p.anim.facing ?? 1
   const squash = clamp(p.anim.squash || 1, 0.45, 1.8)
   const sc = p.r / artR
-  const bodyRot = imageHero
-    ? clamp(p.vx / 220, -0.18, 0.18)
-    : clamp(p.vx / 180, -0.36, 0.36) * FEEL.motion.lean +
-      clamp(Math.hypot(p.vx, p.vy) / 400, 0, 0.1) * Math.sign(p.vx || p.anim.facing)
+  // Sheet heroes stay upright. A small negative lean plus high-quality
+  // smoothing makes Chrome smear the cell into a wide cloud.
+  const bodyRot = sheet
+    ? 0
+    : imageHero
+      ? clamp(p.vx / 220, -0.18, 0.18)
+      : clamp(p.vx / 180, -0.36, 0.36) * FEEL.motion.lean +
+        clamp(Math.hypot(p.vx, p.vy) / 400, 0, 0.1) * Math.sign(p.vx || p.anim.facing)
   const squashAmt = imageHero ? lerp(1, squash, 0.28) : squash
   const sx = sc * squashAmt * ss.sx
   const sy = (sc * ss.sy) / squashAmt
@@ -724,19 +827,46 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   if (p.invuln > 0) alpha = Math.sin(p.anim.t * 24) > 0 ? 1 : 0.32
 
   if (sheet) {
-    const swinging = p.weapons.some((w) => w.swingT >= 0)
-    drawShadow(ctx, x, p.y, p.r, p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.18 : 0.62)
-    drawPlayerWeapons(ctx, world, cache, true, held)
+    const arms = potatoMultiArm(species) ? multiArmSheet(species) : null
+    const body = arms ?? sheet
+    const swinging = !arms && p.weapons.some((w) => w.swingT >= 0)
+    const shade = p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.35 : 1
+    const foot = actorFootprint(body, p.r)
+    drawReadHalo(ctx, x, p.y, foot, shade)
+    drawShadow(ctx, x, p.y, foot, shade)
+    drawPlayerWeapons(ctx, world, cache, true, held, true)
     ctx.save()
     ctx.translate(x, y)
     ctx.rotate(bodyRot)
-    const clip = pickClip(sheet, p.anim, { swinging })
-    if (clip) {
-      const ev = drawActorSheet(ctx, sheet, 'player', clip, dt, { r: p.r, facing, alpha })
-      applySheetEvents(fx, x, y, ev)
+    // Side-facing heroes are authored facing right. One scale flips the body
+    // and every arm together, so near arms stay in front and far arms stay behind.
+    if (arms) ctx.scale(facing, 1)
+    const clip = pickClip(body, p.anim, { swinging, hurt: actorClipActive('player', 'hurt') })
+    const paintFacing: 1 | -1 = arms ? 1 : facing
+    const blend = clip && (clip === 'idle' || clip === 'walk') ? locomotionBlend('player') : null
+    const paintArms = (which: 'back' | 'front') => {
+      if (!arms || !clip) return
+      const base = {
+        species,
+        weapons: p.weapons.map((w) => ({ uid: w.uid, id: w.id })),
+        r: p.r,
+        facing,
+        originX: x,
+        originY: y,
+        bodyRot,
+      }
+      if (blend && blend.from !== clip) {
+        drawMultiArm(ctx, which, { ...base, clip: blend.from, alpha: alpha * blend.old })
+        drawMultiArm(ctx, which, { ...base, clip, alpha: alpha * blend.neu })
+        return
+      }
+      drawMultiArm(ctx, which, { ...base, clip, alpha })
     }
+    paintArms('back')
+    if (clip) drawActorSheet(ctx, body, 'player', clip, { r: p.r, facing: paintFacing, alpha })
+    paintArms('front')
     ctx.restore()
-    drawPlayerWeapons(ctx, world, cache, false, held)
+    drawPlayerWeapons(ctx, world, cache, false, held, true)
     drawOrbitWeapons(ctx, world, cache)
     return
   }
@@ -783,7 +913,13 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     return
   }
 
-  drawShadow(ctx, x, p.y, p.r, p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.18 : 0.62)
+  drawShadow(
+    ctx,
+    x,
+    p.y + p.r * 0.45,
+    p.r * 1.7,
+    p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.35 : 1,
+  )
   drawPlayerWeapons(ctx, world, cache, true, held)
   ctx.save()
   ctx.translate(x, y)
@@ -870,13 +1006,16 @@ export function drawWorld(
   view: ViewSize,
 ): void {
   fx.update(dt)
+  const restorePoses = presentRenderPoses(world)
+  try {
   const cam = world.camera
   const cssW = cam.w > 0 ? cam.w : view.w
   const cssH = cam.h > 0 ? cam.h : view.h
   const zoom = cam.zoom > 0 ? cam.zoom : 1
   qScale = qualityBucket(zoom, view.dpr)
+  const night = !!gardenGround(false)
   ctx.save()
-  ctx.fillStyle = paperColor()
+  ctx.fillStyle = night ? '#100e0c' : paperColor()
   ctx.fillRect(0, 0, cssW, cssH)
 
   const shakeOff = cameraShakeOffset(world)
@@ -894,9 +1033,11 @@ export function drawWorld(
   const aw = world.arenaHalfW
   const ah = world.arenaHalfH
   drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale))
-  drawFarmRows(ctx, world.farm.plots)
-  drawFarmBeds(ctx, world.farm.plots)
+  drawFarmRows(ctx, world.farm.plots, qScale >= 2, world.waveTime)
+  drawFarmBeds(ctx, world.farm.plots, qScale >= 2)
   fx.drawFloor(ctx)
+  darkenGround(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
+  if (night) drawWarmPool(ctx, world.player.x, world.player.y)
 
   cmdN = 0
   for (let i = 0; i < world.trees.length; i++) {
@@ -933,16 +1074,16 @@ export function drawWorld(
       if (t) drawTree(ctx, t, cache)
     } else if (c.kind === 1) {
       const p = world.pickups[c.idx]
-      if (p) drawPickup(ctx, p, cache, world.time)
+      if (p) drawPickup(ctx, p, cache, world.time, dt)
     } else if (c.kind === 2) {
       const m = world.markers[c.idx]
       if (m) drawMarker(ctx, m, cache)
     } else if (c.kind === 3) {
       const e = world.enemies[c.idx]
-      if (e) drawEnemy(ctx, e, cache, world.time, dt, fx)
+      if (e) drawEnemy(ctx, e, cache, world.time)
     } else if (c.kind === 4 && !playerDrawn) {
       playerDrawn = true
-      drawPlayer(ctx, world, cache, dt, fx)
+      drawPlayer(ctx, world, cache)
     } else if (c.kind === 5) {
       const plot = world.farm.plots[c.idx]
       if (plot) drawFarmPlant(ctx, plot)
@@ -973,6 +1114,9 @@ export function drawWorld(
 
   fx.drawScreen(ctx, cssW, cssH)
   drawOffscreen(ctx, world, cssW, cssH)
-  vignette(ctx, cssW, cssH, 0.4)
+  vignette(ctx, cssW, cssH, night ? 0.72 : 0.4)
   ctx.restore()
+  } finally {
+    restorePoses()
+  }
 }

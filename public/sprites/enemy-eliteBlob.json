@@ -1,0 +1,146 @@
+{
+ "image": "enemy-eliteBlob.webp",
+ "frameWidth": 256,
+ "frameHeight": 256,
+ "columns": 8,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.698
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 85 },
+    { "i": 1, "ms": 85 },
+    { "i": 2, "ms": 80 },
+    { "i": 3, "ms": 80 },
+    { "i": 4, "ms": 75 },
+    { "i": 5, "ms": 75 },
+    { "i": 6, "ms": 75 },
+    { "i": 7, "ms": 75 },
+    { "i": 8, "ms": 80 },
+    { "i": 9, "ms": 80 },
+    { "i": 10, "ms": 85 },
+    { "i": 11, "ms": 85 },
+    { "i": 12, "ms": 80 },
+    { "i": 13, "ms": 80 },
+    { "i": 14, "ms": 75 },
+    { "i": 15, "ms": 75 },
+    { "i": 16, "ms": 75 },
+    { "i": 17, "ms": 75 },
+    { "i": 18, "ms": 80 },
+    { "i": 19, "ms": 80 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 20, "ms": 72 },
+    { "i": 21, "ms": 72 },
+    { "i": 22, "ms": 72 },
+    { "i": 23, "ms": 72 },
+    { "i": 24, "ms": 72 },
+    { "i": 25, "ms": 72 },
+    { "i": 26, "ms": 72 },
+    { "i": 27, "ms": 72 },
+    { "i": 28, "ms": 72 },
+    { "i": 29, "ms": 72 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 30, "ms": 40, "ox": -2.5, "event": "hurt" },
+    { "i": 31, "ms": 60, "ox": -2.0 },
+    { "i": 32, "ms": 80, "ox": -1.0 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 33, "ms": 130 },
+    { "i": 34, "ms": 130 },
+    { "i": 35, "ms": 120 },
+    { "i": 36, "ms": 50, "ox": 1.6 },
+    { "i": 36, "ms": 50, "scaleX": 1.02, "ox": -1.4 },
+    { "i": 36, "ms": 50, "scaleX": 0.99, "ox": 1.3 },
+    { "i": 36, "ms": 50, "scaleX": 1.02, "ox": -1.6 },
+    { "i": 37, "ms": 45, "events": [ "hit", "spawnFx" ] },
+    { "i": 38, "ms": 80 },
+    { "i": 39, "ms": 100 },
+    { "i": 0, "ms": 80 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 40, "ms": 50, "ox": 2.0 },
+    { "i": 41, "ms": 50, "ox": -2.0 },
+    { "i": 42, "ms": 60, "ox": 1.0 },
+    { "i": 43, "ms": 50, "event": "spawnFx" },
+    { "i": 44, "ms": 80 },
+    { "i": 45, "ms": 80 },
+    { "i": 45, "ms": 70, "scaleX": 0.8, "scaleY": 0.8, "oy": 2.976 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Great Mud Pea (elite / boss, rigged)",
+  "source": "image14.jpg",
+  "cells": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "idle6",
+   "idle7",
+   "idle8",
+   "idle9",
+   "idle10",
+   "idle11",
+   "idle12",
+   "idle13",
+   "idle14",
+   "idle15",
+   "idle16",
+   "idle17",
+   "idle18",
+   "idle19",
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "walk8",
+   "walk9",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "attack7",
+   "attack8",
+   "attack9",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4",
+   "death5"
+  ],
+  "feetY": 238.08,
+  "gameRadius": 24,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-eliteBlob/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-eliteBlob.png"
+ }
+}

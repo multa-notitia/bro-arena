@@ -1,0 +1,170 @@
+{
+ "view": "side",
+ "units": "radish body px (legacy rest px, = the hero sheet's rest crop); dir/aim = screen deg, y down, 0 = right (facing), -90 = up. Every slot is side +1: there is no per-slot mirroring in the side view",
+ "mirror": "The hero is drawn facing RIGHT. When it faces left (moving left, or the target is behind it: target.x < anchor.x in cell px), the game flips the WHOLE composed figure (armless body + every arm, hand, weapon, fx) horizontally about the sheet anchor x, after composing it facing right with the target mirrored into that frame. Arms therefore only ever aim into the facing half-plane (compose_ref.frame(..., mirror=)).",
+ "layers": {
+  "front": "z > behindBodyZ: drawn over the body; red arm, bud on sprouted arms, fist / palm",
+  "back": "z < behindBodyZ: drawn behind the body; dark arm, fist_dark / palm_dark"
+ },
+ "slots": {
+  "midF": {
+   "pos": [
+    139.0,
+    178.0
+   ],
+   "side": 1,
+   "dir": 52.0,
+   "z": 11.0,
+   "native": true,
+   "layer": "front",
+   "nativeKey": "R"
+  },
+  "midB": {
+   "pos": [
+    40.0,
+    166.0
+   ],
+   "side": 1,
+   "dir": 118.0,
+   "z": 4.0,
+   "native": true,
+   "layer": "back",
+   "nativeKey": "L",
+   "holds": false
+  },
+  "upB": {
+   "pos": [
+    138,
+    134
+   ],
+   "side": 1,
+   "dir": -14.0,
+   "z": 4.2,
+   "native": false,
+   "layer": "back"
+  },
+  "lowF": {
+   "pos": [
+    120,
+    199
+   ],
+   "side": 1,
+   "dir": 34.0,
+   "z": 11.6,
+   "native": false,
+   "layer": "front"
+  },
+  "lowB": {
+   "pos": [
+    127,
+    190
+   ],
+   "side": 1,
+   "dir": 16.0,
+   "z": 4.4,
+   "native": false,
+   "layer": "back"
+  },
+  "upF": {
+   "pos": [
+    141,
+    121
+   ],
+   "side": 1,
+   "dir": -38.0,
+   "z": 11.4,
+   "native": false,
+   "layer": "front"
+  },
+  "topB": {
+   "pos": [
+    127,
+    104
+   ],
+   "side": 1,
+   "dir": -52.0,
+   "z": 4.6,
+   "native": false,
+   "layer": "back"
+  }
+ },
+ "layouts": {
+  "1": {
+   "slots": [
+    "midF",
+    "midB"
+   ],
+   "override": {}
+  },
+  "2": {
+   "slots": [
+    "midF",
+    "upB",
+    "midB"
+   ],
+   "override": {}
+  },
+  "3": {
+   "slots": [
+    "midF",
+    "upB",
+    "lowF",
+    "midB"
+   ],
+   "override": {}
+  },
+  "4": {
+   "slots": [
+    "midF",
+    "upB",
+    "lowF",
+    "lowB",
+    "midB"
+   ],
+   "override": {}
+  },
+  "5": {
+   "slots": [
+    "midF",
+    "upB",
+    "lowF",
+    "lowB",
+    "upF",
+    "midB"
+   ],
+   "override": {}
+  },
+  "6": {
+   "slots": [
+    "midF",
+    "upB",
+    "lowF",
+    "lowB",
+    "upF",
+    "topB",
+    "midB"
+   ],
+   "override": {}
+  }
+ },
+ "arms": {
+  "native": {
+   "midF": "arm1",
+   "midB": "arm2_dark",
+   "kind": "bent",
+   "scale": 1.0
+  },
+  "sprouted": {
+   "front": "long_cut",
+   "back": "long_dark_cut",
+   "kind": "straight",
+   "scale": 0.8
+  }
+ },
+ "behindBodyZ": 10.0,
+ "bud": {
+  "part": "bud",
+  "frontOnly": true,
+  "sproutedOnly": true
+ }
+}

@@ -1,0 +1,394 @@
+{
+ "weapons": {
+  "knife": {
+   "img": "knife",
+   "family": "melee-stab",
+   "wood": false,
+   "restAim": -40.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist34",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_streak",
+     "rule": "alongAim",
+     "anchor": "tip",
+     "at": "tip",
+     "params": {
+      "ahead": 4.0,
+      "side": -5.0
+     },
+     "z": 14.0
+    }
+   },
+   "bakedScale": 1.35
+  },
+  "cleaver": {
+   "img": "cleaver",
+   "family": "melee-swing",
+   "wood": false,
+   "restAim": -62.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist34",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_smear",
+     "rule": "swingArc",
+     "z": "behindBody",
+     "params": {
+      "back": 40.0,
+      "radius": 0.92
+     }
+    }
+   },
+   "bakedScale": 1.4
+  },
+  "club": {
+   "img": "spiked_club",
+   "family": "melee-swing",
+   "wood": true,
+   "restAim": -62.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist34",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_smear",
+     "rule": "swingArc",
+     "z": "behindBody",
+     "params": {
+      "back": 40.0,
+      "radius": 0.92
+     }
+    }
+   },
+   "bakedScale": 1.55
+  },
+  "stick": {
+   "img": "spiked_club",
+   "family": "melee-swing",
+   "wood": true,
+   "restAim": -62.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist34",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_smear",
+     "rule": "swingArc",
+     "z": "behindBody",
+     "params": {
+      "back": 40.0,
+      "radius": 0.92
+     }
+    }
+   },
+   "bakedScale": 1.55
+  },
+  "sword": {
+   "img": "sword",
+   "family": "melee-swing",
+   "wood": false,
+   "restAim": -62.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist34",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_smear",
+     "rule": "swingArc",
+     "z": "behindBody",
+     "params": {
+      "back": 40.0,
+      "radius": 0.92
+     }
+    }
+   },
+   "bakedScale": 1.6
+  },
+  "spear": {
+   "img": "spear",
+   "family": "melee-stab",
+   "wood": true,
+   "restAim": -50.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist34",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_streak",
+     "rule": "alongAim",
+     "anchor": "tip",
+     "at": "tip",
+     "params": {
+      "ahead": 4.0,
+      "side": -5.0
+     },
+     "z": 14.0
+    }
+   },
+   "bakedScale": 2.0
+  },
+  "hammer": {
+   "img": "hammer",
+   "family": "melee-swing",
+   "wood": true,
+   "restAim": -62.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist34",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_smear",
+     "rule": "swingArc",
+     "z": "behindBody",
+     "params": {
+      "back": 40.0,
+      "radius": 0.92
+     }
+    }
+   },
+   "bakedScale": 1.15
+  },
+  "scythe": {
+   "img": "scythe",
+   "family": "melee-swing",
+   "wood": true,
+   "restAim": -62.0,
+   "shotOffset": 0.0,
+   "hand": {
+    "front": "fist34",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_smear",
+     "rule": "swingArc",
+     "z": "behindBody",
+     "params": {
+      "back": 40.0,
+      "radius": 0.92
+     }
+    }
+   },
+   "bakedScale": 1.45
+  },
+  "pistol": {
+   "img": "pistol",
+   "family": "ranged-recoil",
+   "wood": false,
+   "restAim": -96.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_puff",
+     "rule": "alongShot",
+     "anchor": "cloud",
+     "at": "muzzle",
+     "params": {
+      "ahead": 8.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   },
+   "bakedScale": 1.355
+  },
+  "smg": {
+   "img": "smg",
+   "family": "ranged-recoil",
+   "wood": false,
+   "restAim": -96.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_puff",
+     "rule": "alongShot",
+     "anchor": "cloud",
+     "at": "muzzle",
+     "params": {
+      "ahead": 8.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   },
+   "bakedScale": 1.484
+  },
+  "shotgun": {
+   "img": "shotgun",
+   "family": "ranged-recoil",
+   "wood": true,
+   "restAim": -96.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_puff",
+     "rule": "alongShot",
+     "anchor": "cloud",
+     "at": "muzzle",
+     "params": {
+      "ahead": 8.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   },
+   "bakedScale": 1.419
+  },
+  "slingshot": {
+   "img": "sling_relaxed",
+   "family": "ranged-recoil",
+   "wood": true,
+   "restAim": -96.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_puff",
+     "rule": "alongShot",
+     "anchor": "cloud",
+     "at": "muzzle",
+     "params": {
+      "ahead": 8.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   },
+   "bakedScale": 1.419
+  },
+  "crossbow": {
+   "img": "crossbow",
+   "family": "ranged-recoil",
+   "wood": true,
+   "restAim": -96.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_puff",
+     "rule": "alongShot",
+     "anchor": "cloud",
+     "at": "muzzle",
+     "params": {
+      "ahead": 8.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   },
+   "bakedScale": 1.484
+  },
+  "wand": {
+   "img": "wand",
+   "family": "ranged-recoil",
+   "wood": false,
+   "restAim": -96.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_puff",
+     "rule": "alongShot",
+     "anchor": "cloud",
+     "at": "muzzle",
+     "params": {
+      "ahead": 8.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   },
+   "bakedScale": 1.29
+  },
+  "torch": {
+   "img": "torch",
+   "family": "ranged-recoil",
+   "wood": true,
+   "restAim": -96.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_puff",
+     "rule": "alongShot",
+     "anchor": "cloud",
+     "at": "muzzle",
+     "params": {
+      "ahead": 8.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   },
+   "bakedScale": 1.355
+  },
+  "flint": {
+   "img": "flint",
+   "family": "ranged-recoil",
+   "wood": false,
+   "restAim": -96.0,
+   "shotOffset": 90.0,
+   "hand": {
+    "front": "fist",
+    "back": "fist_dark"
+   },
+   "fx": {
+    "release": {
+     "img": "fx_puff",
+     "rule": "alongShot",
+     "anchor": "cloud",
+     "at": "muzzle",
+     "params": {
+      "ahead": 8.0,
+      "side": 0.0
+     },
+     "z": 14.0
+    }
+   },
+   "bakedScale": 1.548
+  }
+ },
+ "fist34HandleAlongPlusX": true,
+ "weaponsV2": "Bold side-view weapon set v2 (tools/weapons_v2). Art is baked bigger in parts.png (bakedScale = factor vs the v1 painting; informational, do NOT multiply). Code weapon drawScale must be 1.0. Keys are game weapon ids; 'fist' has no painting (PAINT fallback)."
+}

@@ -1,0 +1,25 @@
+{
+ "image": "prop-bed.webp",
+ "frameWidth": 556,
+ "frameHeight": 216,
+ "columns": 1,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.5
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 1000 }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Garden bed block",
+  "source": "image.jpg",
+  "image2x": "prop-bed@2x.webp",
+  "note": "static prop; draw at 1x for normal zoom, @2x for hi-dpi.",
+  "pngFallback": "prop-bed.png"
+ }
+}

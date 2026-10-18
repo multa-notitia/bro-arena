@@ -1,0 +1,245 @@
+{
+ "image": "enemy-shroom-mud.webp",
+ "frameWidth": 224,
+ "frameHeight": 224,
+ "columns": 9,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.742
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 115 },
+    { "i": 1, "ms": 115 },
+    { "i": 2, "ms": 105 },
+    { "i": 3, "ms": 105 },
+    { "i": 4, "ms": 105 },
+    { "i": 5, "ms": 105 },
+    { "i": 6, "ms": 230 },
+    { "i": 7, "ms": 150, "ox": 0.8 },
+    { "i": 8, "ms": 110 },
+    { "i": 9, "ms": 110 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 10, "ms": 67 },
+    { "i": 11, "ms": 67 },
+    { "i": 12, "ms": 67 },
+    { "i": 13, "ms": 67 },
+    { "i": 14, "ms": 67 },
+    { "i": 15, "ms": 67 },
+    { "i": 16, "ms": 67 },
+    { "i": 17, "ms": 67 },
+    { "i": 18, "ms": 66 },
+    { "i": 19, "ms": 66 },
+    { "i": 20, "ms": 66 },
+    { "i": 21, "ms": 66 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 22, "ms": 40, "ox": -2.5, "event": "hurt" },
+    { "i": 23, "ms": 60, "ox": -2.0 },
+    { "i": 24, "ms": 80, "ox": -1.0 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 25, "ms": 150, "ox": -0.8 },
+    { "i": 26, "ms": 100, "ox": -1.4 },
+    { "i": 27, "ms": 50, "ox": 1.4, "events": [ "release", "spawnFx" ] },
+    { "i": 28, "ms": 90, "ox": 0.6 },
+    { "i": 29, "ms": 110 }
+   ]
+  },
+  "scream": {
+   "loop": false,
+   "frames": [
+    { "i": 30, "ms": 130 },
+    { "i": 31, "ms": 110 },
+    { "i": 32, "ms": 60, "ox": 1.5, "event": "scream" },
+    { "i": 33, "ms": 80, "ox": -1.6 },
+    { "i": 34, "ms": 80, "ox": 1.6 },
+    { "i": 33, "ms": 80, "ox": -1.4 },
+    { "i": 34, "ms": 80, "ox": 1.2 },
+    { "i": 35, "ms": 100 },
+    { "i": 36, "ms": 100 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 37, "ms": 50 },
+    { "i": 38, "ms": 50 },
+    { "i": 39, "ms": 50, "event": "spawnFx" },
+    { "i": 40, "ms": 80 },
+    { "i": 41, "ms": 100 },
+    { "i": 42, "ms": 900 }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    { "i": 43, "ms": 40 },
+    { "i": 44, "ms": 60, "event": "spawnFx" },
+    { "i": 45, "ms": 60 },
+    { "i": 46, "ms": 70 },
+    { "i": 47, "ms": 80 },
+    { "i": 48, "ms": 900 }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    { "i": 49, "ms": 40 },
+    { "i": 50, "ms": 50, "event": "spawnFx" },
+    { "i": 51, "ms": 50 },
+    { "i": 52, "ms": 80 },
+    { "i": 53, "ms": 100 },
+    { "i": 54, "ms": 900 }
+   ]
+  },
+  "fx_puff": {
+   "loop": false,
+   "frames": [
+    { "i": 55, "ms": 50 },
+    { "i": 56, "ms": 70 },
+    { "i": 57, "ms": 90 },
+    { "i": 58, "ms": 110 }
+   ],
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   }
+  },
+  "fx_cloud": {
+   "loop": true,
+   "frames": [
+    { "i": 59, "ms": 75 },
+    { "i": 60, "ms": 75 },
+    { "i": 61, "ms": 75 },
+    { "i": 62, "ms": 75 },
+    { "i": 63, "ms": 75 },
+    { "i": 64, "ms": 75 },
+    { "i": 65, "ms": 75 },
+    { "i": 66, "ms": 75 }
+   ],
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   }
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    { "i": 67, "ms": 70, "event": "emerge_fx" },
+    { "i": 68, "ms": 70 },
+    { "i": 69, "ms": 90 },
+    { "i": 70, "ms": 80 },
+    { "i": 71, "ms": 70 },
+    { "i": 72, "ms": 60 },
+    { "i": 73, "ms": 70 },
+    { "i": 74, "ms": 60, "ox": 1.6 },
+    { "i": 75, "ms": 60, "ox": -1.6 },
+    { "i": 76, "ms": 60, "ox": 0.8 },
+    { "i": 0, "ms": 100, "event": "emerged" }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Rot toadstool (mud shroom, screaming spore caster)",
+  "source": "parts/shroom_variants_v1.jpg",
+  "cells": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "idle6",
+   "idle7",
+   "idle8",
+   "idle9",
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "walk8",
+   "walk9",
+   "walk10",
+   "walk11",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "attack4",
+   "scream0",
+   "scream1",
+   "scream2",
+   "scream3",
+   "scream4",
+   "scream7",
+   "scream8",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4",
+   "death5",
+   "death_slice0",
+   "death_slice1",
+   "death_slice2",
+   "death_slice3",
+   "death_slice4",
+   "death_slice5",
+   "death_smash0",
+   "death_smash1",
+   "death_smash2",
+   "death_smash3",
+   "death_smash4",
+   "death_smash5",
+   "fx_puff0",
+   "fx_puff1",
+   "fx_puff2",
+   "fx_puff3",
+   "fx_cloud0",
+   "fx_cloud1",
+   "fx_cloud2",
+   "fx_cloud3",
+   "fx_cloud4",
+   "fx_cloud5",
+   "fx_cloud6",
+   "fx_cloud7",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "emerge3",
+   "emerge4",
+   "emerge5",
+   "emerge6",
+   "emerge7",
+   "emerge8",
+   "emerge9"
+  ],
+  "feetY": 208.32,
+  "gameRadius": 17,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-shroom-mud/rig.py (shroomkit: parts-sheet compositor, figures/enemy-shroom-light/shroomkit.py)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r); ox/oy are world px. Extra clips: scream/taunt, death_slice, death_smash (each death ends on a remains cell that can be held), fx_puff / fx_cloud are spore effect cells with their own centre anchor (play by name).",
+  "pngFallback": "enemy-shroom-mud.png",
+  "emerge": "emerge (mud): 790 ms spawn clip, plays once before AI. `emerge_fx` on f0 (spawn fx-funny mud_erupt at the feet), `emerged` on the last frame (= idle f0; AI + collisions on). ox/oy are world px (shake / hop beyond the cell). Built by figures/fx-funny/src/emerge.py, appended after all other cells (indices of every other clip unchanged)."
+ }
+}

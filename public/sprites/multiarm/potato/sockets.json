@@ -1,0 +1,157 @@
+{
+ "units": "body px (parts/cc/body.png px of the side-view spud); dir/aim = screen deg, y down, 0 = right (facing), -90 = up",
+ "view": "side",
+ "mirror": "every slot is side +1 (facing right); nothing is mirrored per slot. When the target is behind the hero (or it walks left) the game mirrors the WHOLE composite (body cell + all arms) about the anchor x, exactly like it already does for sheets; aim maths stays in the unmirrored frame (mirror the target x about the anchor first). See compose_ref.MultiArm.frame(facing=-1).",
+ "layers": {
+  "front": "near side: drawn over the body (z > behindBodyZ), light arm + bud",
+  "back": "far side: behind the body (z < behindBodyZ), dark arm + dark hand"
+ },
+ "slots": {
+  "midR": {
+   "pos": [
+    154,
+    158
+   ],
+   "side": 1,
+   "dir": 54.0,
+   "z": 11.0,
+   "native": true,
+   "layer": "front"
+  },
+  "midL": {
+   "pos": [
+    26,
+    126
+   ],
+   "side": 1,
+   "dir": 118.0,
+   "z": 4.0,
+   "native": true,
+   "layer": "back"
+  },
+  "upR": {
+   "pos": [
+    166,
+    124
+   ],
+   "side": 1,
+   "dir": -8.0,
+   "z": 11.4,
+   "native": false,
+   "layer": "front"
+  },
+  "upL": {
+   "pos": [
+    62,
+    26
+   ],
+   "side": 1,
+   "dir": -42.0,
+   "z": 3.6,
+   "native": false,
+   "layer": "back"
+  },
+  "lowR": {
+   "pos": [
+    140,
+    190
+   ],
+   "side": 1,
+   "dir": 34.0,
+   "z": 11.6,
+   "native": false,
+   "layer": "front"
+  },
+  "lowL": {
+   "pos": [
+    22,
+    168
+   ],
+   "side": 1,
+   "dir": 146.0,
+   "z": 3.8,
+   "native": false,
+   "layer": "back"
+  }
+ },
+ "layouts": {
+  "1": {
+   "slots": [
+    "midR",
+    "midL"
+   ],
+   "override": {}
+  },
+  "2": {
+   "slots": [
+    "midR",
+    "midL"
+   ],
+   "override": {}
+  },
+  "3": {
+   "slots": [
+    "midR",
+    "midL",
+    "upR"
+   ],
+   "override": {}
+  },
+  "4": {
+   "slots": [
+    "midR",
+    "midL",
+    "upR",
+    "upL"
+   ],
+   "override": {}
+  },
+  "5": {
+   "slots": [
+    "midR",
+    "midL",
+    "upR",
+    "upL",
+    "lowR"
+   ],
+   "override": {}
+  },
+  "6": {
+   "slots": [
+    "midR",
+    "midL",
+    "upR",
+    "upL",
+    "lowR",
+    "lowL"
+   ],
+   "override": {}
+  }
+ },
+ "arms": {
+  "native": {
+   "midR": "arm_bent2",
+   "midL": "arm_dark_bent2",
+   "kind": "bent",
+   "scale": 1.0
+  },
+  "sprouted": {
+   "front": "long_cut",
+   "back": "long_dark_cut",
+   "kind": "straight",
+   "scale": 0.8
+  },
+  "raised": {
+   "front": "windup",
+   "weaponZ": 9.4,
+   "note": "keys with raised:true on a FRONT-layer arm swap the arm for this painting (club over the shoulder); the weapon goes through its fist, behind the body",
+   "back": "raised_dark",
+   "backNote": "weapons_v2: back-layer slots on raised:true keys swap their arm for this dark painting (same rule as front: placed at the slot with shoulder on the slot, rotated by rrot; weapon through its grip at weaponZ). Before this, back slots dropped raised and used raise/elbow."
+  }
+ },
+ "behindBodyZ": 10.0,
+ "bud": {
+  "part": "bud",
+  "frontOnly": true
+ }
+}

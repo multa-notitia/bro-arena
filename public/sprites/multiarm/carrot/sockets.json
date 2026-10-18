@@ -1,0 +1,166 @@
+{
+ "view": "side",
+ "units": "body px (side carrot upright body canvas px); dir/aim = screen deg, y down, 0 = right = FACING, -90 = up. All slots are canonical facing-right (side +1); `layer` front = near side (drawn over the body), back = far side (drawn behind it, dark arms + dark hands). Native slots replay the hero arm named by `hero` (R = near, L = far) from body_track.",
+ "mirror": "The figure faces its walking direction; when walking left OR when the target is behind (target x < anchor x in facing-right space), the WHOLE composed figure (body + every arm) is mirrored about the anchor x. Compose facing right with the target mirrored into facing-right space, then flip the result (compose_ref.MultiArm.frame(..., facing=-1)). Arms only ever aim into the facing half-plane.",
+ "slots": {
+  "midN": {
+   "pos": [
+    198.0,
+    285.0
+   ],
+   "side": 1,
+   "layer": "front",
+   "hero": "R",
+   "dir": 84.0,
+   "z": 11.0,
+   "native": true
+  },
+  "midF": {
+   "pos": [
+    139.0,
+    281.0
+   ],
+   "side": 1,
+   "layer": "back",
+   "hero": "L",
+   "dir": 132.0,
+   "z": 4.0,
+   "native": true
+  },
+  "upF": {
+   "pos": [
+    196.0,
+    261.0
+   ],
+   "side": 1,
+   "layer": "back",
+   "dir": 15.0,
+   "z": 4.2,
+   "native": false
+  },
+  "lowN": {
+   "pos": [
+    187.0,
+    313.0
+   ],
+   "side": 1,
+   "layer": "front",
+   "dir": 55.0,
+   "z": 11.2,
+   "native": false
+  },
+  "lowF": {
+   "pos": [
+    176.0,
+    313.0
+   ],
+   "side": 1,
+   "layer": "back",
+   "dir": 35.0,
+   "z": 3.8,
+   "native": false
+  },
+  "upN": {
+   "pos": [
+    206.0,
+    262.0
+   ],
+   "side": 1,
+   "layer": "front",
+   "dir": 5.0,
+   "z": 11.4,
+   "native": false
+  }
+ },
+ "layouts": {
+  "1": {
+   "slots": [
+    "midN",
+    "midF"
+   ],
+   "override": {}
+  },
+  "2": {
+   "slots": [
+    "midN",
+    "midF"
+   ],
+   "override": {
+    "midF": {
+     "dir": 72.0
+    }
+   }
+  },
+  "3": {
+   "slots": [
+    "midN",
+    "midF",
+    "upF"
+   ],
+   "override": {
+    "midF": {
+     "dir": 72.0
+    }
+   }
+  },
+  "4": {
+   "slots": [
+    "midN",
+    "midF",
+    "upF",
+    "lowN"
+   ],
+   "override": {
+    "midF": {
+     "dir": 72.0
+    }
+   }
+  },
+  "5": {
+   "slots": [
+    "midN",
+    "midF",
+    "upF",
+    "lowN",
+    "lowF"
+   ],
+   "override": {
+    "midF": {
+     "dir": 72.0
+    }
+   }
+  },
+  "6": {
+   "slots": [
+    "midN",
+    "midF",
+    "upF",
+    "lowN",
+    "lowF",
+    "upN"
+   ],
+   "override": {
+    "midF": {
+     "dir": 72.0
+    }
+   }
+  }
+ },
+ "arms": {
+  "native": {
+   "midN": "arm_L",
+   "midF": "arm_dark_bent",
+   "kind": "bent",
+   "scale": 1.0
+  },
+  "sprouted": {
+   "front": "straight",
+   "back": "straight_dark",
+   "kind": "straight",
+   "scale": 0.8
+  },
+  "emptyHand": null
+ },
+ "behindBodyZ": 10.0,
+ "bud": null
+}

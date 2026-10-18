@@ -1,0 +1,159 @@
+{
+ "families": {
+  "melee-swing": [
+   {
+    "ms": 60,
+    "raise": 120,
+    "elbow": 20,
+    "aim": -150,
+    "squash": 0.02
+   },
+   {
+    "ms": 45,
+    "raise": 40,
+    "elbow": -20,
+    "aim": 10,
+    "thrust": 2,
+    "show": [
+     "release"
+    ],
+    "ev": [
+     "release"
+    ],
+    "squash": -0.02
+   },
+   {
+    "ms": 70,
+    "raise": 0,
+    "elbow": -10,
+    "aim": 60,
+    "thrust": 1,
+    "squash": 0.025
+   },
+   {
+    "ms": 80,
+    "raise": 10,
+    "elbow": 30,
+    "aim": -50
+   }
+  ],
+  "ranged-recoil": [
+   {
+    "ms": 90,
+    "raise": 40,
+    "elbow": 26,
+    "aim": -98,
+    "thrust": -4,
+    "squash": 0.01
+   },
+   {
+    "ms": 45,
+    "raise": 50,
+    "elbow": -30,
+    "aim": -90,
+    "thrust": 5,
+    "show": [
+     "release"
+    ],
+    "ev": [
+     "release"
+    ]
+   },
+   {
+    "ms": 70,
+    "raise": 56,
+    "elbow": -10,
+    "aim": -112,
+    "thrust": 1,
+    "squash": 0.015
+   },
+   {
+    "ms": 80,
+    "raise": 40,
+    "elbow": 0,
+    "aim": -100
+   }
+  ],
+  "melee-slash": [
+   {
+    "ms": 60,
+    "raised": true,
+    "rrot": -38,
+    "aim": 188,
+    "squash": 0.03,
+    "raise": 120,
+    "elbow": 20
+   },
+   {
+    "ms": 45,
+    "raise": 62,
+    "elbow": -18,
+    "aim": 22,
+    "thrust": 3,
+    "show": [
+     "release"
+    ],
+    "ev": [
+     "release"
+    ],
+    "squash": -0.03
+   },
+   {
+    "ms": 70,
+    "raise": 10,
+    "elbow": -10,
+    "aim": 70,
+    "thrust": 1,
+    "show": [
+     "release"
+    ],
+    "squash": 0.025
+   },
+   {
+    "ms": 80,
+    "raise": 10,
+    "elbow": 48,
+    "aim": -45
+   }
+  ]
+ },
+ "sprout": [
+  {
+   "ms": 40,
+   "scale": 0.12,
+   "squash": 0.06,
+   "dust": true
+  },
+  {
+   "ms": 40,
+   "scale": 0.5,
+   "squash": 0.05
+  },
+  {
+   "ms": 50,
+   "scale": 1.15,
+   "squash": 0.03
+  },
+  {
+   "ms": 50,
+   "scale": 0.94,
+   "squash": -0.01
+  },
+  {
+   "ms": 60,
+   "scale": 1.0,
+   "squash": 0.0
+  }
+ ],
+ "aimClamp": 50.0,
+ "jitterMs": [
+  80,
+  200
+ ],
+ "sproutScale": 0.85,
+ "armTurnShare": 0.6,
+ "handD": 6.0,
+ "loadoutRules": {
+  "woodPerLayer": "minimise (cost 10 per extra wooden weapon on a layer, 3 per vertically adjacent wooden pair, 1 per weapon that changes slot)"
+ }
+}

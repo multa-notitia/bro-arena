@@ -2,14 +2,18 @@ import { clamp, lerp, uid } from '../core/math.ts'
 import type { CropId, EnemyKind, Farm, PlantView, Plot, World } from '../core/types.ts'
 import { CROP_IDS, STARTER_CROP_IDS } from '../core/types.ts'
 import { CROPS, CROP_LIST, cropByEnemy, cropUnlockedAt, GARDEN_COL_COUNT, GARDEN_ROW_COUNT, GARDEN_ROWS } from '../data/crops.ts'
+import { FEEL } from '../feel.ts'
 
 export const COL_COUNT = GARDEN_COL_COUNT
 export const ROW_COUNT = GARDEN_ROW_COUNT
 export const PLOT_COUNT = COL_COUNT * ROW_COUNT
 export const ROW_NAMES = GARDEN_ROWS
 
-const XS = [-210, -70, 70, 210]
-const YS = [-150, 48, 218]
+const GARDEN_SCALE = FEEL.garden.scale
+const XS = [-210, -70, 70, 210].map((v) => Math.round(v * GARDEN_SCALE))
+const YS = [-150, 48, 218].map((v) => Math.round(v * GARDEN_SCALE))
+const JITTER_X = Math.round(10 * GARDEN_SCALE)
+const JITTER_Y = Math.round(7 * GARDEN_SCALE)
 
 export function emptySeeds(): Record<CropId, number> {
   return { pea: 0, sprout: 0, carrot: 0, garlic: 0, pumpkin: 0, chili: 0 }
@@ -29,8 +33,8 @@ export function createFarm(): Farm {
         uid: uid(),
         row: r,
         col: c,
-        x: x + ((r + c) % 2 === 0 ? -10 : 10),
-        y: y + (c % 2 === 0 ? -7 : 7),
+        x: x + ((r + c) % 2 === 0 ? -JITTER_X : JITTER_X),
+        y: y + (c % 2 === 0 ? -JITTER_Y : JITTER_Y),
         crop: null,
         growth: 0,
         sway: (r * 3 + c) * 0.7,

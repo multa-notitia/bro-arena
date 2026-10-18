@@ -1,0 +1,203 @@
+{
+ "image": "enemy-beetle-light.webp",
+ "frameWidth": 200,
+ "frameHeight": 200,
+ "columns": 10,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.374
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    { "i": 0, "ms": 69 },
+    { "i": 1, "ms": 69 },
+    { "i": 2, "ms": 69 },
+    { "i": 3, "ms": 69 },
+    { "i": 4, "ms": 69 },
+    { "i": 5, "ms": 69 },
+    { "i": 6, "ms": 69 },
+    { "i": 7, "ms": 69 },
+    { "i": 8, "ms": 68 },
+    { "i": 9, "ms": 90 },
+    { "i": 10, "ms": 75 },
+    { "i": 11, "ms": 75 }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    { "i": 12, "ms": 50 },
+    { "i": 13, "ms": 50 },
+    { "i": 14, "ms": 50 },
+    { "i": 15, "ms": 50 },
+    { "i": 16, "ms": 50 },
+    { "i": 17, "ms": 50 },
+    { "i": 18, "ms": 50 },
+    { "i": 19, "ms": 50 },
+    { "i": 20, "ms": 50 },
+    { "i": 21, "ms": 50 },
+    { "i": 22, "ms": 50 },
+    { "i": 23, "ms": 50 }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    { "i": 24, "ms": 40, "ox": -2.5, "event": "hurt" },
+    { "i": 25, "ms": 30, "ox": -2.0 },
+    { "i": 26, "ms": 30, "ox": -1.5 },
+    { "i": 27, "ms": 80, "ox": -1.0 }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    { "i": 28, "ms": 130, "ox": -1.5 },
+    { "i": 29, "ms": 90, "ox": -3.0 },
+    { "i": 30, "ms": 45, "ox": 6.0, "event": "hit" },
+    { "i": 31, "ms": 80, "ox": 3.0 },
+    { "i": 32, "ms": 110, "ox": 1.0 }
+   ]
+  },
+  "taunt": {
+   "loop": false,
+   "frames": [
+    { "i": 33, "ms": 35 },
+    { "i": 34, "ms": 35, "oy": -3.0 },
+    { "i": 35, "ms": 45, "oy": -6.0 },
+    { "i": 36, "ms": 45, "oy": -3.0 },
+    { "i": 37, "ms": 40 },
+    { "i": 38, "ms": 40 },
+    { "i": 39, "ms": 35 },
+    { "i": 40, "ms": 35 },
+    { "i": 41, "ms": 90 }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    { "i": 42, "ms": 60, "ox": -1.0 },
+    { "i": 43, "ms": 70 },
+    { "i": 44, "ms": 90, "event": "spawnFx" },
+    { "i": 45, "ms": 100 },
+    { "i": 46, "ms": 1000 }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    { "i": 47, "ms": 50, "event": "spawnFx" },
+    { "i": 48, "ms": 60 },
+    { "i": 49, "ms": 80 },
+    { "i": 50, "ms": 100 },
+    { "i": 51, "ms": 1000 }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    { "i": 52, "ms": 45 },
+    { "i": 53, "ms": 45 },
+    { "i": 54, "ms": 50, "event": "spawnFx" },
+    { "i": 55, "ms": 70 },
+    { "i": 56, "ms": 90 },
+    { "i": 57, "ms": 1000 }
+   ]
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    { "i": 58, "ms": 60, "event": "emerge_fx" },
+    { "i": 59, "ms": 70 },
+    { "i": 60, "ms": 60 },
+    { "i": 61, "ms": 60, "oy": -6.3 },
+    { "i": 62, "ms": 70, "oy": -4.99 },
+    { "i": 63, "ms": 70 },
+    { "i": 64, "ms": 70 },
+    { "i": 65, "ms": 70 },
+    { "i": 0, "ms": 90, "event": "emerged" }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Garden beetle (light, rigged)",
+  "source": "parts/beetle_variants_v1.jpg",
+  "cells": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "idle6",
+   "idle7",
+   "idle8",
+   "idle9",
+   "idle10",
+   "idle11",
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "walk8",
+   "walk9",
+   "walk10",
+   "walk11",
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "hurt3",
+   "attack0",
+   "attack1",
+   "attack2",
+   "attack3",
+   "attack4",
+   "taunt0",
+   "taunt1",
+   "taunt2",
+   "taunt3",
+   "taunt4",
+   "taunt5",
+   "taunt6",
+   "taunt7",
+   "taunt8",
+   "death0",
+   "death1",
+   "death2",
+   "death3",
+   "death4",
+   "death_slice0",
+   "death_slice1",
+   "death_slice2",
+   "death_slice3",
+   "death_slice4",
+   "death_smash0",
+   "death_smash1",
+   "death_smash2",
+   "death_smash3",
+   "death_smash4",
+   "death_smash5",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "emerge3",
+   "emerge4",
+   "emerge5",
+   "emerge6",
+   "emerge7"
+  ],
+  "feetY": 117.0,
+  "gameRadius": 17,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-beetle-light/rig.py (cut-out animation, figures/enemy-beetle-light/src/beetlekit.py)",
+  "note": "",
+  "pngFallback": "enemy-beetle-light.png",
+  "emerge": "emerge (light): 620 ms spawn clip, plays once before AI. `emerge_fx` on f0 (spawn fx-funny mud_erupt at the feet), `emerged` on the last frame (= idle f0; AI + collisions on). ox/oy are world px (shake / hop beyond the cell). Built by figures/fx-funny/src/emerge.py, appended after all other cells (indices of every other clip unchanged)."
+ }
+}
