@@ -164,6 +164,8 @@ export function spawnEnemy(
     screamCooldown,
     x: pos.x,
     y: pos.y,
+    prevX: pos.x,
+    prevY: pos.y,
     vx: 0,
     vy: 0,
     r,
@@ -840,8 +842,8 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
     if (actorClipDone(enemyKey(e), performing)) e.perform = undefined
   }
   if (!clip) return
-  presentActorClip(key, clip, dt)
-  const walkRate = clip === 'walk' ? walkPlaybackRate(Math.hypot(e.vx, e.vy), Math.max(40, e.speed)) : 1
+  presentActorClip(key, clip)
+  const walkRate = walkPlaybackRate(Math.hypot(e.vx, e.vy), Math.max(40, e.speed))
   const events = advanceActorSheet(enemyKey(e), sheet, clip, dt, walkRate)
   if (clip === 'emerge') e.anim.spawnT = actorClipFraction(key, 'emerge')
   if (
@@ -974,31 +976,133 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   if (b.type === 'boss') updateBoss(world, e, dt, ctx)
 }
 
+function canSeparate(e: Enemy): boolean {
+  if (e.state === 'dying' || e.state === 'spawning' || e.state === 'charging') return false
+  if (isAirborne(e) || isLeaping(e)) return false
+  return true
+}
+
+function cellKey(cx: number, cy: number): number {
+  return ((cx + 512) << 16) | ((cy + 512) & 0xffff)
+}
+
+const sepBuckets = new Map<number, number[]>()
+
+export function overlappingEnemyPairs(world: World, frac: number): number {
+  const list = world.enemies
+  const n = list.length
+  let hits = 0
+  for (let i = 0; i < n; i++) {
+    const a = list[i]
+    if (!a || a.state === 'dying' || a.state === 'spawning') continue
+    for (let j = i + 1; j < n; j++) {
+      const b = list[j]
+      if (!b || b.state === 'dying' || b.state === 'spawning') continue
+      const min = (a.r + b.r) * frac
+      const dx = a.x - b.x
+      const dy = a.y - b.y
+      if (dx * dx + dy * dy < min * min) hits += 1
+    }
+  }
+  return hits
+}
+
+export interface OverlapProbe {
+  frames: number
+  preSep: number
+  postSep: number
+  preStack: number
+  postStack: number
+}
+
+export const overlapProbe: OverlapProbe = {
+  frames: 0,
+  preSep: 0,
+  postSep: 0,
+  preStack: 0,
+  postStack: 0,
+}
+
+export function resetOverlapProbe(): void {
+  overlapProbe.frames = 0
+  overlapProbe.preSep = 0
+  overlapProbe.postSep = 0
+  overlapProbe.preStack = 0
+  overlapProbe.postStack = 0
+}
+
+export function overlapAverages(): { sepBefore: number; sepAfter: number; stackBefore: number; stackAfter: number; frames: number } {
+  const n = Math.max(1, overlapProbe.frames)
+  return {
+    frames: overlapProbe.frames,
+    sepBefore: overlapProbe.preSep / n,
+    sepAfter: overlapProbe.postSep / n,
+    stackBefore: overlapProbe.preStack / n,
+    stackAfter: overlapProbe.postStack / n,
+  }
+}
+
 function separate(world: World): void {
   const list = world.enemies
   const n = list.length
+  const cell = CHAOS.read.separateCell
+  const hitFrac = CHAOS.read.separateHit
+  const pushK = CHAOS.read.separatePush
+  const cap = CHAOS.read.separateCap
+  overlapProbe.frames += 1
+  overlapProbe.preSep += overlappingEnemyPairs(world, hitFrac)
+  overlapProbe.preStack += overlappingEnemyPairs(world, 0.35)
+
+  sepBuckets.clear()
+  const active: number[] = []
   for (let i = 0; i < n; i++) {
-    const a = list[i]
-    if (!a || a.state === 'dying' || a.state === 'spawning' || isAirborne(a)) continue
-    for (let j = i + 1; j < n; j++) {
-      const b = list[j]
-      if (!b || b.state === 'dying' || b.state === 'spawning' || isAirborne(b)) continue
-      const dx = a.x - b.x
-      if (dx > CHAOS.pace.separateScan || dx < -CHAOS.pace.separateScan) continue
-      const dy = a.y - b.y
-      if (dy > CHAOS.pace.separateScan || dy < -CHAOS.pace.separateScan) continue
-      const min = (a.r + b.r) * CHAOS.pace.separate
-      const d2 = dx * dx + dy * dy
-      if (d2 >= min * min || d2 < 0.01) continue
-      const d = Math.sqrt(d2)
-      const nx = dx / d
-      const ny = dy / d
-      const push = (min - d) * CHAOS.pace.separatePush
-      a.x += nx * push
-      a.y += ny * push
-      b.x -= nx * push
-      b.y -= ny * push
+    const e = list[i]
+    if (!e || !canSeparate(e)) continue
+    active.push(i)
+    const k = cellKey(Math.floor(e.x / cell), Math.floor(e.y / cell))
+    let bucket = sepBuckets.get(k)
+    if (!bucket) {
+      bucket = []
+      sepBuckets.set(k, bucket)
     }
+    bucket.push(i)
+  }
+  for (let a = 0; a < active.length; a++) {
+    const i = active[a]!
+    const ea = list[i]
+    if (!ea) continue
+    const cx = Math.floor(ea.x / cell)
+    const cy = Math.floor(ea.y / cell)
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oy = -1; oy <= 1; oy++) {
+        const bucket = sepBuckets.get(cellKey(cx + ox, cy + oy))
+        if (!bucket) continue
+        for (let b = 0; b < bucket.length; b++) {
+          const j = bucket[b]!
+          if (j <= i) continue
+          const eb = list[j]
+          if (!eb || !canSeparate(eb)) continue
+          const dx = ea.x - eb.x
+          const dy = ea.y - eb.y
+          const min = (ea.r + eb.r) * hitFrac
+          const d2 = dx * dx + dy * dy
+          if (d2 >= min * min || d2 < 0.0001) continue
+          const d = Math.sqrt(d2)
+          const push = Math.min(cap, (min - d) * pushK)
+          const inv = push / d
+          ea.x += dx * inv
+          ea.y += dy * inv
+          eb.x -= dx * inv
+          eb.y -= dy * inv
+        }
+      }
+    }
+  }
+
+  overlapProbe.postSep += overlappingEnemyPairs(world, hitFrac)
+  overlapProbe.postStack += overlappingEnemyPairs(world, 0.35)
+  if (typeof window !== 'undefined') {
+    ;(window as unknown as { __overlap?: ReturnType<typeof overlapAverages> }).__overlap = overlapAverages()
   }
 }
 

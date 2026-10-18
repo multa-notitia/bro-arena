@@ -65,10 +65,29 @@ export const CHAOS = {
     batch: [1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3] as const,
     /** Live enemies + telegraphs. Never a 200-body soup. */
     alive: [14, 18, 24, 30, 38, 46, 54, 62, 70, 78, 84, 88, 92, 94, 96, 98, 100, 100, 100, 100] as const,
-    /** Soft body separation (fraction of combined radii). */
-    separate: 1.08,
-    separatePush: 0.7,
-    separateScan: 64,
+  },
+
+  /**
+   * Crowd read. Hero pops vs common peas; packs surround instead of stacking.
+   * Weapon scale is paint-only — sockets stay put.
+   */
+  read: {
+    /** Draw radius vs the common pea (player.r is still the hit circle). */
+    heroScale: 1.15,
+    /** Soft cream rim in world px at camera zoom 1. */
+    heroRimPx: 2,
+    heroRim: '#f3e6c4',
+    heroRimAlpha: 0.92,
+    /** Multiplier on contact-shadow strength (not a disc). */
+    heroShadow: 1.32,
+    /** Separation radius as a fraction of each hit radius. */
+    separateHit: 0.8,
+    separatePush: 0.55,
+    /** Max world-px shove per pair per step. */
+    separateCap: 2.4,
+    separateCell: 36,
+    weaponMelee: 1.3,
+    weaponRanged: 1.2,
   },
 
   director: {
@@ -344,6 +363,12 @@ export function walkPlaybackRate(speed: number, nominal: number): number {
 
 export function paceEnemySpeed(family: string, fallback: number): number {
   return CHAOS.pace.enemy[family] ?? fallback
+}
+
+/** Paint-only. Melee reads bigger; ranged a little less. */
+export function weaponDrawScale(weaponClass: string): number {
+  if (weaponClass === 'melee') return CHAOS.read.weaponMelee
+  return CHAOS.read.weaponRanged
 }
 
 applyFxFromEnvironment()

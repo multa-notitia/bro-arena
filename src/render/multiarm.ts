@@ -13,7 +13,9 @@ import {
   type Slot,
   type WeaponPaint,
 } from './armCompose.ts'
-import { actorClipFrame, loadSheetAt, type LoadedSheet, type SheetFrame } from './sheets.ts'
+import { actorClipFrame, blitCell, frameCell, loadSheetAt, type LoadedSheet, type SheetFrame } from './sheets.ts'
+import { WEAPONS } from '../data/weapons.ts'
+import { weaponDrawScale } from '../data/chaos.ts'
 
 /** One hero's multi-arm folder and the armless sheet that sits under the arms. */
 export interface MultiArmSource {
@@ -673,8 +675,9 @@ function armLayers(
   grow: number,
   target: [number, number] | null,
   B: Mat,
+  extraScale = 1,
 ): Layer[] {
-  return composeArmLayers(currentRig(), slot, clip, fi, weaponName, tAttack, grow, target, B)
+  return composeArmLayers(currentRig(), slot, clip, fi, weaponName, tAttack, grow, target, B, extraScale)
 }
 
 
@@ -692,7 +695,11 @@ function sproutExtras(slot: Slot, st: SlotState): Layer[] {
       out.push({ name: 'bud', m: mul(mul(T(P[0], P[1]), Sm(s)), T(-c[0], -c[1])), z: 10.5 })
     }
   }
-  if (at.index < 3) {
+  // Dust covers the opening of the sprout, measured in ms so extra keys do not shrink it.
+  let dustMs = 0
+  const dustKeys = Math.min(3, sproutKeys.length)
+  for (let i = 0; i < dustKeys; i++) dustMs += sproutKeys[i]?.ms ?? 0
+  if (st.sproutMs < dustMs) {
     const dust = parts.fx_dust
     if (dust) {
       const c = pointOf(dust, 'center')
@@ -700,6 +707,19 @@ function sproutExtras(slot: Slot, st: SlotState): Layer[] {
     }
   }
   return out
+}
+
+/**
+ * Body-track row for this moment. The index comes from clip time. When the
+ * track length matches the clip, that row is the key. A shorter track is
+ * sampled across the same span instead of assuming a fixed frame count.
+ */
+function trackFrameIndex(list: TrackFrame[] | undefined, frameIndex: number, frameCount: number): number {
+  if (!list?.length) return -1
+  if (list.length === frameCount) return Math.max(0, Math.min(list.length - 1, frameIndex))
+  const denom = Math.max(1, frameCount - 1)
+  const u = Math.max(0, Math.min(1, frameIndex / denom))
+  return Math.round(u * (list.length - 1))
 }
 
 function snapScale(s: number): number {
@@ -735,6 +755,8 @@ function drawPart(ctx: CanvasRenderingContext2D, name: string, m: Mat, tint: num
   if (!part || !img) return
   const [sx, sy, w, h] = part.rect
   if (w <= 0 || h <= 0) return
+  const cell = frameCell(img, `part:${name}:${sx},${sy},${w}x${h}`, sx, sy, w, h)
+  if (!cell) return
   ctx.save()
   ctx.transform(m[0], m[3], m[1], m[4], m[2], m[5])
   if (tint && tint.length >= 4 && (tint[3] ?? 0) > 0.01) {
@@ -744,26 +766,28 @@ function drawPart(ctx: CanvasRenderingContext2D, name: string, m: Mat, tint: num
     }
     const g = scratchCtx
     if (scratch && g) {
-      if (scratch.width < w || scratch.height < h) {
-        scratch.width = Math.max(scratch.width, Math.ceil(w))
-        scratch.height = Math.max(scratch.height, Math.ceil(h))
+      const tw = Math.ceil(w)
+      const th = Math.ceil(h)
+      if (scratch.width !== tw || scratch.height !== th) {
+        scratch.width = tw
+        scratch.height = th
       }
       g.setTransform(1, 0, 0, 1, 0, 0)
-      g.clearRect(0, 0, w, h)
+      g.clearRect(0, 0, tw, th)
       g.imageSmoothingEnabled = true
-      g.imageSmoothingQuality = 'high'
+      g.imageSmoothingQuality = 'low'
       g.globalCompositeOperation = 'source-over'
-      g.drawImage(img, sx, sy, w, h, 0, 0, w, h)
+      g.drawImage(cell, 0, 0)
       g.globalCompositeOperation = 'source-atop'
       const r = Math.round((tint[0] ?? 1) * 255)
       const gg = Math.round((tint[1] ?? 1) * 255)
       const b = Math.round((tint[2] ?? 1) * 255)
       g.fillStyle = `rgba(${r},${gg},${b},${tint[3] ?? 0})`
-      g.fillRect(0, 0, w, h)
-      ctx.drawImage(scratch, 0, 0, w, h, 0, 0, w, h)
+      g.fillRect(0, 0, tw, th)
+      blitCell(ctx, scratch, 0, 0, tw, th)
     }
   } else {
-    ctx.drawImage(img, sx, sy, w, h, 0, 0, w, h)
+    blitCell(ctx, cell, 0, 0, w, h)
   }
   ctx.restore()
 }
@@ -787,7 +811,9 @@ export function drawMultiArm(ctx: CanvasRenderingContext2D, which: 'back' | 'fro
   syncLoadout(opts.weapons)
   const located = actorClipFrame('player', bodySheet, opts.clip)
   if (!located) return
-  const tr = tracks[opts.clip]?.[located.index]
+  const frameCount = bodySheet.manifest.clips[opts.clip]?.frames.length ?? 1
+  const fi = trackFrameIndex(tracks[opts.clip], located.index, frameCount)
+  const tr = fi < 0 ? undefined : tracks[opts.clip]?.[fi]
   if (!tr || tr.arms === false || !tr.m) return
   const B: Mat = [tr.m[0]![0]!, tr.m[0]![1]!, tr.m[0]![2]!, tr.m[1]![0]!, tr.m[1]![1]!, tr.m[1]![2]!, 0, 0, 1]
   const fw = bodySheet.manifest.frameWidth
@@ -809,7 +835,9 @@ export function drawMultiArm(ctx: CanvasRenderingContext2D, which: 'back' | 'fro
       ? worldToCell(worldTarget.x, worldTarget.y, opts.originX, opts.originY, opts.bodyRot, opts.facing, located.frame, ax, ay, fit)
       : null
     const tAttack = st.attackMs === null ? null : st.attackMs - st.jitter
-    layers.push(...armLayers(slot, opts.clip, located.index, painted?.name ?? null, tAttack, grow, target, B))
+    const wpnId = st.uid != null ? idByUid.get(st.uid) : undefined
+    const extraScale = wpnId ? weaponDrawScale(WEAPONS[wpnId]?.class ?? 'ranged') : 1
+    layers.push(...armLayers(slot, opts.clip, fi, painted?.name ?? null, tAttack, grow, target, B, extraScale))
   }
   const keep = which === 'back' ? (z: number) => z < behindZ : (z: number) => z > behindZ
   const sorted = layers.filter((layer) => keep(layer.z)).sort((a, b) => a.z - b.z)

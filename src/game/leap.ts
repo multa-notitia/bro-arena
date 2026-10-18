@@ -1,5 +1,6 @@
 import { dist, ease } from '../core/math.ts'
 import { CHAOS, chaosOn } from '../data/chaos.ts'
+import { enemyFamily } from '../data/enemies.ts'
 import type { Enemy, World } from '../core/types.ts'
 import { spawnFunnyClip } from '../render/chaosFx.ts'
 import { hasClip, resolveEnemySheet } from '../render/chaosSheets.ts'
@@ -50,7 +51,7 @@ function playKey(e: Enemy): string {
 
 function leapDef(e: Enemy): { range: number; cooldown: number; duration: number; dist: number } | null {
   if (!chaosOn() || !CHAOS.leap.enabled) return null
-  if (!e.def.leap && e.kind !== 'bean') return null
+  if (!e.def.leap && enemyFamily(e.kind) !== 'bean') return null
   const mud = e.form === 'nightmare'
   return {
     range: e.def.leap?.range ?? 190,

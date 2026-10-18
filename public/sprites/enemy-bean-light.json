@@ -1,129 +1,141 @@
 {
  "image": "enemy-bean-light.webp",
- "frameWidth": 256,
- "frameHeight": 256,
+ "frameWidth": 240,
+ "frameHeight": 224,
  "columns": 8,
  "anchor": {
-  "x": 0.5,
-  "y": 0.695
+  "x": 0.4917,
+  "y": 0.7407
  },
  "clips": {
   "idle": {
    "loop": true,
    "frames": [
-    { "i": 0, "ms": 170 },
-    { "i": 1, "ms": 140 },
-    { "i": 1, "ms": 140 },
-    { "i": 0, "ms": 170 },
-    { "i": 2, "ms": 90 },
-    { "i": 3, "ms": 150 }
+    { "i": 0, "ms": 70 },
+    { "i": 1, "ms": 70 },
+    { "i": 2, "ms": 70 },
+    { "i": 3, "ms": 70 },
+    { "i": 2, "ms": 70 },
+    { "i": 1, "ms": 70 },
+    { "i": 0, "ms": 70 },
+    { "i": 4, "ms": 70 },
+    { "i": 5, "ms": 70 },
+    { "i": 6, "ms": 90 },
+    { "i": 5, "ms": 70 },
+    { "i": 4, "ms": 70 }
    ]
   },
   "walk": {
    "loop": true,
    "frames": [
-    { "i": 4, "ms": 70 },
-    { "i": 5, "ms": 50, "oy": -2.0 },
-    { "i": 6, "ms": 80, "oy": -8.0 },
-    { "i": 7, "ms": 80, "oy": -11.0 },
-    { "i": 8, "ms": 70, "oy": -6.0 },
-    { "i": 9, "ms": 60 },
-    { "i": 10, "ms": 70 },
-    { "i": 11, "ms": 60 }
+    { "i": 7, "ms": 35 },
+    { "i": 8, "ms": 35, "oy": -0.5 },
+    { "i": 9, "ms": 50, "oy": -2.0 },
+    { "i": 10, "ms": 40, "oy": -8.0 },
+    { "i": 11, "ms": 40, "oy": -10.062 },
+    { "i": 12, "ms": 40, "oy": -11.0 },
+    { "i": 12, "ms": 40, "oy": -9.188 },
+    { "i": 13, "ms": 35, "oy": -6.0 },
+    { "i": 14, "ms": 35, "oy": -2.312 },
+    { "i": 15, "ms": 60 },
+    { "i": 16, "ms": 70 },
+    { "i": 17, "ms": 60 }
    ]
   },
   "leap": {
    "loop": false,
    "frames": [
-    { "i": 12, "ms": 130 },
-    { "i": 13, "ms": 80, "ox": -0.8 },
-    { "i": 14, "ms": 50, "event": "takeoff" },
-    { "i": 15, "ms": 90 },
-    { "i": 16, "ms": 90 },
-    { "i": 17, "ms": 90 },
-    { "i": 18, "ms": 80 },
-    { "i": 9, "ms": 70, "event": "land" },
-    { "i": 10, "ms": 80 },
-    { "i": 11, "ms": 80 }
+    { "i": 18, "ms": 130 },
+    { "i": 19, "ms": 80, "ox": -0.8 },
+    { "i": 20, "ms": 50, "event": "takeoff" },
+    { "i": 21, "ms": 90 },
+    { "i": 22, "ms": 90 },
+    { "i": 23, "ms": 90 },
+    { "i": 24, "ms": 80 },
+    { "i": 15, "ms": 70, "event": "land" },
+    { "i": 16, "ms": 80 },
+    { "i": 17, "ms": 80 }
    ]
   },
   "hurt": {
    "loop": false,
    "frames": [
-    { "i": 19, "ms": 40, "event": "hurt" },
-    { "i": 20, "ms": 60 },
-    { "i": 21, "ms": 80 }
+    { "i": 25, "ms": 40, "event": "hurt" },
+    { "i": 26, "ms": 60 },
+    { "i": 27, "ms": 80 }
    ]
   },
   "attack": {
    "loop": false,
    "frames": [
-    { "i": 22, "ms": 80 },
-    { "i": 23, "ms": 45, "oy": -5.0, "event": "hit" },
-    { "i": 24, "ms": 70, "oy": -3.0 },
-    { "i": 25, "ms": 70 },
-    { "i": 26, "ms": 80 }
+    { "i": 28, "ms": 80 },
+    { "i": 29, "ms": 45, "oy": -5.0, "event": "hit" },
+    { "i": 30, "ms": 70, "oy": -3.0 },
+    { "i": 31, "ms": 70 },
+    { "i": 32, "ms": 80 }
    ]
   },
   "death": {
    "loop": false,
    "frames": [
-    { "i": 27, "ms": 50 },
-    { "i": 28, "ms": 50 },
-    { "i": 29, "ms": 50, "event": "spawnFx" },
-    { "i": 30, "ms": 60 },
-    { "i": 31, "ms": 70 },
-    { "i": 32, "ms": 80 },
-    { "i": 33, "ms": 90 },
-    { "i": 34, "ms": 90 },
-    { "i": 35, "ms": 950 }
+    { "i": 33, "ms": 50 },
+    { "i": 34, "ms": 50 },
+    { "i": 35, "ms": 50, "event": "spawnFx" },
+    { "i": 36, "ms": 60 },
+    { "i": 37, "ms": 70 },
+    { "i": 38, "ms": 80 },
+    { "i": 39, "ms": 90 },
+    { "i": 40, "ms": 90 },
+    { "i": 41, "ms": 950 }
    ]
   },
   "death_slice": {
    "loop": false,
    "frames": [
-    { "i": 36, "ms": 45 },
-    { "i": 37, "ms": 50, "event": "spawnFx" },
-    { "i": 38, "ms": 55 },
-    { "i": 39, "ms": 60 },
-    { "i": 40, "ms": 70 },
-    { "i": 41, "ms": 80 },
-    { "i": 42, "ms": 950 }
+    { "i": 42, "ms": 45 },
+    { "i": 43, "ms": 50, "event": "spawnFx" },
+    { "i": 44, "ms": 55 },
+    { "i": 45, "ms": 60 },
+    { "i": 46, "ms": 70 },
+    { "i": 47, "ms": 80 },
+    { "i": 48, "ms": 950 }
    ]
   },
   "death_smash": {
    "loop": false,
    "frames": [
-    { "i": 43, "ms": 40 },
-    { "i": 44, "ms": 50 },
-    { "i": 45, "ms": 50, "event": "spawnFx" },
-    { "i": 46, "ms": 60 },
-    { "i": 47, "ms": 70 },
-    { "i": 48, "ms": 80 },
-    { "i": 49, "ms": 950 }
+    { "i": 49, "ms": 40 },
+    { "i": 50, "ms": 50 },
+    { "i": 51, "ms": 50, "event": "spawnFx" },
+    { "i": 52, "ms": 60 },
+    { "i": 53, "ms": 70 },
+    { "i": 54, "ms": 80 },
+    { "i": 55, "ms": 950 }
    ]
   },
   "taunt": {
    "loop": false,
    "frames": [
-    { "i": 50, "ms": 70 },
-    { "i": 51, "ms": 80, "oy": -6.0 },
-    { "i": 52, "ms": 70, "oy": -7.0 },
-    { "i": 53, "ms": 80 },
-    { "i": 54, "ms": 100 }
+    { "i": 56, "ms": 70 },
+    { "i": 57, "ms": 40, "oy": -6.0 },
+    { "i": 58, "ms": 40, "oy": -6.875 },
+    { "i": 59, "ms": 35, "oy": -7.0 },
+    { "i": 60, "ms": 35, "oy": -3.5 },
+    { "i": 61, "ms": 80 },
+    { "i": 62, "ms": 100 }
    ]
   },
   "emerge": {
    "loop": false,
    "frames": [
-    { "i": 55, "ms": 120 },
-    { "i": 56, "ms": 90 },
-    { "i": 57, "ms": 80 },
-    { "i": 58, "ms": 60, "event": "emerge_fx" },
-    { "i": 59, "ms": 70 },
-    { "i": 60, "ms": 70 },
-    { "i": 61, "ms": 70 },
-    { "i": 62, "ms": 80 },
+    { "i": 63, "ms": 120 },
+    { "i": 64, "ms": 90 },
+    { "i": 65, "ms": 80 },
+    { "i": 66, "ms": 60, "event": "emerge_fx" },
+    { "i": 67, "ms": 70 },
+    { "i": 68, "ms": 70 },
+    { "i": 69, "ms": 70 },
+    { "i": 70, "ms": 80 },
     { "i": 0, "ms": 90, "event": "emerged" }
    ]
   }
@@ -134,16 +146,22 @@
   "cells": [
    "idle0",
    "idle1",
-   "idle4",
-   "idle5",
+   "idle2",
+   "idle3",
+   "idle7",
+   "idle8",
+   "idle9",
    "walk0",
    "walk1",
    "walk2",
    "walk3",
    "walk4",
    "walk5",
-   "walk6",
    "walk7",
+   "walk8",
+   "walk9",
+   "walk10",
+   "walk11",
    "leap0",
    "leap1",
    "leap2",
@@ -187,6 +205,8 @@
    "taunt2",
    "taunt3",
    "taunt4",
+   "taunt5",
+   "taunt6",
    "emerge0",
    "emerge1",
    "emerge2",
@@ -196,7 +216,7 @@
    "emerge6",
    "emerge7"
   ],
-  "feetY": 220.16,
+  "feetY": 208.16,
   "gameRadius": 17,
   "gameFit": 0.25,
   "rig": "figures/enemy-bean-light/rig.py (cut-out animation, tools/rig)",
@@ -217,6 +237,15 @@
    ]
   },
   "leapNote": "leap frames are in place: move the body from the takeoff frame to the land frame (400 ms), arc = airOffsetY (world px). walk hops carry their own oy.",
-  "emergeNote": "emerge cells 0-7 include the bean plant (fades out); emerge_fx on the pop-off, emerged on the last frame."
+  "emergeNote": "emerge cells 0-7 include the bean plant (fades out); emerge_fx on the pop-off, emerged on the last frame.",
+  "cellCrop": {
+   "from": [
+    256,
+    256
+   ],
+   "x0": 10,
+   "y0": 12,
+   "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
+  }
  }
 }

@@ -1,5 +1,5 @@
 import { TAU, clamp, dist, ease, hashNoise, lerp } from '../core/math.ts'
-import { fxOn } from '../data/chaos.ts'
+import { CHAOS, fxOn } from '../data/chaos.ts'
 import { comboCount, corpseClipName, deathClipName } from '../game/chaosJuice.ts'
 import { vineOf } from '../game/emerge.ts'
 import { hopHeight, isLeaping } from '../game/leap.ts'
@@ -42,12 +42,14 @@ import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { drawPaddock } from './ground.ts'
 import { paperColor } from './paintLang.ts'
 import { drawMultiArm, multiArmSheet, potatoMultiArm } from './multiarm.ts'
+import { presentRenderPoses } from '../game/world.ts'
 import {
   actorClipActive,
   actorFootprint,
   drawActorSheet,
   drawNamedClip,
   gardenGround,
+  locomotionBlend,
   pickClip,
   resolveSheet,
   sheetById,
@@ -117,6 +119,31 @@ function blit(
   ctx.scale(s, s)
   ctx.drawImage(img, -img.width / 2, -img.height / 2)
   ctx.restore()
+}
+
+/** Soft cream rim in world px. Offset shadows, not a disc. */
+function paintWithRim(ctx: CanvasRenderingContext2D, paint: () => void): void {
+  const rim = CHAOS.read.heroRimPx
+  const m = ctx.getTransform()
+  const sx = Math.hypot(m.a, m.b) || 1
+  const sy = Math.hypot(m.c, m.d) || 1
+  ctx.save()
+  ctx.shadowColor = CHAOS.read.heroRim
+  ctx.globalAlpha *= CHAOS.read.heroRimAlpha
+  ctx.shadowBlur = Math.max(0.5, 0.4 * rim * ((sx + sy) * 0.5))
+  const dirs: readonly [number, number][] = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+  ]
+  for (const [dx, dy] of dirs) {
+    ctx.shadowOffsetX = dx * rim * sx
+    ctx.shadowOffsetY = dy * rim * sy
+    paint()
+  }
+  ctx.restore()
+  paint()
 }
 
 /** Soft contact shadow. `footprint` is the painted body width; the ellipse stays under 0.8× that. */
@@ -798,7 +825,8 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const painted = !sheet && usesPaintedArt(species, model)
   const board = !sheet && usesBoardArt(species, model)
   const imageHero = painted || board
-  const artR = sizeBucket(p.r)
+  const drawR = p.r * CHAOS.read.heroScale
+  const artR = sizeBucket(drawR)
   const procModel = proceduralModel(model)
   const spr = imageHero ? null : creatureSprite(cache, species, pal, form, artR, qScale, procModel)
   const x = p.x + p.anim.kick.x
@@ -810,7 +838,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const blink = p.anim.blink ?? -1
   const facing = p.anim.facing ?? 1
   const squash = clamp(p.anim.squash || 1, 0.45, 1.8)
-  const sc = p.r / artR
+  const sc = drawR / artR
   // Sheet heroes stay upright. A small negative lean plus high-quality
   // smoothing makes Chrome smear the cell into a wide cloud.
   const bodyRot = sheet
@@ -845,35 +873,43 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     const body = arms ?? sheet
     const swinging = !arms && p.weapons.some((w) => w.swingT >= 0)
     const shade = p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.35 : 1
-    const foot = actorFootprint(body, p.r)
-    drawReadHalo(ctx, x, p.y, foot, shade)
-    drawShadow(ctx, x, p.y, foot, shade)
+    const foot = actorFootprint(body, drawR)
+    drawShadow(ctx, x, p.y, foot, shade * CHAOS.read.heroShadow)
     drawPlayerWeapons(ctx, world, cache, true, held, true)
-    ctx.save()
-    ctx.translate(x, y)
-    ctx.rotate(bodyRot)
-    // Side-facing heroes are authored facing right. One scale flips the body
-    // and every arm together, so near arms stay in front and far arms stay behind.
-    if (arms) ctx.scale(facing, 1)
     const clip = pickClip(body, p.anim, { swinging, hurt: actorClipActive('player', 'hurt') })
     const paintFacing: 1 | -1 = arms ? 1 : facing
-    const armPose = arms
-      ? {
+    const blend = clip && (clip === 'idle' || clip === 'walk') ? locomotionBlend('player') : null
+    const paintHero = () => {
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.rotate(bodyRot)
+      // Side-facing heroes are authored facing right. One scale flips the body
+      // and every arm together, so near arms stay in front and far arms stay behind.
+      if (arms) ctx.scale(facing, 1)
+      const paintArms = (which: 'back' | 'front') => {
+        if (!arms || !clip) return
+        const base = {
           species,
           weapons: p.weapons.map((w) => ({ uid: w.uid, id: w.id })),
-          clip: clip ?? 'idle',
-          r: p.r,
+          r: drawR,
           facing,
-          alpha,
           originX: x,
           originY: y,
           bodyRot,
         }
-      : null
-    if (armPose && clip) drawMultiArm(ctx, 'back', armPose)
-    if (clip) drawActorSheet(ctx, body, 'player', clip, { r: p.r, facing: paintFacing, alpha })
-    if (armPose && clip) drawMultiArm(ctx, 'front', armPose)
-    ctx.restore()
+        if (blend && blend.from !== clip) {
+          drawMultiArm(ctx, which, { ...base, clip: blend.from, alpha: alpha * blend.old })
+          drawMultiArm(ctx, which, { ...base, clip, alpha: alpha * blend.neu })
+          return
+        }
+        drawMultiArm(ctx, which, { ...base, clip, alpha })
+      }
+      paintArms('back')
+      if (clip) drawActorSheet(ctx, body, 'player', clip, { r: drawR, facing: paintFacing, alpha })
+      paintArms('front')
+      ctx.restore()
+    }
+    paintWithRim(ctx, paintHero)
     drawPlayerWeapons(ctx, world, cache, false, held, true)
     drawOrbitWeapons(ctx, world, cache)
     return
@@ -885,7 +921,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     const boardOpts = {
       x,
       y,
-      r: p.r,
+      r: drawR,
       facing,
       squash: squashAmt,
       alpha,
@@ -924,9 +960,9 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   drawShadow(
     ctx,
     x,
-    p.y + p.r * 0.45,
-    p.r * 1.7,
-    p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.35 : 1,
+    p.y + drawR * 0.45,
+    drawR * 1.7,
+    (p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.35 : 1) * CHAOS.read.heroShadow,
   )
   drawPlayerWeapons(ctx, world, cache, true, held)
   ctx.save()
@@ -958,7 +994,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     drawPaintedChili(ctx, {
       x: 0,
       y: 0,
-      r: p.r,
+      r: drawR,
       facing,
       squash: squashAmt,
       alpha,
@@ -1014,6 +1050,8 @@ export function drawWorld(
   view: ViewSize,
 ): void {
   fx.update(dt)
+  const restorePoses = presentRenderPoses(world)
+  try {
   const cam = world.camera
   const cssW = cam.w > 0 ? cam.w : view.w
   const cssH = cam.h > 0 ? cam.h : view.h
@@ -1070,7 +1108,7 @@ export function drawWorld(
   }
 
   const list = cmds.slice(0, cmdN)
-  list.sort((a, b) => a.y - b.y || a.z - b.z)
+  list.sort((a, b) => a.y - b.y)
 
   let playerDrawn = false
   for (let i = 0; i < list.length; i++) {
@@ -1126,4 +1164,7 @@ export function drawWorld(
   drawOffscreen(ctx, world, cssW, cssH)
   vignette(ctx, cssW, cssH, night ? 0.72 : 0.4)
   ctx.restore()
+  } finally {
+    restorePoses()
+  }
 }

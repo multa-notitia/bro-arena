@@ -275,8 +275,8 @@ def main():
     print("parts atlas", shp[1], "x", shp[0], len(P), "parts")
     cfg = rigkit.load_config(os.path.join(FIG, "rig.py"))
     res, track = armless_and_track(cfg)
-    sec = {"walk": [[walk_arm(i, 2 * math.pi * k / 8) for i in range(6)] for k in range(8)],
-           "idle": [[idle_arm(i, 2 * math.pi * k / 6) for i in range(6)] for k in range(6)],
+    sec = {"walk": [[walk_arm(i, f.get("_ph", 2 * math.pi * k / 8)) for i in range(6)] for k, f in enumerate(cfg["clips"]["walk"]["frames"])],
+           "idle": [[idle_arm(i, f.get("_ph", 2 * math.pi * k / 6)) for i in range(6)] for k, f in enumerate(cfg["clips"]["idle"]["frames"])],
            "hurt": [[{"raise": 36.0, "elbow": -22.0, "wrist": -14.0}] * 6, [{"raise": 28.0, "elbow": -16.0, "wrist": -10.0}] * 6,
                     [{"raise": 10.0, "elbow": -5.0}] * 6],
            "attack": [[{}] * 6] * 4,

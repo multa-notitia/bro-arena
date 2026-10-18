@@ -289,8 +289,8 @@ def main():
     res, track = armless_and_track(cfg)
     # secondary arm motion per hero clip frame for every slot index (0..5): sprouted arms + natives holding
     # something other than the hero's own club (the hero's exact native poses are in body_track[...].native)
-    sec = {"walk": [[walk_arm(i, 2 * math.pi * k / 8) for i in range(6)] for k in range(8)],
-           "idle": [[idle_arm(i, 2 * math.pi * k / 6) for i in range(6)] for k in range(6)],
+    sec = {"walk": [[walk_arm(i, f.get("_ph", 2 * math.pi * k / 8)) for i in range(6)] for k, f in enumerate(cfg["clips"]["walk"]["frames"])],
+           "idle": [[idle_arm(i, f.get("_ph", 2 * math.pi * k / 6)) for i in range(6)] for k, f in enumerate(cfg["clips"]["idle"]["frames"])],
            "hurt": [[{"raise": 36.0, "elbow": -22.0, "wrist": -14.0}] * 6, [{"raise": 28.0, "elbow": -16.0, "wrist": -10.0}] * 6,
                     [{"raise": 10.0, "elbow": -5.0}] * 6],
            "attack": [[{}] * 6] * 4,

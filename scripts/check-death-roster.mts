@@ -7,7 +7,7 @@ const DEATH = {
   blob: { last: 29, cream: 25 },
   charger: { last: 28, cream: 25 },
   spitter: { last: 28, cream: 25 },
-  eliteBlob: { last: 31, cream: 26 },
+  eliteBlob: { last: 45, cream: 40 },
 } as const
 
 test('blob, charger, spitter, and eliteBlob death clips end on a painted cell', () => {
