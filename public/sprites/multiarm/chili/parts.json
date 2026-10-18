@@ -4,107 +4,107 @@
  "parts": {
   "arm1_fore": {
    "rect": [
-    740,
+    973,
     0,
-    26,
-    40
+    20,
+    31
    ],
    "points": {
     "shoulder": [
-     12.18,
-     -10.63
+     13.81,
+     -3.1
     ],
     "elbow": [
-     11.0,
-     9.32
+     9.03,
+     9.16
     ],
     "wrist": [
-     14.24,
-     32.83
+     9.19,
+     25.04
     ]
    },
    "src": "chili side arm1 (painted fist cut off at the wrist)",
-   "dir0": 93.38,
-   "fore0": 82.15
+   "dir0": 111.34,
+   "fore0": 89.42
   },
   "arm1_upper": {
    "rect": [
-    713,
+    995,
     0,
     25,
-    40
+    29
    ],
    "points": {
     "shoulder": [
-     12.18,
-     9.37
+     13.81,
+     6.9
     ],
     "elbow": [
-     11.0,
-     29.32
+     9.03,
+     19.16
     ],
     "wrist": [
-     14.24,
-     52.83
+     9.19,
+     35.04
     ]
    },
    "src": "chili side arm1 (painted fist cut off at the wrist)",
-   "dir0": 93.38,
-   "fore0": 82.15
+   "dir0": 111.34,
+   "fore0": 89.42
   },
   "arm_dark1_fore": {
    "rect": [
-    796,
     0,
-    27,
-    40
+    126,
+    19,
+    29
    ],
    "points": {
     "shoulder": [
-     14.44,
-     -9.7
+     13.92,
+     -3.2
     ],
     "elbow": [
-     11.83,
-     9.96
+     9.31,
+     8.63
     ],
     "wrist": [
-     14.39,
-     33.45
+     8.87,
+     23.89
     ]
    },
    "src": "chili side arm_dark1 (painted fist cut off at the wrist)",
-   "dir0": 97.55,
-   "fore0": 83.79
+   "dir0": 111.29,
+   "fore0": 91.65
   },
   "arm_dark1_upper": {
    "rect": [
-    768,
-    0,
-    26,
-    40
+    21,
+    126,
+    25,
+    28
    ],
    "points": {
     "shoulder": [
-     13.44,
-     9.3
+     13.92,
+     6.8
     ],
     "elbow": [
-     10.83,
-     28.96
+     9.31,
+     18.63
     ],
     "wrist": [
-     13.39,
-     52.45
+     8.87,
+     33.89
     ]
    },
    "src": "chili side arm_dark1 (painted fist cut off at the wrist)",
-   "dir0": 97.55,
-   "fore0": 83.79
+   "dir0": 111.29,
+   "fore0": 91.65
   },
   "cleaver": {
    "rect": [
-    633,
+    606,
     0,
     78,
     46
@@ -128,7 +128,7 @@
   },
   "club": {
    "rect": [
-    366,
+    396,
     0,
     76,
     77
@@ -148,7 +148,7 @@
   },
   "fist": {
    "rect": [
-    865,
+    726,
     0,
     39,
     38
@@ -163,7 +163,7 @@
   },
   "fist34": {
    "rect": [
-    81,
+    48,
     126,
     38,
     28
@@ -184,7 +184,7 @@
   },
   "fist_dark": {
    "rect": [
-    906,
+    767,
     0,
     39,
     38
@@ -199,7 +199,7 @@
   },
   "fx_dust": {
    "rect": [
-    121,
+    88,
     126,
     28,
     28
@@ -214,8 +214,8 @@
   },
   "fx_puff": {
    "rect": [
+    808,
     0,
-    126,
     79,
     38
    ],
@@ -245,7 +245,7 @@
   },
   "fx_smear": {
    "rect": [
-    198,
+    228,
     0,
     166,
     79
@@ -260,7 +260,7 @@
   },
   "knife": {
    "rect": [
-    560,
+    533,
     0,
     71,
     51
@@ -284,47 +284,47 @@
   },
   "long_cut": {
    "rect": [
-    503,
+    889,
     0,
-    26,
-    56
+    22,
+    37
    ],
    "points": {
     "shoulder": [
-     14.14,
-     9.19
+     11.92,
+     6.53
     ],
     "wrist": [
-     13.89,
-     50.05
+     10.26,
+     31.79
     ]
    },
    "src": "chili side arm2 (fist cut off)",
-   "dir0": 90.35
+   "dir0": 93.75
   },
   "long_dark_cut": {
    "rect": [
-    531,
+    949,
     0,
-    27,
-    56
+    22,
+    32
    ],
    "points": {
     "shoulder": [
-     15.28,
-     9.21
+     12.5,
+     6.26
     ],
     "wrist": [
-     13.41,
-     49.92
+     9.02,
+     27.39
     ]
    },
    "src": "chili side arm_dark2 (fist cut off)",
-   "dir0": 92.63
+   "dir0": 99.36
   },
   "palm": {
    "rect": [
-    825,
+    686,
     0,
     38,
     39
@@ -339,44 +339,44 @@
   },
   "palm_dark": {
    "rect": [
-    947,
+    913,
     0,
-    39,
-    38
+    34,
+    35
    ],
    "points": {
     "grip": [
-     18.36,
-     18.51
+     14.2,
+     15.94
     ]
    },
    "src": "chili side palm_dark (pre-rotated for the R(d_fore - 22) rule)",
-   "note": "no dark open hand painted: = fist_dark (the far hand stays a fist)"
+   "note": "polish: heroes_inbetween_v1 chili row painted dark open palm (fingers along the forearm)"
   },
   "raised": {
    "rect": [
     152,
     0,
-    44,
-    96
+    74,
+    110
    ],
    "points": {
     "shoulder": [
-     14.0,
-     104.4
+     14.75,
+     88.7
     ],
     "grip": [
-     20.8,
-     11.6
+     44.25,
+     14.32
     ]
    },
    "src": "chili side arm_raised (keeps its painted fist)",
-   "dir0": -85.81,
+   "dir0": -68.37,
    "note": "shoulder point lies BELOW the painting (a shrug: the arm starts behind the body edge); the weapon goes through the painted fist (grip) and is drawn BEHIND the body"
   },
   "sling_relaxed": {
    "rect": [
-    444,
+    474,
     0,
     57,
     75

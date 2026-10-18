@@ -4,308 +4,308 @@
  "parts": {
   "arm1_dark_fore": {
    "rect": [
-    237,
+    692,
     0,
-    76,
-    88
+    72,
+    72
    ],
    "points": {
     "shoulder": [
-     23.71,
-     21.18
+     27.75,
+     21.2
     ],
     "elbow": [
-     29.02,
-     44.3
+     27.0,
+     46.0
     ],
     "wrist": [
-     50.41,
-     62.86
+     39.95,
+     47.25
     ]
    },
    "src": "radish side arm1_dark (colour-matched to legacy)",
-   "dir0": 77.06,
-   "fore0": 40.96
+   "dir0": 91.73,
+   "fore0": 5.51
   },
   "arm1_dark_upper": {
    "rect": [
-    159,
+    618,
     0,
-    76,
-    88
+    72,
+    72
    ],
    "points": {
     "shoulder": [
-     23.71,
-     21.18
+     27.75,
+     21.2
     ],
     "elbow": [
-     29.02,
-     44.3
+     27.0,
+     46.0
     ],
     "wrist": [
-     50.41,
-     62.86
+     39.95,
+     47.25
     ]
    },
    "src": "radish side arm1_dark (colour-matched to legacy)",
-   "dir0": 77.06,
-   "fore0": 40.96
+   "dir0": 91.73,
+   "fore0": 5.51
   },
   "arm1_fore": {
    "rect": [
-    398,
+    396,
     0,
-    81,
-    86
+    72,
+    72
    ],
    "points": {
     "shoulder": [
-     27.52,
-     20.99
+     27.75,
+     21.2
     ],
     "elbow": [
-     24.56,
-     47.59
+     27.0,
+     46.0
     ],
     "wrist": [
-     50.88,
-     60.28
+     39.95,
+     47.25
     ]
    },
    "src": "radish side arm1 (colour-matched to legacy)",
-   "dir0": 96.35,
-   "fore0": 25.74
+   "dir0": 91.73,
+   "fore0": 5.51
   },
   "arm1_upper": {
    "rect": [
-    315,
+    322,
     0,
-    81,
-    86
+    72,
+    72
    ],
    "points": {
     "shoulder": [
-     27.52,
-     20.99
+     27.75,
+     21.2
     ],
     "elbow": [
-     24.56,
-     47.59
+     27.0,
+     46.0
     ],
     "wrist": [
-     50.88,
-     60.28
+     39.95,
+     47.25
     ]
    },
    "src": "radish side arm1 (colour-matched to legacy)",
-   "dir0": 96.35,
-   "fore0": 25.74
+   "dir0": 91.73,
+   "fore0": 5.51
   },
   "arm2_dark_fore": {
    "rect": [
-    562,
-    0,
-    79,
-    85
+    134,
+    197,
+    65,
+    71
    ],
    "points": {
     "shoulder": [
-     31.38,
-     21.32
+     26.6,
+     21.1
     ],
     "elbow": [
-     24.56,
-     46.41
+     26.0,
+     45.0
     ],
     "wrist": [
-     49.0,
-     60.04
+     36.95,
+     45.75
     ]
    },
    "src": "radish side arm2_dark (colour-matched to legacy)",
-   "dir0": 105.19,
-   "fore0": 29.15
+   "dir0": 91.44,
+   "fore0": 3.92
   },
   "arm2_dark_upper": {
    "rect": [
-    481,
-    0,
-    79,
-    85
+    67,
+    197,
+    65,
+    71
    ],
    "points": {
     "shoulder": [
-     31.38,
-     21.32
+     26.6,
+     21.1
     ],
     "elbow": [
-     24.56,
-     46.41
+     26.0,
+     45.0
     ],
     "wrist": [
-     49.0,
-     60.04
+     36.95,
+     45.75
     ]
    },
    "src": "radish side arm2_dark (colour-matched to legacy)",
-   "dir0": 105.19,
-   "fore0": 29.15
+   "dir0": 91.44,
+   "fore0": 3.92
   },
   "arm2_fore": {
    "rect": [
-    890,
     0,
-    82,
-    83
+    197,
+    65,
+    71
    ],
    "points": {
     "shoulder": [
-     30.9,
-     20.56
+     26.6,
+     21.1
     ],
     "elbow": [
-     25.26,
-     47.35
+     26.0,
+     45.0
     ],
     "wrist": [
-     50.41,
-     57.7
+     36.95,
+     45.75
     ]
    },
    "src": "radish side arm2 (colour-matched to legacy)",
-   "dir0": 101.89,
-   "fore0": 22.35
+   "dir0": 91.44,
+   "fore0": 3.92
   },
   "arm2_upper": {
    "rect": [
-    806,
+    914,
     0,
-    82,
-    83
+    65,
+    71
    ],
    "points": {
     "shoulder": [
-     30.9,
-     20.56
+     26.6,
+     21.1
     ],
     "elbow": [
-     25.26,
-     47.35
+     26.0,
+     45.0
     ],
     "wrist": [
-     50.41,
-     57.7
+     36.95,
+     45.75
     ]
    },
    "src": "radish side arm2 (colour-matched to legacy)",
-   "dir0": 101.89,
-   "fore0": 22.35
+   "dir0": 91.44,
+   "fore0": 3.92
   },
   "arm3_dark_fore": {
    "rect": [
-    90,
-    197,
-    88,
-    80
+    840,
+    0,
+    72,
+    72
    ],
    "points": {
     "shoulder": [
-     26.49,
-     20.19
+     27.75,
+     21.2
     ],
     "elbow": [
-     25.5,
-     49.94
+     27.0,
+     46.0
     ],
     "wrist": [
-     52.76,
-     55.34
+     39.95,
+     47.25
     ]
    },
    "src": "radish side arm3_dark (colour-matched to legacy)",
-   "dir0": 91.9,
-   "fore0": 11.21
+   "dir0": 91.73,
+   "fore0": 5.51
   },
   "arm3_dark_upper": {
    "rect": [
+    766,
     0,
-    197,
-    88,
-    80
+    72,
+    72
    ],
    "points": {
     "shoulder": [
-     26.49,
-     20.19
+     27.75,
+     21.2
     ],
     "elbow": [
-     25.5,
-     49.94
+     27.0,
+     46.0
     ],
     "wrist": [
-     52.76,
-     55.34
+     39.95,
+     47.25
     ]
    },
    "src": "radish side arm3_dark (colour-matched to legacy)",
-   "dir0": 91.9,
-   "fore0": 11.21
+   "dir0": 91.73,
+   "fore0": 5.51
   },
   "arm3_fore": {
    "rect": [
-    273,
-    197,
-    91,
-    79
+    544,
+    0,
+    72,
+    72
    ],
    "points": {
     "shoulder": [
-     26.96,
-     20.0
+     27.75,
+     21.2
     ],
     "elbow": [
-     25.97,
-     49.94
+     27.0,
+     46.0
     ],
     "wrist": [
-     56.52,
-     53.93
+     39.95,
+     47.25
     ]
    },
    "src": "radish side arm3 (colour-matched to legacy)",
-   "dir0": 91.89,
-   "fore0": 7.45
+   "dir0": 91.73,
+   "fore0": 5.51
   },
   "arm3_upper": {
    "rect": [
-    180,
-    197,
-    91,
-    79
+    470,
+    0,
+    72,
+    72
    ],
    "points": {
     "shoulder": [
-     26.96,
-     20.0
+     27.75,
+     21.2
     ],
     "elbow": [
-     25.97,
-     49.94
+     27.0,
+     46.0
     ],
     "wrist": [
-     56.52,
-     53.93
+     39.95,
+     47.25
     ]
    },
    "src": "radish side arm3 (colour-matched to legacy)",
-   "dir0": 91.89,
-   "fore0": 7.45
+   "dir0": 91.73,
+   "fore0": 5.51
   },
   "bud": {
    "rect": [
-    0,
-    279,
+    874,
+    197,
     23,
     23
    ],
@@ -319,7 +319,7 @@
   },
   "club": {
    "rect": [
-    643,
+    159,
     0,
     93,
     85
@@ -339,37 +339,37 @@
   },
   "fist": {
    "rect": [
-    953,
+    325,
     197,
-    33,
-    33
+    61,
+    61
    ],
    "points": {
     "grip": [
-     15.23,
-     17.39
+     37.48,
+     43.84
     ]
    },
-   "src": "radish side fist (knuckles forward)"
+   "src": "heroes_inbetween_v1 stub arm's own fist (knuckles forward)"
   },
   "fist_dark": {
    "rect": [
-    736,
+    388,
     197,
-    34,
-    35
+    61,
+    61
    ],
    "points": {
     "grip": [
-     16.85,
-     18.2
+     37.48,
+     43.84
     ]
    },
    "src": "radish side fist_dark"
   },
   "fx_dust": {
    "rect": [
-    988,
+    734,
     197,
     34,
     33
@@ -384,7 +384,7 @@
   },
   "fx_muzzle": {
    "rect": [
-    439,
+    274,
     197,
     49,
     64
@@ -399,7 +399,7 @@
   },
   "fx_puff": {
    "rect": [
-    490,
+    451,
     197,
     90,
     45
@@ -429,7 +429,7 @@
   },
   "fx_splash": {
    "rect": [
-    689,
+    650,
     197,
     45,
     39
@@ -448,8 +448,8 @@
   },
   "fx_streak": {
    "rect": [
-    25,
-    279,
+    899,
+    197,
     115,
     21
    ],
@@ -467,7 +467,7 @@
   },
   "knife": {
    "rect": [
-    366,
+    201,
     197,
     71,
     68
@@ -487,49 +487,49 @@
   },
   "long_cut": {
    "rect": [
-    808,
+    770,
     197,
-    71,
-    34
+    50,
+    28
    ],
    "points": {
     "shoulder": [
-     10.72,
-     14.72
+     8.79,
+     11.31
     ],
     "wrist": [
-     65.1,
-     14.72
+     43.32,
+     11.31
     ]
    },
    "src": "radish side arm2 (elbow opened 70 deg, wrist cut)",
    "dir0": 0.0,
-   "foreRel": -4.78
+   "foreRel": -12.03
   },
   "long_dark_cut": {
    "rect": [
-    881,
+    822,
     197,
-    70,
-    33
+    50,
+    28
    ],
    "points": {
     "shoulder": [
-     10.99,
-     15.77
+     8.79,
+     11.31
     ],
     "wrist": [
-     64.91,
-     15.77
+     43.32,
+     11.31
     ]
    },
    "src": "radish side arm2_dark (elbow opened 70 deg, wrist cut)",
-   "dir0": -0.0,
-   "foreRel": -2.91
+   "dir0": 0.0,
+   "foreRel": -12.03
   },
   "palm": {
    "rect": [
-    648,
+    609,
     197,
     39,
     39
@@ -544,22 +544,22 @@
   },
   "palm_dark": {
    "rect": [
-    772,
+    697,
     197,
-    34,
-    35
+    35,
+    36
    ],
    "points": {
     "grip": [
-     16.85,
-     18.2
+     11.61,
+     15.08
     ]
    },
-   "src": "radish side fist_dark (no dark palm painted: relaxed dark fist)"
+   "src": "heroes_inbetween_v1 dark open palm (colour-matched to the legacy radish; fingers along the forearm)"
   },
   "pistol": {
    "rect": [
-    582,
+    543,
     197,
     64,
     43
@@ -580,7 +580,7 @@
   },
   "sling_relaxed": {
    "rect": [
-    738,
+    254,
     0,
     66,
     85

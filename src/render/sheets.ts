@@ -18,10 +18,11 @@
  * squash curves, or VFX sequences — it steps the clip data exactly.
  *
  * Frame `i` is a cell in row-major order using the JSON `columns`. `frameWidth`
- * steps x and `frameHeight` steps y, so a cell need not be square: bean light
- * is 240×224 and bean mud is 208×232. Heroes are 2048×1024. The Great Mud Pea
- * is 2048×2048. Nothing in playback assumes a frame count: events fire when
- * the playhead enters a cell, and multi-arm keys are sampled from that time.
+ * steps x and `frameHeight` steps y. Cells are not square: bean light is
+ * 240×224, bean mud is 208×232, tomato light is 204×208, tomato mud is
+ * 204×224. Heroes are 2048×1024. The Great Mud Pea is 2048×2048. Nothing in
+ * playback assumes a frame count: events fire when the playhead enters a cell,
+ * and multi-arm keys are sampled from that time.
  *
  * `event` / `events` fire once when the playhead enters the cell.
  * Gameplay (shots, dashes, slams) reads those events from `advanceActorSheet`
@@ -455,6 +456,18 @@ export function sheetClipSeconds(sheet: LoadedSheet, name: string): number {
   const clip = sheet.manifest.clips[name]
   if (!clip) return 0
   return clipDurationMs(clip) / 1000
+}
+
+/**
+ * Spawn clip for this sheet. A plant drop plays `emerge_vine` when that clip
+ * exists. Every other spawn, and any sheet without the vine clip, plays `emerge`.
+ */
+export function spawnClipName(sheet: LoadedSheet | null, dropFromPlant: boolean): string | null {
+  if (!sheet) return null
+  const clips = sheet.manifest.clips
+  if (dropFromPlant && clips.emerge_vine) return 'emerge_vine'
+  if (clips.emerge) return 'emerge'
+  return clips.emerge_vine ? 'emerge_vine' : null
 }
 
 export function clipHasEvent(sheet: LoadedSheet, name: string, event: string): boolean {

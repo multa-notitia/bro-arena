@@ -102,10 +102,11 @@ def build_parts(lib):
             dir0=r2(math.degrees(math.atan2(wr[1] - sh[1], wr[0] - sh[0]))), foreRel=r2(la["fore_rel"]))
     # hands, pre-turned so compose_ref's R(d_fore - 22) lines them up with the forearm
     img, M = scaled(lib.fist, sp.SC["hand"])
-    add("fist", img, {"grip": sp.ap(M, lib.fist_grip)}, src="radish side fist (knuckles forward)")
+    add("fist", img, {"grip": sp.ap(M, lib.fist_grip)}, src="heroes_inbetween_v1 stub arm's own fist (knuckles forward)")
     img, M = scaled(lib.fist_dark, sp.SC["hand"])
     add("fist_dark", img, {"grip": sp.ap(M, lib.fist_dark_grip)}, src="radish side fist_dark")
-    add("palm_dark", img, {"grip": sp.ap(M, lib.fist_dark_grip)}, src="radish side fist_dark (no dark palm painted: relaxed dark fist)")
+    img, M = scaled(lib.palm_dark, sp.SC["palm_dark"])
+    add("palm_dark", img, {"grip": sp.ap(M, lib.palm_dark_grip)}, src="heroes_inbetween_v1 dark open palm (colour-matched to the legacy radish; fingers along the forearm)")
     img, M = scaled(lib.palm, sp.SC["palm"])
     add("palm", img, {"grip": sp.ap(M, lib.palm_grip)}, src="radish side palm (fingers along the forearm)")
     img, M = scaled(lib.bud, sp.SC["bud"])
@@ -235,7 +236,7 @@ def idle_arm(slot_i, ph):
 
 # ============================================================================ armless sheet + body track
 def armless_and_track(cfg):
-    arm_parts = [n for n in cfg["parts"] if n.startswith(("armR", "armL", "handR", "handL", "pistol", "muzzle"))]
+    arm_parts = [n for n in cfg["parts"] if n.startswith(("armR", "armL", "handR", "handL", "palmL", "pistol", "muzzle"))]
     acfg = copy.deepcopy({k: v for k, v in cfg.items() if k != "_dir"})
     acfg["_dir"] = cfg["_dir"]
     acfg["id"] = "player-radish-armless"

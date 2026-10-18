@@ -83,9 +83,9 @@ def build_parts(lib):
         src="chili side fist_handle (painted handle removed, rotated: handle along +x)", axis=0.0,
         note="handle runs along +x through the curl; draw the weapon UNDER it")
     for n in ("fist", "fist_dark", "palm", "palm_dark"):
-        k = sp.SC["palm"] if n == "palm" else sp.SC["hand"]
+        k = sp.SC[n] if n in ("palm", "palm_dark") and n in sp.SC else sp.SC["hand"]
         img, M = scaled(lib.hands[n], k)
-        note = {"palm_dark": "no dark open hand painted: = fist_dark (the far hand stays a fist)"}.get(n, "")
+        note = {"palm_dark": "polish: heroes_inbetween_v1 chili row painted dark open palm (fingers along the forearm)"}.get(n, "")
         add(n, img, {"grip": sp.ap(M, sp.HANDS[n]["grip"])}, src="chili side " + n + " (pre-rotated for the R(d_fore - 22) rule)",
             **({"note": note} if note else {}))
     img, M = scaled(lib.knife, sp.SC["knife"])

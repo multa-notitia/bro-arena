@@ -9,6 +9,7 @@ import {
   cellOrigin,
   forgetActor,
   locomotionBlend,
+  spawnClipName,
   type LoadedSheet,
   type SheetClip,
 } from '../src/render/sheets.ts'
@@ -57,6 +58,8 @@ test('atlas cells use frameWidth for x and frameHeight for y', () => {
   assert.deepEqual(cellOrigin(240, 224, 8, 8), { sx: 0, sy: 224 })
   assert.deepEqual(cellOrigin(208, 232, 9, 9), { sx: 0, sy: 232 })
   assert.deepEqual(cellOrigin(240, 224, 8, 3), { sx: 720, sy: 0 })
+  assert.deepEqual(cellOrigin(204, 208, 10, 10), { sx: 0, sy: 208 })
+  assert.deepEqual(cellOrigin(204, 224, 10, 11), { sx: 204, sy: 224 })
 })
 
 test('bean sheets are non-square and heroes walk on 12 frames', () => {
@@ -120,8 +123,10 @@ test('walk phase survives idle, and events follow time', () => {
 
 test('tomato and bean are plain chase enemies with authored radii', () => {
   const tomato = JSON.parse(fs.readFileSync('public/sprites/enemy-tomato-light.json', 'utf8')) as {
+    frameWidth: number
+    frameHeight: number
     meta: { gameRadius: number }
-    clips: Record<string, { frames: unknown[] }>
+    clips: Record<string, { frames: unknown[] } | undefined>
   }
   const tomatoMud = JSON.parse(fs.readFileSync('public/sprites/enemy-tomato-mud.json', 'utf8')) as {
     meta: { gameRadius: number }
@@ -134,4 +139,38 @@ test('tomato and bean are plain chase enemies with authored radii', () => {
   assert.equal(beanMud.meta.gameRadius, 19)
   assert.ok(tomato.clips.idle && tomato.clips.walk && tomato.clips.taunt)
   assert.equal(tomato.clips.idle.frames.length >= 12, true)
+  assert.deepEqual([tomato.frameWidth, tomato.frameHeight], [204, 208])
+  const mudSheet = JSON.parse(fs.readFileSync('public/sprites/enemy-tomato-mud.json', 'utf8')) as {
+    frameWidth: number
+    frameHeight: number
+    clips: Record<string, { frames: { event?: string; events?: string[] }[] }>
+  }
+  assert.deepEqual([mudSheet.frameWidth, mudSheet.frameHeight], [204, 224])
+  const vineEvents = mudSheet.clips.emerge_vine.frames.flatMap((frame) => [
+    ...(frame.event ? [frame.event] : []),
+    ...(frame.events ?? []),
+  ])
+  assert.ok(vineEvents.includes('emerge_fx'))
+  assert.ok(vineEvents.includes('emerged'))
+  assert.equal(tomato.clips.emerge_vine, undefined)
+})
+
+test('a plant drop uses emerge_vine and anything else falls back to emerge', () => {
+  const both = sheet()
+  both.manifest.clips.emerge = clip([{ ms: 100, events: ['emerged'] }], false)
+  both.manifest.clips.emerge_vine = clip(
+    [
+      { ms: 80, events: ['emerge_fx'] },
+      { ms: 80, events: ['emerged'] },
+    ],
+    false,
+  )
+  assert.equal(spawnClipName(both, true), 'emerge_vine')
+  assert.equal(spawnClipName(both, false), 'emerge')
+  delete both.manifest.clips.emerge_vine
+  assert.equal(spawnClipName(both, true), 'emerge')
+  delete both.manifest.clips.emerge
+  both.manifest.clips.emerge_vine = clip([{ ms: 80, events: ['emerged'] }], false)
+  assert.equal(spawnClipName(both, false), 'emerge_vine')
+  assert.equal(spawnClipName(null, true), null)
 })

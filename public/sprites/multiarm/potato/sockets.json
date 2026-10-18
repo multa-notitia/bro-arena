@@ -140,6 +140,11 @@
    "back": "long_dark_cut",
    "kind": "straight",
    "scale": 0.8
+  },
+  "raised": {
+   "front": "windup",
+   "weaponZ": 9.4,
+   "note": "keys with raised:true on a FRONT-layer arm swap the arm for this painting (club over the shoulder); the weapon goes through its fist, behind the body"
   }
  },
  "behindBodyZ": 10.0,
