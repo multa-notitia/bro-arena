@@ -41,9 +41,9 @@ export function applyChaosDemo(world: World): number {
     p.weapons.map((w) => ({ id: w.id, tier: w.tier })),
     p.form,
   )
-  const floorHp = early ? 18 : 48
+  const floorHp = early ? 18 : 160
   p.stats = { ...p.stats, maxHp: Math.max(p.stats.maxHp, floorHp) }
   p.hp = p.stats.maxHp
-  p.invuln = 1.2
+  p.invuln = early ? 1.2 : 8
   return wave
 }

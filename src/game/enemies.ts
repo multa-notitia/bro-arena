@@ -210,7 +210,6 @@ export function spawnEnemy(
   byUid.set(enemy.uid, enemy)
   if (boss) world.boss = enemy
   if (parent) parent.children += 1
-  ctx.render.fx.inkBloom(pos.x, pos.y, def.palette.body, r * 1.4)
   ctx.audio.play('spawn', { gain: boss ? 1 : 0.55, pitch: boss ? 0.7 : 1 })
   beginEmerge(enemy)
   if (boss) {
