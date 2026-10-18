@@ -122,29 +122,52 @@ function blit(
   ctx.restore()
 }
 
-/** Soft cream rim in world px. Offset shadows, not a disc. */
+/** Tight cream outline: dilate sprite alpha in 16 directions, no blur. */
 function paintWithRim(ctx: CanvasRenderingContext2D, paint: () => void): void {
   const rim = CHAOS.read.heroRimPx
   const m = ctx.getTransform()
-  const sx = Math.hypot(m.a, m.b) || 1
-  const sy = Math.hypot(m.c, m.d) || 1
-  ctx.save()
-  ctx.shadowColor = CHAOS.read.heroRim
-  ctx.globalAlpha *= CHAOS.read.heroRimAlpha
-  ctx.shadowBlur = Math.max(0.5, 0.4 * rim * ((sx + sy) * 0.5))
-  const dirs: readonly [number, number][] = [
-    [1, 0],
-    [-1, 0],
-    [0, 1],
-    [0, -1],
-  ]
-  for (const [dx, dy] of dirs) {
-    ctx.shadowOffsetX = dx * rim * sx
-    ctx.shadowOffsetY = dy * rim * sy
-    paint()
+  const zoom = (Math.hypot(m.a, m.b) + Math.hypot(m.c, m.d)) * 0.5 || 1
+  const o = rim * zoom
+  const col = rgba(CHAOS.read.heroRim, CHAOS.read.heroRimAlpha)
+  const bits: string[] = []
+  const steps = 16
+  for (let i = 0; i < steps; i++) {
+    const a = (i / steps) * TAU
+    bits.push(`drop-shadow(${(Math.cos(a) * o).toFixed(2)}px ${(Math.sin(a) * o).toFixed(2)}px 0 ${col})`)
   }
+  ctx.save()
+  ctx.filter = bits.join(' ')
+  paint()
   ctx.restore()
   paint()
+}
+
+function smearTint(id: WeaponId, fallback: string): string {
+  switch (id) {
+    case 'knife':
+      return '#c5d0b4'
+    case 'hammer':
+      return '#e2b45a'
+    case 'fist':
+      return '#edd6c4'
+    case 'stick':
+      return '#c4a06a'
+    case 'sword':
+      return '#d5dde6'
+    case 'spear':
+      return '#cbb48a'
+    case 'scythe':
+      return '#9aaa72'
+    default:
+      return fallback
+  }
+}
+
+/** Curved swing stroke. Dies in smearLife seconds of a typical 0.18s swing. */
+function smearFade(swingT: number): number {
+  if (swingT < 0) return 0
+  const real = swingT * 0.18
+  return clamp(1 - real / CHAOS.read.smearLife, 0, 1)
 }
 
 /** Soft contact shadow. `footprint` is the painted body width; the ellipse stays under 0.8× that. */
@@ -742,29 +765,30 @@ function drawPlayerWeapons(
     const pose = heldPos
       ? { x: heldPos.x, y: heldPos.y, rot: heldPos.rot ?? w.angle, smear: undefined as { a0: number; a1: number; r: number } | undefined }
       : weaponAngleAndPos(player, w.slot, w.angle, w.swingT, behavior)
-    if (!hideHeld && !heldPos && pose.smear && w.swingT >= 0) {
+    const fade = smearFade(w.swingT)
+    if (fade > 0.02 && (behavior.type === 'sweep' || behavior.type === 'thrust')) {
+      const cx = player.x
+      const cy = player.y + player.anim.bob
+      const tint = smearTint(w.id, player.character.palette.accent)
       ctx.save()
-      ctx.globalAlpha = 0.38 * Math.sin(clamp(w.swingT, 0, 1) * Math.PI)
-      ctx.strokeStyle = '#f0e0b0'
-      ctx.lineWidth = 14
+      ctx.globalAlpha = 0.72 * fade
+      ctx.strokeStyle = tint
+      ctx.lineWidth = CHAOS.read.smearWidth
       ctx.lineCap = 'round'
       ctx.beginPath()
-      ctx.arc(player.x, player.y + player.anim.bob, pose.smear.r, pose.smear.a0, pose.smear.a1)
-      ctx.stroke()
-      ctx.restore()
-    }
-    if (!hideHeld && heldPos && w.swingT >= 0) {
-      const t = clamp(w.swingT, 0, 1)
-      const pulse = Math.sin(t * Math.PI)
-      ctx.save()
-      ctx.globalAlpha = 0.3 * pulse
-      ctx.strokeStyle = '#c4b090'
-      ctx.lineWidth = 6
-      ctx.lineCap = 'round'
-      const len = 18 + pulse * 20
-      ctx.beginPath()
-      ctx.moveTo(heldPos.x, heldPos.y)
-      ctx.lineTo(heldPos.x + Math.cos(pose.rot) * len, heldPos.y + Math.sin(pose.rot) * len)
+      if (behavior.type === 'sweep') {
+        const arc = pose.smear ?? {
+          a0: w.angle - behavior.arc * 0.5,
+          a1: pose.rot,
+          r: Math.hypot(off.x, off.y) + 10,
+        }
+        ctx.arc(cx, cy, arc.r, arc.a0, arc.a1)
+      } else {
+        const half = 0.62
+        const r = player.r + 12 + behavior.reach * 0.4
+        const span = half * (1 - fade * 0.15)
+        ctx.arc(cx, cy, r, w.angle - span, w.angle + span)
+      }
       ctx.stroke()
       ctx.restore()
     }

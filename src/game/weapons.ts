@@ -231,7 +231,7 @@ function fireShot(
   }
 }
 
-function doThrust(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, range: number, fromArm = false): void {
+function doThrust(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, range: number, _fromArm = false): void {
   const b = def.behavior
   if (b.type !== 'thrust') return
   const player = world.player
@@ -245,12 +245,12 @@ function doThrust(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, 
   const opts = weaponHurtOpts(def, w)
   opts.color = accentColor(world)
   const width = 14 + b.reach * 0.12
-  if (!fromArm) ctx.render.fx.thrust(ax, ay, angle, len, accentColor(world))
+  // Swing smear is painted in world (90ms arc). Do not spawn a thrust pill.
   ctx.audio.play('stab')
   player.anim.kick.x += Math.cos(angle) * 14
   player.anim.kick.y += Math.sin(angle) * 14
   addTrauma(world, FEEL.shake.weaponKick * 0.85, Math.cos(angle), Math.sin(angle))
-  if (!fromArm) startSwing(world, w)
+  startSwing(world, w)
 
   for (const e of world.enemies) {
     if (e.state === 'dying' || e.state === 'spawning') continue
@@ -277,7 +277,7 @@ function resolveKnifeSlash(world: World, w: WeaponInstance, ctx: SimCtx): void {
   const player = world.player
   const half = armed.arc / 2
   const color = armed.color || accentColor(world)
-  ctx.render.fx.slash(player.x, player.y, armed.angle, armed.arc, armed.range, color)
+  // Swing smear is painted in world (90ms arc). Do not spawn a fat slash pill.
   const opts = {
     critChance: armed.critChance,
     critMult: armed.critMult,
@@ -333,19 +333,19 @@ function doKnifeSlash(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimC
   startSwing(world, w)
 }
 
-function doSweep(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, range: number, fromArm = false): void {
+function doSweep(world: World, w: WeaponInstance, def: WeaponDef, ctx: SimCtx, range: number, _fromArm = false): void {
   const b = def.behavior
   if (b.type !== 'sweep') return
   const player = world.player
   const dmg = weaponDamage(def, w.tier, player.stats)
   const opts = weaponHurtOpts(def, w)
   opts.color = accentColor(world)
-  if (!fromArm) ctx.render.fx.slash(player.x, player.y, w.angle, b.arc, range, accentColor(world))
+  // Swing smear is painted in world (90ms arc). Do not spawn a fat slash pill.
   ctx.audio.play('swing')
   player.anim.kick.x += Math.cos(w.angle) * 8
   player.anim.kick.y += Math.sin(w.angle) * 8
   addTrauma(world, FEEL.shake.weaponKick * 0.7, Math.cos(w.angle), Math.sin(w.angle))
-  if (!fromArm) startSwing(world, w)
+  startSwing(world, w)
   const half = b.arc / 2
   for (const e of world.enemies) {
     if (e.state === 'dying' || e.state === 'spawning') continue

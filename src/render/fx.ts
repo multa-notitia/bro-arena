@@ -312,8 +312,8 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.arc = arc
       p.size = radius
       p.color = color
-      p.life = 0.22
-      p.maxLife = 0.22
+      p.life = CHAOS.read.smearLife
+      p.maxLife = CHAOS.read.smearLife
     },
     thrust(x, y, angle, length, color) {
       const p = alloc()
@@ -656,9 +656,9 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
           ctx.lineTo(p.x - Math.cos(p.angle) * p.size, p.y - Math.sin(p.angle) * p.size)
           ctx.stroke()
         } else if (p.kind === 'slash') {
-          ctx.globalAlpha = fade * 0.55
+          ctx.globalAlpha = fade * 0.72
           ctx.strokeStyle = p.color
-          ctx.lineWidth = 9 * fade
+          ctx.lineWidth = CHAOS.read.smearWidth * fade
           ctx.lineCap = 'round'
           ctx.beginPath()
           ctx.arc(p.x, p.y, p.size, p.angle - p.arc * 0.5, p.angle - p.arc * 0.5 + p.arc * (0.35 + u * 0.65))

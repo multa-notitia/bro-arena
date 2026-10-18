@@ -75,10 +75,13 @@ export const CHAOS = {
   read: {
     /** Draw radius vs the common pea (player.r is still the hit circle). */
     heroScale: 1.15,
-    /** Soft cream rim in world px at camera zoom 1. */
-    heroRimPx: 2,
+    /** Crisp alpha outline in world px at camera zoom 1. Dilate, no blur. */
+    heroRimPx: 1.5,
     heroRim: '#f3e6c4',
-    heroRimAlpha: 0.92,
+    heroRimAlpha: 0.7,
+    /** Melee swing smear. Real seconds; a curved stroke, not a pill. */
+    smearLife: 0.09,
+    smearWidth: 3.2,
     /** Multiplier on contact-shadow strength (not a disc). */
     heroShadow: 1.32,
     /** Separation radius as a fraction of each hit radius. */
