@@ -115,3 +115,9 @@ FX on the key whose show contains "release":
 - Arms behind the body draw behind the legs too (the legs are inside the body cell).
 - The drawn slingshot (`sling_fist*`) has no painted dark version, so behind-body slingshots show the front painting.
 - The native bent arm swaps to the straight painting on the stab. It's a 1-frame swap and reads as a snap.
+
+## Weapons v2 (2026-10-18)
+`parts.png` carries the bold v2 weapon paintings, **baked bigger** (`weapons.json` → `bakedScale` is informational).
+The game's weapon drawScale (chaos.ts `read.weaponMelee/weaponRanged`) must be **1.0**. `weapons.json` has keys for every game
+weapon id, so `paintName()` finds them directly. If `sockets.arms.raised.back` is present, back-layer slots on `raised:true`
+keys use that dark painting (see compose_ref). Details: art/WEAPONS_V2.md.

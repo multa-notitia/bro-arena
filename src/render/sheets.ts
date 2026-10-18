@@ -980,7 +980,15 @@ let inkBakeCtx: CanvasRenderingContext2D | null = null
  * source rectangle. A scaled draw of fx-ink repeats the scalloped dust into a
  * horizontal trail. The cell is resized on a plain canvas, then copied 1:1.
  */
-export function blitCell(ctx: CanvasRenderingContext2D, cell: CanvasImageSource, x: number, y: number, w: number, h: number): void {
+export function blitCell(
+  ctx: CanvasRenderingContext2D,
+  cell: CanvasImageSource,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  quality: 'low' | 'high' = 'low',
+): void {
   const m = ctx.getTransform()
   const sx = Math.hypot(m.a, m.b) || 1
   const sy = Math.hypot(m.c, m.d) || 1
@@ -998,7 +1006,7 @@ export function blitCell(ctx: CanvasRenderingContext2D, cell: CanvasImageSource,
   }
   g.setTransform(1, 0, 0, 1, 0, 0)
   g.clearRect(0, 0, dw, dh)
-  g.imageSmoothingQuality = 'low'
+  g.imageSmoothingQuality = quality
   g.imageSmoothingEnabled = true
   g.drawImage(cell, 0, 0, dw, dh)
   const dx = m.a * x + m.c * y + m.e

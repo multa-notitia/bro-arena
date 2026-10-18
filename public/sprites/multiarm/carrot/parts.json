@@ -4,8 +4,8 @@
  "parts": {
   "arm_L_fore": {
    "rect": [
-    231,
-    133,
+    526,
+    473,
     89,
     89
    ],
@@ -29,8 +29,8 @@
   },
   "arm_L_upper": {
    "rect": [
-    140,
-    133,
+    617,
+    473,
     89,
     89
    ],
@@ -54,8 +54,8 @@
   },
   "arm_bent_fore": {
    "rect": [
-    588,
-    133,
+    890,
+    473,
     82,
     88
    ],
@@ -79,8 +79,8 @@
   },
   "arm_bent_upper": {
    "rect": [
-    504,
-    133,
+    0,
+    578,
     82,
     88
    ],
@@ -104,8 +104,8 @@
   },
   "arm_dark_bent_fore": {
    "rect": [
-    413,
-    133,
+    708,
+    473,
     89,
     89
    ],
@@ -129,8 +129,8 @@
   },
   "arm_dark_bent_upper": {
    "rect": [
-    322,
-    133,
+    799,
+    473,
     89,
     89
    ],
@@ -152,30 +152,89 @@
    "dir0": 92.11,
    "fore0": 7.7
   },
-  "club": {
+  "cleaver": {
    "rect": [
-    272,
     0,
-    125,
-    127
+    473,
+    191,
+    103
    ],
    "points": {
     "grip": [
-     27.5,
-     90.98
+     30.75,
+     55.85
+    ],
+    "tip": [
+     176.0,
+     47.15
     ],
     "head": [
-     99.87,
-     23.69
+     134.0,
+     47.15
     ]
    },
-   "src": "frontal_v2/multiarm (x1.323 to side body px) shared (player-potato/multiarm) v1 club",
-   "axis": -48.0
+   "axis": -3.42,
+   "src": "weapons_v2 cleaver (bold side-view repaint, outlined, baked x1.4 vs v1)",
+   "bakedScale": 1.4
+  },
+  "club": {
+   "rect": [
+    0,
+    203,
+    194,
+    145
+   ],
+   "points": {
+    "grip": [
+     27.58,
+     102.17
+    ],
+    "tip": [
+     182.44,
+     82.82
+    ],
+    "head": [
+     150.4,
+     87.98
+    ]
+   },
+   "axis": -5.23,
+   "src": "weapons_v2 club (bold side-view repaint, outlined, baked x1.5 vs v1)",
+   "bakedScale": 1.5
+  },
+  "crossbow": {
+   "rect": [
+    806,
+    0,
+    160,
+    149
+   ],
+   "points": {
+    "grip": [
+     32.48,
+     90.46
+    ],
+    "muzzle": [
+     149.12,
+     65.19
+    ],
+    "fork": [
+     149.12,
+     65.19
+    ],
+    "tip": [
+     149.12,
+     65.19
+    ]
+   },
+   "axis": -90.0,
+   "src": "weapons_v2 crossbow (bold side-view repaint, outlined, baked x1.484 vs v1)",
+   "bakedScale": 1.484
   },
   "fist": {
    "rect": [
-    754,
-    133,
+    269,
+    578,
     75,
     75
    ],
@@ -189,8 +248,8 @@
   },
   "fist_dark": {
    "rect": [
-    831,
-    133,
+    346,
+    578,
     75,
     75
    ],
@@ -202,10 +261,39 @@
    },
    "src": "heroes_inbetween_v1 carrot stub arm, own painted fist (polish)"
   },
+  "flint": {
+   "rect": [
+    193,
+    473,
+    150,
+    100
+   ],
+   "points": {
+    "grip": [
+     24.08,
+     71.84
+    ],
+    "muzzle": [
+     140.66,
+     28.16
+    ],
+    "fork": [
+     140.66,
+     28.16
+    ],
+    "tip": [
+     140.66,
+     28.16
+    ]
+   },
+   "axis": -90.0,
+   "src": "weapons_v2 flint (bold side-view repaint, outlined, baked x1.548 vs v1)",
+   "bakedScale": 1.548
+  },
   "fx_dust": {
    "rect": [
-    265,
-    232,
+    770,
+    578,
     49,
     48
    ],
@@ -219,8 +307,8 @@
   },
   "fx_puff": {
    "rect": [
-    82,
-    232,
+    587,
+    578,
     131,
     64
    ],
@@ -234,8 +322,8 @@
   },
   "fx_smear": {
    "rect": [
-    0,
-    0,
+    644,
+    203,
     270,
     131
    ],
@@ -249,8 +337,8 @@
   },
   "fx_streak": {
    "rect": [
-    396,
-    232,
+    0,
+    668,
     167,
     30
    ],
@@ -266,30 +354,60 @@
    },
    "src": "frontal_v2/multiarm (x1.323 to side body px) shared (player-potato/multiarm) v2 fx_streak"
   },
-  "knife": {
+  "hammer": {
    "rect": [
-    877,
+    580,
     0,
-    102,
-    98
+    224,
+    169
    ],
    "points": {
     "grip": [
-     22.18,
-     67.06
+     32.96,
+     112.04
     ],
     "tip": [
-     92.85,
-     9.8
+     211.84,
+     76.85
+    ],
+    "head": [
+     147.36,
+     78.38
     ]
    },
-   "src": "frontal_v2/multiarm (x1.323 to side body px) shared (player-potato/multiarm) v1 knife",
-   "axis": -42.0
+   "axis": -16.35,
+   "src": "weapons_v2 hammer (bold side-view repaint, outlined, baked x1.15 vs v1)",
+   "bakedScale": 1.15
+  },
+  "knife": {
+   "rect": [
+    84,
+    578,
+    183,
+    87
+   ],
+   "points": {
+    "grip": [
+     34.72,
+     52.02
+    ],
+    "tip": [
+     169.99,
+     15.1
+    ],
+    "head": [
+     128.24,
+     32.85
+    ]
+   },
+   "axis": -9.57,
+   "src": "weapons_v2 knife (bold side-view repaint, outlined, baked x1.35 vs v1)",
+   "bakedScale": 1.35
   },
   "palm": {
    "rect": [
-    360,
-    232,
+    865,
+    578,
     34,
     38
    ],
@@ -303,8 +421,8 @@
   },
   "palm_dark": {
    "rect": [
-    316,
-    232,
+    821,
+    578,
     42,
     43
    ],
@@ -318,8 +436,8 @@
   },
   "pinch": {
    "rect": [
-    215,
-    232,
+    720,
+    578,
     48,
     57
    ],
@@ -335,10 +453,93 @@
    },
    "src": "carrot side_v1 pinch"
   },
+  "pistol": {
+   "rect": [
+    157,
+    350,
+    143,
+    113
+   ],
+   "points": {
+    "grip": [
+     29.59,
+     77.84
+    ],
+    "muzzle": [
+     132.46,
+     42.92
+    ],
+    "fork": [
+     132.46,
+     42.92
+    ],
+    "tip": [
+     132.46,
+     42.92
+    ]
+   },
+   "axis": -90.0,
+   "src": "weapons_v2 pistol (bold side-view repaint, outlined, baked x1.355 vs v1)",
+   "bakedScale": 1.355
+  },
+  "scythe": {
+   "rect": [
+    0,
+    0,
+    251,
+    201
+   ],
+   "points": {
+    "grip": [
+     45.6,
+     139.35
+    ],
+    "tip": [
+     186.6,
+     187.45
+    ],
+    "head": [
+     200.7,
+     91.25
+    ]
+   },
+   "axis": -38.76,
+   "src": "weapons_v2 scythe (bold side-view repaint, outlined, baked x1.45 vs v1)",
+   "bakedScale": 1.45
+  },
+  "shotgun": {
+   "rect": [
+    345,
+    473,
+    179,
+    93
+   ],
+   "points": {
+    "grip": [
+     56.9,
+     55.74
+    ],
+    "muzzle": [
+     169.37,
+     34.95
+    ],
+    "fork": [
+     169.37,
+     34.95
+    ],
+    "tip": [
+     169.37,
+     34.95
+    ]
+   },
+   "axis": -94.0,
+   "src": "weapons_v2 shotgun (bold side-view repaint, outlined, baked x1.419 vs v1)",
+   "bakedScale": 1.419
+  },
   "sling_drawn": {
    "rect": [
-    399,
-    0,
+    518,
+    350,
     167,
     108
    ],
@@ -362,8 +563,8 @@
   },
   "sling_drawn_dark": {
    "rect": [
-    568,
-    0,
+    687,
+    350,
     167,
     108
    ],
@@ -387,8 +588,8 @@
   },
   "sling_half": {
    "rect": [
-    908,
-    133,
+    423,
+    578,
     80,
     69
    ],
@@ -412,8 +613,8 @@
   },
   "sling_half_dark": {
    "rect": [
-    0,
-    232,
+    505,
+    578,
     80,
     69
    ],
@@ -437,52 +638,91 @@
   },
   "sling_relaxed": {
    "rect": [
-    672,
-    133,
-    80,
-    86
+    420,
+    0,
+    158,
+    170
    ],
    "points": {
     "grip": [
-     45.2,
-     63.44
+     26.46,
+     137.36
+    ],
+    "muzzle": [
+     101.72,
+     51.12
     ],
     "fork": [
-     48.08,
-     9.2
+     101.72,
+     51.12
+    ],
+    "tip": [
+     101.72,
+     51.12
     ]
    },
-   "src": "carrot side_v1 sling_relaxed",
-   "axis": -86.96
+   "axis": -48.82,
+   "src": "weapons_v2 slingshot (bold side-view repaint, outlined, baked x1.419 vs v1)",
+   "bakedScale": 1.419
+  },
+  "smg": {
+   "rect": [
+    0,
+    350,
+    155,
+    121
+   ],
+   "points": {
+    "grip": [
+     30.24,
+     73.1
+    ],
+    "muzzle": [
+     145.61,
+     42.65
+    ],
+    "fork": [
+     145.61,
+     42.65
+    ],
+    "tip": [
+     145.61,
+     42.65
+    ]
+   },
+   "axis": -90.0,
+   "src": "weapons_v2 smg (bold side-view repaint, outlined, baked x1.484 vs v1)",
+   "bakedScale": 1.484
   },
   "spear": {
    "rect": [
-    0,
-    133,
-    138,
-    97
+    386,
+    203,
+    256,
+    141
    ],
    "points": {
     "grip": [
-     42.87,
-     60.02
+     56.0,
+     98.0
     ],
     "tip": [
-     130.74,
-     5.2
+     245.6,
+     13.0
     ],
-    "butt": [
-     5.2,
-     83.52
+    "head": [
+     219.2,
+     24.25
     ]
    },
-   "src": "frontal_v2/multiarm (x1.323 to side body px) carrot v1 spear",
-   "axis": -31.96
+   "axis": -24.08,
+   "src": "weapons_v2 spear (bold side-view repaint, outlined, baked x2.0 vs v1)",
+   "bakedScale": 2.0
   },
   "straight": {
    "rect": [
-    737,
-    0,
+    856,
+    350,
     68,
     104
    ],
@@ -501,8 +741,8 @@
   },
   "straight_dark": {
    "rect": [
-    807,
-    0,
+    926,
+    350,
     68,
     104
    ],
@@ -518,6 +758,89 @@
    },
    "src": "carrot side_v1 arm_dark_straight",
    "dir0": 86.79
+  },
+  "sword": {
+   "rect": [
+    302,
+    350,
+    214,
+    109
+   ],
+   "points": {
+    "grip": [
+     37.7,
+     46.13
+    ],
+    "tip": [
+     204.02,
+     45.2
+    ],
+    "head": [
+     156.5,
+     45.2
+    ]
+   },
+   "axis": -0.32,
+   "src": "weapons_v2 sword (bold side-view repaint, outlined, baked x1.6 vs v1)",
+   "bakedScale": 1.6
+  },
+  "torch": {
+   "rect": [
+    253,
+    0,
+    165,
+    179
+   ],
+   "points": {
+    "grip": [
+     37.8,
+     141.66
+    ],
+    "muzzle": [
+     100.38,
+     52.01
+    ],
+    "fork": [
+     100.38,
+     52.01
+    ],
+    "tip": [
+     100.38,
+     52.01
+    ]
+   },
+   "axis": -145.07,
+   "src": "weapons_v2 torch (bold side-view repaint, outlined, baked x1.355 vs v1)",
+   "bakedScale": 1.355
+  },
+  "wand": {
+   "rect": [
+    196,
+    203,
+    188,
+    142
+   ],
+   "points": {
+    "grip": [
+     54.44,
+     93.68
+    ],
+    "muzzle": [
+     143.88,
+     40.76
+    ],
+    "fork": [
+     143.88,
+     40.76
+    ],
+    "tip": [
+     143.88,
+     40.76
+    ]
+   },
+   "axis": -120.69,
+   "src": "weapons_v2 wand (bold side-view repaint, outlined, baked x1.29 vs v1)",
+   "bakedScale": 1.29
   }
  }
 }

@@ -142,7 +142,9 @@
   "raised": {
    "front": "raised",
    "weaponZ": 9.5,
-   "note": "keys with raised:true on a FRONT-layer arm swap the arm for this painting (one piece, rotated by rrot about its shoulder) and draw the weapon at weaponZ (behind the body = behind the head); back-layer arms use the key's raise/elbow instead"
+   "note": "keys with raised:true on a FRONT-layer arm swap the arm for this painting (one piece, rotated by rrot about its shoulder) and draw the weapon at weaponZ (behind the body = behind the head); back-layer arms use the key's raise/elbow instead",
+   "back": "raised_dark",
+   "backNote": "weapons_v2: back-layer slots on raised:true keys swap their arm for this dark painting (same rule as front: placed at the slot with shoulder on the slot, rotated by rrot; weapon through its grip at weaponZ). Before this, back slots dropped raised and used raise/elbow."
   }
  },
  "behindBodyZ": 10.0,

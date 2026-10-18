@@ -129,6 +129,7 @@ interface HeroArt {
   secondary: Record<string, Pose[][]>
   emptyHand: string | null
   raisedFront: string | null
+  raisedBack: string | null
   raisedWeaponZ: number
   bud: { sproutedOnly: boolean } | null
   woodGroup: 'layer' | 'side'
@@ -158,6 +159,7 @@ let tracks: Record<string, TrackFrame[]> = {}
 let secondary: Record<string, Pose[][]> = {}
 let emptyHand: string | null = 'palm'
 let raisedFront: string | null = null
+let raisedBack: string | null = null
 let raisedWeaponZ = 9.5
 let budMode: { sproutedOnly: boolean } | null = { sproutedOnly: false }
 let woodGroup: 'layer' | 'side' = 'side'
@@ -242,6 +244,7 @@ function bindArt(species: string): boolean {
   secondary = next.secondary
   emptyHand = next.emptyHand
   raisedFront = next.raisedFront
+  raisedBack = next.raisedBack
   raisedWeaponZ = next.raisedWeaponZ
   budMode = next.bud
   woodGroup = next.woodGroup
@@ -331,6 +334,7 @@ async function loadHeroArt(source: MultiArmSource): Promise<HeroArt | null> {
     secondary: (trackJ.secondary ?? {}) as Record<string, Pose[][]>,
     emptyHand: emptyHandOf(sockJ.arms),
     raisedFront: raisedFrontOf(sockJ.arms),
+    raisedBack: sockJ.arms?.raised?.back ?? null,
     raisedWeaponZ: raisedZOf(sockJ.arms),
     bud: budOf(sockJ.bud),
     woodGroup: woodGroupOf(sockJ, famJ),
@@ -660,6 +664,7 @@ function currentRig(): ComposeRig {
     secondary,
     emptyHand,
     raisedFront,
+    raisedBack,
     raisedWeaponZ,
     bud: budMode,
     woodGroup,
@@ -784,10 +789,10 @@ function drawPart(ctx: CanvasRenderingContext2D, name: string, m: Mat, tint: num
       const b = Math.round((tint[2] ?? 1) * 255)
       g.fillStyle = `rgba(${r},${gg},${b},${tint[3] ?? 0})`
       g.fillRect(0, 0, tw, th)
-      blitCell(ctx, scratch, 0, 0, tw, th)
+      blitCell(ctx, scratch, 0, 0, tw, th, 'high')
     }
   } else {
-    blitCell(ctx, cell, 0, 0, w, h)
+    blitCell(ctx, cell, 0, 0, w, h, 'high')
   }
   ctx.restore()
 }
@@ -845,7 +850,10 @@ export function drawMultiArm(ctx: CanvasRenderingContext2D, which: 'back' | 'fro
   const frame = located.frame
   ctx.save()
   ctx.globalAlpha *= opts.alpha
-  ctx.imageSmoothingEnabled = false
+  // Arms and weapons are drawn from tight cells, then filtered while they scale
+  // down. Nearest-neighbor stair-steps the bold outlines at game size.
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
   // Pixels stay right-facing. The caller scales the body and both arm passes together.
   ctx.translate(frame.ox, frame.oy)
   ctx.scale(fit * frame.scaleX, fit * frame.scaleY)

@@ -132,3 +132,9 @@ FX on the key whose show contains "release":
   `palm` are pre-rotated so the camera-hand rule `R(d_fore - 22)` shows them upright on a hanging arm.
   `palm_dark` = `fist_dark` (no dark open hand painted: the far empty hand stays a fist, as on the legacy chili).
 - Native rest aim is −62° (the runtime maps native `aim` to `wrist = aim + 62`); the hero knife rests at −62 too.
+
+## Weapons v2 (2026-10-18)
+`parts.png` carries the bold v2 weapon paintings, **baked bigger** (`weapons.json` → `bakedScale` is informational).
+The game's weapon drawScale (chaos.ts `read.weaponMelee/weaponRanged`) must be **1.0**. `weapons.json` has keys for every game
+weapon id, so `paintName()` finds them directly. If `sockets.arms.raised.back` is present, back-layer slots on `raised:true`
+keys use that dark painting (see compose_ref). Details: art/WEAPONS_V2.md.
