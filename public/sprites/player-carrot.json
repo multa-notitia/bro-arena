@@ -2,7 +2,7 @@
  "image": "player-carrot.webp",
  "frameWidth": 192,
  "frameHeight": 192,
- "columns": 5,
+ "columns": 10,
  "anchor": {
   "x": 0.41,
   "y": 0.72
@@ -11,54 +11,64 @@
   "walk": {
    "loop": true,
    "frames": [
-    { "i": 0, "ms": 80 },
-    { "i": 1, "ms": 80 },
-    { "i": 2, "ms": 80 },
-    { "i": 3, "ms": 80 },
-    { "i": 4, "ms": 80 },
-    { "i": 5, "ms": 80 },
-    { "i": 6, "ms": 80 },
-    { "i": 7, "ms": 80 }
+    { "i": 0, "ms": 54 },
+    { "i": 1, "ms": 54 },
+    { "i": 2, "ms": 54 },
+    { "i": 3, "ms": 54 },
+    { "i": 4, "ms": 53 },
+    { "i": 5, "ms": 53 },
+    { "i": 6, "ms": 53 },
+    { "i": 7, "ms": 53 },
+    { "i": 8, "ms": 53 },
+    { "i": 9, "ms": 53 },
+    { "i": 10, "ms": 53 },
+    { "i": 11, "ms": 53 }
    ]
   },
   "idle": {
    "loop": true,
    "frames": [
-    { "i": 8, "ms": 170 },
-    { "i": 9, "ms": 140 },
-    { "i": 10, "ms": 140 },
-    { "i": 11, "ms": 170 },
-    { "i": 12, "ms": 90 },
-    { "i": 13, "ms": 150 }
+    { "i": 12, "ms": 69 },
+    { "i": 13, "ms": 69 },
+    { "i": 14, "ms": 69 },
+    { "i": 15, "ms": 69 },
+    { "i": 16, "ms": 69 },
+    { "i": 17, "ms": 69 },
+    { "i": 18, "ms": 69 },
+    { "i": 19, "ms": 69 },
+    { "i": 20, "ms": 68 },
+    { "i": 21, "ms": 90 },
+    { "i": 22, "ms": 75 },
+    { "i": 23, "ms": 75 }
    ]
   },
   "hurt": {
    "loop": false,
    "frames": [
-    { "i": 14, "ms": 40, "ox": -2.5, "event": "hurt" },
-    { "i": 15, "ms": 60, "ox": -2.0 },
-    { "i": 16, "ms": 80, "ox": -1.0 }
+    { "i": 24, "ms": 40, "ox": -2.5, "event": "hurt" },
+    { "i": 25, "ms": 60, "ox": -2.0 },
+    { "i": 26, "ms": 80, "ox": -1.0 }
    ]
   },
   "attack": {
    "loop": false,
    "frames": [
-    { "i": 17, "ms": 60, "ox": -1.0 },
-    { "i": 18, "ms": 45, "ox": 1.5, "events": [ "release", "spawnFx" ] },
-    { "i": 19, "ms": 70, "ox": 0.5 },
-    { "i": 20, "ms": 80 }
+    { "i": 27, "ms": 60, "ox": -1.0 },
+    { "i": 28, "ms": 45, "ox": 1.5, "events": [ "release", "spawnFx" ] },
+    { "i": 29, "ms": 70, "ox": 0.5 },
+    { "i": 30, "ms": 80 }
    ]
   },
   "death": {
    "loop": false,
    "frames": [
-    { "i": 21, "ms": 60 },
-    { "i": 22, "ms": 60 },
-    { "i": 23, "ms": 50, "scaleX": 0.85, "scaleY": 0.85, "event": "spawnFx" },
-    { "i": 24, "ms": 110, "scaleX": 1.08, "scaleY": 1.08 },
-    { "i": 24, "ms": 140 },
-    { "i": 24, "ms": 70, "scaleX": 0.85, "scaleY": 0.85 },
-    { "i": 24, "ms": 60, "scaleX": 0.6, "scaleY": 0.6 }
+    { "i": 31, "ms": 60 },
+    { "i": 32, "ms": 60 },
+    { "i": 33, "ms": 50, "scaleX": 0.85, "scaleY": 0.85, "event": "spawnFx" },
+    { "i": 34, "ms": 110, "scaleX": 1.08, "scaleY": 1.08 },
+    { "i": 34, "ms": 140 },
+    { "i": 34, "ms": 70, "scaleX": 0.85, "scaleY": 0.85 },
+    { "i": 34, "ms": 60, "scaleX": 0.6, "scaleY": 0.6 }
    ]
   }
  },
@@ -74,12 +84,22 @@
    "walk5",
    "walk6",
    "walk7",
+   "walk8",
+   "walk9",
+   "walk10",
+   "walk11",
    "idle0",
    "idle1",
    "idle2",
    "idle3",
    "idle4",
    "idle5",
+   "idle6",
+   "idle7",
+   "idle8",
+   "idle9",
+   "idle10",
+   "idle11",
    "hurt0",
    "hurt1",
    "hurt2",

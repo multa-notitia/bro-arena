@@ -145,6 +145,8 @@ export function spawnEnemy(
     screamCooldown,
     x: pos.x,
     y: pos.y,
+    prevX: pos.x,
+    prevY: pos.y,
     vx: 0,
     vy: 0,
     r,
@@ -670,7 +672,9 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
     if (actorClipDone(enemyKey(e), performing)) e.perform = undefined
   }
   if (!clip) return
-  const events = advanceActorSheet(enemyKey(e), sheet, clip, dt)
+  const cruise = Math.max(1, e.speed)
+  const walkRate = clamp(Math.hypot(e.vx, e.vy) / cruise, 0.45, 1.7)
+  const events = advanceActorSheet(enemyKey(e), sheet, clip, dt, walkRate)
   if (clip === 'attack' || clip.startsWith('death') || clip === 'scream' || clip === e.perform) {
     sheetEvents(world, e, clip, events, ctx)
   }

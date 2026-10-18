@@ -49,7 +49,19 @@ export function createWorld(
     trees: [],
     markers: [],
     farm: createFarm(),
-    camera: { x: player.x, y: player.y, w: viewW, h: viewH, shake: 0, shakeDirX: 0, shakeDirY: 1, zoom: 1 },
+    camera: {
+      x: player.x,
+      y: player.y,
+      prevX: player.x,
+      prevY: player.y,
+      w: viewW,
+      h: viewH,
+      shake: 0,
+      shakeDirX: 0,
+      shakeDirY: 1,
+      zoom: 1,
+    },
+    renderAlpha: 1,
     boss: null,
     paused: false,
     slowMo: 1,
@@ -87,6 +99,57 @@ export function clampToArena(world: World, x: number, y: number, r: number): Vec
   return {
     x: clamp(x, -world.arenaHalfW + r, world.arenaHalfW - r),
     y: clamp(y, -world.arenaHalfH + r, world.arenaHalfH - r),
+  }
+}
+
+/** Remember where everyone was so the next frame can blend into the new pose. */
+export function captureRenderPoses(world: World): void {
+  const p = world.player
+  p.prevX = p.x
+  p.prevY = p.y
+  world.camera.prevX = world.camera.x
+  world.camera.prevY = world.camera.y
+  for (const e of world.enemies) {
+    e.prevX = e.x
+    e.prevY = e.y
+  }
+}
+
+/** Menus and pauses draw the sim pose itself. */
+export function pinRenderPoses(world: World): void {
+  captureRenderPoses(world)
+  world.renderAlpha = 1
+}
+
+/**
+ * Move actors and the camera to the blended pose for drawing.
+ * Returns a function that puts the sim coordinates back.
+ */
+export function presentRenderPoses(world: World): () => void {
+  const a = world.renderAlpha
+  const p = world.player
+  const cam = world.camera
+  const savedP = { x: p.x, y: p.y }
+  const savedC = { x: cam.x, y: cam.y }
+  const savedE = world.enemies.map((e) => ({ e, x: e.x, y: e.y }))
+  const mix = (prev: number, curr: number) => prev + (curr - prev) * a
+  p.x = mix(p.prevX, p.x)
+  p.y = mix(p.prevY, p.y)
+  cam.x = mix(cam.prevX, cam.x)
+  cam.y = mix(cam.prevY, cam.y)
+  for (const e of world.enemies) {
+    e.x = mix(e.prevX, e.x)
+    e.y = mix(e.prevY, e.y)
+  }
+  return () => {
+    p.x = savedP.x
+    p.y = savedP.y
+    cam.x = savedC.x
+    cam.y = savedC.y
+    for (const row of savedE) {
+      row.e.x = row.x
+      row.e.y = row.y
+    }
   }
 }
 

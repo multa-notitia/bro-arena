@@ -17,9 +17,11 @@
  * The JSON is the animation. This player does not invent frame order, fps,
  * squash curves, or VFX sequences — it steps the clip data exactly.
  *
- * Frame `i` is a cell in row-major order using the JSON `columns`. Atlases are
- * not assumed square and are not assumed to be 1024 wide: spitter, charger
- * and the elite pea are 2048×1024.
+ * Frame `i` is a cell in row-major order using the JSON `columns`. `frameWidth`
+ * steps x and `frameHeight` steps y, so a cell need not be square: bean light
+ * is 240×224 and bean mud is 208×232. Heroes are 2048×1024. The Great Mud Pea
+ * is 2048×2048. Nothing in playback assumes a frame count: events fire when
+ * the playhead enters a cell, and multi-arm keys are sampled from that time.
  *
  * `event` / `events` fire once when the playhead enters the cell.
  * Gameplay (shots, dashes, slams) reads those events from `advanceActorSheet`
@@ -91,6 +93,10 @@ export const SHEET_PRELOAD: string[] = [
   'enemy-beetle-mud',
   'enemy-shroom-light',
   'enemy-shroom-mud',
+  'enemy-tomato-light',
+  'enemy-tomato-mud',
+  'enemy-bean-light',
+  'enemy-bean-mud',
   'fx-ink',
   'pickups',
   'prop-furrow',
@@ -108,13 +114,48 @@ interface ClipHead {
   loop: boolean
 }
 
+/** Idle ↔ walk blend. Long enough to hide the pose swap, short enough to feel responsive. */
+const LOCO_FADE = 0.08
+
 interface ActorHead {
   clip: string
   clips: Map<string, ClipHead>
+  /** Idle or walk just left. Its playhead stays where it was. */
+  locoFrom: string
+  /** Seconds remaining in the idle/walk blend. */
+  locoFade: number
 }
 
 const heads = new Map<string, ActorHead>()
 const warned = new Set<string>()
+const cellCache = new Map<string, HTMLCanvasElement>()
+
+/**
+ * Copy one atlas cell onto its own canvas. Chrome repeats a source rectangle
+ * of a large image into a cloud when that draw is scaled or rotated, including
+ * with smoothing on. A canvas the size of the cell has no pixels outside it.
+ */
+export function frameCell(
+  img: CanvasImageSource,
+  key: string,
+  sx: number,
+  sy: number,
+  sw: number,
+  sh: number,
+): HTMLCanvasElement | null {
+  if (sw < 1 || sh < 1) return null
+  const hit = cellCache.get(key)
+  if (hit) return hit
+  const cell = document.createElement('canvas')
+  cell.width = sw
+  cell.height = sh
+  const g = cell.getContext('2d')
+  if (!g) return null
+  g.imageSmoothingEnabled = false
+  g.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh)
+  cellCache.set(key, cell)
+  return cell
+}
 
 interface InkBurst {
   clip: string
@@ -261,6 +302,19 @@ async function loadImageWithFallback(file: string, fallback?: string): Promise<H
  * Columns come from the JSON. Only when a manifest omits them do we derive the
  * count from the bitmap's real width — never from a 1024-wide or square guess.
  */
+/** Cell origin in the atlas. Width and height are independent, as on prop-bed and the beans. */
+export function cellOrigin(
+  frameWidth: number,
+  frameHeight: number,
+  columns: number,
+  index: number,
+): { sx: number; sy: number } {
+  const cols = Math.max(1, columns)
+  const col = index % cols
+  const row = Math.floor(index / cols)
+  return { sx: col * frameWidth, sy: row * frameHeight }
+}
+
 function columnsFor(manifest: SheetManifest, img: HTMLImageElement): number {
   if (manifest.columns > 0) return manifest.columns
   return Math.max(1, Math.floor(img.naturalWidth / manifest.frameWidth))
@@ -451,13 +505,17 @@ function locate(clip: SheetClip, elapsed: number): Located {
 function actor(playKey: string): ActorHead {
   let head = heads.get(playKey)
   if (!head) {
-    head = { clip: '', clips: new Map() }
+    head = { clip: '', clips: new Map(), locoFrom: '', locoFade: 0 }
     heads.set(playKey, head)
   }
   return head
 }
 
-function bindClip(head: ActorHead, name: string, clip: SheetClip): ClipHead {
+function isLoco(name: string): boolean {
+  return name === 'idle' || name === 'walk'
+}
+
+function slotFor(head: ActorHead, name: string, clip: SheetClip): ClipHead {
   let slot = head.clips.get(name)
   if (!slot) {
     slot = { elapsed: 0, index: -1, duration: clipDurationMs(clip), loop: clip.loop }
@@ -465,8 +523,41 @@ function bindClip(head: ActorHead, name: string, clip: SheetClip): ClipHead {
   }
   slot.loop = clip.loop
   slot.duration = clipDurationMs(clip)
+  return slot
+}
+
+function bindClip(head: ActorHead, name: string, clip: SheetClip): ClipHead {
+  const slot = slotFor(head, name, clip)
   head.clip = name
   return slot
+}
+
+function stepSlot(slot: ClipHead, clip: SheetClip, dt: number, rate: number): string[] {
+  const dur = slot.duration
+  if (dur <= 0) return []
+  let left = Math.max(0, dt) * Math.max(0, rate) * 1000
+  if (!slot.loop) left = Math.min(left, Math.max(0, dur - slot.elapsed))
+  const events: string[] = []
+  let guard = 0
+  while (left > 0.01 && guard++ < 48) {
+    const local = slot.loop ? slot.elapsed % dur : Math.min(slot.elapsed, dur - 0.001)
+    const at = locate(clip, local)
+    if (at.index !== slot.index) {
+      slot.index = at.index
+      if (at.frame.events.length) events.push(...at.frame.events)
+    }
+    const into = local - at.start
+    const remain = Math.max(0.01, at.frame.ms - into)
+    const step = Math.min(remain, left)
+    slot.elapsed += step
+    left -= step
+    if (slot.loop && slot.elapsed >= dur) {
+      slot.elapsed -= dur
+      slot.index = -1
+    }
+    if (step <= 0) break
+  }
+  return events
 }
 
 /** Start this clip over so its first frame (and its events) play again. */
@@ -547,39 +638,50 @@ export function actorFootprint(sheet: LoadedSheet, r: number): number {
 }
 
 /**
+ * How far the idle/walk blend is. `old` is the clip we left, `neu` is the one
+ * playing now. Walk elapsed is never zeroed by this swap.
+ */
+export function locomotionBlend(playKey: string): { from: string; old: number; neu: number } | null {
+  const head = heads.get(playKey)
+  if (!head || !head.locoFrom || head.locoFade <= 0) return null
+  if (!isLoco(head.clip) || !isLoco(head.locoFrom) || head.locoFrom === head.clip) return null
+  const old = clamp(head.locoFade / LOCO_FADE, 0, 1)
+  return { from: head.locoFrom, old, neu: 1 - old }
+}
+
+/**
  * Step a clip by `dt` seconds and return every event whose frame was entered,
  * including frames a long step skipped. Looping clips keep their phase when
  * you come back to them; call `restartActorClip` to swing again from the top.
+ *
+ * `rate` scales walk only, so a faster body cycles its feet without speeding
+ * hurt, attack, or death. Idle ↔ walk crossfades for 80 ms.
  */
-export function advanceActorSheet(playKey: string, sheet: LoadedSheet, clipName: string, dt: number): string[] {
+export function advanceActorSheet(
+  playKey: string,
+  sheet: LoadedSheet,
+  clipName: string,
+  dt: number,
+  rate = 1,
+): string[] {
   const clip = sheet.manifest.clips[clipName]
   if (!clip || !clip.frames.length) return []
-  const slot = bindClip(actor(playKey), clipName, clip)
-  const dur = slot.duration
-  if (dur <= 0) return []
-  let left = Math.max(0, dt) * 1000
-  if (!slot.loop) left = Math.min(left, Math.max(0, dur - slot.elapsed))
-  const events: string[] = []
-  let guard = 0
-  while (left > 0.01 && guard++ < 48) {
-    const local = slot.loop ? slot.elapsed % dur : Math.min(slot.elapsed, dur - 0.001)
-    const at = locate(clip, local)
-    if (at.index !== slot.index) {
-      slot.index = at.index
-      if (at.frame.events.length) events.push(...at.frame.events)
-    }
-    const into = local - at.start
-    const remain = Math.max(0.01, at.frame.ms - into)
-    const step = Math.min(remain, left)
-    slot.elapsed += step
-    left -= step
-    if (slot.loop && slot.elapsed >= dur) {
-      slot.elapsed -= dur
-      slot.index = -1
-    }
-    if (step <= 0) break
+  const head = actor(playKey)
+  if (head.clip && head.clip !== clipName && isLoco(head.clip) && isLoco(clipName)) {
+    head.locoFrom = head.clip
+    head.locoFade = LOCO_FADE
+  } else if (head.clip !== clipName && !isLoco(clipName)) {
+    head.locoFrom = ''
+    head.locoFade = 0
   }
-  return events
+  if (head.locoFade > 0) head.locoFade = Math.max(0, head.locoFade - dt)
+  const pace = (name: string) => (name === 'walk' ? rate : 1)
+  if (head.locoFrom && head.locoFade > 0 && head.locoFrom !== clipName) {
+    const from = sheet.manifest.clips[head.locoFrom]
+    if (from && from.frames.length) stepSlot(slotFor(head, head.locoFrom, from), from, dt, pace(head.locoFrom))
+  }
+  const slot = bindClip(head, clipName, clip)
+  return stepSlot(slot, clip, dt, pace(clipName))
 }
 
 function paintFrame(
@@ -592,10 +694,7 @@ function paintFrame(
   const { img, columns } = sheet
   const fw = sheet.manifest.frameWidth
   const fh = sheet.manifest.frameHeight
-  const col = frame.i % columns
-  const row = Math.floor(frame.i / columns)
-  const sx = col * fw
-  const sy = row * fh
+  const { sx, sy } = cellOrigin(fw, fh, columns, frame.i)
   if (sx + fw > img.naturalWidth + 0.5 || sy + fh > img.naturalHeight + 0.5) {
     const key = `${sheet.id}:${frame.i}`
     if (!warned.has(key)) {
@@ -606,17 +705,16 @@ function paintFrame(
     }
     return
   }
+  const cell = frameCell(img, `${sheet.id}:${sx}:${sy}:${fw}x${fh}`, sx, sy, fw, fh)
+  if (!cell) return
   const anchor = clip.anchor ?? sheet.manifest.anchor
   const ax = anchor.x * fw
   const ay = anchor.y * fh
   ctx.save()
   ctx.globalAlpha *= opts.alpha
-  // High-quality smoothing smears these cells into a wide cloud under some
-  // camera scales (a leftward lean, and sometimes an upright walk frame).
-  ctx.imageSmoothingEnabled = false
   ctx.translate(frame.ox * opts.facing, frame.oy)
   ctx.scale(opts.facing * opts.fit * frame.scaleX, opts.fit * frame.scaleY)
-  ctx.drawImage(img, sx, sy, fw, fh, -ax, -ay, fw, fh)
+  blitCell(ctx, cell, -ax, -ay, fw, fh)
   ctx.restore()
 }
 
@@ -636,6 +734,17 @@ export function drawActorSheet(
   const fw = sheet.manifest.frameWidth
   const fh = sheet.manifest.frameHeight
   const fit = snapScale((opts.r * 2.35) / Math.max(fw, fh))
+  const blend = locomotionBlend(playKey)
+  if (blend && isLoco(clipName) && blend.from !== clipName) {
+    const fromClip = sheet.manifest.clips[blend.from]
+    const fromSlot = actor(playKey).clips.get(blend.from)
+    if (fromClip && fromClip.frames.length) {
+      const fromFrame = locate(fromClip, fromSlot?.elapsed ?? 0).frame
+      paintFrame(ctx, sheet, fromClip, fromFrame, { fit, facing: opts.facing, alpha: opts.alpha * blend.old })
+      paintFrame(ctx, sheet, clip, frame, { fit, facing: opts.facing, alpha: opts.alpha * blend.neu })
+      return
+    }
+  }
   paintFrame(ctx, sheet, clip, frame, { fit, facing: opts.facing, alpha: opts.alpha })
 }
 
@@ -720,6 +829,45 @@ export function tickInkClips(dt: number): void {
   }
 }
 
+let inkBake: HTMLCanvasElement | null = null
+let inkBakeCtx: CanvasRenderingContext2D | null = null
+
+/**
+ * Draw a cell under the current transform without handing Chrome a scaled
+ * source rectangle. A scaled draw of fx-ink repeats the scalloped dust into a
+ * horizontal trail. The cell is resized on a plain canvas, then copied 1:1.
+ */
+export function blitCell(ctx: CanvasRenderingContext2D, cell: CanvasImageSource, x: number, y: number, w: number, h: number): void {
+  const m = ctx.getTransform()
+  const sx = Math.hypot(m.a, m.b) || 1
+  const sy = Math.hypot(m.c, m.d) || 1
+  const dw = Math.max(1, Math.round(sx * w))
+  const dh = Math.max(1, Math.round(sy * h))
+  if (!inkBake) {
+    inkBake = document.createElement('canvas')
+    inkBakeCtx = inkBake.getContext('2d')
+  }
+  const g = inkBakeCtx
+  if (!inkBake || !g) return
+  if (inkBake.width !== dw || inkBake.height !== dh) {
+    inkBake.width = dw
+    inkBake.height = dh
+  }
+  g.setTransform(1, 0, 0, 1, 0, 0)
+  g.clearRect(0, 0, dw, dh)
+  g.imageSmoothingQuality = 'low'
+  g.imageSmoothingEnabled = true
+  g.drawImage(cell, 0, 0, dw, dh)
+  const dx = m.a * x + m.c * y + m.e
+  const dy = m.b * x + m.d * y + m.f
+  ctx.save()
+  // Unit rotation only. The pixels were already scaled on the bake canvas.
+  ctx.setTransform(m.a / sx, m.b / sx, m.c / sy, m.d / sy, dx, dy)
+  ctx.imageSmoothingEnabled = false
+  ctx.drawImage(inkBake, 0, 0)
+  ctx.restore()
+}
+
 export function drawInkClips(ctx: CanvasRenderingContext2D): void {
   const sheet = cache.get('fx-ink')
   if (!sheet || inkBursts.length === 0) return
@@ -732,23 +880,13 @@ export function drawInkClips(ctx: CanvasRenderingContext2D): void {
     const col = frame.i % sheet.columns
     const row = Math.floor(frame.i / sheet.columns)
     const anchor = clip.anchor ?? sheet.manifest.anchor
+    const cell = frameCell(sheet.img, `ink:${b.clip}:${frame.i}`, col * fw, row * fh, fw, fh)
+    if (!cell) continue
     ctx.save()
     ctx.translate(b.x, b.y)
     if (b.rotate) ctx.rotate(b.angle)
-    ctx.imageSmoothingEnabled = true
-    ctx.imageSmoothingQuality = 'high'
     ctx.scale(b.scale, b.scale)
-    ctx.drawImage(
-      sheet.img,
-      col * fw,
-      row * fh,
-      fw,
-      fh,
-      -anchor.x * fw,
-      -anchor.y * fh,
-      fw,
-      fh,
-    )
+    blitCell(ctx, cell, -anchor.x * fw, -anchor.y * fh, fw, fh)
     ctx.restore()
   }
 }

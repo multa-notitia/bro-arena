@@ -51,6 +51,8 @@ const EARLY: Pool = [
   ...mix('blob-light', 'blob-mud', 48),
   ...mix('beetle-light', 'beetle-mud', 16),
   ...mix('shroom-light', 'shroom-mud', 14),
+  ...mix('tomato-light', 'tomato-mud', 12),
+  ...mix('bean-light', 'bean-mud', 10),
   { kind: 'sprout', weight: 12 },
 ]
 const MID: Pool = [
@@ -58,6 +60,8 @@ const MID: Pool = [
   ...mix('charger-light', 'charger-mud', 26),
   ...mix('beetle-light', 'beetle-mud', 16),
   ...mix('shroom-light', 'shroom-mud', 12),
+  ...mix('tomato-light', 'tomato-mud', 12),
+  ...mix('bean-light', 'bean-mud', 12),
   { kind: 'sprout', weight: 10 },
 ]
 const LATE: Pool = [
@@ -66,6 +70,8 @@ const LATE: Pool = [
   ...mix('spitter-light', 'spitter-mud', 18),
   ...mix('beetle-light', 'beetle-mud', 14),
   ...mix('shroom-light', 'shroom-mud', 14),
+  ...mix('tomato-light', 'tomato-mud', 14),
+  ...mix('bean-light', 'bean-mud', 12),
 ]
 
 export const WAVES: WaveDef[] = [

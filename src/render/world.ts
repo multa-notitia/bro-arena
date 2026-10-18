@@ -38,12 +38,14 @@ import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
 import { drawPaddock } from './ground.ts'
 import { paperColor } from './paintLang.ts'
 import { drawMultiArm, multiArmSheet, potatoMultiArm } from './multiarm.ts'
+import { presentRenderPoses } from '../game/world.ts'
 import {
   actorClipActive,
   actorFootprint,
   drawActorSheet,
   drawNamedClip,
   gardenGround,
+  locomotionBlend,
   pickClip,
   resolveSheet,
   sheetById,
@@ -830,22 +832,28 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     if (arms) ctx.scale(facing, 1)
     const clip = pickClip(body, p.anim, { swinging, hurt: actorClipActive('player', 'hurt') })
     const paintFacing: 1 | -1 = arms ? 1 : facing
-    const armPose = arms
-      ? {
-          species,
-          weapons: p.weapons.map((w) => ({ uid: w.uid, id: w.id })),
-          clip: clip ?? 'idle',
-          r: p.r,
-          facing,
-          alpha,
-          originX: x,
-          originY: y,
-          bodyRot,
-        }
-      : null
-    if (armPose && clip) drawMultiArm(ctx, 'back', armPose)
+    const blend = clip && (clip === 'idle' || clip === 'walk') ? locomotionBlend('player') : null
+    const paintArms = (which: 'back' | 'front') => {
+      if (!arms || !clip) return
+      const base = {
+        species,
+        weapons: p.weapons.map((w) => ({ uid: w.uid, id: w.id })),
+        r: p.r,
+        facing,
+        originX: x,
+        originY: y,
+        bodyRot,
+      }
+      if (blend && blend.from !== clip) {
+        drawMultiArm(ctx, which, { ...base, clip: blend.from, alpha: alpha * blend.old })
+        drawMultiArm(ctx, which, { ...base, clip, alpha: alpha * blend.neu })
+        return
+      }
+      drawMultiArm(ctx, which, { ...base, clip, alpha })
+    }
+    paintArms('back')
     if (clip) drawActorSheet(ctx, body, 'player', clip, { r: p.r, facing: paintFacing, alpha })
-    if (armPose && clip) drawMultiArm(ctx, 'front', armPose)
+    paintArms('front')
     ctx.restore()
     drawPlayerWeapons(ctx, world, cache, false, held, true)
     drawOrbitWeapons(ctx, world, cache)
@@ -987,6 +995,8 @@ export function drawWorld(
   view: ViewSize,
 ): void {
   fx.update(dt)
+  const restorePoses = presentRenderPoses(world)
+  try {
   const cam = world.camera
   const cssW = cam.w > 0 ? cam.w : view.w
   const cssH = cam.h > 0 ? cam.h : view.h
@@ -1095,4 +1105,7 @@ export function drawWorld(
   drawOffscreen(ctx, world, cssW, cssH)
   vignette(ctx, cssW, cssH, night ? 0.72 : 0.4)
   ctx.restore()
+  } finally {
+    restorePoses()
+  }
 }

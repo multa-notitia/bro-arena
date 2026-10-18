@@ -191,6 +191,8 @@ export function createPlayer(character: CharacterDef, model: ModelDir = 'b'): Pl
   const player: Player = {
     x: 0,
     y: 0,
+    prevX: 0,
+    prevY: 0,
     vx: 0,
     vy: 0,
     r: 17,
@@ -330,7 +332,12 @@ function stepPlayerSheet(world: World, dt: number, ctx: SimCtx): void {
     if (ev.includes('release')) notePlayerRelease()
   }
   if (clip) {
-    const ev = advanceActorSheet('player', sheet, clip, dt)
+    // Walk keeps the phase it had before idle, hurt, or attack. Rate matches
+    // travel speed so the feet don't skate at a crawl or a sprint.
+    const spd = Math.hypot(player.vx, player.vy)
+    const cruise = BASE_SPEED * (1 + player.stats.speed / 100)
+    const walkRate = clamp(cruise > 1 ? spd / cruise : 1, 0.45, 1.7)
+    const ev = advanceActorSheet('player', sheet, clip, dt, walkRate)
     flash(ev, clip)
     if (clip === 'attack' && ev.includes('release')) notePlayerRelease()
   }

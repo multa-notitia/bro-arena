@@ -1,4 +1,4 @@
-import { damp, Rng } from '../core/math.ts'
+import { clamp, damp, Rng } from '../core/math.ts'
 import type {
   AudioApi,
   CharacterDef,
@@ -44,7 +44,7 @@ import { hudSnapshot, runSummary } from './snapshots.ts'
 import { updateWeapons } from './weapons.ts'
 import { beginWave, settleWave, updateDirector } from './waves.ts'
 import { clearPlots, plantView, selectCrop, syncFarmUnlocks, togglePlot } from './farm.ts'
-import { createWorld, syncViewport, updateCamera, updateTrees, type SimCtx } from './world.ts'
+import { captureRenderPoses, createWorld, pinRenderPoses, syncViewport, updateCamera, updateTrees, type SimCtx } from './world.ts'
 import { consumeHitStop, getReducedJuice, resetFeel, setReducedJuice } from '../feel.ts'
 import { defaultModelForSpecies, getLastModel, getPaintStyle, modelsForSpecies, setLastModel, setPaintStyle } from '../render/look.ts'
 import { isConceptAReady, preloadConceptA } from '../render/conceptA.ts'
@@ -84,6 +84,8 @@ export class Run {
   private levelOptions: LevelUpOption[] = []
   private musicT = 0
   private plantFirst = true
+  /** Leftover time since the last 1/60 sim step. Drawing blends across it. */
+  private simAcc = 0
 
   constructor(deps: RunDeps) {
     this.deps = deps
@@ -155,11 +157,23 @@ export class Run {
     if (world) {
       syncViewport(world, this.deps.canvas)
       if (this._phase === 'wave' && !world.paused && !this.transitioning) {
-        this.tickWave(world, dt)
+        const step = 1 / 60
+        this.simAcc += dt
+        let steps = 0
+        while (this.simAcc >= step && steps < 4) {
+          this.tickWave(world, step)
+          this.simAcc -= step
+          steps += 1
+        }
+        if (this.simAcc > step) this.simAcc = step
+        world.renderAlpha = clamp(this.simAcc / step, 0, 1)
       } else if (this._phase === 'plant' || this._phase === 'farmshop') {
         for (const plot of world.farm.plots) plot.sway += dt
         world.camera.x = damp(world.camera.x, 0, 5, dt)
         world.camera.y = damp(world.camera.y, 0, 5, dt)
+        pinRenderPoses(world)
+      } else {
+        pinRenderPoses(world)
       }
       this.deps.render.draw(this.deps.ctx, world, dt)
       if (this._phase === 'wave' || this._phase === 'paused') {
@@ -393,6 +407,7 @@ export class Run {
   }
 
   private tickWave(world: World, dt: number): void {
+    captureRenderPoses(world)
     const ctx = this.sim()
     const simDt = consumeHitStop(dt) * world.slowMo
     world.time += simDt

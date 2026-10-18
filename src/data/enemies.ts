@@ -374,6 +374,48 @@ const BEETLE: EnemyDef = {
   damageScale: 0.07,
 }
 
+const TOMATO: EnemyDef = {
+  kind: 'tomato-light',
+  name: 'Tomato',
+  species: 'radish',
+  nightmareName: 'Mud Tomato',
+  form: 'normal',
+  screamInterval: 8,
+  rank: 'basic',
+  hp: 10,
+  speed: 64,
+  damage: 1,
+  radius: 14,
+  materials: 1,
+  behavior: { type: 'chase' },
+  palette: veg('#d24a3a', '#8e2a22', '#f0c36a', '#ff5a3c', '#3a140e', '#1a0c08'),
+  paint: 'radish',
+  knockbackResist: 0.05,
+  hpScale: 0.14,
+  damageScale: 0.06,
+}
+
+const BEAN: EnemyDef = {
+  kind: 'bean-light',
+  name: 'Bean',
+  species: 'sprout',
+  nightmareName: 'Mud Bean',
+  form: 'normal',
+  screamInterval: 8,
+  rank: 'basic',
+  hp: 12,
+  speed: 96,
+  damage: 1,
+  radius: 17,
+  materials: 1,
+  behavior: { type: 'chase' },
+  palette: veg('#7ea84a', '#3f6a28', '#d7e7a4', '#c6f25a', '#1c2810', '#14200c'),
+  paint: 'sprout',
+  knockbackResist: 0,
+  hpScale: 0.14,
+  damageScale: 0.06,
+}
+
 const SHROOM: EnemyDef = {
   kind: 'shroom-light',
   name: 'Toadstool',
@@ -407,6 +449,10 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   'beetle-mud': variant(BEETLE, 'beetle-mud', 'mud', 21, 'Mud Beetle'),
   'shroom-light': SHROOM,
   'shroom-mud': variant(SHROOM, 'shroom-mud', 'mud', 17, 'Rot Toadstool'),
+  'tomato-light': TOMATO,
+  'tomato-mud': variant(TOMATO, 'tomato-mud', 'mud', 17, 'Mud Tomato'),
+  'bean-light': BEAN,
+  'bean-mud': variant(BEAN, 'bean-mud', 'mud', 19, 'Mud Bean'),
 }
 
 const SLICE_WEAPONS = new Set<WeaponId>(['knife', 'sword', 'scythe'])
