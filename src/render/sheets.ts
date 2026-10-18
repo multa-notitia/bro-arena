@@ -53,6 +53,8 @@ export interface SheetClip {
   loop: boolean
   anchor?: SheetAnchor
   frames: SheetFrame[]
+  /** World px per cell px. Tree clips in props-arena are 0.5 (half-res). */
+  drawScale?: number
 }
 
 export interface SheetManifest {
@@ -117,6 +119,7 @@ export const SHEET_PRELOAD: string[] = [
   'prop-furrow',
   'prop-bed',
   'props-garden',
+  'props-arena',
 ]
 
 const cache = new Map<string, LoadedSheet>()
@@ -262,6 +265,7 @@ function parseClip(raw: unknown, columns: number, defaultMs: number): SheetClip 
     loop: o.loop !== false,
     anchor: o.anchor ? parseAnchor(o.anchor, { x: 0.5, y: 0.88 }) : undefined,
     frames,
+    drawScale: typeof o.drawScale === 'number' && o.drawScale > 0 ? o.drawScale : undefined,
   }
 }
 
@@ -876,6 +880,12 @@ export function drawActorSheet(
  * Step and paint a clip by name. Used for sheets whose clip names are not the
  * actor set (pickups: coin, heart, chest, …). `scale` is world px per image px.
  */
+/** `clip.drawScale` wins, then sheet meta, then 0.25 (heroes / garden). */
+export function clipDrawScale(sheet: LoadedSheet, clipName: string): number {
+  const clip = sheet.manifest.clips[clipName]
+  return clip?.drawScale ?? sheet.manifest.drawScale ?? 0.25
+}
+
 export function drawNamedClip(
   ctx: CanvasRenderingContext2D,
   sheet: LoadedSheet,

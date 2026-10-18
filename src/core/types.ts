@@ -706,6 +706,8 @@ export interface Farm {
   lastHarvest: { materials: number; xp: number }
 }
 
+export type TreeKind = 'apple' | 'gnarly' | 'shrub'
+
 export interface Tree extends Vec {
   uid: number
   hp: number
@@ -713,6 +715,9 @@ export interface Tree extends Vec {
   r: number
   sway: number
   hitFlash: number
+  kind: TreeKind
+  /** Play `tree_*_hit` until the authored clip finishes. */
+  hitAnim: boolean
 }
 
 export interface SpawnMarker extends Vec {

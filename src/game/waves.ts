@@ -20,6 +20,7 @@ import {
   resetGardenPlants,
   tickGardenPlants,
 } from './garden.ts'
+import { pickTreeKind, placeArenaDecor, resetArenaProps } from './arenaProps.ts'
 import { telegraphLife } from '../data/chaos.ts'
 
 const MARKER_LIFE = 1
@@ -156,6 +157,8 @@ function placeTrees(world: World, ctx: SimCtx): void {
       r: 26,
       sway: ctx.rng.range(0, 8),
       hitFlash: 0,
+      kind: pickTreeKind(ctx.rng),
+      hitAnim: false,
     }
     world.trees.push(tree)
   }
@@ -170,8 +173,10 @@ export function beginWave(world: World, ctx: SimCtx, index: number): void {
   resetEmerge()
   resetFamilies()
   resetGardenPlants()
+  resetArenaProps()
   director = makeDirector(world)
   placeTrees(world, ctx)
+  placeArenaDecor(world, ctx)
   for (const w of world.player.weapons) {
     w.burstLeft = 0
     w.burstTimer = 0

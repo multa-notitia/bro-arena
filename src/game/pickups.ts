@@ -7,6 +7,7 @@ import { addSeed, harvestFarm, seedDropChance } from './farm.ts'
 import { CHAOS } from '../data/chaos.ts'
 import { addXp, countSpecial, extraState, healPlayer, recomputeStats } from './player.ts'
 import type { SimCtx } from './world.ts'
+import { kickTreeHit } from './arenaProps.ts'
 
 const BASE_PICKUP_RANGE = CHAOS.pace.pickupRange
 
@@ -103,6 +104,7 @@ export function hitTree(world: World, tree: Tree, damage: number, ctx: SimCtx): 
   if (tree.hp <= 0 || damage <= 0) return
   tree.hp -= damage
   tree.hitFlash = 1
+  kickTreeHit(tree)
   ctx.render.fx.puff(tree.x, tree.y - 10, '#5a7a38', 10)
   ctx.render.fx.hitSpark(tree.x, tree.y, ctx.rng.range(0, Math.PI * 2), '#7a9a40')
   if (tree.hp <= 0) {

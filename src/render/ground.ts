@@ -4,17 +4,14 @@ import { paperColor } from './paintLang.ts'
 import { gardenGround } from './sheets.ts'
 import {
   granulate,
-  inkStroke,
   makeCanvas,
   mixColor,
   n01,
-  wash,
   wobbleBlob,
 } from './watercolor.ts'
 
 export const GROUND_TILE = 512
 const BORDER_PAD = 96
-const POST_SPACING = 120
 
 const paddockTiles: HTMLCanvasElement[] = []
 let sharedBase: HTMLCanvasElement | null = null
@@ -331,14 +328,6 @@ function getOutside(q: number): HTMLCanvasElement {
   return canvas
 }
 
-function paintFencePost(ctx: CanvasRenderingContext2D, x: number, y: number, seed: number): void {
-  ctx.save()
-  ctx.translate(x, y)
-  wash(ctx, 0, 0, 4.8, 12, '#7a542e', { seed, shade: '#3a2410', n: 5, wobble: 0.1, passes: 2 })
-  inkStroke(ctx, 0, 0, 5.2, 12.6, '#14100a', { seed, width: 1.5, n: 6, alpha: 0.88 })
-  ctx.restore()
-}
-
 function walkEdge(
   x0: number,
   y0: number,
@@ -442,15 +431,6 @@ function paintBorderOverlay(ctx: CanvasRenderingContext2D, aw: number, ah: numbe
     }
   }
   ctx.restore()
-
-  for (let e = 0; e < edges.length; e++) {
-    const edge = edges[e]
-    if (!edge) continue
-    walkEdge(edge[0], edge[1], edge[2], edge[3], POST_SPACING, (x, y, nx, ny, i) => {
-      if (i === 0) return
-      paintFencePost(ctx, x + nx * 11, y + ny * 11, 300 + e * 20 + i)
-    })
-  }
 }
 
 function borderOverlay(aw: number, ah: number): HTMLCanvasElement {

@@ -47,6 +47,7 @@ import { drawPaintedChili } from './conceptA.ts'
 import { drawBoard, drawBoardShadow, poseBoard, boardHeld, type BoardHero } from './board.ts'
 import { ambushGardenJobs, drawGardenJob } from '../game/garden.ts'
 import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
+import { arenaActorProps, drawArenaGround, drawArenaProp, drawPaintedTree } from '../game/arenaProps.ts'
 import { drawPaddock } from './ground.ts'
 import { paperColor } from './paintLang.ts'
 import { drawMultiArm, multiArmSheet, potatoMultiArm } from './multiarm.ts'
@@ -438,7 +439,8 @@ function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile, cache: Spr
   ctx.restore()
 }
 
-function drawTree(ctx: CanvasRenderingContext2D, t: Tree, cache: SpriteCache): void {
+function drawTree(ctx: CanvasRenderingContext2D, t: Tree, world: World, cache: SpriteCache, dt: number): void {
+  if (drawPaintedTree(ctx, world, t, dt)) return
   const spr = treeSprite(cache, qScale)
   ctx.save()
   ctx.translate(t.x, t.y)
@@ -1198,6 +1200,7 @@ export function drawWorld(
   drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale))
   drawFarmRows(ctx, world.farm.plots, qScale >= 2, world.waveTime)
   drawFarmBeds(ctx, world.farm.plots, qScale >= 2)
+  drawArenaGround(ctx, dt)
   fx.drawFloor(ctx)
   drawChaosFloor(ctx)
   darkenGround(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
@@ -1211,7 +1214,7 @@ export function drawWorld(
   cmdN = 0
   for (let i = 0; i < world.trees.length; i++) {
     const t = world.trees[i]
-    if (t) pushCmd(t.y, 2, 0, i)
+    if (t) pushCmd(t.y + 12, 2, 0, i)
   }
   for (let i = 0; i < world.pickups.length; i++) {
     const p = world.pickups[i]
@@ -1235,6 +1238,11 @@ export function drawWorld(
     const j = ambush[i]
     if (j) pushCmd(j.y, 2, 6, i)
   }
+  const decor = arenaActorProps()
+  for (let i = 0; i < decor.length; i++) {
+    const p = decor[i]
+    if (p) pushCmd(p.y, 1, 7, i)
+  }
 
   const list = cmds.slice(0, cmdN)
   list.sort((a, b) => a.y - b.y)
@@ -1245,7 +1253,7 @@ export function drawWorld(
     if (!c) continue
     if (c.kind === 0) {
       const t = world.trees[c.idx]
-      if (t) drawTree(ctx, t, cache)
+      if (t) drawTree(ctx, t, world, cache, dt)
     } else if (c.kind === 1) {
       const p = world.pickups[c.idx]
       if (p) drawPickup(ctx, p, cache, world.time, dt)
@@ -1272,6 +1280,9 @@ export function drawWorld(
     } else if (c.kind === 6) {
       const job = ambush[c.idx]
       if (job) drawGardenJob(ctx, job)
+    } else if (c.kind === 7) {
+      const p = decor[c.idx]
+      if (p) drawArenaProp(ctx, world, p, dt)
     }
   }
 

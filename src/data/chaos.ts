@@ -102,8 +102,8 @@ export const CHAOS = {
     /** Max world-px shove per pair per step. */
     separateCap: 2.4,
     separateCell: 36,
-    weaponMelee: 1.3,
-    weaponRanged: 1.2,
+    weaponMelee: 1.0,
+    weaponRanged: 1.0,
     /**
      * Camera multiplier on the authored worldWidth fit. 1.25 is the Brotato-like
      * default; Pause → Options exposes 1.0–1.5.
