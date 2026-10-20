@@ -1,8 +1,20 @@
 import { dist2 } from '../core/math.ts'
 import type { Enemy, StatusEffect, WeaponId, World } from '../core/types.ts'
+import type { DeathStyle } from '../data/chaos.ts'
+import { CHAOS, chaosJuiceOn, deathStyleForWeapon } from '../data/chaos.ts'
 import { corpseClipFor } from '../data/enemies.ts'
 import { addTrauma, flashStrength, requestHitStop } from '../feel.ts'
+import { noteEnemyHit } from '../render/hitMark.ts'
 import { kickHurtClip } from '../render/sheets.ts'
+import {
+  chainBurst,
+  juiceHitFeel,
+  juiceHitStop,
+  juiceOnKill,
+  rememberDeathStyle,
+} from './chaosJuice.ts'
+import { familyUntargetable, maybePeel } from './families.ts'
+import { onItemBlock, onItemHit, onItemHurt, onItemKill } from './itemFx.ts'
 import { extraState, countSpecial, healPlayer } from './player.ts'
 import { spawnMaterial } from './pickups.ts'
 import type { SimCtx } from './world.ts'
@@ -23,6 +35,8 @@ export interface HurtOpts {
   slice?: boolean
   /** Killing weapon. Picks death, death_slice, or death_smash. */
   weapon?: WeaponId
+  deathStyle?: DeathStyle
+  weaponId?: string
 }
 
 function unit(dx: number, dy: number): { x: number; y: number } {
@@ -39,6 +53,7 @@ export function dealDamageToEnemy(
 ): number {
   if (base <= 0) return 0
   if (enemy.state === 'dying' || enemy.state === 'spawning') return 0
+  if (familyUntargetable(enemy)) return 0
   if (enemy.hp <= 0) return 0
 
   const stats = world.player.stats
@@ -53,6 +68,7 @@ export function dealDamageToEnemy(
 
   dmg = Math.max(1, Math.round(dmg))
   enemy.hp -= dmg
+  if (enemy.hp > 0) maybePeel(enemy)
   world.player.damageDealt += dmg
   enemy.anim.hitFlash = 1
   kickHurtClip(`e:${enemy.uid}`)
@@ -62,11 +78,18 @@ export function dealDamageToEnemy(
     opts.dirX ?? world.player.x - enemy.x,
     opts.dirY ?? world.player.y - enemy.y,
   )
+  const hitColor = opts.burnTick ? '#e07038' : (opts.color ?? enemy.def.palette.accent)
+  noteEnemyHit(enemy, hitColor, Math.atan2(dir.y, dir.x))
   // Knock away from the player unless a shot direction was given.
   const kx = opts.dirX !== undefined ? dir.x : -dir.x
   const ky = opts.dirY !== undefined ? dir.y : -dir.y
+  const style =
+    opts.deathStyle ??
+    (opts.weaponId ? deathStyleForWeapon(opts.weaponId) : opts.weapon ? deathStyleForWeapon(opts.weapon) : opts.slice ? 'slice' : 'normal')
+  rememberDeathStyle(enemy, style)
   if (!opts.burnTick) {
-    const kb = (opts.knockback ?? 0) * (1 + stats.knockback / 100) * (1 - enemy.def.knockbackResist)
+    const juiceKb = chaosJuiceOn() ? CHAOS.juice.knockback : 1
+    const kb = (opts.knockback ?? 0) * (1 + stats.knockback / 100) * (1 - enemy.def.knockbackResist) * juiceKb
     enemy.knock.x += kx * kb * 8
     enemy.knock.y += ky * kb * 8
     ctx.render.fx.hitSpark(enemy.x, enemy.y, Math.atan2(ky, kx), opts.color ?? enemy.def.palette.accent)
@@ -86,14 +109,19 @@ export function dealDamageToEnemy(
   }
 
   const numOpts = opts.burnTick ? { burn: true } : crit ? { crit: true } : undefined
-  ctx.render.fx.damageNumber(enemy.x, enemy.y - enemy.r - 6, dmg, numOpts)
+  ctx.render.fx.damageNumber(enemy.x, enemy.y - enemy.r - 6, dmg, { ...numOpts, mergeId: enemy.uid })
   if (opts.burnTick) ctx.audio.play('burn', { gain: 0.45 })
   else if (crit) ctx.audio.play('crit')
   else ctx.audio.play('hit', { gain: 0.7 })
 
-  addTrauma(world, crit ? 5.2 : 2.4, kx, ky)
-  if (crit) requestHitStop('crit')
-  else if (!opts.burnTick) requestHitStop('hit')
+  if (chaosJuiceOn() && !opts.burnTick) {
+    juiceHitFeel(world, enemy, dmg, kx, ky, crit)
+    juiceHitStop(dmg, enemy.hp <= 0)
+  } else {
+    addTrauma(world, crit ? 5.2 : 2.4, kx, ky)
+    if (crit) requestHitStop('crit')
+    else if (!opts.burnTick) requestHitStop('hit')
+  }
 
   if (!opts.burnTick && !opts.thorns) {
     const steal = (opts.lifeSteal ?? 0) + stats.lifeSteal
@@ -107,13 +135,19 @@ export function dealDamageToEnemy(
     if (opts.effects?.includes('slow') || countSpecial(world.player, 'slowOnHit') > 0) {
       enemy.slow = Math.max(enemy.slow, 2.2)
     }
+    onItemHit(world, enemy, dmg, ctx)
   }
 
   const killed = enemy.hp <= 0
   if (killed) {
     enemy.hp = 0
-    enemy.corpse = corpseClipFor(opts.weapon)
+    enemy.corpse = corpseClipFor(opts.weapon ?? (opts.weaponId as WeaponId | undefined))
     if (opts.slice) enemy.sliced = true
+    onItemKill(world, enemy, ctx)
+    if (chaosJuiceOn() && !opts.thorns && !opts.burnTick) {
+      juiceOnKill(world, enemy, ctx, dmg)
+      chainBurst(world, enemy, ctx, dmg)
+    }
     if (opts.explode !== false && !opts.thorns && !opts.burnTick) {
       const stacks = countSpecial(world.player, 'explodeOnKill')
       if (stacks > 0) {
@@ -158,6 +192,7 @@ export function damagePlayer(
     }
     return false
   }
+  if (onItemBlock(world, ctx)) return false
 
   const armor = player.stats.armor
   const factor = 15 / Math.max(0.75, armor + 15)
@@ -176,6 +211,7 @@ export function damagePlayer(
 
   const extra = extraState(player)
   extra.flinchT = 0.3
+  onItemHurt(world, ctx)
 
   if (sourceEnemy) {
     const away = unit(player.x - sourceEnemy.x, player.y - sourceEnemy.y)

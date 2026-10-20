@@ -25,51 +25,66 @@
    "hero": "L",
    "dir": 132.0,
    "z": 4.0,
-   "native": true
+   "native": true,
+   "pass9": {
+    "restWristOffset": -103.2
+   }
   },
   "upF": {
    "pos": [
-    196.0,
-    261.0
+    153.0,
+    325.0
    ],
    "side": 1,
    "layer": "back",
-   "dir": 15.0,
+   "dir": -176.6,
    "z": 4.2,
-   "native": false
+   "native": false,
+   "pass9": {
+    "restWristOffset": -157.0
+   }
   },
   "lowN": {
    "pos": [
-    187.0,
-    313.0
+    194.0,
+    284.0
    ],
    "side": 1,
    "layer": "front",
-   "dir": 55.0,
+   "dir": 6.2,
    "z": 11.2,
-   "native": false
+   "native": false,
+   "pass9": {
+    "restWristOffset": 26.3
+   }
   },
   "lowF": {
    "pos": [
-    176.0,
-    313.0
+    143.0,
+    296.0
    ],
    "side": 1,
    "layer": "back",
-   "dir": 35.0,
+   "dir": 149.5,
    "z": 3.8,
-   "native": false
+   "native": false,
+   "pass9": {
+    "restWristOffset": 157.4
+   }
   },
   "upN": {
    "pos": [
-    206.0,
-    262.0
+    200.0,
+    243.0
    ],
    "side": 1,
    "layer": "front",
-   "dir": 5.0,
+   "dir": -78.4,
    "z": 11.4,
-   "native": false
+   "native": false,
+   "pass9": {
+    "restWristOffset": -65.0
+   }
   }
  },
  "layouts": {
@@ -87,7 +102,11 @@
    ],
    "override": {
     "midF": {
-     "dir": 72.0
+     "dir": -135.0,
+     "pos": [
+      134.0,
+      266.0
+     ]
     }
    }
   },
@@ -99,7 +118,11 @@
    ],
    "override": {
     "midF": {
-     "dir": 72.0
+     "dir": -135.0,
+     "pos": [
+      134.0,
+      266.0
+     ]
     }
    }
   },
@@ -112,7 +135,11 @@
    ],
    "override": {
     "midF": {
-     "dir": 72.0
+     "dir": -135.0,
+     "pos": [
+      134.0,
+      266.0
+     ]
     }
    }
   },
@@ -126,7 +153,11 @@
    ],
    "override": {
     "midF": {
-     "dir": 72.0
+     "dir": -135.0,
+     "pos": [
+      134.0,
+      266.0
+     ]
     }
    }
   },
@@ -141,7 +172,11 @@
    ],
    "override": {
     "midF": {
-     "dir": 72.0
+     "dir": -135.0,
+     "pos": [
+      134.0,
+      266.0
+     ]
     }
    }
   }
@@ -162,5 +197,6 @@
   "emptyHand": null
  },
  "behindBodyZ": 10.0,
- "bud": null
+ "bud": null,
+ "pass9": "art pass 9 weapon spread (tools/pass9/spread_apply.py): sprouted slot pos/dir re-laid out, far native arm overridden for 2..6 weapons, per-slot rest wrist offsets baked into body_track (slots[*].pass9 lists them). Same schema; no code change needed for the spread."
 }

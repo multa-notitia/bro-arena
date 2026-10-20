@@ -1,0 +1,183 @@
+{
+ "image": "props-garden-ground.webp",
+ "frameWidth": 768,
+ "frameHeight": 320,
+ "columns": 3,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.5
+ },
+ "clips": {
+  "soil_plot_a": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 1000
+    }
+   ]
+  },
+  "soil_plot_b": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 1,
+     "ms": 1000
+    }
+   ]
+  },
+  "gravel_h": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 2,
+     "ms": 1000
+    }
+   ]
+  },
+  "gravel_v": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 3,
+     "ms": 1000
+    }
+   ]
+  },
+  "gravel_curve": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 4,
+     "ms": 1000
+    }
+   ]
+  },
+  "stone_1": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 5,
+     "ms": 1000
+    }
+   ]
+  },
+  "stone_2": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 6,
+     "ms": 1000
+    }
+   ]
+  },
+  "stone_3": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 7,
+     "ms": 1000
+    }
+   ]
+  },
+  "stone_4": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 8,
+     "ms": 1000
+    }
+   ]
+  },
+  "stone_5": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 9,
+     "ms": 1000
+    }
+   ]
+  },
+  "soil_patch": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 10,
+     "ms": 1000
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Garden ground decals: dug soil plots under the planted rows, gravel path, stepping stones",
+  "drawScale": 0.5,
+  "pngFallback": "props-garden-ground.png",
+  "source": "tools/garden/src/*.jpg (GenerateImage, magenta keyed)",
+  "tool": "tools/garden/build_garden.py",
+  "date": "2026-10-18",
+  "cells": [
+   "soil_plot_a",
+   "soil_plot_b",
+   "gravel_h",
+   "gravel_v",
+   "gravel_curve",
+   "stone_1",
+   "stone_2",
+   "stone_3",
+   "stone_4",
+   "stone_5",
+   "soil_patch"
+  ],
+  "sizeWorldPx": {
+   "soil_plot_a": [
+    300,
+    100
+   ],
+   "soil_plot_b": [
+    280,
+    95
+   ],
+   "gravel_h": [
+    256,
+    38
+   ],
+   "gravel_v": [
+    38,
+    256
+   ],
+   "gravel_curve": [
+    170,
+    80
+   ],
+   "stone_1": [
+    46,
+    45
+   ],
+   "stone_2": [
+    40,
+    35
+   ],
+   "stone_3": [
+    40,
+    38
+   ],
+   "stone_4": [
+    34,
+    33
+   ],
+   "stone_5": [
+    26,
+    25
+   ],
+   "soil_patch": [
+    110,
+    95
+   ]
+  },
+  "tileWorldPx": {
+   "gravel_h": 256,
+   "gravel_v": 256
+  },
+  "note": "Ground layer (draw with the ground decals, under props). soil_plot_* sits under each planted row (centre = row.x,row.y+6). gravel_h/v tile seamlessly along their long axis."
+ }
+}

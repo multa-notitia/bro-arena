@@ -1,19 +1,87 @@
 import { clamp, lerp, uid } from '../core/math.ts'
 import type { CropId, EnemyKind, Farm, PlantView, Plot, World } from '../core/types.ts'
 import { CROP_IDS, STARTER_CROP_IDS } from '../core/types.ts'
-import { CROPS, CROP_LIST, cropByEnemy, cropUnlockedAt, GARDEN_COL_COUNT, GARDEN_ROW_COUNT, GARDEN_ROWS } from '../data/crops.ts'
+import { activeBeds } from '../data/beds.ts'
+import layout from '../data/garden_layout_v2.json'
+import { CROPS, CROP_LIST, cropByEnemy, cropUnlockedAt, GARDEN_ROWS } from '../data/crops.ts'
 import { FEEL } from '../feel.ts'
+import { arenaMap } from '../data/mapMode.ts'
 
-export const COL_COUNT = GARDEN_COL_COUNT
-export const ROW_COUNT = GARDEN_ROW_COUNT
-export const PLOT_COUNT = COL_COUNT * ROW_COUNT
-export const ROW_NAMES = GARDEN_ROWS
+/**
+ * Tidy planting lives in the six raised beds. The centre lawn has no rows.
+ * Each layout row is one furrow; plots sit in the dips at row.y + 4.
+ * Rows and classic sow a 3×4 in the centre, the way those maps did.
+ */
+const BED_ORDER = ['L1', 'L2', 'R1', 'R2', 'N', 'S'] as const
 
-const GARDEN_SCALE = FEEL.garden.scale
-const XS = [-210, -70, 70, 210].map((v) => Math.round(v * GARDEN_SCALE))
-const YS = [-150, 48, 218].map((v) => Math.round(v * GARDEN_SCALE))
-const JITTER_X = Math.round(10 * GARDEN_SCALE)
-const JITTER_Y = Math.round(7 * GARDEN_SCALE)
+interface Spot {
+  row: number
+  col: number
+  x: number
+  y: number
+}
+
+function tidySpots(): { spots: Spot[]; names: string[] } {
+  const spots: Spot[] = []
+  const names: string[] = []
+  let row = 0
+  for (const id of BED_ORDER) {
+    const bed = layout.beds[id]
+    const label = activeBeds().find((b) => b.id === id)?.label ?? id
+    for (let i = 0; i < bed.rows.length; i++) {
+      const pair = bed.rows[i]
+      const x = pair?.[0] ?? 0
+      const y = (pair?.[1] ?? 0) + 4
+      names.push(`${label} ${i + 1}`)
+      for (let col = 0; col < bed.plotOffsetsX.length; col++) {
+        spots.push({ row, col, x: x + (bed.plotOffsetsX[col] ?? 0), y })
+      }
+      row += 1
+    }
+  }
+  return { spots, names }
+}
+
+function centreSpots(origins: readonly { x: number; y: number }[]): Spot[] {
+  const scale = FEEL.garden.scale
+  const cols = [-210, -70, 70, 210].map((v) => Math.round(v * scale))
+  const jx = Math.round(10 * scale)
+  const jy = Math.round(7 * scale)
+  const spots: Spot[] = []
+  for (let r = 0; r < origins.length; r++) {
+    const origin = origins[r] ?? { x: 0, y: 0 }
+    for (let c = 0; c < cols.length; c++) {
+      spots.push({
+        row: r,
+        col: c,
+        x: origin.x + (cols[c] ?? 0) + ((r + c) % 2 === 0 ? -jx : jx),
+        y: origin.y + (c % 2 === 0 ? -jy : jy),
+      })
+    }
+  }
+  return spots
+}
+
+function layoutSpots(): { spots: Spot[]; names: string[] } {
+  const map = arenaMap()
+  if (map === 'tidy') return tidySpots()
+  if (map === 'classic') {
+    const scale = FEEL.garden.scale
+    const ys = [-150, 48, 218].map((v) => Math.round(v * scale))
+    return {
+      spots: centreSpots(ys.map((y) => ({ x: 0, y }))),
+      names: [...GARDEN_ROWS],
+    }
+  }
+  const centre = activeBeds().find((bed) => bed.id === 'C')
+  return { spots: centreSpots(centre?.rows ?? []), names: [...GARDEN_ROWS] }
+}
+
+const LAID = layoutSpots()
+export const COL_COUNT = layout.beds.L1.plotOffsetsX.length
+export const ROW_COUNT = LAID.names.length
+export const PLOT_COUNT = LAID.spots.length
+export const ROW_NAMES = LAID.names
 
 export function emptySeeds(): Record<CropId, number> {
   return { pea: 0, sprout: 0, carrot: 0, garlic: 0, pumpkin: 0, chili: 0 }
@@ -24,23 +92,16 @@ export function starterSeeds(): Record<CropId, number> {
 }
 
 export function createFarm(): Farm {
-  const plots: Plot[] = []
-  for (let r = 0; r < ROW_COUNT; r++) {
-    for (let c = 0; c < COL_COUNT; c++) {
-      const x = XS[c] ?? 0
-      const y = YS[r] ?? 0
-      plots.push({
-        uid: uid(),
-        row: r,
-        col: c,
-        x: x + ((r + c) % 2 === 0 ? -JITTER_X : JITTER_X),
-        y: y + (c % 2 === 0 ? -JITTER_Y : JITTER_Y),
-        crop: null,
-        growth: 0,
-        sway: (r * 3 + c) * 0.7,
-      })
-    }
-  }
+  const plots: Plot[] = LAID.spots.map((spot) => ({
+    uid: uid(),
+    row: spot.row,
+    col: spot.col,
+    x: spot.x,
+    y: spot.y,
+    crop: null,
+    growth: 0,
+    sway: (spot.row * 3 + spot.col) * 0.7,
+  }))
   return {
     plots,
     seeds: starterSeeds(),

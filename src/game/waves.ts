@@ -3,12 +3,28 @@ import type { EnemyKind, SpawnMarker, Tree, World } from '../core/types.ts'
 import { CROPS } from '../data/crops.ts'
 import { waveDef } from '../data/waves.ts'
 import { ENEMIES } from '../data/enemies.ts'
-import { beginDeath, MAX_ENEMIES, resetEnemyRuntime, spawnEnemy } from './enemies.ts'
+import { beginDeath, maxEnemies, resetEnemyRuntime, spawnEnemy } from './enemies.ts'
 import { farmSpawnBatch, farmSpawnInterval, plantedPlots, tickFarm } from './farm.ts'
 import { magnetAll, payoutHarvest } from './pickups.ts'
 import { resetWeaponRuntime } from './weapons.ts'
-import { resetForWave } from './world.ts'
+import { resetForWave, spawnOutsideView } from './world.ts'
+import { resetItemFx } from './itemFx.ts'
 import type { SimCtx } from './world.ts'
+import { hasOpenWing } from './beds.ts'
+import { chaosBatch, chaosInterval, onHorde, resetChaosDirector, tickChaosDirector } from './chaosDirector.ts'
+import { resetEmerge } from './emerge.ts'
+import { resetFamilies } from './families.ts'
+import {
+  beginPlantBurst,
+  cropToPlant,
+  gardenPending,
+  gardenSheet,
+  resetGardenPlants,
+  tickGardenPlants,
+} from './garden.ts'
+import { pickTreeKind, placeArenaDecor, resetArenaProps } from './arenaProps.ts'
+import { arenaMap } from '../data/mapMode.ts'
+import { telegraphLife } from '../data/chaos.ts'
 
 const MARKER_LIFE = 1
 
@@ -39,24 +55,7 @@ function makeDirector(world: World): Director {
 }
 
 export function randomAway(world: World, ctx: SimCtx, minDist: number, margin = 48): { x: number; y: number } {
-  const hw = world.arenaHalfW - margin
-  const hh = world.arenaHalfH - margin
-  const px = world.player.x
-  const py = world.player.y
-  for (let i = 0; i < 28; i++) {
-    const x = ctx.rng.range(-hw, hw)
-    const y = ctx.rng.range(-hh, hh)
-    if (dist(x, y, px, py) >= minDist) return { x, y }
-  }
-  const ang = Math.atan2(py, px) + Math.PI
-  return {
-    x: clampRange(Math.cos(ang) * minDist + px, -hw, hw),
-    y: clampRange(Math.sin(ang) * minDist + py, -hh, hh),
-  }
-}
-
-function clampRange(v: number, a: number, b: number): number {
-  return Math.max(a, Math.min(b, v))
+  return spawnOutsideView(world, ctx.rng, minDist, margin)
 }
 
 const MUD_CHANCE = 0.28
@@ -82,7 +81,22 @@ function pickPool(world: World, ctx: SimCtx): EnemyKind {
 }
 
 function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LIFE): void {
-  if (world.enemies.length + world.markers.length >= MAX_ENEMIES) return
+  if (world.enemies.length + world.markers.length + gardenPending() >= maxEnemies(world.wave)) return
+  if (hasOpenWing() && ctx.rng.chance(0.42)) {
+    const pos = spawnOutsideView(world, ctx.rng, 90, 36)
+    const kind = rollMud(pickPool(world, ctx), ctx)
+    const marker: SpawnMarker = {
+      kind,
+      x: pos.x,
+      y: pos.y,
+      t: 0,
+      life: life === MARKER_LIFE ? telegraphLife() : life,
+      style: 'crack',
+    }
+    world.markers.push(marker)
+    if (elite) eliteMarkers.add(marker)
+    return
+  }
   const sown = plantedPlots(world.farm)
   const plot = sown.length > 0 ? ctx.rng.pick(sown) : ctx.rng.pick(world.farm.plots)
   const crop = plot.crop
@@ -91,27 +105,55 @@ function spawnFromBed(world: World, ctx: SimCtx, elite = false, life = MARKER_LI
   if (crop && ctx.rng.chance(0.25)) kind = pickPool(world, ctx)
   kind = rollMud(kind, ctx)
   const jitter = 22
+  const x = plot.x + ctx.rng.range(-jitter, jitter)
+  const y = plot.y + ctx.rng.range(-10, 16)
+  const fam = kind.replace(/-(light|mud)$/, '')
+  const plant =
+    fam === 'beetroot' || fam === 'tomato' || fam === 'bean' || fam === 'pea'
+      ? fam
+      : crop
+        ? cropToPlant(crop)
+        : null
+  if (plant && gardenSheet() && beginPlantBurst({
+    plant,
+    x: plot.x,
+    y: plot.y,
+    plotUid: plot.uid,
+    spawns: [{ kind, elite, x, y }],
+  })) {
+    return
+  }
   const marker: SpawnMarker = {
     kind,
-    x: plot.x + ctx.rng.range(-jitter, jitter),
-    y: plot.y + ctx.rng.range(-10, 16),
+    x,
+    y,
     t: 0,
-    life,
+    life: life === MARKER_LIFE ? telegraphLife() : life,
+    style: 'crack',
   }
   world.markers.push(marker)
   if (elite) eliteMarkers.add(marker)
 }
 
 function placeTrees(world: World, ctx: SimCtx): void {
+  if (arenaMap() === 'tidy') return
   const n = world.waveDef.trees
   for (let i = 0; i < n; i++) {
-    let pos = randomAway(world, ctx, 180, 80)
+    const inset = 72
+    const spanX = Math.max(40, world.arenaMaxX - world.arenaMinX - inset * 2)
+    const spanY = Math.max(40, world.arenaMaxY - world.arenaMinY - inset * 2)
+    const sample = (): { x: number; y: number } => ({
+      x: ctx.rng.range(world.arenaMinX + inset, world.arenaMinX + inset + spanX),
+      y: ctx.rng.range(world.arenaMinY + inset, world.arenaMinY + inset + spanY),
+    })
+    let pos = sample()
     let guard = 0
     const blocked = (): boolean =>
       world.trees.some((t) => dist(t.x, t.y, pos.x, pos.y) < 90) ||
-      world.farm.plots.some((p) => dist(p.x, p.y, pos.x, pos.y) < 78)
+      world.farm.plots.some((p) => dist(p.x, p.y, pos.x, pos.y) < 78) ||
+      dist(pos.x, pos.y, world.player.x, world.player.y) < 110
     while (guard < 12 && blocked()) {
-      pos = randomAway(world, ctx, 180, 80)
+      pos = sample()
       guard += 1
     }
     if (world.farm.plots.some((p) => dist(p.x, p.y, pos.x, pos.y) < 70)) continue
@@ -125,18 +167,39 @@ function placeTrees(world: World, ctx: SimCtx): void {
       r: 26,
       sway: ctx.rng.range(0, 8),
       hitFlash: 0,
+      kind: pickTreeKind(ctx.rng),
+      hitAnim: false,
     }
     world.trees.push(tree)
   }
 }
 
+let startKills = 0
+let startScrap = 0
+
+/** One line for the end of a wave: what it was worth. */
+export function waveRecap(world: World): string {
+  const kills = world.player.kills - startKills
+  const scrap = world.player.materialsCollected - startScrap
+  return `${kills} down · +${scrap} scrap`
+}
+
 export function beginWave(world: World, ctx: SimCtx, index: number): void {
+  startKills = world.player.kills
+  startScrap = world.player.materialsCollected
   const wdef = waveDef(index)
   resetForWave(world, wdef)
+  resetItemFx()
   resetWeaponRuntime()
   resetEnemyRuntime()
+  resetChaosDirector()
+  resetEmerge()
+  resetFamilies()
+  resetGardenPlants()
+  resetArenaProps()
   director = makeDirector(world)
   placeTrees(world, ctx)
+  placeArenaDecor(world, ctx)
   for (const w of world.player.weapons) {
     w.burstLeft = 0
     w.burstTimer = 0
@@ -156,25 +219,29 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
   tickFarm(world, dt)
   const timeUp = world.waveTime >= def.duration
   world.waveLeft = Math.max(0, def.duration - world.waveTime)
-  const interval = farmSpawnInterval(def.spawnInterval, world.farm)
-  const batch = farmSpawnBatch(def.batch, world.farm)
+  const interval = chaosInterval(farmSpawnInterval(def.spawnInterval, world.farm), world)
+  const batch = chaosBatch(farmSpawnBatch(def.batch, world.farm), world)
 
   const markers: SpawnMarker[] = []
   for (const m of world.markers) {
     m.t += dt
     if (m.t >= m.life) {
-      spawnEnemy(world, m.kind, m.x, m.y, ctx, eliteMarkers.has(m), undefined, true)
+      spawnEnemy(world, m.kind, m.x, m.y, ctx, eliteMarkers.has(m) || !!m.elite, undefined, true)
     } else {
       markers.push(m)
     }
   }
   world.markers = markers
+  tickChaosDirector(world, dt, ctx)
+  tickGardenPlants(world, dt, (kind, x, y, elite) => {
+    spawnEnemy(world, kind, x, y, ctx, elite, undefined, true)
+  })
 
   const bossAlive = !!(world.boss && world.boss.state !== 'dying' && world.boss.hp > 0)
 
   if (!timeUp) {
     d.spawnAcc += dt
-    while (d.spawnAcc >= interval && world.enemies.length + world.markers.length < MAX_ENEMIES) {
+    while (d.spawnAcc >= interval && world.enemies.length + world.markers.length + gardenPending() < maxEnemies(world.wave)) {
       d.spawnAcc -= Math.max(0.08, interval)
       for (let i = 0; i < batch; i++) spawnFromBed(world, ctx)
     }
@@ -185,7 +252,8 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
       if (world.waveTime >= t) {
         d.hordeFired[i] = true
         const n = ctx.rng.int(10, 18)
-        for (let k = 0; k < n; k++) spawnFromBed(world, ctx, false, 0.7)
+        for (let k = 0; k < n; k++) spawnFromBed(world, ctx, false, telegraphLife())
+        onHorde(world, ctx)
         ctx.ui.banner('Horde', 'The row emptied at once.', 1400)
       }
     }
@@ -195,7 +263,7 @@ export function updateDirector(world: World, dt: number, ctx: SimCtx): boolean {
       if (t === undefined || world.waveTime < t) break
       d.elitesSpawned += 1
       spawnFromBed(world, ctx, true, 1.15)
-      ctx.ui.banner('Elite', 'The row grew something bigger.', 1400)
+      ctx.ui.banner('Elite', 'The row grew something bigger.', 1500)
     }
 
     if (def.boss && !d.bossSpawned && world.waveTime >= 3) {

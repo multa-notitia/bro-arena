@@ -1,0 +1,175 @@
+{
+ "image": "props-bed-locked.webp",
+ "frameWidth": 512,
+ "frameHeight": 512,
+ "columns": 4,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.625
+ },
+ "clips": {
+  "hedge_h": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.625
+   },
+   "frames": [
+    {
+     "i": 0,
+     "ms": 1000
+    }
+   ]
+  },
+  "hedge_v": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.16796875
+   },
+   "frames": [
+    {
+     "i": 1,
+     "ms": 1000
+    }
+   ]
+  },
+  "gate": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 2,
+     "ms": 1000
+    }
+   ]
+  },
+  "sign": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 3,
+     "ms": 1000
+    }
+   ]
+  },
+  "gate_side": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.16796875
+   },
+   "frames": [
+    {
+     "i": 4,
+     "ms": 1000
+    }
+   ]
+  },
+  "overgrowth": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0
+   },
+   "drawScale": 1.0,
+   "frames": [
+    {
+     "i": 5,
+     "ms": 1000
+    }
+   ]
+  },
+  "overgrowth_q00": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0
+   },
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 6,
+     "ms": 1000
+    }
+   ]
+  },
+  "overgrowth_q10": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0
+   },
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 7,
+     "ms": 1000
+    }
+   ]
+  },
+  "overgrowth_q01": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0
+   },
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 8,
+     "ms": 1000
+    }
+   ]
+  },
+  "overgrowth_q11": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0
+   },
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 9,
+     "ms": 1000
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Locked garden bed: low old wooden inner fence, padlocked gate, sign, overgrowth overlay",
+  "drawScale": 0.5,
+  "pngFallback": "props-bed-locked.png",
+  "source": "tools/garden/src/*.jpg (GenerateImage, magenta keyed)",
+  "tool": "tools/garden/build_garden.py",
+  "date": "2026-10-18",
+  "cells": [
+   "hedge_h",
+   "hedge_v",
+   "gate",
+   "sign",
+   "gate_side",
+   "overgrowth",
+   "overgrowth_q00",
+   "overgrowth_q10",
+   "overgrowth_q01",
+   "overgrowth_q11"
+  ],
+  "tileWorldPx": {
+   "hedge_h": 256,
+   "hedge_v": 174,
+   "overgrowth": 512,
+   "gate_side": 162
+  },
+  "groundLineY": 320,
+  "drawScaleByClip": {
+   "overgrowth": 1.0,
+   "overgrowth_q00": 0.5,
+   "overgrowth_q10": 0.5,
+   "overgrowth_q01": 0.5,
+   "overgrowth_q11": 0.5
+  },
+  "overgrowthHiRes": "overgrowth_q{x}{y}: the same 512 world px tile at 2 cell px/world px, split into 4 cells of 256 world px; tile them as a 2x2 block (x,y in 0..1) or compose once into a 1024 px offscreen canvas and createPattern at 0.5. `overgrowth` is the same tile at 1 px/world px.",
+  "note": "garden v1: hedge_h/hedge_v/gate/gate_side now hold the low old wooden inner fence (40 world px tall) and its padlocked gate; same clip names, same steps (hedge_h 256, hedge_v 174 world px). hedge_v/gate_side anchor = ground base of the TOP post (y=86/512), so the pickets stand up from the edge; the gate is 136 world px wide (fills GATE_GAP) and stands on the ground line. sign and overgrowth* are unchanged."
+ }
+}

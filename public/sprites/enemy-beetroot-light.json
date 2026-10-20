@@ -1,0 +1,705 @@
+{
+ "image": "enemy-beetroot-light.webp",
+ "frameWidth": 186,
+ "frameHeight": 204,
+ "columns": 11,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.6816
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 84
+    },
+    {
+     "i": 1,
+     "ms": 84
+    },
+    {
+     "i": 2,
+     "ms": 84
+    },
+    {
+     "i": 3,
+     "ms": 84
+    },
+    {
+     "i": 4,
+     "ms": 83
+    },
+    {
+     "i": 5,
+     "ms": 83
+    },
+    {
+     "i": 6,
+     "ms": 83
+    },
+    {
+     "i": 7,
+     "ms": 83
+    },
+    {
+     "i": 8,
+     "ms": 83
+    },
+    {
+     "i": 9,
+     "ms": 83
+    },
+    {
+     "i": 10,
+     "ms": 83
+    },
+    {
+     "i": 11,
+     "ms": 83
+    }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 12,
+     "ms": 64
+    },
+    {
+     "i": 13,
+     "ms": 64
+    },
+    {
+     "i": 14,
+     "ms": 64
+    },
+    {
+     "i": 15,
+     "ms": 64
+    },
+    {
+     "i": 16,
+     "ms": 63
+    },
+    {
+     "i": 17,
+     "ms": 63
+    },
+    {
+     "i": 18,
+     "ms": 63
+    },
+    {
+     "i": 19,
+     "ms": 63
+    },
+    {
+     "i": 20,
+     "ms": 63
+    },
+    {
+     "i": 21,
+     "ms": 63
+    },
+    {
+     "i": 22,
+     "ms": 63
+    },
+    {
+     "i": 23,
+     "ms": 63
+    }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 24,
+     "ms": 40,
+     "event": "hurt"
+    },
+    {
+     "i": 25,
+     "ms": 60
+    },
+    {
+     "i": 26,
+     "ms": 80
+    }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 43,
+     "ms": 60,
+     "ox": -1.0,
+     "event": "attack_windup"
+    },
+    {
+     "i": 44,
+     "ms": 60,
+     "ox": -2.0
+    },
+    {
+     "i": 45,
+     "ms": 45,
+     "ox": 4.0
+    },
+    {
+     "i": 46,
+     "ms": 65,
+     "ox": 11.0,
+     "events": [
+      "hit",
+      "attack_hit"
+     ]
+    },
+    {
+     "i": 47,
+     "ms": 50,
+     "ox": 10.0
+    },
+    {
+     "i": 48,
+     "ms": 70,
+     "ox": 6.0
+    },
+    {
+     "i": 49,
+     "ms": 70,
+     "ox": 2.5
+    },
+    {
+     "i": 50,
+     "ms": 60,
+     "event": "attack_done"
+    }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 51,
+     "ms": 60
+    },
+    {
+     "i": 52,
+     "ms": 70
+    },
+    {
+     "i": 53,
+     "ms": 45,
+     "event": "spawnFx"
+    },
+    {
+     "i": 54,
+     "ms": 45
+    },
+    {
+     "i": 55,
+     "ms": 50
+    },
+    {
+     "i": 56,
+     "ms": 55
+    },
+    {
+     "i": 57,
+     "ms": 60
+    },
+    {
+     "i": 58,
+     "ms": 65
+    },
+    {
+     "i": 59,
+     "ms": 75
+    },
+    {
+     "i": 60,
+     "ms": 950
+    }
+   ]
+  },
+  "taunt": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 32,
+     "ms": 35
+    },
+    {
+     "i": 33,
+     "ms": 35
+    },
+    {
+     "i": 34,
+     "ms": 40
+    },
+    {
+     "i": 35,
+     "ms": 40
+    },
+    {
+     "i": 36,
+     "ms": 30
+    },
+    {
+     "i": 37,
+     "ms": 30
+    },
+    {
+     "i": 38,
+     "ms": 30
+    },
+    {
+     "i": 39,
+     "ms": 30
+    },
+    {
+     "i": 40,
+     "ms": 30
+    },
+    {
+     "i": 41,
+     "ms": 30
+    },
+    {
+     "i": 42,
+     "ms": 70
+    }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 61,
+     "ms": 45
+    },
+    {
+     "i": 62,
+     "ms": 55,
+     "event": "spawnFx"
+    },
+    {
+     "i": 63,
+     "ms": 60
+    },
+    {
+     "i": 64,
+     "ms": 65
+    },
+    {
+     "i": 65,
+     "ms": 70
+    },
+    {
+     "i": 66,
+     "ms": 75
+    },
+    {
+     "i": 67,
+     "ms": 80
+    },
+    {
+     "i": 68,
+     "ms": 900
+    }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 69,
+     "ms": 40
+    },
+    {
+     "i": 70,
+     "ms": 45
+    },
+    {
+     "i": 71,
+     "ms": 45
+    },
+    {
+     "i": 72,
+     "ms": 65,
+     "events": [
+      "spawnFx",
+      "splat"
+     ]
+    },
+    {
+     "i": 73,
+     "ms": 75
+    },
+    {
+     "i": 74,
+     "ms": 300
+    },
+    {
+     "i": 78,
+     "ms": 110
+    },
+    {
+     "i": 79,
+     "ms": 110
+    }
+   ]
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 75,
+     "ms": 110,
+     "event": "emerge_fx"
+    },
+    {
+     "i": 76,
+     "ms": 90
+    },
+    {
+     "i": 77,
+     "ms": 90
+    },
+    {
+     "i": 80,
+     "ms": 80
+    },
+    {
+     "i": 81,
+     "ms": 70
+    },
+    {
+     "i": 82,
+     "ms": 60
+    },
+    {
+     "i": 83,
+     "ms": 60
+    },
+    {
+     "i": 84,
+     "ms": 60
+    },
+    {
+     "i": 85,
+     "ms": 80
+    },
+    {
+     "i": 86,
+     "ms": 80
+    },
+    {
+     "i": 0,
+     "ms": 90,
+     "event": "emerged"
+    }
+   ]
+  },
+  "burrow": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 87,
+     "ms": 90
+    },
+    {
+     "i": 88,
+     "ms": 70
+    },
+    {
+     "i": 98,
+     "ms": 70
+    },
+    {
+     "i": 89,
+     "ms": 80,
+     "event": "burrow"
+    },
+    {
+     "i": 90,
+     "ms": 70
+    },
+    {
+     "i": 91,
+     "ms": 70
+    },
+    {
+     "i": 92,
+     "ms": 70
+    },
+    {
+     "i": 93,
+     "ms": 70
+    },
+    {
+     "i": 94,
+     "ms": 80
+    },
+    {
+     "i": 95,
+     "ms": 80,
+     "event": "burrowed"
+    }
+   ]
+  },
+  "resurface": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 96,
+     "ms": 70,
+     "event": "emerge_fx"
+    },
+    {
+     "i": 97,
+     "ms": 60
+    },
+    {
+     "i": 99,
+     "ms": 60,
+     "event": "hit"
+    },
+    {
+     "i": 100,
+     "ms": 70
+    },
+    {
+     "i": 101,
+     "ms": 70
+    },
+    {
+     "i": 105,
+     "ms": 80
+    },
+    {
+     "i": 106,
+     "ms": 80
+    },
+    {
+     "i": 0,
+     "ms": 70,
+     "event": "emerged"
+    }
+   ]
+  },
+  "prop_mound": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 102,
+     "ms": 100
+    },
+    {
+     "i": 103,
+     "ms": 100
+    },
+    {
+     "i": 104,
+     "ms": 100
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 27,
+     "ms": 30,
+     "event": "turn"
+    },
+    {
+     "i": 28,
+     "ms": 35
+    },
+    {
+     "i": 29,
+     "ms": 40
+    },
+    {
+     "i": 30,
+     "ms": 35
+    },
+    {
+     "i": 31,
+     "ms": 30,
+     "event": "turn_done"
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Garden beetroot (light): stompy tank, headbutt, burrows + resurfaces under the hero; nfvar layers | side view v2",
+  "source": "derived_light.png",
+  "cells": [
+   "sv_idle_0",
+   "sv_idle_1",
+   "sv_idle_2",
+   "sv_idle_3",
+   "sv_idle_4",
+   "sv_idle_5",
+   "sv_idle_6",
+   "sv_idle_7",
+   "sv_idle_8",
+   "sv_idle_9",
+   "sv_idle_10",
+   "sv_idle_11",
+   "sv_walk_0",
+   "sv_walk_1",
+   "sv_walk_2",
+   "sv_walk_3",
+   "sv_walk_4",
+   "sv_walk_5",
+   "sv_walk_6",
+   "sv_walk_7",
+   "sv_walk_8",
+   "sv_walk_9",
+   "sv_walk_10",
+   "sv_walk_11",
+   "sv_hurt_0",
+   "sv_hurt_1",
+   "sv_hurt_2",
+   "sv_turn_0",
+   "sv_turn_1",
+   "sv_turn_2",
+   "sv_turn_3",
+   "sv_turn_4",
+   "sv_taunt_0",
+   "sv_taunt_1",
+   "sv_taunt_2",
+   "sv_taunt_3",
+   "sv_taunt_4",
+   "sv_taunt_5",
+   "sv_taunt_6",
+   "sv_taunt_7",
+   "sv_taunt_8",
+   "sv_taunt_9",
+   "sv_taunt_10",
+   "sv_attack_0",
+   "sv_attack_1",
+   "sv_attack_2",
+   "sv_attack_3",
+   "sv_attack_4",
+   "sv_attack_5",
+   "sv_attack_6",
+   "sv_attack_7",
+   "sv_death_0",
+   "sv_death_1",
+   "sv_death_2",
+   "sv_death_3",
+   "sv_death_4",
+   "sv_death_5",
+   "sv_death_6",
+   "sv_death_7",
+   "sv_death_8",
+   "sv_death_9",
+   "sv_death_slice_0",
+   "sv_death_slice_1",
+   "sv_death_slice_2",
+   "sv_death_slice_3",
+   "sv_death_slice_4",
+   "sv_death_slice_5",
+   "sv_death_slice_6",
+   "sv_death_slice_7",
+   "sv_death_smash_0",
+   "sv_death_smash_1",
+   "sv_death_smash_2",
+   "sv_death_smash_3",
+   "sv_death_smash_4",
+   "sv_death_smash_5",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "sv_death_smash_6",
+   "sv_death_smash_7",
+   "sv_emerge_3",
+   "sv_emerge_4",
+   "sv_emerge_5",
+   "sv_emerge_6",
+   "sv_emerge_7",
+   "sv_emerge_8",
+   "sv_emerge_9",
+   "sv_burrow_0",
+   "sv_burrow_1",
+   "burrow3",
+   "burrow4",
+   "burrow5",
+   "burrow6",
+   "burrow7",
+   "burrow8",
+   "burrow9",
+   "resurface0",
+   "resurface1",
+   "sv_burrow_2",
+   "sv_resurface_2",
+   "sv_resurface_3",
+   "sv_resurface_4",
+   "prop_mound0",
+   "prop_mound1",
+   "prop_mound2",
+   "sv_resurface_5",
+   "sv_resurface_6"
+  ],
+  "feetY": 186.16,
+  "gameRadius": 19,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-beetroot-light/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-beetroot-light.png",
+  "cellCrop": {
+   "from": [
+    256,
+    256
+   ],
+   "x0": 35,
+   "y0": 34,
+   "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
+  },
+  "splat": "purple",
+  "attacksSmash": {
+   "version": 2,
+   "date": "2026-10-18",
+   "attack": "v2",
+   "death_smash": "v2",
+   "splat": "purple",
+   "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "right",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "right",
+   "specials": [
+    "turn"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "sideview": {
+   "version": 2,
+   "date": "2026-10-18",
+   "tool": "tools/sideview/build.py",
+   "src": "tools/sideview/src/beetroot_light_side_v1.jpg",
+   "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
+  },
+  "smashV3": {
+   "version": 3,
+   "date": "2026-10-18",
+   "tool": "tools/smash_v3/build_v3.py",
+   "pancake": "unchanged (v2 painting already side-facing)",
+   "chunks": "organic torn re-cut + painted torn chunks",
+   "note": "clip names/frames/ms/events unchanged; see tools/smash_v3/README.md"
+  }
+ }
+}

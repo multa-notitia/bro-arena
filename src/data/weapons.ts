@@ -160,7 +160,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     class: 'ranged',
     flavor: 'Six shots. The garden hears all of them.',
     paint: 'pistol',
-    behavior: { type: 'shoot', projectile: bullet() },
+    behavior: { type: 'shoot', projectile: bullet({ paint: 'seed', trail: 'none' }) },
     tiers: {
       1: t(8, 0.7, 380, 6, 5, 2, 16),
       2: t(13, 0.62, 400, 7, 6, 2.1, 34),

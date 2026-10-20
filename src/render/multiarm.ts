@@ -14,6 +14,8 @@ import {
   type WeaponPaint,
 } from './armCompose.ts'
 import { actorClipFrame, blitCell, frameCell, loadSheetAt, type LoadedSheet, type SheetFrame } from './sheets.ts'
+import { WEAPONS } from '../data/weapons.ts'
+import { weaponDrawScale } from '../data/chaos.ts'
 
 /** One hero's multi-arm folder and the armless sheet that sits under the arms. */
 export interface MultiArmSource {
@@ -103,6 +105,9 @@ const HERO_QUERY: Record<string, string> = {
   ranger: 'ranger',
   chili: 'mage',
   mage: 'mage',
+  onion: 'loud',
+  loud: 'loud',
+  bull: 'bull',
 }
 const SPROUT_STAGGER = 320
 
@@ -678,8 +683,9 @@ function armLayers(
   grow: number,
   target: [number, number] | null,
   B: Mat,
+  extraScale = 1,
 ): Layer[] {
-  return composeArmLayers(currentRig(), slot, clip, fi, weaponName, tAttack, grow, target, B)
+  return composeArmLayers(currentRig(), slot, clip, fi, weaponName, tAttack, grow, target, B, extraScale)
 }
 
 
@@ -837,7 +843,9 @@ export function drawMultiArm(ctx: CanvasRenderingContext2D, which: 'back' | 'fro
       ? worldToCell(worldTarget.x, worldTarget.y, opts.originX, opts.originY, opts.bodyRot, opts.facing, located.frame, ax, ay, fit)
       : null
     const tAttack = st.attackMs === null ? null : st.attackMs - st.jitter
-    layers.push(...armLayers(slot, opts.clip, fi, painted?.name ?? null, tAttack, grow, target, B))
+    const wpnId = st.uid != null ? idByUid.get(st.uid) : undefined
+    const extraScale = wpnId ? weaponDrawScale(WEAPONS[wpnId]?.class ?? 'ranged') : 1
+    layers.push(...armLayers(slot, opts.clip, fi, painted?.name ?? null, tAttack, grow, target, B, extraScale))
   }
   const keep = which === 'back' ? (z: number) => z < behindZ : (z: number) => z > behindZ
   const sorted = layers.filter((layer) => keep(layer.z)).sort((a, b) => a.z - b.z)

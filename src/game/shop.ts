@@ -22,6 +22,7 @@ import {
   weaponSlotCount,
 } from './player.ts'
 import type { SimCtx } from './world.ts'
+import { bedOffers } from './beds.ts'
 
 export interface ShopSession {
   offers: ShopOffer[]
@@ -29,17 +30,25 @@ export interface ShopSession {
   freeUsed: number
 }
 
-const SPECIAL_LINE: Record<ItemSpecial, string> = {
-  explodeOnKill: 'Kills explode',
-  fruitOnWaveEnd: 'Fruit at wave end',
-  thorns: 'Thorns on hit',
-  doubleMaterials: 'Double materials',
-  freeReroll: 'Free shop reroll',
+export const SPECIAL_LINE: Record<ItemSpecial, string> = {
+  explodeOnKill: 'Kills burst and splash nearby foes',
+  fruitOnWaveEnd: 'Fruit drops at the end of each wave',
+  thorns: 'Thorns: hit back when struck',
+  doubleMaterials: 'Scrap pickups count double',
+  freeReroll: 'One free turn-over at every table',
   healOnPickup: 'Pickups heal',
-  burnOnHit: 'Hits burn',
-  slowOnHit: 'Hits slow',
-  materialOnDodge: 'Dodge drops scrap',
-  critHeals: 'Crits heal',
+  burnOnHit: 'Hits set foes burning',
+  slowOnHit: 'Hits slow foes',
+  materialOnDodge: 'Dodging drops scrap',
+  critHeals: 'Crits heal 1',
+  chainSpark: 'Hits may arc lightning to nearby foes',
+  stompOnHurt: 'When hit, stomp: knock back and slow foes around you',
+  orbitSeeds: 'Thistle seeds circle you and cut what they touch',
+  sporeOnKill: 'Kills may leave a spore cloud that rots and slows',
+  guard: 'A guard forms every few seconds and blocks one hit',
+  frenzyOnKill: 'Kills stack frenzy: faster attacks for a moment',
+  cullLow: 'Hits finish off badly hurt foes',
+  luckyKill: 'Kills sometimes burst into extra scrap',
 }
 
 function shopWave(world: World): number {
@@ -109,7 +118,6 @@ function makeItemOffer(world: World, itemId: string): ShopOffer | null {
   if (!def || uniqueOwned(world, itemId)) return null
   const price = itemPrice(def, shopWave(world))
   const lines = statLines(def.stats)
-  if (def.special) lines.push(SPECIAL_LINE[def.special])
   return {
     uid: uid(),
     kind: 'item',
@@ -121,6 +129,7 @@ function makeItemOffer(world: World, itemId: string): ShopOffer | null {
     flavor: def.flavor,
     paint: def.paint,
     lines,
+    effect: def.special ? SPECIAL_LINE[def.special] : undefined,
     combines: false,
     affordable: world.player.materials >= price,
   }
@@ -289,7 +298,15 @@ export function buildShopView(world: World, session: ShopSession): ShopView {
   for (const [id, count] of itemCounts) {
     const def = ITEMS[id]
     if (!def) continue
-    items.push({ id, name: def.name, tier: def.tier, paint: def.paint, count })
+    items.push({
+      id,
+      name: def.name,
+      tier: def.tier,
+      paint: def.paint,
+      count,
+      lines: statLines(def.stats),
+      effect: def.special ? SPECIAL_LINE[def.special] : undefined,
+    })
   }
   items.sort((a, b) => a.name.localeCompare(b.name))
 
@@ -317,6 +334,7 @@ export function buildShopView(world: World, session: ShopSession): ShopView {
     wave: world.wave,
     nextWave: world.wave + 1,
     materials: player.materials,
+    beds: bedOffers(player.materials),
     offers: session.offers,
     rerollPrice: currentRerollPrice(world, session),
     freeRerolls: freeRerollsLeft(world, session),

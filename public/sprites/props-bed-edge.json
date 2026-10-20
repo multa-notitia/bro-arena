@@ -1,0 +1,151 @@
+{
+ "image": "props-bed-edge.webp",
+ "frameWidth": 512,
+ "frameHeight": 512,
+ "columns": 4,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.625
+ },
+ "clips": {
+  "plank_h": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.625
+   },
+   "frames": [
+    {
+     "i": 0,
+     "ms": 1000
+    }
+   ]
+  },
+  "plank_h_low": {
+   "loop": true,
+   "anchor": {
+    "x": 0,
+    "y": 0.625
+   },
+   "frames": [
+    {
+     "i": 1,
+     "ms": 1000
+    }
+   ]
+  },
+  "plank_v": {
+   "loop": true,
+   "anchor": {
+    "x": 0.5,
+    "y": 0
+   },
+   "frames": [
+    {
+     "i": 2,
+     "ms": 1000
+    }
+   ]
+  },
+  "corner_tl": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 3,
+     "ms": 1000
+    }
+   ]
+  },
+  "corner_tr": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 4,
+     "ms": 1000
+    }
+   ]
+  },
+  "corner_bl": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 5,
+     "ms": 1000
+    }
+   ]
+  },
+  "corner_br": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 6,
+     "ms": 1000
+    }
+   ]
+  },
+  "cap_left": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 7,
+     "ms": 1000
+    }
+   ]
+  },
+  "cap_right": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 8,
+     "ms": 1000
+    }
+   ]
+  },
+  "cap_top": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 9,
+     "ms": 1000
+    }
+   ]
+  },
+  "cap_bottom": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 10,
+     "ms": 1000
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Garden bed border: weathered planks (straight h/v, corners, end caps)",
+  "drawScale": 0.5,
+  "pngFallback": "props-bed-edge.png",
+  "source": "tools/beds/src/*.jpg (GenerateImage, magenta keyed)",
+  "tool": "tools/beds/build.py",
+  "date": "2026-10-18",
+  "cells": [
+   "plank_h",
+   "plank_h_low",
+   "plank_v",
+   "corner_tl",
+   "corner_tr",
+   "corner_bl",
+   "corner_br",
+   "cap_left",
+   "cap_right",
+   "cap_top",
+   "cap_bottom"
+  ],
+  "tileWorldPx": {
+   "plank_h": 256,
+   "plank_h_low": 256,
+   "plank_v": 166
+  },
+  "groundLineY": 320,
+  "note": "plank_h/plank_h_low: anchor = left end at the ground line, repeat every 256 world px along x (top and bottom bed edges). plank_v: anchor = top centre, repeat every 166 world px along y (left/right edges). corner_*/cap_*: anchor = post foot (ground line); draw them last so the posts hide the plank joints. Y-sort posts with actors; planks can go on the ground layer."
+ }
+}

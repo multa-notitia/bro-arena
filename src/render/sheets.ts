@@ -26,10 +26,14 @@
  *
  * `event` / `events` fire once when the playhead enters the cell.
  * Gameplay (shots, dashes, slams) reads those events from `advanceActorSheet`
- * during the sim step. `drawActorSheet` only paints the frame the sim landed on.
+ * during the sim step. Draw interpolates ox/oy/scale between cells and can
+ * crossfade idle↔walk; scream/hurt still snap.
  */
-import { clamp } from '../core/math.ts'
-import type { AnimState, EnemyKind, Form, ModelDir, Species } from '../core/types.ts'
+import { clamp, lerp } from '../core/math.ts'
+import { CHAOS } from '../data/chaos.ts'
+import type { AnimState, EnemyKind, Form, ModelDir, Species, Vec } from '../core/types.ts'
+import { dustFull, heroBurstAlpha, isSparkClip, nearHeroFx, registerDustCounter, registerSparkCounter, sparksFull, underHeroClip } from './sparkBudget.ts'
+import { GROUND_VARIANTS } from './groundHash.ts'
 
 export interface SheetAnchor {
   x: number
@@ -50,6 +54,8 @@ export interface SheetClip {
   loop: boolean
   anchor?: SheetAnchor
   frames: SheetFrame[]
+  /** World px per cell px. Tree clips in props-arena are 0.5 (half-res). */
+  drawScale?: number
 }
 
 export interface SheetManifest {
@@ -62,6 +68,23 @@ export interface SheetManifest {
   clips: Record<string, SheetClip>
   image2x?: string
   pngFallback?: string
+  /** World px per atlas px. fx-funny uses ~0.35. */
+  drawScale?: number
+  /** Per-clip visual Y offsets (leap arc). Negative is up. */
+  airOffsetY?: Record<string, number[]>
+  /** Ground splat group on vfx-splat (`green` / `orange` / `red` / `purple` / `mud`). */
+  splat?: string
+  /** World-px jet origin from the body anchor (onion gas_puff). */
+  mouth?: { x: number; y: number }
+  /** Authored view. `right` mirrors on travel; `front` leans instead. */
+  facing?: 'front' | 'right'
+  /** Clip names listed on `meta.behaviors.specials` (leap, bite, scream, turn). */
+  specials?: readonly string[]
+  /**
+   * World px of a repeating tile. A number applies to every clip on the sheet
+   * (soil). A record is per clip (`overgrowth`, `hedge_h`, `plank_v`).
+   */
+  tileWorldPx?: number | Readonly<Record<string, number>>
 }
 
 export interface LoadedSheet {
@@ -98,10 +121,39 @@ export const SHEET_PRELOAD: string[] = [
   'enemy-tomato-mud',
   'enemy-bean-light',
   'enemy-bean-mud',
+  'enemy-beetroot-light',
+  'enemy-beetroot-mud',
+  'enemy-onion-light',
+  'enemy-onion-mud',
+  'enemy-pea-light',
+  'enemy-pea-mud',
   'fx-ink',
+  'fx-funny',
+  'vfx-splat',
+  'vfx-gas-puff',
   'pickups',
   'prop-furrow',
   'prop-bed',
+  'props-garden',
+  'props-garden-grow-a',
+  'props-garden-grow-b',
+  'props-garden-grow-c',
+  'props-arena',
+  'props-bed-soil',
+  'props-bed-edge',
+  'props-bed-locked',
+  'props-bed-unlock',
+  'props-ground-decals',
+  'props-fence',
+  'props-garden-decor',
+  'props-garden-ground',
+  'props-raised-beds',
+  'props-fence-v1',
+  'props-bed-locked-v1',
+  'props-bed-unlock-v1',
+  'prop-furrow-v1',
+  'prop-bed-v1',
+  'props-garden-decor-v1',
 ]
 
 const cache = new Map<string, LoadedSheet>()
@@ -115,11 +167,9 @@ interface ClipHead {
   loop: boolean
 }
 
-/** Idle ↔ walk blend. Long enough to hide the pose swap, short enough to feel responsive. */
-const LOCO_FADE = 0.08
-
 interface ActorHead {
   clip: string
+  shown: string
   clips: Map<string, ClipHead>
   /** Idle or walk just left. Its playhead stays where it was. */
   locoFrom: string
@@ -158,6 +208,25 @@ export function frameCell(
   return cell
 }
 
+const flashCache = new Map<HTMLCanvasElement, HTMLCanvasElement>()
+
+/** The cell's silhouette in the guide's cream hurt flash, cached per cell. */
+function flashCell(cell: HTMLCanvasElement): HTMLCanvasElement | null {
+  const hit = flashCache.get(cell)
+  if (hit) return hit
+  const out = document.createElement('canvas')
+  out.width = cell.width
+  out.height = cell.height
+  const g = out.getContext('2d')
+  if (!g) return null
+  g.drawImage(cell, 0, 0)
+  g.globalCompositeOperation = 'source-in'
+  g.fillStyle = '#fff7e6'
+  g.fillRect(0, 0, out.width, out.height)
+  flashCache.set(cell, out)
+  return out
+}
+
 interface InkBurst {
   clip: string
   elapsed: number
@@ -172,7 +241,33 @@ interface InkBurst {
 const inkBursts: InkBurst[] = []
 const INK_CAP = 48
 
+registerSparkCounter(() => {
+  let n = 0
+  for (let i = 0; i < inkBursts.length; i++) {
+    if (isSparkClip(inkBursts[i]!.clip)) n++
+  }
+  return n
+})
+
+registerDustCounter(() => {
+  let n = 0
+  for (let i = 0; i < inkBursts.length; i++) if (inkBursts[i]?.clip === 'dust') n++
+  return n
+})
+
 const ground: { lo: HTMLImageElement | null; hi: HTMLImageElement | null } = { lo: null, hi: null }
+const variantGround: { lo: HTMLImageElement | null; hi: HTMLImageElement | null }[] = [
+  { lo: null, hi: null },
+  { lo: null, hi: null },
+  { lo: null, hi: null },
+  { lo: null, hi: null },
+]
+const lawn: { lo: HTMLImageElement | null; hi: HTMLImageElement | null }[] = [
+  { lo: null, hi: null },
+  { lo: null, hi: null },
+]
+let lawnMown: { lo: HTMLImageElement | null; hi: HTMLImageElement | null } | null = null
+let pathGravel: { lo: HTMLImageElement | null; hi: HTMLImageElement | null } | null = null
 
 let bootDone = false
 
@@ -241,6 +336,7 @@ function parseClip(raw: unknown, columns: number, defaultMs: number): SheetClip 
     loop: o.loop !== false,
     anchor: o.anchor ? parseAnchor(o.anchor, { x: 0.5, y: 0.88 }) : undefined,
     frames,
+    drawScale: typeof o.drawScale === 'number' && o.drawScale > 0 ? o.drawScale : undefined,
   }
 }
 
@@ -263,6 +359,40 @@ function parseManifest(raw: unknown): SheetManifest | null {
   const meta = o.meta && typeof o.meta === 'object' ? (o.meta as Record<string, unknown>) : null
   const image2x = meta && typeof meta.image2x === 'string' ? meta.image2x : undefined
   const pngFallback = meta && typeof meta.pngFallback === 'string' ? meta.pngFallback : undefined
+  const drawScale = meta && typeof meta.drawScale === 'number' ? meta.drawScale : undefined
+  let airOffsetY: Record<string, number[]> | undefined
+  if (meta && meta.airOffsetY && typeof meta.airOffsetY === 'object') {
+    airOffsetY = {}
+    for (const [name, list] of Object.entries(meta.airOffsetY as Record<string, unknown>)) {
+      if (!Array.isArray(list)) continue
+      airOffsetY[name] = list.map((v) => (typeof v === 'number' ? v : 0))
+    }
+  }
+  let splat: string | undefined
+  if (meta && typeof meta.splat === 'string' && meta.splat) splat = meta.splat
+  let mouth: { x: number; y: number } | undefined
+  if (meta && meta.mouth && typeof meta.mouth === 'object') {
+    const m = meta.mouth as Record<string, unknown>
+    if (typeof m.x === 'number' && typeof m.y === 'number') mouth = { x: m.x, y: m.y }
+  }
+  let facing: 'front' | 'right' | undefined
+  const facingRaw = meta && (meta.facing ?? (meta.behaviors as { facing?: unknown } | undefined)?.facing)
+  if (facingRaw === 'front' || facingRaw === 'right') facing = facingRaw
+  let specials: string[] | undefined
+  const beh = meta && meta.behaviors && typeof meta.behaviors === 'object' ? (meta.behaviors as { specials?: unknown }) : null
+  if (beh && Array.isArray(beh.specials)) {
+    specials = beh.specials.filter((s): s is string => typeof s === 'string' && s.length > 0)
+  }
+  let tileWorldPx: number | Record<string, number> | undefined
+  if (meta && typeof meta.tileWorldPx === 'number' && meta.tileWorldPx > 0) {
+    tileWorldPx = meta.tileWorldPx
+  } else if (meta && meta.tileWorldPx && typeof meta.tileWorldPx === 'object') {
+    const rec: Record<string, number> = {}
+    for (const [name, value] of Object.entries(meta.tileWorldPx as Record<string, unknown>)) {
+      if (typeof value === 'number' && value > 0) rec[name] = value
+    }
+    if (Object.keys(rec).length) tileWorldPx = rec
+  }
   return {
     image: o.image,
     frameWidth: o.frameWidth,
@@ -272,7 +402,22 @@ function parseManifest(raw: unknown): SheetManifest | null {
     clips,
     image2x,
     pngFallback,
+    drawScale,
+    airOffsetY,
+    splat,
+    mouth,
+    facing,
+    specials,
+    tileWorldPx,
   }
+}
+
+/** World size of a repeating tile, from `meta.tileWorldPx`, else cell px × draw scale. */
+export function clipTileWorldPx(sheet: LoadedSheet, clipName: string): number {
+  const meta = sheet.manifest.tileWorldPx
+  if (typeof meta === 'number' && meta > 0) return meta
+  if (meta && typeof meta[clipName] === 'number' && meta[clipName] > 0) return meta[clipName]
+  return Math.round(sheet.manifest.frameWidth * clipDrawScale(sheet, clipName))
 }
 
 function imageUrl(file: string): string {
@@ -366,16 +511,41 @@ function requestSheet(id: string): Promise<LoadedSheet | null> {
   return p
 }
 
-async function loadGround(): Promise<void> {
+async function loadGroundPair(id: string): Promise<{ lo: HTMLImageElement | null; hi: HTMLImageElement | null }> {
+  let lo: HTMLImageElement | null = null
+  let hi: HTMLImageElement | null = null
   try {
-    ground.lo = await loadImageWithFallback('ground-garden.webp', 'ground-garden.png')
+    lo = await loadImageWithFallback(`${id}.webp`, `${id}.png`)
   } catch {
-    ground.lo = null
+    lo = null
   }
   try {
-    ground.hi = await loadImage(imageUrl('ground-garden@2x.png'))
+    hi = await loadImage(imageUrl(`${id}@2x.png`))
   } catch {
-    ground.hi = null
+    hi = null
+  }
+  return { lo, hi }
+}
+
+async function loadGround(): Promise<void> {
+  const [legacy, a, b, mown, gravel, ...variants] = await Promise.all([
+    loadGroundPair('ground-garden'),
+    loadGroundPair('ground-lawn-a'),
+    loadGroundPair('ground-lawn-b'),
+    loadGroundPair('ground-lawn-mown'),
+    loadGroundPair('ground-path-gravel'),
+    ...GROUND_VARIANTS.map((name) => loadGroundPair(`ground-garden-${name}`)),
+  ])
+  ground.lo = legacy?.lo ?? null
+  ground.hi = legacy?.hi ?? null
+  lawn[0] = a ?? { lo: null, hi: null }
+  lawn[1] = b ?? { lo: null, hi: null }
+  lawnMown = mown ?? null
+  pathGravel = gravel ?? null
+  for (let i = 0; i < GROUND_VARIANTS.length; i++) {
+    const slot = variants[i]
+    if (!slot) continue
+    variantGround[i] = slot
   }
 }
 
@@ -408,10 +578,42 @@ export function sheetById(id: string): LoadedSheet | null {
   return resolveSheet([id])
 }
 
-/** Painted garden tile. `@2x` when the caller is on a dense viewport. */
+/** Painted garden tile. `@2x` when the caller is on a dense viewport. Variant a, kept so the old id still loads. */
 export function gardenGround(hi: boolean): HTMLImageElement | null {
   if (hi && ground.hi) return ground.hi
   return ground.lo
+}
+
+/** `ground-garden-a` … `d`. Falls back to the single garden tile. */
+export function gardenGroundVariant(hi: boolean, index: number): HTMLImageElement | null {
+  const slot = variantGround[index]
+  if (slot) {
+    if (hi && slot.hi) return slot.hi
+    if (slot.lo) return slot.lo
+  }
+  return gardenGround(hi)
+}
+
+/** Lawn a (0) or b (1). The live scatter mixes only these two. */
+export function gardenLawn(hi: boolean, variant: 0 | 1): HTMLImageElement | null {
+  const slot = lawn[variant]
+  if (!slot) return null
+  if (hi && slot.hi) return slot.hi
+  return slot.lo
+}
+
+/** Striped lawn. One tile, everywhere. */
+export function gardenLawnMown(hi: boolean): HTMLImageElement | null {
+  if (!lawnMown) return null
+  if (hi && lawnMown.hi) return lawnMown.hi
+  return lawnMown.lo
+}
+
+/** Seamless gravel for the straight paths. 512 world px. */
+export function gardenPathGravel(hi: boolean): HTMLImageElement | null {
+  if (!pathGravel) return null
+  if (hi && pathGravel.hi) return pathGravel.hi
+  return pathGravel.lo
 }
 
 export function chooseClip(
@@ -496,6 +698,19 @@ export function actorClipFrame(
   return { index: at.index, frame: at.frame }
 }
 
+/** Frame index plus 0..1 fraction through that cell (for hops / airOffsetY). */
+export function clipPlayhead(
+  playKey: string,
+  sheet: LoadedSheet,
+  clipName: string,
+): { index: number; frac: number } | null {
+  const clip = sheet.manifest.clips[clipName]
+  if (!clip || !clip.frames.length) return null
+  const elapsed = heads.get(playKey)?.clips.get(clipName)?.elapsed ?? 0
+  const sampled = sampleClip(clip, elapsed)
+  return { index: sampled.index, frac: sampled.u }
+}
+
 function locate(clip: SheetClip, elapsed: number): Located {
   const frames = clip.frames
   const n = frames.length
@@ -518,7 +733,7 @@ function locate(clip: SheetClip, elapsed: number): Located {
 function actor(playKey: string): ActorHead {
   let head = heads.get(playKey)
   if (!head) {
-    head = { clip: '', clips: new Map(), locoFrom: '', locoFade: 0 }
+    head = { clip: '', shown: '', clips: new Map(), locoFrom: '', locoFade: 0 }
     heads.set(playKey, head)
   }
   return head
@@ -526,6 +741,46 @@ function actor(playKey: string): ActorHead {
 
 function isLoco(name: string): boolean {
   return name === 'idle' || name === 'walk'
+}
+
+function hardSnapFrame(frame: SheetFrame): boolean {
+  return frame.events.includes('scream') || frame.events.includes('hurt')
+}
+
+interface SampledPose {
+  frame: SheetFrame
+  index: number
+  u: number
+  ox: number
+  oy: number
+  scaleX: number
+  scaleY: number
+}
+
+function sampleClip(clip: SheetClip, elapsed: number): SampledPose {
+  const at = locate(clip, elapsed)
+  const frames = clip.frames
+  const n = frames.length
+  const next = frames[clip.loop ? (at.index + 1) % n : Math.min(at.index + 1, n - 1)] ?? at.frame
+  const dur = clipDurationMs(clip)
+  const local = clip.loop && dur > 0 ? elapsed % dur : Math.min(elapsed, Math.max(0, dur - 0.001))
+  const into = Math.max(0, local - at.start)
+  let u = at.frame.ms > 0 ? clamp(into / at.frame.ms, 0, 1) : 0
+  if (hardSnapFrame(at.frame) || hardSnapFrame(next)) u = 0
+  return {
+    frame: at.frame,
+    index: at.index,
+    u,
+    ox: lerp(at.frame.ox, next.ox, u),
+    oy: lerp(at.frame.oy, next.oy, u),
+    scaleX: lerp(at.frame.scaleX, next.scaleX, u),
+    scaleY: lerp(at.frame.scaleY, next.scaleY, u),
+  }
+}
+
+/** Name the clip we intend to show. Idle/walk fade is owned by `advanceActorSheet`. */
+export function presentActorClip(playKey: string, clipName: string): void {
+  actor(playKey).shown = clipName
 }
 
 function slotFor(head: ActorHead, name: string, clip: SheetClip): ClipHead {
@@ -584,6 +839,13 @@ export function restartActorClip(playKey: string, clipName: string): void {
   } else {
     head.clips.set(clipName, { elapsed: 0, index: -1, duration: 0, loop: false })
   }
+}
+
+/** Jump a clip's playhead (ms). Used to desync garden sway per bed. */
+export function seekActorClip(playKey: string, clipName: string, elapsedMs: number): void {
+  restartActorClip(playKey, clipName)
+  const slot = actor(playKey).clips.get(clipName)
+  if (slot) slot.elapsed = Math.max(0, elapsedMs)
 }
 
 export function forgetActor(playKey: string): void {
@@ -658,7 +920,8 @@ export function locomotionBlend(playKey: string): { from: string; old: number; n
   const head = heads.get(playKey)
   if (!head || !head.locoFrom || head.locoFade <= 0) return null
   if (!isLoco(head.clip) || !isLoco(head.locoFrom) || head.locoFrom === head.clip) return null
-  const old = clamp(head.locoFade / LOCO_FADE, 0, 1)
+  const fade = Math.max(0.001, CHAOS.smooth.idleWalkFade)
+  const old = clamp(head.locoFade / fade, 0, 1)
   return { from: head.locoFrom, old, neu: 1 - old }
 }
 
@@ -682,7 +945,7 @@ export function advanceActorSheet(
   const head = actor(playKey)
   if (head.clip && head.clip !== clipName && isLoco(head.clip) && isLoco(clipName)) {
     head.locoFrom = head.clip
-    head.locoFade = LOCO_FADE
+    head.locoFade = CHAOS.smooth.idleWalkFade
   } else if (head.clip !== clipName && !isLoco(clipName)) {
     head.locoFrom = ''
     head.locoFade = 0
@@ -702,7 +965,7 @@ function paintFrame(
   sheet: LoadedSheet,
   clip: SheetClip,
   frame: SheetFrame,
-  opts: { fit: number; facing: 1 | -1; alpha: number },
+  opts: { fit: number; facing: 1 | -1; alpha: number; ox?: number; oy?: number; scaleX?: number; scaleY?: number; flash?: number },
 ): void {
   const { img, columns } = sheet
   const fw = sheet.manifest.frameWidth
@@ -725,40 +988,74 @@ function paintFrame(
   const ay = anchor.y * fh
   ctx.save()
   ctx.globalAlpha *= opts.alpha
-  ctx.translate(frame.ox * opts.facing, frame.oy)
-  ctx.scale(opts.facing * opts.fit * frame.scaleX, opts.fit * frame.scaleY)
+  const ox = opts.ox ?? frame.ox
+  const oy = opts.oy ?? frame.oy
+  const scaleX = opts.scaleX ?? frame.scaleX
+  const scaleY = opts.scaleY ?? frame.scaleY
+  ctx.translate(ox * opts.facing, oy)
+  ctx.scale(opts.facing * opts.fit * scaleX, opts.fit * scaleY)
   blitCell(ctx, cell, -ax, -ay, fw, fh)
+  const flash = opts.flash ?? 0
+  if (flash > 0.02) {
+    const white = flashCell(cell)
+    if (white) {
+      ctx.globalAlpha *= Math.min(1, flash)
+      blitCell(ctx, white, -ax, -ay, fw, fh)
+    }
+  }
   ctx.restore()
 }
 
-/** Paint the frame `advanceActorSheet` has already stepped. Does not move the playhead. */
+function paintSampled(
+  ctx: CanvasRenderingContext2D,
+  sheet: LoadedSheet,
+  playKey: string,
+  clipName: string,
+  opts: { fit: number; facing: 1 | -1; alpha: number; flash?: number },
+): void {
+  const clip = sheet.manifest.clips[clipName]
+  if (!clip || !clip.frames.length) return
+  const elapsed = actor(playKey).clips.get(clipName)?.elapsed ?? 0
+  const pose = sampleClip(clip, elapsed)
+  paintFrame(ctx, sheet, clip, pose.frame, {
+    fit: opts.fit,
+    facing: opts.facing,
+    alpha: opts.alpha,
+    ox: pose.ox,
+    oy: pose.oy,
+    scaleX: pose.scaleX,
+    scaleY: pose.scaleY,
+    flash: opts.flash,
+  })
+}
+
+/** Paint the interpolated pose. Idle↔walk may still be crossfading. */
 export function drawActorSheet(
   ctx: CanvasRenderingContext2D,
   sheet: LoadedSheet,
   playKey: string,
   clipName: string,
-  opts: { r: number; facing: 1 | -1; alpha: number },
+  opts: { r: number; facing: 1 | -1; alpha: number; flash?: number },
 ): void {
   const clip = sheet.manifest.clips[clipName]
   if (!clip || !clip.frames.length) return
-  const slot = actor(playKey).clips.get(clipName)
-  const elapsed = slot?.elapsed ?? 0
-  const { frame } = locate(clip, elapsed)
   const fw = sheet.manifest.frameWidth
   const fh = sheet.manifest.frameHeight
   const fit = snapScale((opts.r * 2.35) / Math.max(fw, fh))
   const blend = locomotionBlend(playKey)
-  if (blend && isLoco(clipName) && blend.from !== clipName) {
-    const fromClip = sheet.manifest.clips[blend.from]
-    const fromSlot = actor(playKey).clips.get(blend.from)
-    if (fromClip && fromClip.frames.length) {
-      const fromFrame = locate(fromClip, fromSlot?.elapsed ?? 0).frame
-      paintFrame(ctx, sheet, fromClip, fromFrame, { fit, facing: opts.facing, alpha: opts.alpha * blend.old })
-      paintFrame(ctx, sheet, clip, frame, { fit, facing: opts.facing, alpha: opts.alpha * blend.neu })
-      return
-    }
+  if (blend && isLoco(clipName) && blend.from !== clipName && sheet.manifest.clips[blend.from]) {
+    // The outgoing pose stays opaque underneath. Two half-alpha poses read as a see-through ghost.
+    paintSampled(ctx, sheet, playKey, blend.from, { fit, facing: opts.facing, alpha: opts.alpha, flash: opts.flash })
+    paintSampled(ctx, sheet, playKey, clipName, { fit, facing: opts.facing, alpha: opts.alpha * blend.neu, flash: opts.flash })
+    return
   }
-  paintFrame(ctx, sheet, clip, frame, { fit, facing: opts.facing, alpha: opts.alpha })
+  paintSampled(ctx, sheet, playKey, clipName, { fit, facing: opts.facing, alpha: opts.alpha, flash: opts.flash })
+}
+
+/** `clip.drawScale` wins, then sheet meta, then 0.25 (heroes / garden). */
+export function clipDrawScale(sheet: LoadedSheet, clipName: string): number {
+  const clip = sheet.manifest.clips[clipName]
+  return clip?.drawScale ?? sheet.manifest.drawScale ?? 0.25
 }
 
 /**
@@ -776,12 +1073,16 @@ export function drawNamedClip(
   const clip = sheet.manifest.clips[clipName]
   if (!clip) return false
   advanceActorSheet(playKey, sheet, clipName, dt)
-  const slot = actor(playKey).clips.get(clipName)
-  const { frame } = locate(clip, slot?.elapsed ?? 0)
-  paintFrame(ctx, sheet, clip, frame, {
+  const elapsed = actor(playKey).clips.get(clipName)?.elapsed ?? 0
+  const pose = sampleClip(clip, elapsed)
+  paintFrame(ctx, sheet, clip, pose.frame, {
     fit: opts.scale,
     facing: opts.facing ?? 1,
     alpha: opts.alpha ?? 1,
+    ox: pose.ox,
+    oy: pose.oy,
+    scaleX: pose.scaleX,
+    scaleY: pose.scaleY,
   })
   return true
 }
@@ -809,6 +1110,22 @@ export function drawProp(
   return true
 }
 
+function retireOldestInk(name: string): boolean {
+  let oldest = -1
+  let worst = -1
+  for (let i = 0; i < inkBursts.length; i++) {
+    const b = inkBursts[i]
+    if (!b || b.clip !== name) continue
+    if (b.elapsed > worst) {
+      worst = b.elapsed
+      oldest = i
+    }
+  }
+  if (oldest < 0) return false
+  inkBursts.splice(oldest, 1)
+  return true
+}
+
 export function spawnInkClip(
   name: string,
   x: number,
@@ -818,15 +1135,35 @@ export function spawnInkClip(
   const sheet = resolveSheet(['fx-ink'])
   const clip = sheet?.manifest.clips[name]
   if (!sheet || !clip) return false
+  if (isSparkClip(name) && sparksFull()) {
+    if (!retireOldestInk(name === 'hitSpark' ? 'hitSpark' : name)) {
+      let oldest = -1
+      let worst = -1
+      for (let i = 0; i < inkBursts.length; i++) {
+        const b = inkBursts[i]
+        if (!b || !isSparkClip(b.clip)) continue
+        if (b.elapsed > worst) {
+          worst = b.elapsed
+          oldest = i
+        }
+      }
+      if (oldest >= 0) inkBursts.splice(oldest, 1)
+      else return false
+    }
+  }
+  if (name === 'dust' && dustFull() && !retireOldestInk('dust')) return false
   if (inkBursts.length >= INK_CAP) inkBursts.shift()
+  const authored = clipDurationMs(clip)
+  const duration = name === 'dust' ? Math.min(authored, CHAOS.read.dustLife * 1000) : authored
+  const scale = name === 'dust' ? (opts?.scale ?? CHAOS.read.dustScale) : (opts?.scale ?? 0.36)
   inkBursts.push({
     clip: name,
     elapsed: 0,
-    duration: clipDurationMs(clip),
+    duration,
     x,
     y,
     angle: opts?.angle ?? 0,
-    scale: opts?.scale ?? 0.36,
+    scale,
     rotate: !!opts?.rotate,
   })
   return true
@@ -837,7 +1174,8 @@ export function tickInkClips(dt: number): void {
   for (let i = inkBursts.length - 1; i >= 0; i--) {
     const b = inkBursts[i]
     if (!b) continue
-    b.elapsed += step
+    const rate = isSparkClip(b.clip) ? 1 / Math.max(0.2, CHAOS.read.sparkLife) : 1
+    b.elapsed += step * rate
     if (b.elapsed >= b.duration) inkBursts.splice(i, 1)
   }
 }
@@ -889,10 +1227,22 @@ export function blitCell(
   ctx.restore()
 }
 
-export function drawInkClips(ctx: CanvasRenderingContext2D): void {
+export function drawInkClips(ctx: CanvasRenderingContext2D, hero?: Vec, layer?: 'near' | 'far'): void {
   const sheet = cache.get('fx-ink')
   if (!sheet || inkBursts.length === 0) return
   for (const b of inkBursts) {
+    const spark = isSparkClip(b.clip)
+    const under = underHeroClip(b.clip)
+    if (hero && layer) {
+      const close = nearHeroFx(b.x, b.y, hero.x, hero.y)
+      if (b.clip === 'ghost' && close) continue
+      if (under) {
+        if (layer === 'near' && !close) continue
+        if (layer === 'far' && close) continue
+      } else if (layer === 'near') {
+        continue
+      }
+    }
     const clip = sheet.manifest.clips[b.clip]
     if (!clip) continue
     const { frame } = locate(clip, b.elapsed)
@@ -903,7 +1253,13 @@ export function drawInkClips(ctx: CanvasRenderingContext2D): void {
     const anchor = clip.anchor ?? sheet.manifest.anchor
     const cell = frameCell(sheet.img, `ink:${b.clip}:${frame.i}`, col * fw, row * fh, fw, fh)
     if (!cell) continue
+    let dim = hero && spark ? heroBurstAlpha(b.x, b.y, hero.x, hero.y) : 1
+    if (b.clip === 'dust') {
+      const u = b.duration > 0 ? clamp(b.elapsed / b.duration, 0, 1) : 1
+      dim *= 1 - u
+    }
     ctx.save()
+    ctx.globalAlpha = dim
     ctx.translate(b.x, b.y)
     if (b.rotate) ctx.rotate(b.angle)
     ctx.scale(b.scale, b.scale)

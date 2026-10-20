@@ -1,0 +1,302 @@
+{
+ "image": "props-bed-unlock-v1.webp",
+ "frameWidth": 512,
+ "frameHeight": 384,
+ "columns": 5,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.7291666666666666
+ },
+ "clips": {
+  "gate_unlock": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 60,
+     "event": "unlock_start"
+    },
+    {
+     "i": 1,
+     "ms": 60
+    },
+    {
+     "i": 2,
+     "ms": 60
+    },
+    {
+     "i": 3,
+     "ms": 50,
+     "event": "lock_pop"
+    },
+    {
+     "i": 4,
+     "ms": 50,
+     "event": "open"
+    },
+    {
+     "i": 5,
+     "ms": 60
+    },
+    {
+     "i": 6,
+     "ms": 70
+    },
+    {
+     "i": 7,
+     "ms": 80
+    },
+    {
+     "i": 8,
+     "ms": 90
+    },
+    {
+     "i": 9,
+     "ms": 120,
+     "event": "unlock_done"
+    }
+   ]
+  },
+  "gate_unlock_side": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.22395833333333334
+   },
+   "frames": [
+    {
+     "i": 10,
+     "ms": 60,
+     "event": "unlock_start"
+    },
+    {
+     "i": 11,
+     "ms": 60
+    },
+    {
+     "i": 12,
+     "ms": 60
+    },
+    {
+     "i": 13,
+     "ms": 50,
+     "event": "lock_pop"
+    },
+    {
+     "i": 14,
+     "ms": 50,
+     "event": "open"
+    },
+    {
+     "i": 15,
+     "ms": 60
+    },
+    {
+     "i": 16,
+     "ms": 70
+    },
+    {
+     "i": 17,
+     "ms": 80
+    },
+    {
+     "i": 18,
+     "ms": 90
+    },
+    {
+     "i": 19,
+     "ms": 120,
+     "event": "unlock_done"
+    }
+   ]
+  },
+  "hedge_h_collapse": {
+   "loop": false,
+   "anchor": {
+    "x": 0,
+    "y": 0.7291666666666666
+   },
+   "frames": [
+    {
+     "i": 20,
+     "ms": 50,
+     "event": "collapse_start"
+    },
+    {
+     "i": 21,
+     "ms": 50
+    },
+    {
+     "i": 22,
+     "ms": 60,
+     "event": "open"
+    },
+    {
+     "i": 23,
+     "ms": 70
+    },
+    {
+     "i": 24,
+     "ms": 80
+    },
+    {
+     "i": 25,
+     "ms": 90
+    },
+    {
+     "i": 26,
+     "ms": 100
+    },
+    {
+     "i": 27,
+     "ms": 100,
+     "event": "collapse_done"
+    }
+   ]
+  },
+  "hedge_v_collapse": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.22395833333333334
+   },
+   "frames": [
+    {
+     "i": 28,
+     "ms": 50,
+     "event": "collapse_start"
+    },
+    {
+     "i": 29,
+     "ms": 50
+    },
+    {
+     "i": 30,
+     "ms": 60,
+     "event": "open"
+    },
+    {
+     "i": 31,
+     "ms": 70
+    },
+    {
+     "i": 32,
+     "ms": 80
+    },
+    {
+     "i": 33,
+     "ms": 90
+    },
+    {
+     "i": 34,
+     "ms": 100
+    },
+    {
+     "i": 35,
+     "ms": 100,
+     "event": "collapse_done"
+    }
+   ]
+  },
+  "soil_fluff": {
+   "loop": false,
+   "anchor": {
+    "x": 0.5,
+    "y": 0.6770833333333334
+   },
+   "drawScale": 0.75,
+   "frames": [
+    {
+     "i": 36,
+     "ms": 50,
+     "event": "fluff"
+    },
+    {
+     "i": 37,
+     "ms": 60
+    },
+    {
+     "i": 38,
+     "ms": 70
+    },
+    {
+     "i": 39,
+     "ms": 80
+    },
+    {
+     "i": 40,
+     "ms": 100
+    },
+    {
+     "i": 41,
+     "ms": 140,
+     "event": "fluff_done"
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Bed unlock: padlock pops, gate swings open, inner fence boards fall flat, dust",
+  "drawScale": 0.5,
+  "pngFallback": "props-bed-unlock-v1.png",
+  "source": "tools/garden/src/*.jpg (GenerateImage, magenta keyed)",
+  "tool": "tools/garden/build_garden.py",
+  "date": "2026-10-18",
+  "cells": [
+   "gate_unlock_0",
+   "gate_unlock_1",
+   "gate_unlock_2",
+   "gate_unlock_3",
+   "gate_unlock_4",
+   "gate_unlock_5",
+   "gate_unlock_6",
+   "gate_unlock_7",
+   "gate_unlock_8",
+   "gate_unlock_9",
+   "gate_unlock_side_0",
+   "gate_unlock_side_1",
+   "gate_unlock_side_2",
+   "gate_unlock_side_3",
+   "gate_unlock_side_4",
+   "gate_unlock_side_5",
+   "gate_unlock_side_6",
+   "gate_unlock_side_7",
+   "gate_unlock_side_8",
+   "gate_unlock_side_9",
+   "hedge_h_collapse_0",
+   "hedge_h_collapse_1",
+   "hedge_h_collapse_2",
+   "hedge_h_collapse_3",
+   "hedge_h_collapse_4",
+   "hedge_h_collapse_5",
+   "hedge_h_collapse_6",
+   "hedge_h_collapse_7",
+   "hedge_v_collapse_0",
+   "hedge_v_collapse_1",
+   "hedge_v_collapse_2",
+   "hedge_v_collapse_3",
+   "hedge_v_collapse_4",
+   "hedge_v_collapse_5",
+   "hedge_v_collapse_6",
+   "hedge_v_collapse_7",
+   "soil_fluff",
+   "soil_fluff",
+   "soil_fluff",
+   "soil_fluff",
+   "soil_fluff",
+   "soil_fluff"
+  ],
+  "groundLineY": 280,
+  "drawScaleByClip": {
+   "soil_fluff": 0.75
+  },
+  "timing": {
+   "gate_unlock": "700 ms; unlock_start f0, lock_pop f3 (180 ms), open f4 (230 ms) = path passable, unlock_done f9 (580 ms)",
+   "gate_unlock_side": "700 ms, identical timing/events to gate_unlock; anchor top centre (y=24/384) = gate_side top post; play it in place of gate_side",
+   "hedge_h_collapse": "600 ms; open f2 (100 ms), collapse_done f7",
+   "hedge_v_collapse": "600 ms; open f2, collapse_done f7",
+   "soil_fluff": "500 ms; fluff f0, fluff_done f5"
+  },
+  "note": "On unlock: play gate_unlock on the gate; on its `open` event start hedge_*_collapse on every hedge segment, staggered 30-40 ms per segment outward from the gate, spawn 3-5 soil_fluff bursts across the bed (staggered 60 ms) and fade the locked shade + overgrowth out over ~400 ms. Clear the collision on `open`. garden v1: same clips/timing/events; the gate leaf swings open toward the viewer, the padlock is flung to +x, the chain whips to -x, and the inner fence bays fall flat with dust and wood chips."
+ }
+}

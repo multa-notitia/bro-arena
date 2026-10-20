@@ -11,112 +11,487 @@
   "idle": {
    "loop": true,
    "frames": [
-    { "i": 0, "ms": 115 },
-    { "i": 1, "ms": 115 },
-    { "i": 2, "ms": 95 },
-    { "i": 3, "ms": 95 },
-    { "i": 4, "ms": 170 },
-    { "i": 5, "ms": 115, "ox": 0.8 },
-    { "i": 6, "ms": 115, "ox": 0.4 },
-    { "i": 7, "ms": 95 },
-    { "i": 8, "ms": 95 },
-    { "i": 9, "ms": 170 }
+    {
+     "i": 15,
+     "ms": 80
+    },
+    {
+     "i": 16,
+     "ms": 80
+    },
+    {
+     "i": 17,
+     "ms": 80
+    },
+    {
+     "i": 18,
+     "ms": 80
+    },
+    {
+     "i": 19,
+     "ms": 80
+    },
+    {
+     "i": 20,
+     "ms": 80
+    },
+    {
+     "i": 21,
+     "ms": 80
+    },
+    {
+     "i": 1,
+     "ms": 80
+    },
+    {
+     "i": 2,
+     "ms": 60
+    },
+    {
+     "i": 3,
+     "ms": 60
+    },
+    {
+     "i": 4,
+     "ms": 80
+    },
+    {
+     "i": 5,
+     "ms": 80
+    }
    ]
   },
   "walk": {
    "loop": true,
    "frames": [
-    { "i": 10, "ms": 64 },
-    { "i": 11, "ms": 64 },
-    { "i": 12, "ms": 64 },
-    { "i": 13, "ms": 64 },
-    { "i": 14, "ms": 63 },
-    { "i": 15, "ms": 63 },
-    { "i": 16, "ms": 63 },
-    { "i": 17, "ms": 63 },
-    { "i": 18, "ms": 63 },
-    { "i": 19, "ms": 63 },
-    { "i": 20, "ms": 63 },
-    { "i": 21, "ms": 63 }
+    {
+     "i": 65,
+     "ms": 34
+    },
+    {
+     "i": 66,
+     "ms": 34
+    },
+    {
+     "i": 67,
+     "ms": 34
+    },
+    {
+     "i": 68,
+     "ms": 34
+    },
+    {
+     "i": 69,
+     "ms": 34
+    },
+    {
+     "i": 70,
+     "ms": 34
+    },
+    {
+     "i": 71,
+     "ms": 34
+    },
+    {
+     "i": 10,
+     "ms": 34
+    },
+    {
+     "i": 11,
+     "ms": 34
+    },
+    {
+     "i": 12,
+     "ms": 34
+    },
+    {
+     "i": 13,
+     "ms": 34
+    },
+    {
+     "i": 14,
+     "ms": 34
+    }
    ]
   },
   "hurt": {
    "loop": false,
    "frames": [
-    { "i": 22, "ms": 40, "ox": -2.5, "event": "hurt" },
-    { "i": 23, "ms": 60, "ox": -2.0 },
-    { "i": 24, "ms": 80, "ox": -1.0 }
+    {
+     "i": 22,
+     "ms": 40,
+     "ox": -2.5,
+     "event": "hurt"
+    },
+    {
+     "i": 23,
+     "ms": 60,
+     "ox": -2.0
+    },
+    {
+     "i": 24,
+     "ms": 80,
+     "ox": -1.0
+    }
    ]
   },
   "attack": {
    "loop": false,
    "frames": [
-    { "i": 25, "ms": 140, "ox": -1.5 },
-    { "i": 26, "ms": 80, "ox": -3.0 },
-    { "i": 27, "ms": 50, "ox": 7.0, "event": "hit" },
-    { "i": 28, "ms": 90, "ox": 3.5 },
-    { "i": 29, "ms": 130, "ox": 1.0 }
+    {
+     "i": 25,
+     "ms": 140,
+     "ox": -1.5,
+     "event": "attack_windup"
+    },
+    {
+     "i": 26,
+     "ms": 80,
+     "ox": -3.0
+    },
+    {
+     "i": 27,
+     "ms": 50,
+     "ox": 7.0,
+     "events": [
+      "hit",
+      "attack_hit"
+     ]
+    },
+    {
+     "i": 28,
+     "ms": 90,
+     "ox": 3.5
+    },
+    {
+     "i": 29,
+     "ms": 130,
+     "ox": 1.0,
+     "event": "attack_done"
+    }
    ]
   },
   "scream": {
    "loop": false,
    "frames": [
-    { "i": 30, "ms": 130 },
-    { "i": 31, "ms": 100, "ox": -1.0 },
-    { "i": 32, "ms": 50, "event": "scream" },
-    { "i": 33, "ms": 85, "ox": 1.6 },
-    { "i": 34, "ms": 85, "ox": -1.6 },
-    { "i": 33, "ms": 85, "ox": 1.6 },
-    { "i": 34, "ms": 85, "ox": -1.6 },
-    { "i": 35, "ms": 90 },
-    { "i": 36, "ms": 110 }
+    {
+     "i": 0,
+     "ms": 130
+    },
+    {
+     "i": 30,
+     "ms": 100,
+     "ox": -1.0
+    },
+    {
+     "i": 31,
+     "ms": 50,
+     "event": "scream"
+    },
+    {
+     "i": 32,
+     "ms": 85,
+     "ox": 1.6
+    },
+    {
+     "i": 33,
+     "ms": 85,
+     "ox": -1.6
+    },
+    {
+     "i": 34,
+     "ms": 85,
+     "ox": 1.6
+    },
+    {
+     "i": 35,
+     "ms": 85,
+     "ox": -1.6
+    },
+    {
+     "i": 36,
+     "ms": 90
+    },
+    {
+     "i": 80,
+     "ms": 110
+    }
    ]
   },
   "death": {
    "loop": false,
    "frames": [
-    { "i": 37, "ms": 60, "ox": -1.0 },
-    { "i": 38, "ms": 70 },
-    { "i": 39, "ms": 90, "event": "spawnFx" },
-    { "i": 40, "ms": 100 },
-    { "i": 41, "ms": 1000 }
+    {
+     "i": 79,
+     "ms": 60,
+     "ox": -1.0
+    },
+    {
+     "i": 37,
+     "ms": 70
+    },
+    {
+     "i": 38,
+     "ms": 90,
+     "event": "spawnFx"
+    },
+    {
+     "i": 39,
+     "ms": 100
+    },
+    {
+     "i": 40,
+     "ms": 1000
+    }
    ]
   },
   "death_slice": {
    "loop": false,
    "frames": [
-    { "i": 42, "ms": 50, "event": "spawnFx" },
-    { "i": 43, "ms": 60 },
-    { "i": 44, "ms": 80 },
-    { "i": 45, "ms": 100 },
-    { "i": 46, "ms": 1000 }
+    {
+     "i": 42,
+     "ms": 50,
+     "event": "spawnFx"
+    },
+    {
+     "i": 43,
+     "ms": 60
+    },
+    {
+     "i": 44,
+     "ms": 80
+    },
+    {
+     "i": 45,
+     "ms": 100
+    },
+    {
+     "i": 46,
+     "ms": 1000
+    }
    ]
   },
   "death_smash": {
    "loop": false,
    "frames": [
-    { "i": 47, "ms": 45 },
-    { "i": 48, "ms": 45 },
-    { "i": 49, "ms": 50, "event": "spawnFx" },
-    { "i": 50, "ms": 70 },
-    { "i": 51, "ms": 90 },
-    { "i": 52, "ms": 1000 }
+    {
+     "i": 47,
+     "ms": 40
+    },
+    {
+     "i": 48,
+     "ms": 45
+    },
+    {
+     "i": 49,
+     "ms": 45
+    },
+    {
+     "i": 50,
+     "ms": 65,
+     "events": [
+      "spawnFx",
+      "splat"
+     ]
+    },
+    {
+     "i": 51,
+     "ms": 75
+    },
+    {
+     "i": 52,
+     "ms": 300
+    },
+    {
+     "i": 63,
+     "ms": 110
+    },
+    {
+     "i": 64,
+     "ms": 110
+    }
    ]
   },
   "emerge": {
    "loop": false,
    "frames": [
-    { "i": 53, "ms": 70, "event": "emerge_fx" },
-    { "i": 54, "ms": 70 },
-    { "i": 55, "ms": 90 },
-    { "i": 56, "ms": 80 },
-    { "i": 57, "ms": 70 },
-    { "i": 58, "ms": 60 },
-    { "i": 59, "ms": 70 },
-    { "i": 60, "ms": 60, "ox": 1.6 },
-    { "i": 61, "ms": 60, "ox": -1.6 },
-    { "i": 62, "ms": 60, "ox": 0.8 },
-    { "i": 0, "ms": 100, "event": "emerged" }
+    {
+     "i": 41,
+     "ms": 70,
+     "event": "emerge_fx"
+    },
+    {
+     "i": 53,
+     "ms": 70
+    },
+    {
+     "i": 54,
+     "ms": 90
+    },
+    {
+     "i": 55,
+     "ms": 80
+    },
+    {
+     "i": 56,
+     "ms": 70
+    },
+    {
+     "i": 57,
+     "ms": 60
+    },
+    {
+     "i": 58,
+     "ms": 70
+    },
+    {
+     "i": 59,
+     "ms": 60,
+     "ox": 1.6
+    },
+    {
+     "i": 60,
+     "ms": 60,
+     "ox": -1.6
+    },
+    {
+     "i": 61,
+     "ms": 60,
+     "ox": 0.8
+    },
+    {
+     "i": 62,
+     "ms": 100,
+     "event": "emerged"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 6,
+     "ms": 40,
+     "event": "turn"
+    },
+    {
+     "i": 7,
+     "ms": 55
+    },
+    {
+     "i": 8,
+     "ms": 40
+    },
+    {
+     "i": 9,
+     "ms": 45,
+     "event": "turn_done"
+    }
+   ]
+  },
+  "bite": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 72,
+     "ms": 50,
+     "event": "bite_windup"
+    },
+    {
+     "i": 73,
+     "ms": 70
+    },
+    {
+     "i": 74,
+     "ms": 40,
+     "events": [
+      "bite_hit",
+      "attack_hit",
+      "hit"
+     ]
+    },
+    {
+     "i": 75,
+     "ms": 40
+    },
+    {
+     "i": 76,
+     "ms": 60
+    },
+    {
+     "i": 77,
+     "ms": 60
+    },
+    {
+     "i": 78,
+     "ms": 80,
+     "event": "bite_done"
+    }
+   ]
+  },
+  "leap": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 81,
+     "ms": 120,
+     "event": "leap_windup"
+    },
+    {
+     "i": 82,
+     "ms": 130
+    },
+    {
+     "i": 83,
+     "ms": 50,
+     "events": [
+      "leap_takeoff",
+      "takeoff"
+     ],
+     "oy": -3
+    },
+    {
+     "i": 84,
+     "ms": 60,
+     "oy": -12
+    },
+    {
+     "i": 85,
+     "ms": 60,
+     "oy": -20
+    },
+    {
+     "i": 86,
+     "ms": 60,
+     "oy": -23
+    },
+    {
+     "i": 87,
+     "ms": 60,
+     "oy": -19
+    },
+    {
+     "i": 88,
+     "ms": 60,
+     "oy": -10
+    },
+    {
+     "i": 89,
+     "ms": 70,
+     "events": [
+      "leap_land",
+      "land"
+     ]
+    },
+    {
+     "i": 90,
+     "ms": 70
+    },
+    {
+     "i": 91,
+     "ms": 90,
+     "event": "leap_done"
+    }
    ]
   }
  },
@@ -124,48 +499,48 @@
   "title": "Mud beetle (mud, rigged)",
   "source": "parts/beetle_variants_v1.jpg",
   "cells": [
-   "idle0",
-   "idle1",
-   "idle2",
-   "idle3",
-   "idle4",
-   "idle5",
-   "idle6",
-   "idle7",
-   "idle8",
-   "idle9",
-   "walk0",
-   "walk1",
-   "walk2",
-   "walk3",
-   "walk4",
-   "walk5",
-   "walk6",
-   "walk7",
-   "walk8",
-   "walk9",
-   "walk10",
-   "walk11",
-   "hurt0",
-   "hurt1",
-   "hurt2",
-   "attack0",
-   "attack1",
-   "attack2",
-   "attack3",
-   "attack4",
-   "scream0",
-   "scream1",
-   "scream2",
-   "scream3",
-   "scream4",
-   "scream7",
-   "scream8",
-   "death0",
-   "death1",
-   "death2",
-   "death3",
-   "death4",
+   "scream_0",
+   "idle_7",
+   "idle_8",
+   "idle_9",
+   "idle_10",
+   "idle_11",
+   "turn_0",
+   "turn_1",
+   "turn_2",
+   "turn_3",
+   "walk_7",
+   "walk_8",
+   "walk_9",
+   "walk_10",
+   "walk_11",
+   "idle_0",
+   "idle_1",
+   "idle_2",
+   "idle_3",
+   "idle_4",
+   "idle_5",
+   "idle_6",
+   "hurt_0",
+   "hurt_1",
+   "hurt_2",
+   "attack_0",
+   "attack_1",
+   "attack_2",
+   "attack_3",
+   "attack_4",
+   "scream_1",
+   "scream_2",
+   "scream_3",
+   "scream_4",
+   "scream_5",
+   "scream_6",
+   "scream_7",
+   "death_1",
+   "death_2",
+   "death_3",
+   "death_4",
+   "emerge_0",
    "death_slice0",
    "death_slice1",
    "death_slice2",
@@ -173,20 +548,49 @@
    "death_slice4",
    "death_smash0",
    "death_smash1",
-   "death_smash2",
-   "death_smash3",
-   "death_smash4",
-   "death_smash5",
-   "emerge0",
-   "emerge1",
-   "emerge2",
-   "emerge3",
-   "emerge4",
-   "emerge5",
-   "emerge6",
-   "emerge7",
-   "emerge8",
-   "emerge9"
+   "death_smash_v2_flatten",
+   "death_smash_v2_mash",
+   "death_smash_v2_spread",
+   "death_smash_v2_settle",
+   "emerge_1",
+   "emerge_2",
+   "emerge_3",
+   "emerge_4",
+   "emerge_5",
+   "emerge_6",
+   "emerge_7",
+   "emerge_8",
+   "emerge_9",
+   "emerge_10",
+   "death_smash_v2_fade1",
+   "death_smash_v2_fade2",
+   "walk_0",
+   "walk_1",
+   "walk_2",
+   "walk_3",
+   "walk_4",
+   "walk_5",
+   "walk_6",
+   "bite_0",
+   "bite_1",
+   "bite_2",
+   "bite_3",
+   "bite_4",
+   "bite_5",
+   "bite_6",
+   "death_0",
+   "scream_8",
+   "leap_0",
+   "leap_1",
+   "leap_2",
+   "leap_3",
+   "leap_4",
+   "leap_5",
+   "leap_6",
+   "leap_7",
+   "leap_8",
+   "leap_9",
+   "leap_10"
   ],
   "feetY": 153.6,
   "gameRadius": 21,
@@ -194,6 +598,30 @@
   "rig": "figures/enemy-beetle-mud/rig.py (cut-out animation, figures/enemy-beetle-light/src/beetlekit.py)",
   "note": "",
   "pngFallback": "enemy-beetle-mud.png",
-  "emerge": "emerge (mud): 790 ms spawn clip, plays once before AI. `emerge_fx` on f0 (spawn fx-funny mud_erupt at the feet), `emerged` on the last frame (= idle f0; AI + collisions on). ox/oy are world px (shake / hop beyond the cell). Built by figures/fx-funny/src/emerge.py, appended after all other cells (indices of every other clip unchanged)."
+  "emerge": "emerge (mud): 790 ms spawn clip, plays once before AI. `emerge_fx` on f0 (spawn fx-funny mud_erupt at the feet), `emerged` on the last frame (= idle f0; AI + collisions on). ox/oy are world px (shake / hop beyond the cell). Built by figures/fx-funny/src/emerge.py, appended after all other cells (indices of every other clip unchanged).",
+  "splat": "mud",
+  "attacksSmash": {
+   "version": 2,
+   "date": "2026-10-18",
+   "attack": "events",
+   "death_smash": "v2",
+   "splat": "mud",
+   "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "right",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "right",
+   "specials": [
+    "leap",
+    "bite",
+    "scream",
+    "turn"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "rimV2": "motion v2: soft light-directed amber rim (was a hard 2 px ring)"
  }
 }

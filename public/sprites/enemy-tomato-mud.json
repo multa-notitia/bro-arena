@@ -11,240 +11,663 @@
   "idle": {
    "loop": true,
    "frames": [
-    { "i": 0, "ms": 110 },
-    { "i": 1, "ms": 110 },
-    { "i": 2, "ms": 90 },
-    { "i": 3, "ms": 90 },
-    { "i": 4, "ms": 90 },
-    { "i": 5, "ms": 90 },
-    { "i": 6, "ms": 110 },
-    { "i": 7, "ms": 110 },
-    { "i": 8, "ms": 200 },
-    { "i": 9, "ms": 70 },
-    { "i": 10, "ms": 90 },
-    { "i": 11, "ms": 90 },
-    { "i": 12, "ms": 110 },
-    { "i": 13, "ms": 110 }
+    {
+     "i": 0,
+     "ms": 110
+    },
+    {
+     "i": 1,
+     "ms": 110
+    },
+    {
+     "i": 2,
+     "ms": 90
+    },
+    {
+     "i": 3,
+     "ms": 90
+    },
+    {
+     "i": 4,
+     "ms": 90
+    },
+    {
+     "i": 5,
+     "ms": 90
+    },
+    {
+     "i": 6,
+     "ms": 110
+    },
+    {
+     "i": 7,
+     "ms": 110
+    },
+    {
+     "i": 8,
+     "ms": 200
+    },
+    {
+     "i": 9,
+     "ms": 70
+    },
+    {
+     "i": 10,
+     "ms": 90
+    },
+    {
+     "i": 11,
+     "ms": 90
+    },
+    {
+     "i": 12,
+     "ms": 110
+    },
+    {
+     "i": 13,
+     "ms": 110
+    }
    ]
   },
   "walk": {
    "loop": true,
    "frames": [
-    { "i": 14, "ms": 60 },
-    { "i": 15, "ms": 60 },
-    { "i": 16, "ms": 60 },
-    { "i": 17, "ms": 60 },
-    { "i": 18, "ms": 60 },
-    { "i": 19, "ms": 60 },
-    { "i": 20, "ms": 60 },
-    { "i": 21, "ms": 60 },
-    { "i": 22, "ms": 60 },
-    { "i": 23, "ms": 60 },
-    { "i": 24, "ms": 60 },
-    { "i": 25, "ms": 60 }
+    {
+     "i": 14,
+     "ms": 60
+    },
+    {
+     "i": 15,
+     "ms": 60
+    },
+    {
+     "i": 16,
+     "ms": 60
+    },
+    {
+     "i": 17,
+     "ms": 60
+    },
+    {
+     "i": 18,
+     "ms": 60
+    },
+    {
+     "i": 19,
+     "ms": 60
+    },
+    {
+     "i": 20,
+     "ms": 60
+    },
+    {
+     "i": 21,
+     "ms": 60
+    },
+    {
+     "i": 22,
+     "ms": 60
+    },
+    {
+     "i": 23,
+     "ms": 60
+    },
+    {
+     "i": 24,
+     "ms": 60
+    },
+    {
+     "i": 25,
+     "ms": 60
+    }
    ]
   },
   "hurt": {
    "loop": false,
    "frames": [
-    { "i": 26, "ms": 40, "event": "hurt" },
-    { "i": 27, "ms": 60 },
-    { "i": 28, "ms": 80 }
+    {
+     "i": 26,
+     "ms": 40,
+     "event": "hurt"
+    },
+    {
+     "i": 27,
+     "ms": 60
+    },
+    {
+     "i": 28,
+     "ms": 80
+    }
    ]
   },
   "attack": {
    "loop": false,
    "frames": [
-    { "i": 29, "ms": 80 },
-    { "i": 30, "ms": 40 },
-    { "i": 31, "ms": 60, "event": "hit" },
-    { "i": 32, "ms": 80 },
-    { "i": 33, "ms": 70 },
-    { "i": 34, "ms": 80 }
+    {
+     "i": 56,
+     "ms": 80,
+     "event": "attack_windup"
+    },
+    {
+     "i": 57,
+     "ms": 40
+    },
+    {
+     "i": 58,
+     "ms": 60,
+     "events": [
+      "hit",
+      "attack_hit"
+     ]
+    },
+    {
+     "i": 59,
+     "ms": 80
+    },
+    {
+     "i": 60,
+     "ms": 70
+    },
+    {
+     "i": 61,
+     "ms": 80,
+     "event": "attack_done"
+    }
    ]
   },
   "death": {
    "loop": false,
    "frames": [
-    { "i": 35, "ms": 60 },
-    { "i": 36, "ms": 60 },
-    { "i": 37, "ms": 70, "event": "spawnFx" },
-    { "i": 38, "ms": 50 },
-    { "i": 39, "ms": 60 },
-    { "i": 40, "ms": 70 },
-    { "i": 41, "ms": 80 },
-    { "i": 42, "ms": 950 }
+    {
+     "i": 62,
+     "ms": 60
+    },
+    {
+     "i": 63,
+     "ms": 60
+    },
+    {
+     "i": 64,
+     "ms": 70,
+     "event": "spawnFx"
+    },
+    {
+     "i": 65,
+     "ms": 50
+    },
+    {
+     "i": 66,
+     "ms": 60
+    },
+    {
+     "i": 67,
+     "ms": 70
+    },
+    {
+     "i": 68,
+     "ms": 80
+    },
+    {
+     "i": 72,
+     "ms": 950
+    }
    ]
   },
   "scream": {
    "loop": false,
    "frames": [
-    { "i": 43, "ms": 110 },
-    { "i": 44, "ms": 90 },
-    { "i": 45, "ms": 50, "event": "scream" },
-    { "i": 46, "ms": 72 },
-    { "i": 47, "ms": 72 },
-    { "i": 48, "ms": 72 },
-    { "i": 49, "ms": 72 },
-    { "i": 50, "ms": 72 },
-    { "i": 51, "ms": 70 },
-    { "i": 52, "ms": 90 },
-    { "i": 53, "ms": 60 }
+    {
+     "i": 34,
+     "ms": 110,
+     "event": "scream_windup"
+    },
+    {
+     "i": 35,
+     "ms": 90
+    },
+    {
+     "i": 36,
+     "ms": 50,
+     "event": "scream"
+    },
+    {
+     "i": 37,
+     "ms": 72,
+     "ox": 1.6
+    },
+    {
+     "i": 38,
+     "ms": 72,
+     "ox": -1.6
+    },
+    {
+     "i": 39,
+     "ms": 72,
+     "ox": 1.4
+    },
+    {
+     "i": 40,
+     "ms": 72,
+     "ox": -1.4
+    },
+    {
+     "i": 41,
+     "ms": 72,
+     "ox": 1.0
+    },
+    {
+     "i": 42,
+     "ms": 70,
+     "ox": -0.8
+    },
+    {
+     "i": 43,
+     "ms": 90
+    },
+    {
+     "i": 44,
+     "ms": 60,
+     "event": "scream_done"
+    }
    ]
   },
   "death_slice": {
    "loop": false,
    "frames": [
-    { "i": 54, "ms": 45 },
-    { "i": 55, "ms": 50, "event": "spawnFx" },
-    { "i": 56, "ms": 55 },
-    { "i": 57, "ms": 55 },
-    { "i": 58, "ms": 60 },
-    { "i": 59, "ms": 70 },
-    { "i": 60, "ms": 60 },
-    { "i": 61, "ms": 950 }
+    {
+     "i": 73,
+     "ms": 45
+    },
+    {
+     "i": 74,
+     "ms": 50,
+     "event": "spawnFx"
+    },
+    {
+     "i": 75,
+     "ms": 55
+    },
+    {
+     "i": 76,
+     "ms": 55
+    },
+    {
+     "i": 77,
+     "ms": 60
+    },
+    {
+     "i": 78,
+     "ms": 70
+    },
+    {
+     "i": 79,
+     "ms": 60
+    },
+    {
+     "i": 80,
+     "ms": 950
+    }
    ]
   },
   "death_smash": {
    "loop": false,
    "frames": [
-    { "i": 62, "ms": 40 },
-    { "i": 63, "ms": 50 },
-    { "i": 64, "ms": 50, "event": "spawnFx" },
-    { "i": 65, "ms": 60 },
-    { "i": 66, "ms": 70 },
-    { "i": 67, "ms": 80 },
-    { "i": 68, "ms": 950 }
+    {
+     "i": 81,
+     "ms": 40
+    },
+    {
+     "i": 82,
+     "ms": 45
+    },
+    {
+     "i": 83,
+     "ms": 45
+    },
+    {
+     "i": 84,
+     "ms": 65,
+     "events": [
+      "spawnFx",
+      "splat"
+     ]
+    },
+    {
+     "i": 85,
+     "ms": 75
+    },
+    {
+     "i": 86,
+     "ms": 300
+    },
+    {
+     "i": 87,
+     "ms": 110
+    },
+    {
+     "i": 88,
+     "ms": 110
+    }
    ]
   },
   "emerge": {
    "loop": false,
    "frames": [
-    { "i": 69, "ms": 90 },
-    { "i": 70, "ms": 80, "event": "emerge_fx" },
-    { "i": 71, "ms": 90 },
-    { "i": 72, "ms": 90 },
-    { "i": 73, "ms": 80 },
-    { "i": 74, "ms": 80 },
-    { "i": 75, "ms": 70 },
-    { "i": 76, "ms": 80 },
-    { "i": 77, "ms": 90 },
-    { "i": 78, "ms": 80 },
-    { "i": 0, "ms": 100, "event": "emerged" }
+    {
+     "i": 69,
+     "ms": 90
+    },
+    {
+     "i": 70,
+     "ms": 80,
+     "event": "emerge_fx"
+    },
+    {
+     "i": 71,
+     "ms": 90
+    },
+    {
+     "i": 89,
+     "ms": 90
+    },
+    {
+     "i": 90,
+     "ms": 80
+    },
+    {
+     "i": 91,
+     "ms": 80
+    },
+    {
+     "i": 92,
+     "ms": 70
+    },
+    {
+     "i": 93,
+     "ms": 80
+    },
+    {
+     "i": 94,
+     "ms": 90
+    },
+    {
+     "i": 95,
+     "ms": 80
+    },
+    {
+     "i": 0,
+     "ms": 100,
+     "event": "emerged"
+    }
    ]
   },
   "emerge_vine": {
    "loop": false,
    "frames": [
-    { "i": 79, "ms": 130, "oy": -17.05 },
-    { "i": 80, "ms": 130, "oy": -17.05 },
-    { "i": 81, "ms": 140, "oy": -17.05 },
-    { "i": 82, "ms": 80, "oy": -17.05 },
-    { "i": 83, "ms": 50, "oy": -17.05 },
-    { "i": 84, "ms": 40, "oy": -17.05 },
-    { "i": 85, "ms": 40, "oy": -17.05 },
-    { "i": 86, "ms": 35 },
-    { "i": 87, "ms": 70, "event": "emerge_fx" },
-    { "i": 88, "ms": 80 },
-    { "i": 89, "ms": 80 },
-    { "i": 0, "ms": 100, "event": "emerged" }
+    {
+     "i": 96,
+     "ms": 130,
+     "oy": -17.05
+    },
+    {
+     "i": 97,
+     "ms": 130,
+     "oy": -17.05
+    },
+    {
+     "i": 98,
+     "ms": 140,
+     "oy": -17.05
+    },
+    {
+     "i": 99,
+     "ms": 80,
+     "oy": -17.05
+    },
+    {
+     "i": 100,
+     "ms": 50,
+     "oy": -17.05
+    },
+    {
+     "i": 101,
+     "ms": 40,
+     "oy": -17.05
+    },
+    {
+     "i": 102,
+     "ms": 40,
+     "oy": -17.05
+    },
+    {
+     "i": 103,
+     "ms": 35
+    },
+    {
+     "i": 104,
+     "ms": 70,
+     "event": "emerge_fx"
+    },
+    {
+     "i": 105,
+     "ms": 80
+    },
+    {
+     "i": 106,
+     "ms": 80
+    },
+    {
+     "i": 0,
+     "ms": 100,
+     "event": "emerged"
+    }
+   ]
+  },
+  "leap": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 45,
+     "ms": 120,
+     "event": "leap_windup"
+    },
+    {
+     "i": 46,
+     "ms": 130,
+     "ox": -0.6
+    },
+    {
+     "i": 47,
+     "ms": 50,
+     "events": [
+      "leap_takeoff",
+      "takeoff"
+     ],
+     "oy": -3
+    },
+    {
+     "i": 48,
+     "ms": 60,
+     "oy": -12
+    },
+    {
+     "i": 49,
+     "ms": 60,
+     "oy": -20
+    },
+    {
+     "i": 50,
+     "ms": 60,
+     "oy": -23
+    },
+    {
+     "i": 51,
+     "ms": 60,
+     "oy": -19
+    },
+    {
+     "i": 52,
+     "ms": 60,
+     "oy": -10
+    },
+    {
+     "i": 53,
+     "ms": 70,
+     "events": [
+      "leap_land",
+      "land"
+     ]
+    },
+    {
+     "i": 54,
+     "ms": 70
+    },
+    {
+     "i": 55,
+     "ms": 90,
+     "event": "leap_done"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 29,
+     "ms": 30,
+     "event": "turn"
+    },
+    {
+     "i": 30,
+     "ms": 35
+    },
+    {
+     "i": 31,
+     "ms": 40
+    },
+    {
+     "i": 32,
+     "ms": 35
+    },
+    {
+     "i": 33,
+     "ms": 30,
+     "event": "turn_done"
+    }
    ]
   }
  },
  "meta": {
-  "title": "Mud tomato (scary mud variant): split-mouth scream, crawls out of the mud; tomvar layers + warp.py",
+  "title": "Mud tomato (scary mud variant): split-mouth scream, crawls out of the mud; tomvar layers + warp.py | side view v2",
   "source": "derived_mud.png",
   "cells": [
-   "idle0",
-   "idle1",
-   "idle2",
-   "idle3",
-   "idle4",
-   "idle5",
-   "idle6",
-   "idle7",
-   "idle8",
-   "idle9",
-   "idle10",
-   "idle11",
-   "idle12",
-   "idle13",
-   "walk0",
-   "walk1",
-   "walk2",
-   "walk3",
-   "walk4",
-   "walk5",
-   "walk6",
-   "walk7",
-   "walk8",
-   "walk9",
-   "walk10",
-   "walk11",
-   "hurt0",
-   "hurt1",
-   "hurt2",
-   "attack0",
-   "attack1",
-   "attack2",
-   "attack3",
-   "attack4",
-   "attack5",
-   "death0",
-   "death1",
-   "death2",
-   "death3",
-   "death4",
-   "death5",
-   "death6",
-   "death7",
-   "scream0",
-   "scream1",
-   "scream2",
-   "scream3",
-   "scream4",
-   "scream5",
-   "scream6",
-   "scream7",
-   "scream8",
-   "scream9",
-   "scream10",
-   "death_slice0",
-   "death_slice1",
-   "death_slice2",
-   "death_slice3",
-   "death_slice4",
-   "death_slice5",
-   "death_slice6",
-   "death_slice7",
-   "death_smash0",
-   "death_smash1",
-   "death_smash2",
-   "death_smash3",
-   "death_smash4",
-   "death_smash5",
-   "death_smash6",
+   "sv_idle_0",
+   "sv_idle_1",
+   "sv_idle_2",
+   "sv_idle_3",
+   "sv_idle_4",
+   "sv_idle_5",
+   "sv_idle_6",
+   "sv_idle_7",
+   "sv_idle_8",
+   "sv_idle_9",
+   "sv_idle_10",
+   "sv_idle_11",
+   "sv_idle_12",
+   "sv_idle_13",
+   "sv_walk_0",
+   "sv_walk_1",
+   "sv_walk_2",
+   "sv_walk_3",
+   "sv_walk_4",
+   "sv_walk_5",
+   "sv_walk_6",
+   "sv_walk_7",
+   "sv_walk_8",
+   "sv_walk_9",
+   "sv_walk_10",
+   "sv_walk_11",
+   "sv_hurt_0",
+   "sv_hurt_1",
+   "sv_hurt_2",
+   "sv_turn_0",
+   "sv_turn_1",
+   "sv_turn_2",
+   "sv_turn_3",
+   "sv_turn_4",
+   "sv_scream_0",
+   "sv_scream_1",
+   "sv_scream_2",
+   "sv_scream_3",
+   "sv_scream_4",
+   "sv_scream_5",
+   "sv_scream_6",
+   "sv_scream_7",
+   "sv_scream_8",
+   "sv_scream_9",
+   "sv_scream_10",
+   "sv_leap_0",
+   "sv_leap_1",
+   "sv_leap_2",
+   "sv_leap_3",
+   "sv_leap_4",
+   "sv_leap_5",
+   "sv_leap_6",
+   "sv_leap_7",
+   "sv_leap_8",
+   "sv_leap_9",
+   "sv_leap_10",
+   "sv_attack_0",
+   "sv_attack_1",
+   "sv_attack_2",
+   "sv_attack_3",
+   "sv_attack_4",
+   "sv_attack_5",
+   "sv_death_0",
+   "sv_death_1",
+   "sv_death_2",
+   "sv_death_3",
+   "sv_death_4",
+   "sv_death_5",
+   "sv_death_6",
    "emerge0",
    "emerge1",
    "emerge2",
-   "emerge3",
-   "emerge4",
-   "emerge5",
-   "emerge6",
-   "emerge7",
-   "emerge8",
-   "emerge9",
-   "emerge_vine0",
-   "emerge_vine1",
-   "emerge_vine2",
-   "emerge_vine3",
-   "emerge_vine4",
-   "emerge_vine5",
-   "emerge_vine6",
-   "emerge_vine7",
-   "emerge_vine8",
-   "emerge_vine9",
-   "emerge_vine10"
+   "sv_death_7",
+   "sv_death_slice_0",
+   "sv_death_slice_1",
+   "sv_death_slice_2",
+   "sv_death_slice_3",
+   "sv_death_slice_4",
+   "sv_death_slice_5",
+   "sv_death_slice_6",
+   "sv_death_slice_7",
+   "sv_death_smash_0",
+   "sv_death_smash_1",
+   "sv_death_smash_2",
+   "sv_death_smash_3",
+   "sv_death_smash_4",
+   "sv_death_smash_5",
+   "sv_death_smash_6",
+   "sv_death_smash_7",
+   "sv_emerge_3",
+   "sv_emerge_4",
+   "sv_emerge_5",
+   "sv_emerge_6",
+   "sv_emerge_7",
+   "sv_emerge_8",
+   "sv_emerge_9",
+   "sv_emerge_vine_0",
+   "sv_emerge_vine_1",
+   "sv_emerge_vine_2",
+   "sv_emerge_vine_3",
+   "sv_emerge_vine_4",
+   "sv_emerge_vine_5",
+   "sv_emerge_vine_6",
+   "sv_emerge_vine_7",
+   "sv_emerge_vine_8",
+   "sv_emerge_vine_9",
+   "sv_emerge_vine_10"
   ],
   "feetY": 201.6,
   "gameRadius": 17,
@@ -260,6 +683,43 @@
    "x0": 10,
    "y0": 0,
    "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
+  },
+  "splat": "mud",
+  "attacksSmash": {
+   "version": 2,
+   "date": "2026-10-18",
+   "attack": "events",
+   "death_smash": "v2",
+   "splat": "mud",
+   "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "right",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "right",
+   "specials": [
+    "leap",
+    "scream",
+    "turn"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "sideview": {
+   "version": 2,
+   "date": "2026-10-18",
+   "tool": "tools/sideview/build.py",
+   "src": "tools/sideview/src/tomato_mud_side_v1.jpg",
+   "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
+  },
+  "smashV3": {
+   "version": 3,
+   "date": "2026-10-18",
+   "tool": "tools/smash_v3/build_v3.py",
+   "pancake": "unchanged (v2 painting already side-facing)",
+   "chunks": "organic torn re-cut + painted torn chunks",
+   "note": "clip names/frames/ms/events unchanged; see tools/smash_v3/README.md"
   }
  }
 }

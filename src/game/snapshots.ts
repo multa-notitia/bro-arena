@@ -57,8 +57,8 @@ function rowLabel(world: World): string {
   const bits: string[] = []
   for (const id of CROP_IDS) {
     if (counts[id] > 0) {
-      const name = CROPS[id].name
-      bits.push(`${counts[id]} ${counts[id] === 1 ? name.replace(/s$/, '') : name}`)
+      const name = CROPS[id].enemyName
+      bits.push(`${counts[id]} ${name}${counts[id] === 1 ? '' : 's'}`)
     }
   }
   return bits.join(' · ')

@@ -1,0 +1,614 @@
+{
+ "image": "props-arena.webp",
+ "frameWidth": 384,
+ "frameHeight": 384,
+ "columns": 8,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.8854
+ },
+ "clips": {
+  "tree_apple_sway": {
+   "loop": true,
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 260,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 1,
+     "ms": 260,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 2,
+     "ms": 260,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 3,
+     "ms": 260,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tree_apple": {
+   "loop": true,
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tree_apple_hit": {
+   "loop": false,
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 1,
+     "ms": 40,
+     "scaleX": 1.06,
+     "scaleY": 0.95,
+     "events": [
+      "hit"
+     ]
+    },
+    {
+     "i": 3,
+     "ms": 60,
+     "scaleX": 0.97,
+     "scaleY": 1.03
+    },
+    {
+     "i": 1,
+     "ms": 70,
+     "scaleX": 1.01,
+     "scaleY": 0.995
+    },
+    {
+     "i": 0,
+     "ms": 80,
+     "scaleX": 1.0,
+     "scaleY": 1.0,
+     "events": [
+      "hit_done"
+     ]
+    }
+   ]
+  },
+  "tree_gnarly_sway": {
+   "loop": true,
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 4,
+     "ms": 260,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 5,
+     "ms": 260,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 6,
+     "ms": 260,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 7,
+     "ms": 260,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tree_gnarly": {
+   "loop": true,
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 4,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tree_gnarly_hit": {
+   "loop": false,
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 5,
+     "ms": 40,
+     "scaleX": 1.06,
+     "scaleY": 0.95,
+     "events": [
+      "hit"
+     ]
+    },
+    {
+     "i": 7,
+     "ms": 60,
+     "scaleX": 0.97,
+     "scaleY": 1.03
+    },
+    {
+     "i": 5,
+     "ms": 70,
+     "scaleX": 1.01,
+     "scaleY": 0.995
+    },
+    {
+     "i": 4,
+     "ms": 80,
+     "scaleX": 1.0,
+     "scaleY": 1.0,
+     "events": [
+      "hit_done"
+     ]
+    }
+   ]
+  },
+  "tree_shrub_sway": {
+   "loop": true,
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 8,
+     "ms": 260,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 9,
+     "ms": 260,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 10,
+     "ms": 260,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 11,
+     "ms": 260,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tree_shrub": {
+   "loop": true,
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 8,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tree_shrub_hit": {
+   "loop": false,
+   "drawScale": 0.5,
+   "frames": [
+    {
+     "i": 9,
+     "ms": 40,
+     "scaleX": 1.06,
+     "scaleY": 0.95,
+     "events": [
+      "hit"
+     ]
+    },
+    {
+     "i": 11,
+     "ms": 60,
+     "scaleX": 0.97,
+     "scaleY": 1.03
+    },
+    {
+     "i": 9,
+     "ms": 70,
+     "scaleX": 1.01,
+     "scaleY": 0.995
+    },
+    {
+     "i": 8,
+     "ms": 80,
+     "scaleX": 1.0,
+     "scaleY": 1.0,
+     "events": [
+      "hit_done"
+     ]
+    }
+   ]
+  },
+  "rock_boulder": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 12,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "rock_slab": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 13,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "rock_pebbles": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 14,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "rock_jagged": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 15,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tuft_grass": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 16,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tuft_dandelion": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 17,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tuft_clover": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 18,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "tuft_dry": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 19,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "puddle_a": {
+   "loop": true,
+   "layer": "ground",
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 20,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "puddle_a_shine": {
+   "loop": true,
+   "layer": "ground",
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 20,
+     "ms": 190,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 21,
+     "ms": 190,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 22,
+     "ms": 190,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 23,
+     "ms": 190,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 24,
+     "ms": 190,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 25,
+     "ms": 190,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "puddle_b": {
+   "loop": true,
+   "layer": "ground",
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 26,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "puddle_b_shine": {
+   "loop": true,
+   "layer": "ground",
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "frames": [
+    {
+     "i": 26,
+     "ms": 190,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 27,
+     "ms": 190,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 28,
+     "ms": 190,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 29,
+     "ms": 190,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 30,
+     "ms": 190,
+     "scaleX": 1,
+     "scaleY": 1
+    },
+    {
+     "i": 31,
+     "ms": 190,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "fence_segment": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 32,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "fence_post": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 33,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "watering_can": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 34,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "gnome": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 35,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "scarecrow": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 36,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ]
+  },
+  "leaves_a": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 37,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ],
+   "layer": "ground",
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   }
+  },
+  "leaves_b": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 38,
+     "ms": 1000,
+     "scaleX": 1,
+     "scaleY": 1
+    }
+   ],
+   "layer": "ground",
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   }
+  }
+ },
+ "meta": {
+  "title": "Arena props: garden trees, rocks, tufts, puddles, fence, gnome, scarecrow, leaves",
+  "source": "arena_trees_v1.jpg, arena_ground_v1.jpg, arena_misc_v1.jpg",
+  "drawScale": 0.25,
+  "treeDrawScale": 0.5,
+  "groundLineY": 340,
+  "pngFallback": "props-arena.png",
+  "cells": [
+   "tree_apple_sway0",
+   "tree_apple_sway1",
+   "tree_apple_sway2",
+   "tree_apple_sway3",
+   "tree_gnarly_sway0",
+   "tree_gnarly_sway1",
+   "tree_gnarly_sway2",
+   "tree_gnarly_sway3",
+   "tree_shrub_sway0",
+   "tree_shrub_sway1",
+   "tree_shrub_sway2",
+   "tree_shrub_sway3",
+   "rock_boulder",
+   "rock_slab",
+   "rock_pebbles",
+   "rock_jagged",
+   "tuft_grass",
+   "tuft_dandelion",
+   "tuft_clover",
+   "tuft_dry",
+   "puddle_a_shine0",
+   "puddle_a_shine1",
+   "puddle_a_shine2",
+   "puddle_a_shine3",
+   "puddle_a_shine4",
+   "puddle_a_shine5",
+   "puddle_b_shine0",
+   "puddle_b_shine1",
+   "puddle_b_shine2",
+   "puddle_b_shine3",
+   "puddle_b_shine4",
+   "puddle_b_shine5",
+   "fence_segment",
+   "fence_post",
+   "watering_can",
+   "gnome",
+   "scarecrow",
+   "leaves_a",
+   "leaves_b"
+  ],
+  "drawScaleByClip": {
+   "tree_apple_sway": 0.5,
+   "tree_apple": 0.5,
+   "tree_apple_hit": 0.5,
+   "tree_gnarly_sway": 0.5,
+   "tree_gnarly": 0.5,
+   "tree_gnarly_hit": 0.5,
+   "tree_shrub_sway": 0.5,
+   "tree_shrub": 0.5,
+   "tree_shrub_hit": 0.5
+  },
+  "groundLayer": [
+   "puddle_a",
+   "puddle_a_shine",
+   "puddle_b",
+   "puddle_b_shine",
+   "leaves_a",
+   "leaves_b"
+  ],
+  "note": "anchor = ground contact (trunk base / feet / pole foot; decal centre for puddles+leaves). Tree clips carry drawScale 0.5 (half-res cells); everything else uses meta.drawScale 0.25. See NOTES.md."
+ }
+}

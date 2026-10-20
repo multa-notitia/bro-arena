@@ -1,4 +1,18 @@
 import { TAU, clamp, dist, ease, hashNoise, lerp } from '../core/math.ts'
+import { drawItemFxFloor, drawItemFxTop } from '../game/itemFx.ts'
+import { CHAOS, crowdPaintScale, fxOn } from '../data/chaos.ts'
+import { comboCount, corpseClipName, deathClipName } from '../game/chaosJuice.ts'
+import { vineOf } from '../game/emerge.ts'
+import {
+  drawFamilyGround,
+  drawGasClouds,
+  drawGasOverlay,
+  familyClip,
+  familyHidden,
+} from '../game/families.ts'
+import { frontWaddle, motionTilt, turnClip } from '../game/facing.ts'
+import { aiOverlayOn } from '../game/chaosDirector.ts'
+import { hopHeight, isLeaping, landingShadow, pinLeapSquash, specialClip } from '../game/leap.ts'
 import { cameraShakeOffset, FEEL } from '../feel.ts'
 import type {
   Enemy,
@@ -34,25 +48,35 @@ import {
 import { boardKnifeSlash, getPaintStyle, proceduralModel, usesBoardArt, usesPaintedArt } from './look.ts'
 import { drawPaintedChili } from './conceptA.ts'
 import { drawBoard, drawBoardShadow, poseBoard, boardHeld, type BoardHero } from './board.ts'
+import { ambushGardenJobs, drawGardenJob } from '../game/garden.ts'
 import { drawFarmBeds, drawFarmPlant, drawFarmRows } from './crops.ts'
+import { arenaActorProps, drawArenaGround, drawArenaProp, drawPaintedTree } from '../game/arenaProps.ts'
 import { drawPaddock } from './ground.ts'
+import { drawBedBadges, drawGardenBeds, takeBedDepth } from './beds.ts'
+import { drawGardenFloor, drawRowsGround, gardenDepth } from './garden.ts'
+import { arenaMap } from '../data/mapMode.ts'
+import { plotBounds } from '../data/beds.ts'
 import { paperColor } from './paintLang.ts'
 import { drawMultiArm, multiArmSheet, potatoMultiArm } from './multiarm.ts'
 import { enemySpawnClip } from '../game/enemies.ts'
 import { presentRenderPoses } from '../game/world.ts'
+import { enemyHitMark } from './hitMark.ts'
 import {
   actorClipActive,
   actorFootprint,
   drawActorSheet,
+  clipDrawScale,
   drawNamedClip,
   gardenGround,
   locomotionBlend,
   pickClip,
   resolveSheet,
   sheetById,
-  sheetKeysForEnemy,
   sheetKeysForPlayer,
 } from './sheets.ts'
+import { hasClip, resolveEnemySheet } from './chaosSheets.ts'
+import { drawChaosFloor, drawChaosMarker, drawComboHud, drawFunnyBursts, drawLeapShadow, tickChaosFx } from './chaosFx.ts'
+import { drawGasPuffs, drawSmashSplats } from './smashVfx.ts'
 import {
   markerSprite,
   pickupSprite,
@@ -117,6 +141,116 @@ function blit(
   ctx.restore()
 }
 
+let rimBake: HTMLCanvasElement | null = null
+let rimBakeCtx: CanvasRenderingContext2D | null = null
+let rimRing: HTMLCanvasElement | null = null
+let rimRingCtx: CanvasRenderingContext2D | null = null
+const RIM_BAKE = 384
+
+function ensureRimCanvases(): { body: CanvasRenderingContext2D; ring: CanvasRenderingContext2D } | null {
+  if (!rimBake) {
+    rimBake = document.createElement('canvas')
+    rimBake.width = RIM_BAKE
+    rimBake.height = RIM_BAKE
+    rimBakeCtx = rimBake.getContext('2d')
+  }
+  if (!rimRing) {
+    rimRing = document.createElement('canvas')
+    rimRing.width = RIM_BAKE
+    rimRing.height = RIM_BAKE
+    rimRingCtx = rimRing.getContext('2d')
+  }
+  if (!rimBakeCtx || !rimRingCtx) return null
+  return { body: rimBakeCtx, ring: rimRingCtx }
+}
+
+/** Tight cream outline: dilate sprite alpha, no blur. */
+function paintWithRim(
+  ctx: CanvasRenderingContext2D,
+  originX: number,
+  originY: number,
+  paint: (c: CanvasRenderingContext2D) => void,
+): void {
+  const layers = ensureRimCanvases()
+  const bake = rimBake
+  const ring = rimRing
+  if (!layers || !bake || !ring) {
+    paint(ctx)
+    return
+  }
+  const { body: g, ring: rg } = layers
+  const m = ctx.getTransform()
+  const o = Math.max(1, CHAOS.read.heroRimPx)
+  const mid = RIM_BAKE * 0.5
+  g.setTransform(1, 0, 0, 1, 0, 0)
+  g.globalAlpha = 1
+  g.clearRect(0, 0, RIM_BAKE, RIM_BAKE)
+  g.setTransform(
+    m.a,
+    m.b,
+    m.c,
+    m.d,
+    mid - (m.a * originX + m.c * originY),
+    mid - (m.b * originX + m.d * originY),
+  )
+  paint(g)
+  g.setTransform(1, 0, 0, 1, 0, 0)
+  g.globalCompositeOperation = 'source-in'
+  g.fillStyle = CHAOS.read.heroRim
+  g.fillRect(0, 0, RIM_BAKE, RIM_BAKE)
+  g.globalCompositeOperation = 'source-over'
+
+  rg.setTransform(1, 0, 0, 1, 0, 0)
+  rg.globalAlpha = 1
+  rg.clearRect(0, 0, RIM_BAKE, RIM_BAKE)
+  const steps = 8
+  for (let i = 0; i < steps; i++) {
+    const a = (i / steps) * TAU
+    rg.drawImage(bake, Math.cos(a) * o, Math.sin(a) * o)
+  }
+  rg.globalCompositeOperation = 'destination-out'
+  rg.drawImage(bake, 0, 0)
+  rg.globalCompositeOperation = 'source-over'
+
+  const sx = m.a * originX + m.c * originY + m.e
+  const sy = m.b * originX + m.d * originY + m.f
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.imageSmoothingEnabled = false
+  ctx.globalAlpha *= CHAOS.read.heroRimAlpha
+  ctx.drawImage(ring, sx - mid, sy - mid)
+  ctx.restore()
+  paint(ctx)
+}
+
+function smearTint(id: WeaponId, fallback: string): string {
+  switch (id) {
+    case 'knife':
+      return '#c5d0b4'
+    case 'hammer':
+      return '#e2b45a'
+    case 'fist':
+      return '#edd6c4'
+    case 'stick':
+      return '#c4a06a'
+    case 'sword':
+      return '#d5dde6'
+    case 'spear':
+      return '#cbb48a'
+    case 'scythe':
+      return '#9aaa72'
+    default:
+      return fallback
+  }
+}
+
+/** Curved swing stroke. Dies in smearLife seconds of a typical 0.18s swing. */
+function smearFade(swingT: number): number {
+  if (swingT < 0) return 0
+  const real = swingT * 0.18
+  return clamp(1 - real / CHAOS.read.smearLife, 0, 1)
+}
+
 /** Soft contact shadow. `footprint` is the painted body width; the ellipse stays under 0.8× that. */
 function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, footprint: number, strength = 1): void {
   const width = Math.max(6, footprint * FEEL.shadow.footprint)
@@ -137,10 +271,48 @@ function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, footpri
   ctx.restore()
 }
 
+/** Where a leap will come down. A soft dark patch, not a ring. */
+function drawLandingMark(ctx: CanvasRenderingContext2D, x: number, y: number, footprint: number): void {
+  const rx = Math.max(22, footprint * 1.45)
+  const ry = rx * 0.4
+  ctx.save()
+  ctx.translate(x, y + 3)
+  const g = ctx.createRadialGradient(0, 0, ry * 0.2, 0, 0, rx)
+  g.addColorStop(0, 'rgba(6, 4, 2, 0.78)')
+  g.addColorStop(0.5, 'rgba(10, 7, 4, 0.4)')
+  g.addColorStop(1, 'rgba(10, 7, 4, 0)')
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.ellipse(0, 0, rx, ry, 0, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
+/** Warm ellipse under the potato. Larger than a common enemy shadow; not a ring. */
+function drawHeroShadow(ctx: CanvasRenderingContext2D, x: number, y: number, footprint: number): void {
+  const width = Math.max(6, footprint * FEEL.shadow.footprint * CHAOS.read.heroShadowScale)
+  const peak = CHAOS.read.heroShadowWarm * clamp(CHAOS.read.heroShadow, 0, 1.8)
+  if (peak < 0.02) return
+  const radius = width * 0.5
+  ctx.save()
+  ctx.translate(x, y + 1)
+  ctx.scale(1, 0.4)
+  const g = ctx.createRadialGradient(0, 0, radius * 0.06, 0, 0, radius)
+  g.addColorStop(0, `rgba(86, 48, 20, ${peak.toFixed(3)})`)
+  g.addColorStop(0.55, `rgba(86, 48, 20, ${(peak * 0.38).toFixed(3)})`)
+  g.addColorStop(1, 'rgba(86, 48, 20, 0)')
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.arc(0, 0, radius, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
 /** Faint warm pool so painted figures separate from the soil. */
 function drawReadHalo(ctx: CanvasRenderingContext2D, x: number, y: number, footprint: number, strength = 1): void {
-  const rx = Math.max(8, footprint * 1.15)
-  const peak = 0.28 * clamp(strength, 0, 1)
+  if (!fxOn('telegraphs')) return
+  const rx = Math.max(6, footprint * 0.42)
+  const peak = 0.12 * clamp(strength, 0, 1)
   if (peak < 0.02) return
   ctx.save()
   ctx.translate(x, y)
@@ -157,7 +329,8 @@ function drawReadHalo(ctx: CanvasRenderingContext2D, x: number, y: number, footp
 
 /** Screen-blend pool around the hero so the night edge stays dark and the figure stays warm. */
 function drawWarmPool(ctx: CanvasRenderingContext2D, x: number, y: number): void {
-  const r = 220
+  if (!fxOn('telegraphs')) return
+  const r = 72
   const g = ctx.createRadialGradient(x, y + 8, 16, x, y, r)
   g.addColorStop(0, 'rgba(255, 198, 120, 0.42)')
   g.addColorStop(0.38, 'rgba(255, 156, 72, 0.16)')
@@ -247,10 +420,12 @@ function hpArc(
 function drawTrail(ctx: CanvasRenderingContext2D, p: Projectile): void {
   const pts = p.trail
   if (pts.length < 2 || p.def.trail === 'none') return
+  const player = p.owner === 'player'
   ctx.save()
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
-  for (let i = 1; i < pts.length; i++) {
+  const start = player ? Math.max(1, pts.length - 4) : 1
+  for (let i = start; i < pts.length; i++) {
     const a = pts[i - 1]
     const b = pts[i]
     if (!a || !b) continue
@@ -262,11 +437,11 @@ function drawTrail(ctx: CanvasRenderingContext2D, p: Projectile): void {
           ? '#e8f6ff'
           : p.def.paint === 'spit'
             ? '#b8e05a'
-            : p.owner === 'player'
-              ? '#ffe28a'
+            : player
+              ? '#e2b45a'
               : '#2a221c'
-    ctx.strokeStyle = rgba(col, 0.22 + u * 0.55)
-    ctx.lineWidth = p.r * (0.7 + u * 1.15)
+    ctx.strokeStyle = rgba(col, player ? 0.2 + u * 0.35 : 0.22 + u * 0.55)
+    ctx.lineWidth = player ? Math.max(1.4, p.r * 0.55) : p.r * (0.7 + u * 1.15)
     ctx.beginPath()
     ctx.moveTo(a.x, a.y)
     ctx.lineTo(b.x, b.y)
@@ -275,31 +450,94 @@ function drawTrail(ctx: CanvasRenderingContext2D, p: Projectile): void {
   ctx.restore()
 }
 
+/** Pea pellet plus a short taper. Not the beige stroke and not the ink dots. */
+function drawSeedShot(ctx: CanvasRenderingContext2D, p: Projectile): void {
+  const lifeA = clamp(p.life / Math.max(0.05, p.maxLife), 0.55, 1)
+  const len = 13
+  ctx.save()
+  ctx.translate(p.x, p.y)
+  ctx.rotate(p.angle)
+  ctx.globalAlpha = lifeA
+  const g = ctx.createLinearGradient(-len, 0, 2.2, 0)
+  g.addColorStop(0, 'rgba(198, 232, 106, 0)')
+  g.addColorStop(0.5, 'rgba(214, 236, 120, 0.22)')
+  g.addColorStop(1, 'rgba(255, 248, 210, 0.8)')
+  ctx.fillStyle = g
+  ctx.beginPath()
+  ctx.moveTo(2.2, 0)
+  ctx.lineTo(-len, 0.2)
+  ctx.lineTo(-len * 0.22, 1.45)
+  ctx.closePath()
+  ctx.fill()
+  ctx.beginPath()
+  ctx.moveTo(2.2, 0)
+  ctx.lineTo(-len, -0.2)
+  ctx.lineTo(-len * 0.22, -1.45)
+  ctx.closePath()
+  ctx.fill()
+  ctx.fillStyle = '#5a9a28'
+  ctx.beginPath()
+  ctx.ellipse(1.5, 0.25, 2.55, 2.1, 0.25, 0, TAU)
+  ctx.fill()
+  ctx.fillStyle = '#b6e25a'
+  ctx.beginPath()
+  ctx.ellipse(1.15, -0.1, 1.75, 1.35, -0.35, 0, TAU)
+  ctx.fill()
+  ctx.fillStyle = '#f4ffd4'
+  ctx.beginPath()
+  ctx.ellipse(0.5, -0.7, 0.65, 0.42, -0.5, 0, TAU)
+  ctx.fill()
+  ctx.restore()
+}
+
 function drawProjectile(ctx: CanvasRenderingContext2D, p: Projectile, cache: SpriteCache): void {
+  if (p.def.paint === 'seed') {
+    drawSeedShot(ctx, p)
+    return
+  }
   drawTrail(ctx, p)
+  // Actor clips named `pea` are the enemy's spit pose (full body). Only a
+  // dedicated spit cell is safe to draw as a shot.
+  if (p.sheetClip && p.sheetClip.clip !== 'pea') {
+    const sheet = sheetById(p.sheetClip.sheet) ?? resolveSheet([p.sheetClip.sheet])
+    if (sheet?.manifest.clips[p.sheetClip.clip]) {
+      const lifeA = clamp(p.life / Math.max(0.05, p.maxLife), 0.45, 1)
+      ctx.save()
+      ctx.translate(p.x, p.y)
+      drawNamedClip(ctx, sheet, `shot:${p.uid}`, p.sheetClip.clip, 0, {
+        scale: Math.min(0.18, clipDrawScale(sheet, p.sheetClip.clip)),
+        alpha: lifeA,
+      })
+      ctx.restore()
+      return
+    }
+  }
   const spr = projectileSprite(cache, p.def.paint, qScale)
   ctx.save()
   ctx.translate(p.x, p.y)
   ctx.rotate(p.angle)
   const spd = Math.hypot(p.vx, p.vy)
-  const stretch = 1 + clamp(spd / 520, 0, FEEL.projectile.stretch)
+  const stretch = p.owner === 'player' ? 1 : 1 + clamp(spd / 520, 0, FEEL.projectile.stretch)
   ctx.scale(stretch, 1 / Math.sqrt(stretch))
   const sc = (p.r * 2.4) / 14
   if (p.owner === 'player') {
     ctx.save()
-    ctx.globalCompositeOperation = 'lighter'
-    ctx.globalAlpha = 0.55
-    ctx.fillStyle = '#fff4c0'
+    ctx.globalAlpha = 0.8
+    ctx.strokeStyle = '#e2b45a'
+    ctx.lineWidth = 1.6
+    ctx.lineCap = 'round'
     ctx.beginPath()
-    ctx.ellipse(0, 0, p.r * 2.2, p.r * 1.1, 0, 0, TAU)
-    ctx.fill()
+    ctx.moveTo(-p.r * 0.8, 0)
+    ctx.lineTo(p.r * 1.6, 0)
+    ctx.stroke()
     ctx.restore()
   }
   blit(ctx, spr, sc, clamp(p.life / Math.max(0.05, p.maxLife), 0.45, 1))
   ctx.restore()
 }
 
-function drawTree(ctx: CanvasRenderingContext2D, t: Tree, cache: SpriteCache): void {
+function drawTree(ctx: CanvasRenderingContext2D, t: Tree, world: World, cache: SpriteCache, dt: number): void {
+  if (drawPaintedTree(ctx, world, t, dt)) return
   const spr = treeSprite(cache, qScale)
   ctx.save()
   ctx.translate(t.x, t.y)
@@ -327,24 +565,33 @@ const PICKUP_CLIP: Record<Pickup['type'], string> = {
 function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, cache: SpriteCache, time: number, dt: number): void {
   const sheet = sheetById('pickups')
   const clip = PICKUP_CLIP[p.type]
-  const pr = p.type === 'chest' ? 12 : p.type === 'materialBig' ? 10 : 8
-  const bob = sheet ? Math.sin(p.t * 3.2 + time) * 1.2 : Math.sin(p.t * 3.2 + time) * 3
-  drawShadow(ctx, p.x, p.y + bob + 2, pr * 1.6, 0.75)
+  const coin = p.type === 'material'
+  const pr = p.type === 'chest' ? 12 : p.type === 'materialBig' ? 10 : coin ? 5 : 8
+  const bobAmp = coin ? CHAOS.read.coinBob : sheet ? 1.2 : 3
+  const bob = Math.sin(p.t * (coin ? 2.4 : 3.2) + time) * bobAmp
+  drawShadow(ctx, p.x, p.y + bob + 2, pr * 1.6, coin ? 0.45 : 0.75)
   ctx.save()
   ctx.translate(p.x, p.y + bob)
-  if (p.magnet) {
+  if (p.magnet && !coin) {
     const ang = Math.atan2(p.vy, p.vx)
     const spd = Math.hypot(p.vx, p.vy)
     ctx.rotate(ang)
     const stretch = 1 + clamp(spd / 380, 0, 0.85)
     ctx.scale(stretch, 1 / Math.sqrt(stretch))
   }
-  const scale = p.type === 'chest' ? 0.22 : p.type === 'materialBig' ? 0.2 : 0.17
-  if (!sheet || !drawNamedClip(ctx, sheet, `pick:${p.uid}`, clip, dt, { scale })) {
+  let scale = p.type === 'chest' ? 0.22 : p.type === 'materialBig' ? 0.2 : 0.17
+  if (coin) {
+    scale *= CHAOS.read.coinScale
+    ctx.filter = `saturate(${CHAOS.read.coinSat})`
+  }
+  // Coins stay on the face-on cell (dt 0). The authored clip flips edge-on.
+  const step = coin ? 0 : dt
+  if (!sheet || !drawNamedClip(ctx, sheet, `pick:${p.uid}`, clip, step, { scale })) {
     const spr = pickupSprite(cache, p.type, qScale, p.crop)
-    const sc = p.type === 'chest' ? 0.85 : p.type === 'materialBig' ? 0.95 : 0.72
+    const sc = p.type === 'chest' ? 0.85 : p.type === 'materialBig' ? 0.95 : coin ? 0.72 * CHAOS.read.coinScale : 0.72
     blit(ctx, spr, sc)
   }
+  if (coin) ctx.filter = 'none'
   ctx.restore()
 }
 
@@ -352,7 +599,11 @@ function markerForm(kind: SpawnMarker['kind']): Form {
   return ENEMIES[kind]?.form === 'nightmare' ? 'nightmare' : 'normal'
 }
 
-function drawMarker(ctx: CanvasRenderingContext2D, m: SpawnMarker, cache: SpriteCache): void {
+function drawMarker(ctx: CanvasRenderingContext2D, m: SpawnMarker, cache: SpriteCache, time: number): void {
+  if (m.style) {
+    drawChaosMarker(ctx, m, time)
+    return
+  }
   const form = markerForm(m.kind)
   const spr = markerSprite(cache, form, qScale)
   const u = m.life > 0 ? m.t / m.life : 1
@@ -360,12 +611,14 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: SpawnMarker, cache: Sprite
   const pulse = 0.35 + 0.65 * Math.sin(clamp(u, 0, 1) * Math.PI)
   ctx.save()
   ctx.translate(m.x, m.y)
-  ctx.globalAlpha = pulse * 0.55
-  ctx.strokeStyle = form === 'nightmare' ? '#d9ff5c' : '#c4a050'
-  ctx.lineWidth = 3
-  ctx.beginPath()
-  ctx.ellipse(0, 6, 18 + bloom * 10, 8 + bloom * 4, 0, 0, TAU)
-  ctx.stroke()
+  if (fxOn('telegraphs')) {
+    ctx.globalAlpha = pulse * 0.55
+    ctx.strokeStyle = form === 'nightmare' ? '#d9ff5c' : '#c4a050'
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.ellipse(0, 6, 18 + bloom * 10, 8 + bloom * 4, 0, 0, TAU)
+    ctx.stroke()
+  }
   blit(ctx, spr, bloom, pulse)
   ctx.restore()
 }
@@ -388,6 +641,27 @@ function foeModel(form: Form): ModelDir {
   return form === 'nightmare' ? 'b' : getPaintStyle()
 }
 
+function drawAiOverlay(ctx: CanvasRenderingContext2D, e: Enemy, player: Player): void {
+  if (e.state === 'dying' || e.anim.deathT >= 0) return
+  const clip = specialClip(e)
+  const label = isLeaping(e) ? 'leap' : clip || e.state
+  ctx.save()
+  ctx.strokeStyle = 'rgba(255, 214, 90, 0.8)'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(e.x, e.y)
+  ctx.lineTo(player.x, player.y)
+  ctx.stroke()
+  ctx.font = '9px sans-serif'
+  ctx.textAlign = 'center'
+  ctx.lineWidth = 3
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)'
+  ctx.strokeText(label, e.x, e.y - e.r - 16)
+  ctx.fillStyle = '#ffe27a'
+  ctx.fillText(label, e.x, e.y - e.r - 16)
+  ctx.restore()
+}
+
 function drawEnemy(
   ctx: CanvasRenderingContext2D,
   e: Enemy,
@@ -398,8 +672,9 @@ function drawEnemy(
   const form: Form = e.form ?? e.def.form ?? 'normal'
   const model = foeModel(form)
   const pal = e.def.palette ?? SPECIES_PALETTES[species]
-  const artR = sizeBucket(e.r)
-  const sheet = resolveSheet(sheetKeysForEnemy(e.kind, form))
+  const paintR = e.r * crowdPaintScale(e.kind, e.elite, e.boss)
+  const artR = sizeBucket(paintR)
+  const sheet = resolveEnemySheet(e.kind, form)
   // A killing slash used to hide the body and leave watercolor chunks.
   // Authored deaths play the sheet instead; that clip is the corpse.
   if (e.sliced && !sheet?.manifest.clips.death) return
@@ -434,37 +709,70 @@ function drawEnemy(
     ox += (hashNoise(Math.floor(time * 48), e.uid) - 0.5) * mag * 2
     oy += (hashNoise(Math.floor(time * 48), e.uid + 9) - 0.5) * mag * 2
   }
-  const foot = sheet ? actorFootprint(sheet, e.r) : e.r * 1.7
+  const foot = sheet ? actorFootprint(sheet, paintR) : paintR * 1.7
   const shade = shadowIn * (1 - death)
+  const hop = hopHeight(e)
   if (sheet) drawReadHalo(ctx, ox, e.y, foot, shade)
-  drawShadow(ctx, ox, sheet ? e.y : e.y + e.r * 0.45, foot, shade)
+  drawShadow(ctx, ox, sheet ? e.y : e.y + e.r * 0.45, foot, shade * (hop > 1 ? 0.65 : 1))
+  drawLeapShadow(ctx, ox, e.y, foot, hop)
+  const vine = vineOf(e)
+  if (vine && sheet && hasClip(sheet, 'prop_vine')) {
+    ctx.save()
+    ctx.translate(vine.x, vine.y)
+    ctx.globalAlpha = vine.alpha * appear
+    drawActorSheet(ctx, sheet, `vine:${e.uid}`, 'prop_vine', { r: e.r, facing: 1, alpha: 1 })
+    ctx.restore()
+  }
   ctx.save()
-  ctx.translate(ox, oy)
+  ctx.translate(ox + (sheet ? frontWaddle(e) : 0), oy - hop)
+  // Lean back from a knock: the feet go first, the head catches up.
+  const tilt = sheet ? motionTilt(e) + clamp(-e.knock.x * 0.0028, -0.2, 0.2) : 0
+  if (tilt) ctx.rotate(tilt)
   if (sheet) {
     const playKey = `e:${e.uid}`
     const dyingSheet = e.state === 'dying' || e.anim.deathT >= 0
-    const corpseName = e.corpse && sheet.manifest.clips[e.corpse] ? e.corpse : 'death'
-    const clip = dyingSheet
-      ? sheet.manifest.clips[corpseName]
-        ? corpseName
-        : null
-      : emerging && spawnClip
-        ? spawnClip
-        : e.perform && sheet.manifest.clips[e.perform]
-          ? e.perform
-          : pickClip(sheet, e.anim, {
-              attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
-              hurt: actorClipActive(playKey, 'hurt'),
-            })
-    ctx.globalAlpha = appear * (1 - death)
+    const deathName = corpseClipName(e) ?? (e.corpse && sheet.manifest.clips[e.corpse] ? e.corpse : deathClipName(e))
+    const leaping = isLeaping(e) && hasClip(sheet, 'leap')
+    const screaming = e.state === 'screaming' && hasClip(sheet, 'scream')
+    const posed = !dyingSheet && !emerging ? specialClip(e) ?? turnClip(e) : null
+    const clipRaw = dyingSheet && deathName && sheet.manifest.clips[deathName]
+      ? deathName
+      : emerging
+        ? 'emerge'
+        : posed && sheet.manifest.clips[posed]
+          ? posed
+          : leaping
+            ? 'leap'
+            : screaming
+              ? 'scream'
+              : e.perform && sheet.manifest.clips[e.perform]
+                ? e.perform
+                : pickClip(sheet, e.anim, {
+                  attacking: e.state === 'windup' || e.state === 'charging' || e.state === 'shooting',
+                  // Hurt cells stay off the body. A nick is drawn after the squash.
+                  hurt: false,
+                })
+    const clip = familyClip(e, clipRaw)
+    const squash = pinLeapSquash(e) ? 1 : clamp(e.anim.squash || 1, 0.45, 1.8)
+    ctx.globalAlpha = appear * (1 - (deathName && dyingSheet ? 0 : death))
+    ctx.scale(squash, 1 / squash)
     if (clip) {
+      const smash = clip === 'death_smash' || clip.startsWith('death_smash')
+      const bodyR = paintR * (smash ? CHAOS.read.smashDeathScale : 1)
       drawActorSheet(ctx, sheet, playKey, clip, {
-        r: e.r,
+        r: bodyR,
         facing,
         alpha: 1,
+        // Cream hit flash on the silhouette: one sharp pop per hit, gone in ~100 ms,
+        // so a monster under steady fire still shows its paint.
+        flash: dyingSheet ? 0 : clamp((e.anim.hitFlash - 0.6) / 0.4, 0, 1) * 0.7,
       })
     }
     ctx.restore()
+    if (!dyingSheet && e.anim.hitFlash > 0.02) {
+      const mark = enemyHitMark(e)
+      drawHitNick(ctx, ox, oy, paintR, e.anim.hitFlash, mark?.color ?? pal.accent, mark?.angle ?? 0)
+    }
     if (e.burn > 0) drawEmbers(ctx, ox, oy, e.r, time, e.uid)
     if (e.elite || e.boss) {
       hpArc(ctx, ox, oy - e.r - 8, e.boss ? 22 : 14, e.maxHp > 0 ? e.hp / e.maxHp : 0, e.boss)
@@ -485,7 +793,7 @@ function drawEnemy(
     ctx.fill()
     ctx.restore()
   }
-  const sc = e.r / artR
+  const sc = paintR / artR
   ctx.save()
   ctx.scale(facing, 1)
   blit(ctx, spr, sc)
@@ -509,15 +817,6 @@ function drawEnemy(
     model,
   })
   ctx.restore()
-  if (e.anim.hitFlash > 0.02 && e.anim.deathT < 0 && e.state !== 'dying') {
-    ctx.save()
-    ctx.globalAlpha = e.anim.hitFlash * 0.65
-    ctx.fillStyle = '#fff6e8'
-    ctx.beginPath()
-    ctx.ellipse(0, 0, e.r * 1.05, e.r * 0.9, 0, 0, TAU)
-    ctx.fill()
-    ctx.restore()
-  }
   if (e.slow > 0) {
     ctx.save()
     ctx.globalCompositeOperation = 'multiply'
@@ -546,6 +845,54 @@ function drawEnemy(
     ctx.stroke()
     ctx.restore()
   }
+}
+
+/** Short slash nick in the hit colour. Not the cream body cell, which the squash stretches into a pale column. */
+function drawHitNick(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  flash: number,
+  color: string,
+  angle: number,
+): void {
+  const len = Math.min(12, Math.max(6, r * 0.34))
+  const wide = Math.min(3.1, len * 0.26)
+  ctx.save()
+  ctx.translate(x + Math.cos(angle) * r * 0.28, y + Math.sin(angle) * r * 0.2)
+  ctx.rotate(angle + 0.65)
+  ctx.globalAlpha = 0.9 * flash
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(len * 0.42, 0)
+  ctx.quadraticCurveTo(0, wide, -len * 0.55, wide * 0.12)
+  ctx.quadraticCurveTo(-len * 0.12, 0, -len * 0.55, -wide * 0.12)
+  ctx.quadraticCurveTo(0, -wide, len * 0.42, 0)
+  ctx.closePath()
+  ctx.fill()
+  ctx.restore()
+}
+
+/** Small bright pop at the barrel. `t` is swing progress 0..1 over 180 ms. */
+function drawMuzzlePop(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, t: number): void {
+  const u = clamp(1 - t / 0.7, 0, 1)
+  if (u <= 0) return
+  const px = x + Math.cos(angle) * 18
+  const py = y + Math.sin(angle) * 18
+  ctx.save()
+  ctx.translate(px, py)
+  ctx.globalAlpha = u * 0.95
+  ctx.fillStyle = '#e8a030'
+  ctx.beginPath()
+  ctx.arc(0, 0, 3.4 + 3.6 * u, 0, TAU)
+  ctx.fill()
+  ctx.globalAlpha = u
+  ctx.fillStyle = '#fff6d0'
+  ctx.beginPath()
+  ctx.arc(0, 0, 1.7 + 1.8 * u, 0, TAU)
+  ctx.fill()
+  ctx.restore()
 }
 
 function muzzleFlash(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, t: number): void {
@@ -682,31 +1029,30 @@ function drawPlayerWeapons(
     const pose = heldPos
       ? { x: heldPos.x, y: heldPos.y, rot: heldPos.rot ?? w.angle, smear: undefined as { a0: number; a1: number; r: number } | undefined }
       : weaponAngleAndPos(player, w.slot, w.angle, w.swingT, behavior)
-    if (!hideHeld && !heldPos && pose.smear && w.swingT >= 0) {
+    const fade = smearFade(w.swingT)
+    if (fade > 0.02 && (behavior.type === 'sweep' || behavior.type === 'thrust')) {
+      const cx = player.x
+      const cy = player.y + player.anim.bob
+      const tint = smearTint(w.id, player.character.palette.accent)
       ctx.save()
-      ctx.globalAlpha = 0.38 * Math.sin(clamp(w.swingT, 0, 1) * Math.PI)
-      ctx.strokeStyle = '#f0e0b0'
-      ctx.lineWidth = 14
+      ctx.globalAlpha = 0.72 * fade
+      ctx.strokeStyle = tint
+      ctx.lineWidth = CHAOS.read.smearWidth
       ctx.lineCap = 'round'
       ctx.beginPath()
-      ctx.arc(player.x, player.y + player.anim.bob, pose.smear.r, pose.smear.a0, pose.smear.a1)
+      const tip = behavior.type === 'sweep' ? pose.rot : w.angle
+      const span = CHAOS.read.smearSpan
+      const r =
+        behavior.type === 'sweep'
+          ? (pose.smear?.r ?? Math.hypot(off.x, off.y) + 10)
+          : player.r + 12 + behavior.reach * 0.4
+      ctx.arc(cx, cy, r, tip - span, tip)
       ctx.stroke()
       ctx.restore()
     }
-    if (!hideHeld && heldPos && w.swingT >= 0) {
-      const t = clamp(w.swingT, 0, 1)
-      const pulse = Math.sin(t * Math.PI)
-      ctx.save()
-      ctx.globalAlpha = 0.3 * pulse
-      ctx.strokeStyle = '#c4b090'
-      ctx.lineWidth = 6
-      ctx.lineCap = 'round'
-      const len = 18 + pulse * 20
-      ctx.beginPath()
-      ctx.moveTo(heldPos.x, heldPos.y)
-      ctx.lineTo(heldPos.x + Math.cos(pose.rot) * len, heldPos.y + Math.sin(pose.rot) * len)
-      ctx.stroke()
-      ctx.restore()
+    if (hideHeld && w.id === 'pistol' && behavior.type === 'shoot' && w.swingT >= 0 && w.swingT < 0.7) {
+      const ang = w.angle
+      drawMuzzlePop(ctx, player.x + Math.cos(ang) * 4, player.y + Math.sin(ang) * 2, ang, w.swingT)
     }
     if (!hideHeld) {
       const spr = weaponSprite(cache, look.paint, look.paint === 'torch' || look.paint === 'wand' ? frame : 0, qScale)
@@ -716,8 +1062,9 @@ function drawPlayerWeapons(
       if (heldPos) ctx.translate(10, 0)
       blit(ctx, spr, 0.7)
       ctx.restore()
-      if (behavior.type === 'shoot' && w.swingT >= 0 && w.swingT < 0.18) {
-        muzzleFlash(ctx, pose.x, pose.y, pose.rot, w.swingT)
+      if (behavior.type === 'shoot' && w.swingT >= 0 && w.swingT < (w.id === 'pistol' ? 0.7 : 0.18)) {
+        if (w.id === 'pistol') drawMuzzlePop(ctx, pose.x, pose.y, pose.rot, w.swingT)
+        else muzzleFlash(ctx, pose.x, pose.y, pose.rot, w.swingT)
       }
     }
     if (behavior.type === 'chain' && w.swingT >= 0 && w.targetUid != null) {
@@ -774,6 +1121,19 @@ function drawOrbitWeapons(ctx: CanvasRenderingContext2D, world: World, cache: Sp
   }
 }
 
+/** I-frames and hurt flash blink 1.0 / 0.55. Never fully ghosted, never held faded. */
+function heroPaintAlpha(p: Player): number {
+  const flashing = p.invuln > 0 || p.anim.hitFlash > 0.05
+  if (!flashing) return 1
+  const hz = CHAOS.read.heroIframeHz
+  const on = Math.sin(p.anim.t * hz * Math.PI * 2) >= 0
+  return on ? CHAOS.read.heroIframeHi : CHAOS.read.heroIframeLo
+}
+
+/** Eased facing for the sheet hero, so a turn pinches through edge-on instead of popping. */
+let heroFlip = 1
+let heroFlipT = 0
+
 function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCache): void {
   const p = world.player
   const pal = p.character.palette
@@ -784,7 +1144,8 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const painted = !sheet && usesPaintedArt(species, model)
   const board = !sheet && usesBoardArt(species, model)
   const imageHero = painted || board
-  const artR = sizeBucket(p.r)
+  const drawR = p.r * CHAOS.read.heroScale
+  const artR = sizeBucket(drawR)
   const procModel = proceduralModel(model)
   const spr = imageHero ? null : creatureSprite(cache, species, pal, form, artR, qScale, procModel)
   const x = p.x + p.anim.kick.x
@@ -796,7 +1157,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
   const blink = p.anim.blink ?? -1
   const facing = p.anim.facing ?? 1
   const squash = clamp(p.anim.squash || 1, 0.45, 1.8)
-  const sc = p.r / artR
+  const sc = drawR / artR
   // Sheet heroes stay upright. A small negative lean plus high-quality
   // smoothing makes Chrome smear the cell into a wide cloud.
   const bodyRot = sheet
@@ -823,51 +1184,61 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     held[1] = { x: x + localL.x * sx * c - localL.y * sy * s, y: y + localL.x * sx * s + localL.y * sy * c }
   }
 
-  let alpha = 1
-  if (p.invuln > 0) alpha = Math.sin(p.anim.t * 24) > 0 ? 1 : 0.32
+  const alpha = heroPaintAlpha(p)
+
+  ctx.save()
+  ctx.globalAlpha = 1
 
   if (sheet) {
     const arms = potatoMultiArm(species) ? multiArmSheet(species) : null
     const body = arms ?? sheet
     const swinging = !arms && p.weapons.some((w) => w.swingT >= 0)
-    const shade = p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.35 : 1
-    const foot = actorFootprint(body, p.r)
-    drawReadHalo(ctx, x, p.y, foot, shade)
-    drawShadow(ctx, x, p.y, foot, shade)
+    const foot = actorFootprint(body, drawR)
+    drawHeroShadow(ctx, x, p.y, foot)
     drawPlayerWeapons(ctx, world, cache, true, held, true)
-    ctx.save()
-    ctx.translate(x, y)
-    ctx.rotate(bodyRot)
-    // Side-facing heroes are authored facing right. One scale flips the body
-    // and every arm together, so near arms stay in front and far arms stay behind.
-    if (arms) ctx.scale(facing, 1)
     const clip = pickClip(body, p.anim, { swinging, hurt: actorClipActive('player', 'hurt') })
     const paintFacing: 1 | -1 = arms ? 1 : facing
     const blend = clip && (clip === 'idle' || clip === 'walk') ? locomotionBlend('player') : null
-    const paintArms = (which: 'back' | 'front') => {
-      if (!arms || !clip) return
-      const base = {
-        species,
-        weapons: p.weapons.map((w) => ({ uid: w.uid, id: w.id })),
-        r: p.r,
-        facing,
-        originX: x,
-        originY: y,
-        bodyRot,
+    const paintHero = (c: CanvasRenderingContext2D) => {
+      c.save()
+      c.translate(x, y)
+      c.rotate(bodyRot)
+      // Start, stop and turn punch, about the feet. Arms ride the same scale.
+      const punch = lerp(1, squash, 0.35)
+      const frameDt = clamp(world.time - heroFlipT, 0, 0.05)
+      heroFlipT = world.time
+      heroFlip += (facing - heroFlip) * Math.min(1, frameDt * 30)
+      c.scale(punch * Math.max(0.25, Math.abs(heroFlip)), 1 / punch)
+      // Side-facing heroes are authored facing right. One scale flips the body
+      // and every arm together, so near arms stay in front and far arms stay behind.
+      if (arms) c.scale(facing, 1)
+      const paintArms = (which: 'back' | 'front') => {
+        if (!arms || !clip) return
+        const base = {
+          species,
+          weapons: p.weapons.map((w) => ({ uid: w.uid, id: w.id })),
+          r: drawR,
+          facing,
+          originX: x,
+          originY: y,
+          bodyRot,
+        }
+        if (blend && blend.from !== clip) {
+          drawMultiArm(c, which, { ...base, clip: blend.from, alpha: alpha * blend.old })
+          drawMultiArm(c, which, { ...base, clip, alpha: alpha * blend.neu })
+          return
+        }
+        drawMultiArm(c, which, { ...base, clip, alpha })
       }
-      if (blend && blend.from !== clip) {
-        drawMultiArm(ctx, which, { ...base, clip: blend.from, alpha: alpha * blend.old })
-        drawMultiArm(ctx, which, { ...base, clip, alpha: alpha * blend.neu })
-        return
-      }
-      drawMultiArm(ctx, which, { ...base, clip, alpha })
+      paintArms('back')
+      if (clip) drawActorSheet(c, body, 'player', clip, { r: drawR, facing: paintFacing, alpha })
+      paintArms('front')
+      c.restore()
     }
-    paintArms('back')
-    if (clip) drawActorSheet(ctx, body, 'player', clip, { r: p.r, facing: paintFacing, alpha })
-    paintArms('front')
-    ctx.restore()
+    paintWithRim(ctx, x, y, paintHero)
     drawPlayerWeapons(ctx, world, cache, false, held, true)
     drawOrbitWeapons(ctx, world, cache)
+    ctx.restore()
     return
   }
 
@@ -877,7 +1248,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     const boardOpts = {
       x,
       y,
-      r: p.r,
+      r: drawR,
       facing,
       squash: squashAmt,
       alpha,
@@ -910,30 +1281,17 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     drawOrbitWeapons(ctx, world, cache)
     const arena = typeof document !== 'undefined' ? document.getElementById('arena') : null
     if (arena) arena.dataset.swing = String(p.weapons[0]?.swingT ?? -1)
+    ctx.restore()
     return
   }
 
-  drawShadow(
-    ctx,
-    x,
-    p.y + p.r * 0.45,
-    p.r * 1.7,
-    p.invuln > 0 && Math.sin(p.anim.t * 24) < 0 ? 0.35 : 1,
-  )
+  drawHeroShadow(ctx, x, p.y + drawR * 0.45, drawR * 1.7)
   drawPlayerWeapons(ctx, world, cache, true, held)
   ctx.save()
   ctx.translate(x, y)
   ctx.rotate(bodyRot)
   ctx.scale(squashAmt * ss.sx, ss.sy / squashAmt)
-  if (form === 'normal') {
-    ctx.save()
-    ctx.globalAlpha = 0.2 * alpha
-    ctx.fillStyle = '#f7f1e2'
-    ctx.beginPath()
-    ctx.ellipse(0, 2, p.r * 1.55, p.r * 1.32, 0, 0, TAU)
-    ctx.fill()
-    ctx.restore()
-  } else {
+  if (form !== 'normal') {
     ctx.save()
     ctx.globalCompositeOperation = 'lighter'
     ctx.globalAlpha = 0.16 * alpha
@@ -950,7 +1308,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     drawPaintedChili(ctx, {
       x: 0,
       y: 0,
-      r: p.r,
+      r: drawR,
       facing,
       squash: squashAmt,
       alpha,
@@ -986,15 +1344,18 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
     ctx.restore()
   }
   if (p.anim.hitFlash > 0.02) {
+    ctx.save()
     ctx.globalAlpha = p.anim.hitFlash * 0.7 * alpha
     ctx.fillStyle = '#fff6e8'
     ctx.beginPath()
     ctx.ellipse(0, 0, p.r * 1.05, p.r * 0.9, 0, 0, TAU)
     ctx.fill()
+    ctx.restore()
   }
   ctx.restore()
   drawPlayerWeapons(ctx, world, cache, false, held)
   drawOrbitWeapons(ctx, world, cache)
+  ctx.restore()
 }
 
 export function drawWorld(
@@ -1030,63 +1391,137 @@ export function drawWorld(
 
   const hw = cssW / (2 * zoom) + Math.abs(shake) + 48
   const hh = cssH / (2 * zoom) + Math.abs(shake) + 48
-  const aw = world.arenaHalfW
-  const ah = world.arenaHalfH
+  const plot = plotBounds()
+  const aw = Math.max(-plot.minX, plot.maxX)
+  const ah = Math.max(-plot.minY, plot.maxY)
+  const onScreen = (x: number, y: number, pad = 120): boolean =>
+    x >= cam.x - hw - pad && x <= cam.x + hw + pad && y >= cam.y - hh - pad && y <= cam.y + hh + pad
   drawPaddock(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2, aw, ah, Math.min(2, qScale))
-  drawFarmRows(ctx, world.farm.plots, qScale >= 2, world.waveTime)
-  drawFarmBeds(ctx, world.farm.plots, qScale >= 2)
+  if (arenaMap() === 'tidy') {
+    drawGardenFloor(ctx, qScale >= 2, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
+  } else {
+    if (arenaMap() === 'rows') drawRowsGround(ctx)
+    drawFarmRows(ctx, world.farm.plots, qScale >= 2, world.waveTime)
+    drawFarmBeds(ctx, world.farm.plots, qScale >= 2)
+  }
+  drawGardenBeds(ctx, qScale >= 2)
+  const bedDepth = takeBedDepth().concat(gardenDepth())
+  drawArenaGround(ctx, world, dt)
   fx.drawFloor(ctx)
+  drawChaosFloor(ctx)
+  drawItemFxFloor(ctx, world)
   darkenGround(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
+  ctx.save()
+  const hudWorld = CHAOS.read.splatHudClip / zoom
+  ctx.beginPath()
+  ctx.rect(cam.x - hw, cam.y - hh + hudWorld, hw * 2, hh * 2 - hudWorld)
+  ctx.clip()
+  drawSmashSplats(ctx, dt)
+  ctx.restore()
   if (night) drawWarmPool(ctx, world.player.x, world.player.y)
+  for (let i = 0; i < world.enemies.length; i++) {
+    const e = world.enemies[i]
+    if (!e) continue
+    if (!onScreen(e.x, e.y, 160)) continue
+    const aimed = landingShadow(e)
+    if (!aimed) continue
+    const sheet = resolveEnemySheet(e.kind, e.form)
+    const paintR = e.r * crowdPaintScale(e.kind, e.elite, e.boss)
+    const foot = sheet ? actorFootprint(sheet, paintR) : paintR * 1.7
+    drawLandingMark(ctx, aimed.x, aimed.y, foot)
+  }
+  drawGasClouds(ctx, dt, world.player.x, world.player.y)
+  for (let i = 0; i < world.enemies.length; i++) {
+    const e = world.enemies[i]
+    if (e && onScreen(e.x, e.y, 180)) drawFamilyGround(ctx, e, world.time)
+  }
 
   cmdN = 0
   for (let i = 0; i < world.trees.length; i++) {
     const t = world.trees[i]
-    if (t) pushCmd(t.y, 2, 0, i)
+    if (t && onScreen(t.x, t.y, 160)) pushCmd(t.y + 12, 2, 0, i)
   }
   for (let i = 0; i < world.pickups.length; i++) {
     const p = world.pickups[i]
-    if (p) pushCmd(p.y, 1, 1, i)
+    if (p && onScreen(p.x, p.y)) pushCmd(p.y, 1, 1, i)
   }
   for (let i = 0; i < world.markers.length; i++) {
     const m = world.markers[i]
-    if (m) pushCmd(m.y, 0, 2, i)
+    if (m && onScreen(m.x, m.y)) pushCmd(m.y, 0, 2, i)
   }
+  const heroY = world.player.y
+  const crowdY = CHAOS.read.heroCrowdY
   for (let i = 0; i < world.enemies.length; i++) {
     const e = world.enemies[i]
-    if (e) pushCmd(e.y, 3, 3, i)
+    if (!e || !onScreen(e.x, e.y, 180)) continue
+    // In a close pack the potato paints on top, even if the foe's foot is a few px lower.
+    const dy = e.y - heroY
+    const sortY = Math.abs(dy) <= crowdY ? heroY - 0.5 + dy * 0.01 : e.y
+    pushCmd(sortY, 3, 3, i)
   }
-  pushCmd(world.player.y, 4, 4, 0)
+  pushCmd(heroY, 4, 4, 0)
   for (let i = 0; i < world.farm.plots.length; i++) {
     const plot = world.farm.plots[i]
-    if (plot?.crop) pushCmd(plot.y, 2, 5, i)
+    if (plot?.crop && onScreen(plot.x, plot.y, 80)) pushCmd(plot.y, 2, 5, i)
+  }
+  const ambush = ambushGardenJobs()
+  for (let i = 0; i < ambush.length; i++) {
+    const j = ambush[i]
+    if (j) pushCmd(j.y, 2, 6, i)
+  }
+  const decor = arenaActorProps()
+  for (let i = 0; i < decor.length; i++) {
+    const p = decor[i]
+    if (p && onScreen(p.x, p.y, 140)) pushCmd(p.y, 1, 7, i)
+  }
+  for (let i = 0; i < bedDepth.length; i++) {
+    const piece = bedDepth[i]
+    if (piece && onScreen(piece.x, piece.y, 240)) pushCmd(piece.sortY, 2, 8, i)
   }
 
   const list = cmds.slice(0, cmdN)
-  list.sort((a, b) => a.y - b.y || a.z - b.z)
+  list.sort((a, b) => a.y - b.y)
 
+  const showAi = aiOverlayOn()
   let playerDrawn = false
   for (let i = 0; i < list.length; i++) {
     const c = list[i]
     if (!c) continue
     if (c.kind === 0) {
       const t = world.trees[c.idx]
-      if (t) drawTree(ctx, t, cache)
+      if (t) drawTree(ctx, t, world, cache, dt)
     } else if (c.kind === 1) {
       const p = world.pickups[c.idx]
       if (p) drawPickup(ctx, p, cache, world.time, dt)
     } else if (c.kind === 2) {
       const m = world.markers[c.idx]
-      if (m) drawMarker(ctx, m, cache)
+      if (m) drawMarker(ctx, m, cache, world.time)
     } else if (c.kind === 3) {
       const e = world.enemies[c.idx]
-      if (e) drawEnemy(ctx, e, cache, world.time)
+      if (e) {
+        if (!familyHidden(e)) drawEnemy(ctx, e, cache, world.time)
+        if (showAi) drawAiOverlay(ctx, e, world.player)
+      }
     } else if (c.kind === 4 && !playerDrawn) {
       playerDrawn = true
+      const hero = world.player
+      drawFunnyBursts(ctx, dt, hero, 'near')
+      fx.drawWorld(ctx, hero, 'near')
+      ctx.save()
+      ctx.globalAlpha = 1
       drawPlayer(ctx, world, cache)
+      ctx.restore()
     } else if (c.kind === 5) {
       const plot = world.farm.plots[c.idx]
-      if (plot) drawFarmPlant(ctx, plot)
+      if (plot) drawFarmPlant(ctx, plot, world.time)
+    } else if (c.kind === 6) {
+      const job = ambush[c.idx]
+      if (job) drawGardenJob(ctx, job)
+    } else if (c.kind === 7) {
+      const p = decor[c.idx]
+      if (p) drawArenaProp(ctx, world, p, dt)
+    } else if (c.kind === 8) {
+      bedDepth[c.idx]?.draw(ctx)
     }
   }
 
@@ -1094,7 +1529,7 @@ export function drawWorld(
   const playerShots: Projectile[] = []
   for (let i = 0; i < world.projectiles.length; i++) {
     const p = world.projectiles[i]
-    if (!p) continue
+    if (!p || !onScreen(p.x, p.y, 80)) continue
     if (p.owner === 'enemy') enemyShots.push(p)
     else playerShots.push(p)
   }
@@ -1109,12 +1544,19 @@ export function drawWorld(
     if (p) drawProjectile(ctx, p, cache)
   }
 
-  fx.drawWorld(ctx)
+  tickChaosFx(dt)
+  drawGasPuffs(ctx, dt)
+  drawFunnyBursts(ctx, dt, world.player, 'far')
+  fx.drawWorld(ctx, world.player, 'far')
+  drawItemFxTop(ctx, world)
   ctx.restore()
 
   fx.drawScreen(ctx, cssW, cssH)
+  drawComboHud(ctx, cssW, cssH, comboCount())
   drawOffscreen(ctx, world, cssW, cssH)
+  drawBedBadges(ctx, world, cssW, cssH)
   vignette(ctx, cssW, cssH, night ? 0.72 : 0.4)
+  drawGasOverlay(ctx, cssW, cssH)
   ctx.restore()
   } finally {
     restorePoses()

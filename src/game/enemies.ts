@@ -6,7 +6,7 @@ import type {
   ProjectileDef,
   World,
 } from '../core/types.ts'
-import { ENEMIES, corpseClipFor, enemyFamily, variantTone } from '../data/enemies.ts'
+import { ENEMIES, corpseClipFor, enemyFamily, paintedEnemyKind, variantTone } from '../data/enemies.ts'
 import { enemyDamageAtWave, enemyHpAtWave } from '../data/waves.ts'
 import { damagePlayer, dealDamageToEnemy } from './combat.ts'
 import { dropFromEnemy, enemyMaterialValue } from './pickups.ts'
@@ -14,8 +14,30 @@ import { farmHpMult, farmNightmareBonus } from './farm.ts'
 import { createAnim, tickFaceAnim } from './player.ts'
 import { spawnProjectile } from './projectiles.ts'
 import { addTrauma, FEEL, requestHitStop } from '../feel.ts'
+import { CHAOS, chaosJuiceOn, maxEnemies, paceEnemySpeed, walkPlaybackRate } from '../data/chaos.ts'
 import {
-  actorClipActive,
+  chainBurst,
+  comboPitch,
+  corpseClipName,
+  deathClipName,
+  markKamikazeCorpse,
+} from './chaosJuice.ts'
+import { beginEmerge, collisionOn, emergeEvents, tickEmerge } from './emerge.ts'
+import {
+  familyClip,
+  consumeGasMudTick,
+  familyEvents,
+  armOnionGas,
+  familyHidden,
+  takeFamilyHit,
+  tickFamily,
+  tickGas,
+} from './families.ts'
+import { tickFacing, turnClip } from './facing.ts'
+import { isAirborne, isLeaping, maybeLeap, onSpecialEvents, pinLeapSquash, screamIsLeapTell, specialClip, specialOwns } from './leap.ts'
+import { spawnFunnyClip } from '../render/chaosFx.ts'
+import { spawnOnionPuff, spawnSmashSplat } from '../render/smashVfx.ts'
+import {
   actorClipDone,
   actorClipFraction,
   advanceActorSheet,
@@ -23,24 +45,21 @@ import {
   clipHasEvent,
   consumeHurtKick,
   forgetActor,
-  resolveSheet,
+  presentActorClip,
   restartActorClip,
   sheetClipSeconds,
-  sheetKeysForEnemy,
-  spawnClipName,
   type LoadedSheet,
 } from '../render/sheets.ts'
+import { hasClip, resolveEnemySheet } from '../render/chaosSheets.ts'
 import { retainSpawned } from './roster.ts'
 import { clampToArena } from './world.ts'
+import { pushGardenSolids } from './gardenSolids.ts'
 import type { SimCtx } from './world.ts'
 
-export const MAX_ENEMIES = 160
-const SPAWN_TIME = 0.35
+export { maxEnemies }
 const DEATH_TIME = 0.45
 const DEATH_FADE = 0.4
 const CONTACT_IFRAMES = 0.5
-const SEE_RANGE = 260
-
 interface EnemyExtra {
   burnAcc: number
   parentUid: number | null
@@ -51,7 +70,14 @@ interface EnemyExtra {
   screamBurst: boolean
   /** The attack clip's release/hit has already fired this swing. */
   attackFired: boolean
+  /** Seconds of idle before the attack clip, so attack_hit lands on the AI windup. */
+  attackHold: number
   footAcc: number
+  /** Velocity of the hit-squash spring. */
+  squashV: number
+  kamikazePopped: boolean
+  authoredScream: boolean
+  lungeAfterScream: boolean
   sawHero: boolean
   tauntCd: number
   /** The emerge clip has been started. AI stays off until its `emerged` event. */
@@ -78,7 +104,12 @@ function extra(e: Enemy): EnemyExtra {
       surgeT: 0,
       screamBurst: false,
       attackFired: false,
+      attackHold: 0,
       footAcc: 0,
+      squashV: 0,
+      kamikazePopped: false,
+      authoredScream: false,
+      lungeAfterScream: false,
       sawHero: false,
       tauntCd: 3,
       emerge: false,
@@ -131,13 +162,18 @@ export function spawnEnemy(
   parent?: Enemy,
   fromMarker = false,
 ): Enemy | null {
-  if (world.enemies.length >= MAX_ENEMIES) return null
+  if (world.enemies.length >= maxEnemies(world.wave)) return null
+  kind = paintedEnemyKind(kind)
   const def = ENEMIES[kind]
   if (!def) return null
   let hp = enemyHpAtWave(def, world.wave)
   let damage = enemyDamageAtWave(def, world.wave)
   let r = def.radius
-  let speed = def.speed
+    const famName = enemyFamily(kind)
+    let speed = paceEnemySpeed(famName, def.speed)
+    if (variantTone(kind) === 'mud') {
+      speed = CHAOS.pace.enemy[`${famName}Mud`] ?? Math.max(8, Math.round(speed * 0.9))
+    }
   const elite = def.rank === 'elite' || asElite
   const boss = def.rank === 'boss'
   if (asElite && def.rank === 'basic') {
@@ -155,6 +191,8 @@ export function spawnEnemy(
     hp *= 1.8
     damage *= 1.5
     speed *= 1.15
+    if (kind === 'tomato') r = Math.round(r * (17 / 14))
+    if (kind === 'bean') r = Math.round(r * (19 / 17))
   }
   const interval = screamIntervalOf(def, ctx)
   const screamCooldown = form === 'nightmare' ? ctx.rng.range(0.7, 2.1) : interval
@@ -200,7 +238,12 @@ export function spawnEnemy(
     surgeT: 0,
     screamBurst: false,
     attackFired: false,
+    attackHold: 0,
     footAcc: 0,
+    squashV: 0,
+    kamikazePopped: false,
+    authoredScream: false,
+    lungeAfterScream: false,
     sawHero: false,
     tauntCd: 3,
     emerge: false,
@@ -212,8 +255,8 @@ export function spawnEnemy(
   byUid.set(enemy.uid, enemy)
   if (boss) world.boss = enemy
   if (parent) parent.children += 1
-  ctx.render.fx.inkBloom(pos.x, pos.y, def.palette.body, r * 1.4)
   ctx.audio.play('spawn', { gain: boss ? 1 : 0.55, pitch: boss ? 0.7 : 1 })
+  beginEmerge(enemy)
   if (boss) {
     ctx.render.fx.shockwave(pos.x, pos.y, 160, def.palette.accent)
     ctx.render.fx.inkBurst(pos.x, pos.y, r * 2.2)
@@ -254,11 +297,17 @@ export function beginDeath(world: World, enemy: Enemy, ctx: SimCtx, magnet = fal
   enemy.anim.squash = 0.35
   const pal = enemy.def.palette
   const deathSheet = enemySheet(enemy)
-  const wanted = enemy.corpse && deathSheet?.manifest.clips[enemy.corpse] ? enemy.corpse : corpseClipFor(undefined)
-  enemy.corpse = deathSheet?.manifest.clips[wanted] ? wanted : 'death'
-  const authoredDeath = !!deathSheet?.manifest.clips[enemy.corpse]
-  if (authoredDeath) restartActorClip(playKey, enemy.corpse)
-  const authoredBurst = !!deathSheet && authoredDeath && clipHasEvent(deathSheet, enemy.corpse, 'spawnFx')
+  const kamikazeKeep = ex.kamikazePopped
+  if (kamikazeKeep) {
+    enemy.corpse = 'attack'
+  } else {
+    const wanted = enemy.corpse && deathSheet?.manifest.clips[enemy.corpse] ? enemy.corpse : deathClipName(enemy) ?? corpseClipFor(undefined)
+    enemy.corpse = deathSheet?.manifest.clips[wanted] ? wanted : 'death'
+    if (deathSheet?.manifest.clips[enemy.corpse]) restartActorClip(playKey, enemy.corpse)
+  }
+  const authoredDeath = kamikazeKeep || !!deathSheet?.manifest.clips[enemy.corpse ?? '']
+  const authoredBurst =
+    kamikazeKeep || (!!deathSheet && authoredDeath && enemy.corpse && clipHasEvent(deathSheet, enemy.corpse, 'spawnFx'))
   if (!authoredBurst) ctx.render.fx.inkBurst(enemy.x, enemy.y, enemy.r * FEEL.kill.inkSize)
   // Painted death and the ink burst are the corpse. A body-colored splat or a
   // cream chunk highlight would sit on the soil after the clip as a white fill.
@@ -282,25 +331,36 @@ export function beginDeath(world: World, enemy: Enemy, ctx: SimCtx, magnet = fal
     addTrauma(world, FEEL.shake.bossKill, dx, dy)
     requestHitStop('bossKill')
   } else {
-    ctx.audio.play('enemyDie', { gain: enemy.elite ? 1 : 0.7 })
-    addTrauma(world, enemy.elite ? FEEL.shake.eliteKill : FEEL.shake.kill, dx, dy)
-    requestHitStop(enemy.elite ? 'eliteKill' : 'kill')
+    ctx.audio.play('enemyDie', { gain: enemy.elite ? 1 : 0.7, pitch: comboPitch() })
+    if (!chaosJuiceOn()) {
+      addTrauma(world, enemy.elite ? FEEL.shake.eliteKill : FEEL.shake.kill, dx, dy)
+      requestHitStop(enemy.elite ? 'eliteKill' : 'kill')
+    }
   }
 }
 
 /** Spawn clip finished (or the old timed pop, when the sheet has no emerge). */
-function leaveSpawn(world: World, e: Enemy, ctx: SimCtx): void {
-  e.state = 'idle'
+function leaveSpawn(_world: World, e: Enemy, _ctx: SimCtx): void {
+  e.state = 'chase'
   e.anim.spawnT = 1
-  const tone = variantTone(e.kind)
-  if (tone === 'mud') {
-    // charger-mud's attack clip already screams. A scream clip in front of it
-    // would play the mouth twice.
-    if (enemyFamily(e.kind) !== 'charger') beginPerform(e, 'scream')
-    if (dist(e.x, e.y, world.player.x, world.player.y) < SEE_RANGE) extra(e).sawHero = true
-  } else if (tone === 'light') {
-    extra(e).tauntCd = ctx.rng.range(2.4, 4.8)
+}
+
+const LEAD_S = 0.16
+const LEAD_CAP = 28
+/** Charge / bite / leap stand-still after the hit. The next chase starts inside this. */
+const RECOVER_CAP = 0.38
+
+function predictPlayer(world: World): { x: number; y: number } {
+  const p = world.player
+  let lx = p.vx * LEAD_S
+  let ly = p.vy * LEAD_S
+  const mag = Math.hypot(lx, ly)
+  if (mag > LEAD_CAP) {
+    const s = LEAD_CAP / mag
+    lx *= s
+    ly *= s
   }
+  return { x: p.x + lx, y: p.y + ly }
 }
 
 function steerToward(e: Enemy, tx: number, ty: number, spd: number): void {
@@ -309,6 +369,58 @@ function steerToward(e: Enemy, tx: number, ty: number, spd: number): void {
   e.vy = Math.sin(ang) * spd
   e.aim.x = Math.cos(ang)
   e.aim.y = Math.sin(ang)
+}
+
+function steerAtPlayer(world: World, e: Enemy, spd: number): void {
+  const t = predictPlayer(world)
+  steerToward(e, t.x, t.y, spd)
+}
+
+function clampVel(e: Enemy, spd: number): void {
+  const m = Math.hypot(e.vx, e.vy)
+  if (m > spd && m > 0.001) {
+    e.vx = (e.vx / m) * spd
+    e.vy = (e.vy / m) * spd
+  }
+}
+
+/**
+ * Hold 60–80% of attack range. Outside the band, close. Inside it, a small
+ * radial correction plus a light strafe — not a full-speed orbit.
+ */
+function steerRanged(world: World, e: Enemy, spd: number, range: number): void {
+  const p = world.player
+  const dx = p.x - e.x
+  const dy = p.y - e.y
+  const d = Math.hypot(dx, dy) || 1
+  const near = range * 0.6
+  const far = range * 0.8
+  const mid = range * 0.7
+  const ang = Math.atan2(dy, dx)
+  const side = (e.uid & 1) === 0 ? 1 : -1
+  const tx = Math.cos(ang + Math.PI / 2) * side
+  const ty = Math.sin(ang + Math.PI / 2) * side
+  let radial = 1
+  let strafe = 0.08
+  if (d < near) {
+    radial = -0.35
+    strafe = 0.16
+  } else if (d <= far) {
+    radial = Math.max(-0.4, Math.min(0.55, (d - mid) / Math.max(8, (far - near) * 0.5)))
+    strafe = 0.18
+  }
+  e.vx = Math.cos(ang) * spd * radial + tx * spd * strafe
+  e.vy = Math.sin(ang) * spd * radial + ty * spd * strafe
+  clampVel(e, spd)
+  const aim = predictPlayer(world)
+  const a = Math.atan2(aim.y - e.y, aim.x - e.x)
+  e.aim.x = Math.cos(a)
+  e.aim.y = Math.sin(a)
+}
+
+/** Onion gas sits on the body. 80% of this range is still inside the cloud. */
+function onionRange(p: { r: number }): number {
+  return (CHAOS.families.onion.gasR + p.r + 4) / 0.8
 }
 
 function currentSpeed(e: Enemy): number {
@@ -321,11 +433,11 @@ function enemyKey(e: Enemy): string {
 }
 
 function enemySheet(e: Enemy): LoadedSheet | null {
-  return resolveSheet(sheetKeysForEnemy(e.kind, e.form))
+  return resolveEnemySheet(e.kind, e.form)
 }
 
 function fireAtPlayer(world: World, e: Enemy, proj: ProjectileDef, ctx: SimCtx, silent = false): void {
-  const p = world.player
+  const p = predictPlayer(world)
   const ang = Math.atan2(p.y - e.y, p.x - e.x)
   const muzzle = e.r + 6
   e.aim.x = Math.cos(ang)
@@ -387,25 +499,27 @@ function fireSpiral(world: World, e: Enemy, proj: ProjectileDef, ctx: SimCtx): v
   ctx.audio.play('shoot', { pitch: 1.1, gain: 0.4 })
 }
 
+function aimCharge(e: Enemy, world: World): void {
+  const t = predictPlayer(world)
+  const ang = Math.atan2(t.y - e.y, t.x - e.x)
+  e.aim.x = Math.cos(ang)
+  e.aim.y = Math.sin(ang)
+}
+
 function beginCharge(e: Enemy, world: World, ctx: SimCtx, windup: number): void {
   e.state = 'windup'
   e.stateT = windup
-  const ang = Math.atan2(world.player.y - e.y, world.player.x - e.x)
-  e.aim.x = Math.cos(ang)
-  e.aim.y = Math.sin(ang)
+  aimCharge(e, world)
   e.vx = 0
   e.vy = 0
-  const sheet = enemySheet(e)
-  if (sheet?.manifest.clips.attack) {
-    extra(e).attackFired = false
-    restartActorClip(enemyKey(e), 'attack')
-  }
+  if (enemySheet(e)?.manifest.clips.attack) beginAuthoredAttack(e, windup)
   ctx.audio.play('charge', { gain: e.boss ? 1 : 0.7 })
 }
 
-function startDash(e: Enemy): void {
+function startDash(e: Enemy, world: World): void {
   if (e.state !== 'windup') return
   e.state = 'charging'
+  aimCharge(e, world)
   extra(e).chargeLeft = 0.48 + (e.boss ? 0.18 : 0)
   e.anim.kick.x = 0
   e.anim.kick.y = 0
@@ -417,7 +531,7 @@ function startDash(e: Enemy): void {
 }
 
 function tickCharge(
-  _world: World,
+  world: World,
   e: Enemy,
   dt: number,
   ctx: SimCtx,
@@ -427,18 +541,19 @@ function tickCharge(
   const ex = extra(e)
   const sheeted = !!enemySheet(e)?.manifest.clips.attack
   if (e.state === 'windup') {
+    aimCharge(e, world)
     e.vx = 0
     e.vy = 0
     if (sheeted) {
       // The attack clip is the telegraph. The dash starts on its release frame.
       e.anim.kick.x = 0
       e.anim.kick.y = 0
-      if (!ex.attackFired && actorClipDone(enemyKey(e), 'attack')) startDash(e)
+      if (ex.attackHold <= 0 && !ex.attackFired && actorClipDone(enemyKey(e), 'attack')) startDash(e, world)
     } else {
       e.stateT -= dt
       e.anim.kick.x = (ctx.rng.next() - 0.5) * 8
       e.anim.kick.y = (ctx.rng.next() - 0.5) * 8
-      if (e.stateT <= 0) startDash(e)
+      if (e.stateT <= 0) startDash(e, world)
     }
     return
   }
@@ -449,18 +564,15 @@ function tickCharge(
     ex.chargeLeft -= dt
     if (ex.chargeLeft <= 0) {
       e.state = 'recover'
-      e.stateT = cooldown * 0.45
-      e.vx *= 0.2
-      e.vy *= 0.2
+      e.stateT = Math.min(RECOVER_CAP, cooldown)
     }
     return
   }
   if (e.state === 'recover') {
     e.stateT -= dt
-    e.vx = damp(e.vx, 0, 6, dt)
-    e.vy = damp(e.vy, 0, 6, dt)
+    steerAtPlayer(world, e, currentSpeed(e))
     if (e.stateT <= 0) {
-      e.state = 'idle'
+      e.state = 'chase'
       e.cooldown = cooldown
     }
   }
@@ -491,7 +603,7 @@ function updateBoss(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
     return
   }
 
-  steerToward(e, world.player.x, world.player.y, currentSpeed(e) * (phase.pattern === 'chase' ? 1 : 0.72))
+  steerAtPlayer(world, e, currentSpeed(e))
   e.cooldown -= dt
   if (e.cooldown > 0) return
   e.cooldown = phase.interval
@@ -518,7 +630,7 @@ function fireBossPattern(world: World, e: Enemy, ctx: SimCtx): void {
     }
     ctx.render.fx.shockwave(e.x, e.y, 70, e.def.palette.shade)
   } else {
-    steerToward(e, world.player.x, world.player.y, currentSpeed(e))
+    steerAtPlayer(world, e, currentSpeed(e))
   }
 }
 
@@ -527,10 +639,132 @@ const ELITE_SLAM_RANGE = 220
 /** Telegraph plus slam. The v3 clip is 885 ms; the windup holds the last cell out to this. */
 const ELITE_SLAM_WINDUP = 0.975
 const ELITE_SLAM_GAP = 3.6
+/** attack_hit is 165 ms into the painted lunge. */
+const ATTACK_HIT_AT = 0.165
 
-function beginAuthoredAttack(e: Enemy): void {
-  extra(e).attackFired = false
-  restartActorClip(enemyKey(e), 'attack')
+function beginAuthoredAttack(e: Enemy, windup = 0): void {
+  const ex = extra(e)
+  ex.attackFired = false
+  ex.attackHold = Math.max(0, windup - ATTACK_HIT_AT)
+  if (ex.attackHold <= 0) restartActorClip(enemyKey(e), 'attack')
+}
+
+function popKamikaze(world: World, e: Enemy, ctx: SimCtx): void {
+  const ex = extra(e)
+  if (ex.kamikazePopped) return
+  ex.kamikazePopped = true
+  markKamikazeCorpse(e)
+  const b = e.def.behavior
+  const radius = b.type === 'kamikaze' ? b.radius : (e.def.burst?.radius ?? 70)
+  const p = world.player
+  if (p.hp > 0 && dist(e.x, e.y, p.x, p.y) <= radius + p.r) {
+    damagePlayer(world, e.damage, ctx, e.form === 'nightmare' ? e.def.nightmareName : e.def.name, e)
+  }
+  spawnFunnyClip(CHAOS.sheets.pop, e.x, e.y, { scale: CHAOS.sheets.popScale })
+  chainBurst(world, e, ctx, Math.max(e.damage, 4))
+  addTrauma(world, FEEL.shake.kill, e.x - p.x, e.y - p.y)
+  beginDeath(world, e, ctx)
+}
+
+function updateKamikaze(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
+  const b = e.def.behavior
+  if (b.type !== 'kamikaze') return
+  const p = world.player
+  if (e.state === 'windup') {
+    e.vx = 0
+    e.vy = 0
+    const ang = Math.atan2(p.y - e.y, p.x - e.x)
+    e.aim.x = Math.cos(ang)
+    e.aim.y = Math.sin(ang)
+    if (actorClipDone(enemyKey(e), 'attack') && !extra(e).attackFired) {
+      extra(e).attackFired = true
+      popKamikaze(world, e, ctx)
+    }
+    return
+  }
+  steerAtPlayer(world, e, currentSpeed(e))
+  e.state = 'chase'
+  e.cooldown -= dt
+  if (e.cooldown <= 0 && dist(e.x, e.y, p.x, p.y) < b.range) {
+    e.cooldown = b.cooldown
+    e.vx = 0
+    e.vy = 0
+    if (enemySheet(e)?.manifest.clips.attack) {
+      e.state = 'windup'
+      beginAuthoredAttack(e)
+    } else {
+      popKamikaze(world, e, ctx)
+    }
+  }
+}
+
+function beginAuthoredScream(e: Enemy): void {
+  const ex = extra(e)
+  e.state = 'screaming'
+  e.stateT = 0
+  e.vx = 0
+  e.vy = 0
+  e.anim.scream = 1
+  e.anim.mouth = 1
+  ex.screamBurst = false
+  ex.authoredScream = true
+  if (hasClip(enemySheet(e), 'scream')) restartActorClip(enemyKey(e), 'scream')
+}
+
+function tickAuthoredScream(e: Enemy, dt: number): void {
+  e.stateT += dt
+  const sheet = enemySheet(e)
+  const done = e.stateT >= RECOVER_CAP || !hasClip(sheet, 'scream') || actorClipDone(enemyKey(e), 'scream')
+  if (!done) {
+    e.vx = 0
+    e.vy = 0
+    return
+  }
+  const ex = extra(e)
+  ex.authoredScream = false
+  e.anim.scream = -1
+  if (ex.lungeAfterScream) {
+    ex.lungeAfterScream = false
+    e.state = 'windup'
+    e.vx = 0
+    e.vy = 0
+    beginAuthoredAttack(e)
+    return
+  }
+  e.state = 'chase'
+}
+
+function updateTomatoMud(world: World, e: Enemy, dt: number, _ctx: SimCtx): void {
+  const p = world.player
+  const spd = currentSpeed(e)
+  if (e.state === 'windup') {
+    e.vx = 0
+    e.vy = 0
+    const ang = Math.atan2(p.y - e.y, p.x - e.x)
+    e.aim.x = Math.cos(ang)
+    e.aim.y = Math.sin(ang)
+    if (actorClipDone(enemyKey(e), 'attack') || e.stateT > 0.45) e.state = 'chase'
+    else e.stateT += dt
+    return
+  }
+  e.stateT = 0
+  steerAtPlayer(world, e, spd)
+  e.state = 'chase'
+  e.cooldown -= dt
+  const reach = e.r + p.r + 28
+  if (e.cooldown <= 0 && dist(e.x, e.y, p.x, p.y) <= reach + 16) {
+    const b = e.def.behavior
+    e.cooldown = b.type === 'kamikaze' ? b.cooldown : 1.15
+    e.vx = 0
+    e.vy = 0
+    extra(e).lungeAfterScream = true
+    if (hasClip(enemySheet(e), 'scream')) beginAuthoredScream(e)
+    else {
+      extra(e).lungeAfterScream = false
+      e.state = 'windup'
+      beginAuthoredAttack(e)
+    }
+  }
 }
 
 function blobMelee(world: World, e: Enemy, ctx: SimCtx): void {
@@ -546,20 +780,50 @@ function updateBlobMelee(world: World, e: Enemy, dt: number, _ctx: SimCtx): void
   const p = world.player
   const spd = currentSpeed(e)
   if (e.state === 'windup') {
+    const t = predictPlayer(world)
+    const ang = Math.atan2(t.y - e.y, t.x - e.x)
+    e.aim.x = Math.cos(ang)
+    e.aim.y = Math.sin(ang)
     e.vx = 0
     e.vy = 0
-    if (actorClipDone(enemyKey(e), 'attack')) e.state = 'chase'
+    if (actorClipDone(enemyKey(e), 'attack') || e.stateT > 0.45) e.state = 'chase'
+    else e.stateT += dt
     return
   }
-  steerToward(e, p.x, p.y, spd)
+  e.stateT = 0
+  steerAtPlayer(world, e, spd)
   e.state = 'chase'
   e.cooldown -= dt
   const reach = e.r + p.r + BLOB_REACH
   if (e.cooldown <= 0 && dist(e.x, e.y, p.x, p.y) <= reach + 8) {
     e.state = 'windup'
+    e.stateT = 0
     e.cooldown = 0.72
     e.vx = 0
     e.vy = 0
+    beginAuthoredAttack(e)
+  }
+}
+
+function updateOnion(world: World, e: Enemy, dt: number, _ctx: SimCtx): void {
+  const p = world.player
+  const spd = currentSpeed(e)
+  const range = onionRange(p)
+  const d = dist(e.x, e.y, p.x, p.y)
+  steerRanged(world, e, spd, range)
+  if (e.state === 'windup') {
+    if (actorClipDone(enemyKey(e), 'attack') || e.stateT > 0.45) e.state = 'chase'
+    else e.stateT += dt
+    return
+  }
+  e.state = 'chase'
+  e.stateT = 0
+  e.cooldown -= dt
+  if (e.cooldown <= 0 && d <= range) {
+    e.state = 'windup'
+    e.stateT = 0
+    e.cooldown = 0.85
+    armOnionGas(e)
     beginAuthoredAttack(e)
   }
 }
@@ -579,7 +843,7 @@ function updateEliteSlam(world: World, e: Enemy, dt: number, ctx: SimCtx): void 
     }
     return
   }
-  steerToward(e, p.x, p.y, currentSpeed(e))
+  steerAtPlayer(world, e, currentSpeed(e))
   e.state = 'chase'
   e.cooldown -= dt
   if (e.cooldown <= 0 && dist(e.x, e.y, p.x, p.y) < ELITE_SLAM_RANGE) {
@@ -590,7 +854,7 @@ function updateEliteSlam(world: World, e: Enemy, dt: number, ctx: SimCtx): void 
     e.stateT = ELITE_SLAM_WINDUP
     e.vx = 0
     e.vy = 0
-    beginAuthoredAttack(e)
+    beginAuthoredAttack(e, ELITE_SLAM_WINDUP)
     ctx.audio.play('charge', { gain: 0.85, pitch: 0.7 })
   }
 }
@@ -603,41 +867,72 @@ function mudRumble(world: World, e: Enemy, ctx: SimCtx): void {
   ctx.audio.play('mudSquelch', { pitch: 0.62, gain: 0.7 })
 }
 
-function beginPerform(e: Enemy, name: 'taunt' | 'scream'): void {
-  const sheet = enemySheet(e)
-  if (!sheet?.manifest.clips[name]) return
-  e.perform = name
-  e.vx = 0
-  e.vy = 0
-  restartActorClip(enemyKey(e), name)
-}
-
 function sheetEvents(world: World, e: Enemy, clip: string, events: readonly string[], ctx: SimCtx): void {
   if (!events.length) return
   const ex = extra(e)
   const b = e.def.behavior
+  const strike = events.includes('attack_hit') || events.includes('hit')
   if (events.includes('release') && !ex.attackFired) {
     if (b.type === 'shoot' && e.state === 'shooting') {
       ex.attackFired = true
       fireAtPlayer(world, e, b.projectile, ctx, true)
     } else if (b.type === 'charge' && e.state === 'windup') {
       ex.attackFired = true
-      startDash(e)
+      startDash(e, world)
+    } else if (b.type === 'kamikaze' && e.form !== 'nightmare') {
+      ex.attackFired = true
+      popKamikaze(world, e, ctx)
     }
   }
-  if (events.includes('scream')) mudRumble(world, e, ctx)
-  if (events.includes('hit') && !ex.attackFired) {
+  if (events.includes('scream') && !ex.screamBurst && !screamIsLeapTell(e)) {
+    ex.screamBurst = true
+    fireScreamBurst(world, e, ctx)
+    mudRumble(world, e, ctx)
+  }
+  if (strike && !ex.attackFired) {
     const fam = enemyFamily(e.kind)
-    if ((fam === 'blob' || fam === 'beetle') && e.state === 'windup') {
+    if ((fam === 'blob' || fam === 'beetle' || fam === 'beetroot' || fam === 'onion') && e.state === 'windup') {
       ex.attackFired = true
       blobMelee(world, e, ctx)
     } else if (e.kind === 'eliteBlob' && e.state === 'windup') {
-      // The 975 ms windup is the telegraph. Contact damage is unchanged; no extra burst.
       ex.attackFired = true
+    } else if (e.kind === 'tomato' && e.form === 'nightmare' && e.state === 'windup') {
+      ex.attackFired = true
+      blobMelee(world, e, ctx)
+    } else if (e.kind === 'bean' && e.state === 'windup') {
+      ex.attackFired = true
+      blobMelee(world, e, ctx)
+    } else if (b.type === 'charge' && e.state === 'windup') {
+      ex.attackFired = true
+      startDash(e, world)
     }
   }
+  if (events.includes('release') && !ex.attackFired && enemyFamily(e.kind) === 'onion' && e.state === 'windup') {
+    ex.attackFired = true
+    blobMelee(world, e, ctx)
+  }
+  if (events.includes('splat') && (clip === 'death_smash' || clip.startsWith('death_smash'))) {
+    spawnSmashSplat(e, ctx.rng.int(0, 1e6))
+  }
+  if (events.includes('gas_puff')) spawnOnionPuff(e)
+  if (events.includes('emerge_fx') || events.includes('emerged')) emergeEvents(e, events, ctx)
+  if (
+    events.includes('takeoff') ||
+    events.includes('leap_takeoff') ||
+    events.includes('land') ||
+    events.includes('leap_land') ||
+    events.includes('leap_done') ||
+    events.includes('bite_hit') ||
+    events.includes('bite_done') ||
+    events.includes('attack_hit') ||
+    events.includes('hit')
+  ) {
+    onSpecialEvents(world, e, events, ctx)
+  }
   if (events.includes('spawnFx')) {
-    if (clip.startsWith('death') || (events.includes('hit') && e.kind === 'eliteBlob')) {
+    if (clip === 'death' || clip === 'death_slice' || clip === 'death_smash' || clip === 'attack') {
+      spawnFunnyClip(CHAOS.sheets.pop, e.x, e.y, { scale: CHAOS.sheets.popScale })
+    } else if (clip.startsWith('death') || (events.includes('hit') && e.kind === 'eliteBlob')) {
       ctx.render.fx.inkBurst(e.x, e.y, e.r * (clip.startsWith('death') ? FEEL.kill.inkSize : 1.4))
     } else if (enemyFamily(e.kind) === 'charger') {
       ctx.render.fx.dust(e.x, e.y + e.r * 0.45, e.aim.x * 36, e.aim.y * 12)
@@ -655,52 +950,73 @@ function stepEnemySheet(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const dead = e.state === 'dying' || e.anim.deathT >= 0
   const attacking = e.state === 'windup' || e.state === 'charging' || e.state === 'shooting'
   const key = enemyKey(e)
-  // A killing blow queues a hurt replay before death starts. Swallow it so the
-  // cream hurt cell cannot replace, or restart, the death clip.
-  if (dead) consumeHurtKick(key)
-  const hurtClip = !dead && !!sheet.manifest.clips.hurt
-  // The first hurt cell is a solid cream flash (40 ms). Restarting on every
-  // hit — multi-arm swings, burn ticks — holds that cell, so the blob reads
-  // as a white shape. Let the recovery frames play out.
-  const hurtPlaying = hurtClip && actorClipActive(key, 'hurt')
-  const kicked = hurtClip && consumeHurtKick(key)
-  if (kicked && !hurtPlaying) restartActorClip(key, 'hurt')
-  const hurt = hurtPlaying || kicked
-  const corpseName = e.corpse && sheet.manifest.clips[e.corpse] ? e.corpse : 'death'
+  const ex = extra(e)
+  if (ex.attackHold > 0 && attacking && !dead) {
+    ex.attackHold -= dt
+    if (ex.attackHold <= 0) {
+      ex.attackHold = 0
+      if (sheet.manifest.clips.attack) restartActorClip(key, 'attack')
+    }
+  }
+  // Hurt frame 0 is a cream flash drawn over the body. Never play the clip.
+  consumeHurtKick(key)
+  const corpseName = dead ? corpseClipName(e) ?? (e.corpse && sheet.manifest.clips[e.corpse] ? e.corpse : 'death') : null
+  const emerging = e.state === 'spawning' && hasClip(sheet, 'emerge')
+  const leaping = isLeaping(e) && hasClip(sheet, 'leap')
+  const screamingClip = e.state === 'screaming' && hasClip(sheet, 'scream')
   const performing = !dead && e.perform && sheet.manifest.clips[e.perform] ? e.perform : ''
-  const clip = dead
-    ? sheet.manifest.clips[corpseName]
+  const playAttack = attacking && sheet.manifest.clips.attack && ex.attackHold <= 0
+  const posedClip = !dead && !emerging ? specialClip(e) ?? turnClip(e) : null
+  const clipRaw = dead
+    ? corpseName && sheet.manifest.clips[corpseName]
       ? corpseName
       : null
-    : performing
-      ? performing
-      : hurt
-        ? 'hurt'
-        : attacking && sheet.manifest.clips.attack
-          ? 'attack'
-          : e.anim.moving && sheet.manifest.clips.walk
-            ? 'walk'
-            : sheet.manifest.clips.idle
-              ? 'idle'
-              : sheet.manifest.clips.walk
-                ? 'walk'
-                : null
-  // Hurt is painted on top, but the attack or scream clock keeps running.
-  if (hurt && attacking && sheet.manifest.clips.attack && clip !== 'attack') {
-    const ev = advanceActorSheet(enemyKey(e), sheet, 'attack', dt)
-    sheetEvents(world, e, 'attack', ev, ctx)
-  }
-  if (hurt && performing && clip !== performing) {
-    const ev = advanceActorSheet(enemyKey(e), sheet, performing, dt)
-    sheetEvents(world, e, performing, ev, ctx)
-    if (actorClipDone(enemyKey(e), performing)) e.perform = undefined
-  }
+    : emerging
+      ? 'emerge'
+      : posedClip && sheet.manifest.clips[posedClip]
+        ? posedClip
+        : leaping
+          ? 'leap'
+          : screamingClip
+            ? 'scream'
+            : performing
+              ? performing
+              : playAttack
+                ? 'attack'
+                : e.anim.moving && sheet.manifest.clips.walk
+                  ? 'walk'
+                  : sheet.manifest.clips.idle
+                    ? 'idle'
+                    : sheet.manifest.clips.walk
+                      ? 'walk'
+                      : null
+  const clip = familyClip(e, clipRaw)
   if (!clip) return
-  const cruise = Math.max(1, e.speed)
-  const walkRate = clamp(Math.hypot(e.vx, e.vy) / cruise, 0.45, 1.7)
+  presentActorClip(key, clip)
+  const walkRate = walkPlaybackRate(Math.hypot(e.vx, e.vy), Math.max(40, e.speed))
   const events = advanceActorSheet(enemyKey(e), sheet, clip, dt, walkRate)
-  if (clip === 'attack' || clip.startsWith('death') || clip === 'scream' || clip === e.perform) {
+  if (clip === 'emerge') e.anim.spawnT = actorClipFraction(key, 'emerge')
+  if (
+    clip === 'attack' ||
+    clip.startsWith('death') ||
+    clip === 'emerge' ||
+    clip === 'leap' ||
+    clip === 'bite' ||
+    clip === 'taunt' ||
+    clip === 'scream' ||
+    clip === 'burrow' ||
+    clip === 'resurface' ||
+    clip === 'peel' ||
+    clip === e.perform
+  ) {
     sheetEvents(world, e, clip, events, ctx)
+    familyEvents(world, e, clip, events, ctx)
+    if (takeFamilyHit(e)) {
+      const pad = CHAOS.families.beetroot.hitPad
+      if (dist(e.x, e.y, world.player.x, world.player.y) <= e.r + world.player.r + pad) {
+        damagePlayer(world, e.damage, ctx, e.form === 'nightmare' ? e.def.nightmareName : e.def.name, e)
+      }
+    }
   }
   if (e.perform && clip === e.perform && actorClipDone(enemyKey(e), e.perform)) e.perform = undefined
 }
@@ -709,40 +1025,42 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   const b = e.def.behavior
   const p = world.player
   const spd = currentSpeed(e)
+  if (specialOwns(e)) {
+    maybeLeap(world, e, dt, ctx)
+    return
+  }
+  if (tickFamily(world, e, dt, ctx)) return
+  if (maybeLeap(world, e, dt, ctx)) return
 
+  if (b.type === 'kamikaze') {
+    if (e.kind === 'tomato' && e.form === 'nightmare') {
+      updateTomatoMud(world, e, dt, ctx)
+      return
+    }
+    updateKamikaze(world, e, dt, ctx)
+    return
+  }
   if (b.type === 'chase') {
     if (e.kind === 'eliteBlob' && enemySheet(e)?.manifest.clips.attack) {
       updateEliteSlam(world, e, dt, ctx)
       return
     }
     const fam = enemyFamily(e.kind)
-    if ((fam === 'blob' || fam === 'beetle') && enemySheet(e)?.manifest.clips.attack) {
+    if (fam === 'onion') {
+      updateOnion(world, e, dt, ctx)
+      return
+    }
+    if ((fam === 'blob' || fam === 'beetle' || fam === 'beetroot') && enemySheet(e)?.manifest.clips.attack) {
       updateBlobMelee(world, e, dt, ctx)
       return
     }
-    steerToward(e, p.x, p.y, spd)
+    steerAtPlayer(world, e, spd)
     e.state = 'chase'
     return
   }
   if (b.type === 'wander') {
-    e.stateT -= dt
-    if (e.stateT <= 0) {
-      if (ctx.rng.chance(0.4)) {
-        e.state = 'chase'
-        e.stateT = ctx.rng.range(0.5, 1.4)
-      } else {
-        e.state = 'idle'
-        const a = ctx.rng.range(0, Math.PI * 2)
-        e.aim.x = Math.cos(a)
-        e.aim.y = Math.sin(a)
-        e.stateT = ctx.rng.range(0.7, 1.8)
-      }
-    }
-    if (e.state === 'chase') steerToward(e, p.x, p.y, spd)
-    else {
-      e.vx = e.aim.x * spd * b.drift
-      e.vy = e.aim.y * spd * b.drift
-    }
+    steerAtPlayer(world, e, spd)
+    e.state = 'chase'
     return
   }
   if (b.type === 'charge') {
@@ -753,46 +1071,34 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
     e.cooldown -= dt
     const d = dist(e.x, e.y, p.x, p.y)
     if (e.cooldown <= 0 && d < b.range) beginCharge(e, world, ctx, b.windup)
-    else steerToward(e, p.x, p.y, spd)
+    else {
+      steerAtPlayer(world, e, spd)
+      e.state = 'chase'
+    }
     return
   }
   if (b.type === 'shoot') {
     const sheeted = !!enemySheet(e)?.manifest.clips.attack
     const d = dist(e.x, e.y, p.x, p.y)
+    steerRanged(world, e, spd, b.range)
     if (e.state === 'shooting' && sheeted) {
-      e.vx = damp(e.vx, 0, 8, dt)
-      e.vy = damp(e.vy, 0, 8, dt)
-      const ang = Math.atan2(p.y - e.y, p.x - e.x)
-      e.aim.x = Math.cos(ang)
-      e.aim.y = Math.sin(ang)
-      if (actorClipDone(enemyKey(e), 'attack')) {
+      if (actorClipDone(enemyKey(e), 'attack') || e.stateT > 0.45) {
         if (!extra(e).attackFired) {
           extra(e).attackFired = true
           fireAtPlayer(world, e, b.projectile, ctx, false)
         }
-        e.state = 'idle'
-      }
+        e.state = 'chase'
+        e.stateT = 0
+      } else e.stateT += dt
       return
     }
-    if (d < b.keepDistance * 0.82) {
-      const ang = Math.atan2(e.y - p.y, e.x - p.x)
-      e.vx = Math.cos(ang) * spd
-      e.vy = Math.sin(ang) * spd
-    } else if (d > b.range * 0.92) {
-      steerToward(e, p.x, p.y, spd)
-    } else {
-      const side = Math.atan2(p.y - e.y, p.x - e.x) + Math.PI / 2
-      e.vx = Math.cos(side) * spd * 0.55
-      e.vy = Math.sin(side) * spd * 0.55
-    }
+    e.state = 'chase'
     e.cooldown -= dt
-    if (e.cooldown <= 0 && d < b.range * 1.05) {
+    if (e.cooldown <= 0 && d < b.range) {
       e.cooldown = b.cooldown
-      e.state = 'shooting'
       if (sheeted) {
-        const ang = Math.atan2(p.y - e.y, p.x - e.x)
-        e.aim.x = Math.cos(ang)
-        e.aim.y = Math.sin(ang)
+        e.state = 'shooting'
+        e.stateT = 0
         beginAuthoredAttack(e)
       } else {
         fireAtPlayer(world, e, b.projectile, ctx)
@@ -801,7 +1107,8 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
     return
   }
   if (b.type === 'spawner') {
-    steerToward(e, p.x, p.y, spd * 0.55)
+    steerAtPlayer(world, e, spd)
+    e.state = 'chase'
     e.cooldown -= dt
     if (e.cooldown <= 0 && e.children < b.max) {
       e.cooldown = b.interval
@@ -813,52 +1120,209 @@ function updateBehavior(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
   if (b.type === 'boss') updateBoss(world, e, dt, ctx)
 }
 
-function separate(world: World): void {
+function canSeparate(e: Enemy): boolean {
+  if (e.state === 'dying' || e.state === 'spawning' || e.state === 'charging') return false
+  if (isAirborne(e)) return false
+  return true
+}
+
+function cellKey(cx: number, cy: number): number {
+  return ((cx + 512) << 16) | ((cy + 512) & 0xffff)
+}
+
+const sepBuckets = new Map<number, number[]>()
+let sepX = new Float64Array(0)
+let sepY = new Float64Array(0)
+
+export function overlappingEnemyPairs(world: World, frac: number): number {
   const list = world.enemies
   const n = list.length
+  let hits = 0
   for (let i = 0; i < n; i++) {
     const a = list[i]
     if (!a || a.state === 'dying' || a.state === 'spawning') continue
     for (let j = i + 1; j < n; j++) {
       const b = list[j]
       if (!b || b.state === 'dying' || b.state === 'spawning') continue
+      const min = (a.r + b.r) * frac
       const dx = a.x - b.x
-      if (dx > 46 || dx < -46) continue
       const dy = a.y - b.y
-      if (dy > 46 || dy < -46) continue
-      const min = (a.r + b.r) * 0.82
-      const d2 = dx * dx + dy * dy
-      if (d2 >= min * min || d2 < 0.01) continue
-      const d = Math.sqrt(d2)
-      const nx = dx / d
-      const ny = dy / d
-      const push = (min - d) * 0.46
-      a.x += nx * push
-      a.y += ny * push
-      b.x -= nx * push
-      b.y -= ny * push
+      if (dx * dx + dy * dy < min * min) hits += 1
     }
+  }
+  return hits
+}
+
+export interface OverlapProbe {
+  frames: number
+  preSep: number
+  postSep: number
+  preStack: number
+  postStack: number
+}
+
+export const overlapProbe: OverlapProbe = {
+  frames: 0,
+  preSep: 0,
+  postSep: 0,
+  preStack: 0,
+  postStack: 0,
+}
+
+export function resetOverlapProbe(): void {
+  overlapProbe.frames = 0
+  overlapProbe.preSep = 0
+  overlapProbe.postSep = 0
+  overlapProbe.preStack = 0
+  overlapProbe.postStack = 0
+}
+
+export function overlapAverages(): { sepBefore: number; sepAfter: number; stackBefore: number; stackAfter: number; frames: number } {
+  const n = Math.max(1, overlapProbe.frames)
+  return {
+    frames: overlapProbe.frames,
+    sepBefore: overlapProbe.preSep / n,
+    sepAfter: overlapProbe.postSep / n,
+    stackBefore: overlapProbe.preStack / n,
+    stackAfter: overlapProbe.postStack / n,
   }
 }
 
-const SCREAM_WINDUP = 0.35
-const SCREAM_HOLD = 0.8
-const SCREAM_TOTAL = SCREAM_WINDUP + SCREAM_HOLD
+function separate(world: World): void {
+  const list = world.enemies
+  const n = list.length
+  const cell = CHAOS.read.separateCell
+  const hitFrac = CHAOS.read.separateHit
+  const pushK = CHAOS.read.separatePush
+  const cap = CHAOS.read.separateCap
+  overlapProbe.frames += 1
+  overlapProbe.preSep += overlappingEnemyPairs(world, hitFrac)
+  overlapProbe.preStack += overlappingEnemyPairs(world, 0.35)
+
+  if (sepX.length < n) {
+    sepX = new Float64Array(n)
+    sepY = new Float64Array(n)
+  } else {
+    sepX.fill(0, 0, n)
+    sepY.fill(0, 0, n)
+  }
+  sepBuckets.clear()
+  const active: number[] = []
+  for (let i = 0; i < n; i++) {
+    const e = list[i]
+    if (!e || !canSeparate(e)) continue
+    active.push(i)
+    const k = cellKey(Math.floor(e.x / cell), Math.floor(e.y / cell))
+    let bucket = sepBuckets.get(k)
+    if (!bucket) {
+      bucket = []
+      sepBuckets.set(k, bucket)
+    }
+    bucket.push(i)
+  }
+  for (let a = 0; a < active.length; a++) {
+    const i = active[a]!
+    const ea = list[i]
+    if (!ea) continue
+    const cx = Math.floor(ea.x / cell)
+    const cy = Math.floor(ea.y / cell)
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oy = -1; oy <= 1; oy++) {
+        const bucket = sepBuckets.get(cellKey(cx + ox, cy + oy))
+        if (!bucket) continue
+        for (let b = 0; b < bucket.length; b++) {
+          const j = bucket[b]!
+          if (j <= i) continue
+          const eb = list[j]
+          if (!eb || !canSeparate(eb)) continue
+          const dx = ea.x - eb.x
+          const dy = ea.y - eb.y
+          const min = (ea.r + eb.r) * hitFrac
+          const d2 = dx * dx + dy * dy
+          if (d2 >= min * min || d2 < 0.0001) continue
+          const d = Math.sqrt(d2)
+          const push = Math.min(cap, (min - d) * pushK)
+          const inv = push / d
+          sepX[i] = (sepX[i] ?? 0) + dx * inv
+          sepY[i] = (sepY[i] ?? 0) + dy * inv
+          sepX[j] = (sepX[j] ?? 0) - dx * inv
+          sepY[j] = (sepY[j] ?? 0) - dy * inv
+        }
+      }
+    }
+  }
+
+  const hero = world.player
+  const ring = hero.r + CHAOS.read.heroClear
+  for (let a = 0; a < active.length; a++) {
+    const i = active[a]!
+    const ea = list[i]
+    if (!ea) continue
+    let px = sepX[i] ?? 0
+    let py = sepY[i] ?? 0
+    const hx = ea.x - hero.x
+    const hy = ea.y - hero.y
+    const hd = Math.hypot(hx, hy)
+    if (hd > ring && hd > 0.001) {
+      const radial = (px * hx + py * hy) / hd
+      if (radial > 0) {
+        const cut = radial * 0.85
+        px -= (hx / hd) * cut
+        py -= (hy / hd) * cut
+      }
+    }
+    const mag = Math.hypot(px, py)
+    if (mag > 1.6) {
+      const s = 1.6 / mag
+      px *= s
+      py *= s
+    }
+    ea.x += px
+    ea.y += py
+  }
+
+  overlapProbe.postSep += overlappingEnemyPairs(world, hitFrac)
+  overlapProbe.postStack += overlappingEnemyPairs(world, 0.35)
+  pushFromHero(world)
+  if (typeof window !== 'undefined') {
+    ;(window as unknown as { __overlap?: ReturnType<typeof overlapAverages> }).__overlap = overlapAverages()
+  }
+}
+
+/** Soft ring so a pack cannot sit on the potato. Dying / airborne stay put. */
+function pushFromHero(world: World): void {
+  const p = world.player
+  const min = p.r + CHAOS.read.heroClear
+  const min2 = min * min
+  const cap = CHAOS.read.heroClearCap
+  const k = CHAOS.read.heroClearPush
+  for (let i = 0; i < world.enemies.length; i++) {
+    const e = world.enemies[i]
+    if (!e || e.state === 'dying') continue
+    if (isAirborne(e)) continue
+    let dx = e.x - p.x
+    let dy = e.y - p.y
+    let d2 = dx * dx + dy * dy
+    if (d2 >= min2) continue
+    if (d2 < 0.0001) {
+      dx = e.uid % 2 === 0 ? 1 : -1
+      dy = 0.15
+      d2 = dx * dx + dy * dy
+    }
+    const d = Math.sqrt(d2)
+    const push = Math.min(cap, (min - d) * k)
+    const inv = push / d
+    const pos = clampToArena(world, e.x + dx * inv, e.y + dy * inv, e.r)
+    e.x = pos.x
+    e.y = pos.y
+  }
+}
 
 function canScream(e: Enemy): boolean {
   if (e.form !== 'nightmare') return false
+  if (e.kind === 'tomato' || e.kind === 'bean') return false
   if (e.state === 'spawning' || e.state === 'dying' || e.state === 'charging' || e.state === 'windup') return false
   return true
-}
-
-function startScream(e: Enemy): void {
-  e.state = 'screaming'
-  e.stateT = 0
-  e.vx = 0
-  e.vy = 0
-  e.anim.scream = 0
-  e.anim.mouth = 0.35
-  extra(e).screamBurst = false
 }
 
 function fireScreamBurst(world: World, e: Enemy, ctx: SimCtx): void {
@@ -870,37 +1334,9 @@ function fireScreamBurst(world: World, e: Enemy, ctx: SimCtx): void {
   ctx.audio.play(e.boss ? 'screamBig' : 'scream')
 }
 
-function poseScream(e: Enemy, ctx: SimCtx): void {
-  const t = e.stateT
-  if (t < SCREAM_WINDUP) {
-    const u = t / SCREAM_WINDUP
-    e.anim.scream = u * 0.3
-    e.anim.mouth = 0.35 + u * 0.45
-    e.anim.kick.x = (ctx.rng.next() - 0.5) * 6
-    e.anim.kick.y = (ctx.rng.next() - 0.5) * 6
-  } else {
-    const u = Math.min(1, (t - SCREAM_WINDUP) / SCREAM_HOLD)
-    e.anim.scream = 0.3 + u * 0.7
-    e.anim.mouth = 1
-    e.anim.kick.x = 0
-    e.anim.kick.y = 0
-  }
-}
-
-function tickScream(world: World, e: Enemy, dt: number, ctx: SimCtx): void {
-  e.stateT += dt
-  e.vx = 0
-  e.vy = 0
-  if (e.stateT >= SCREAM_WINDUP && !extra(e).screamBurst) {
-    extra(e).screamBurst = true
-    fireScreamBurst(world, e, ctx)
-  }
-  poseScream(e, ctx)
-  if (e.stateT >= SCREAM_TOTAL) finishScream(world, e, ctx)
-}
-
 function finishScream(world: World, e: Enemy, ctx: SimCtx): void {
-  e.state = 'idle'
+  fireScreamBurst(world, e, ctx)
+  e.state = 'chase'
   e.anim.scream = -1
   e.anim.squash = 1.12
   e.anim.kick.x = 0
@@ -911,7 +1347,7 @@ function finishScream(world: World, e: Enemy, ctx: SimCtx): void {
   if (e.kind === 'hive' || e.def.species === 'cabbage') {
     for (let i = 0; i < 2; i++) {
       const a = ctx.rng.range(0, Math.PI * 2)
-      spawnEnemy(world, 'blob', e.x + Math.cos(a) * (e.r + 20), e.y + Math.sin(a) * (e.r + 20), ctx, false, e)
+      spawnEnemy(world, 'blob-light', e.x + Math.cos(a) * (e.r + 20), e.y + Math.sin(a) * (e.r + 20), ctx, false, e)
     }
   }
   if (e.boss) {
@@ -937,6 +1373,75 @@ export function nightmaresAlive(world: World): number {
   return n
 }
 
+export function aiOverlayOn(): boolean {
+  if (typeof location === 'undefined') return false
+  return new URLSearchParams(location.search).get('ai') === '1'
+}
+
+export function aiOverlayText(e: Enemy): string {
+  if (specialOwns(e)) return specialClip(e) || 'special'
+  if (familyHidden(e)) return 'burrow'
+  return e.state
+}
+
+interface StallHit {
+  kind: string
+  state: string
+  dist: number
+  wave: number
+}
+
+const stallRows = new WeakMap<Enemy, { best: number; since: number; logged: boolean }>()
+const stallHits: StallHit[] = []
+
+function inStrikeBand(e: Enemy, d: number, p: World['player']): boolean {
+  const b = e.def.behavior
+  if (b.type === 'shoot') return d <= b.range * 0.85
+  if (b.type === 'charge') return d <= b.range
+  if (b.type === 'kamikaze') return d <= b.range + 8
+  if (enemyFamily(e.kind) === 'onion') return d <= onionRange(p)
+  return d <= e.r + p.r + 36
+}
+
+function stallExempt(e: Enemy, d: number, p: World['player']): boolean {
+  if (e.state === 'dying' || e.state === 'spawning') return true
+  if (e.state === 'windup' || e.state === 'charging' || e.state === 'shooting') return true
+  if (e.state === 'burrowing' || e.state === 'resurfacing' || e.state === 'peeling' || e.state === 'screaming') return true
+  if (specialOwns(e) || isAirborne(e) || familyHidden(e)) return true
+  return inStrikeBand(e, d, p)
+}
+
+function noteStall(world: World, e: Enemy, dt: number): void {
+  if (!import.meta.env.DEV) return
+  const p = world.player
+  const d = dist(e.x, e.y, p.x, p.y)
+  let row = stallRows.get(e)
+  if (!row) {
+    row = { best: d, since: 0, logged: false }
+    stallRows.set(e, row)
+  }
+  if (stallExempt(e, d, p)) {
+    row.best = d
+    row.since = 0
+    return
+  }
+  if (d < row.best - 6) {
+    row.best = d
+    row.since = 0
+    row.logged = false
+    return
+  }
+  row.since += dt
+  if (row.since < 3 || row.logged) return
+  row.logged = true
+  const hit: StallHit = { kind: e.kind, state: aiOverlayText(e), dist: Math.round(d), wave: world.wave }
+  stallHits.push(hit)
+  console.warn(`[ai] ${hit.kind} stalled ${row.since.toFixed(1)}s at ${hit.dist}px state=${hit.state} wave=${hit.wave}`)
+  if (typeof window !== 'undefined') {
+    ;(window as unknown as { __aiStalls?: StallHit[] }).__aiStalls = stallHits
+  }
+}
+
 export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
   const player = world.player
   const roster = new Set(world.enemies)
@@ -945,10 +1450,17 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
   for (const e of world.enemies) {
     e.anim.t += dt
     e.anim.hitFlash = Math.max(0, e.anim.hitFlash - dt * 4)
-    if (e.state !== 'screaming') e.anim.squash = damp(e.anim.squash, 1, 10, dt)
-    e.knock.x = damp(e.knock.x, 0, 7, dt)
-    e.knock.y = damp(e.knock.y, 0, 7, dt)
+    e.knock.x = damp(e.knock.x, 0, CHAOS.smooth.knockDamp, dt)
+    e.knock.y = damp(e.knock.y, 0, CHAOS.smooth.knockDamp, dt)
     const ex = extra(e)
+    // Underdamped spring: a hit squash wobbles past round and settles, jelly not putty.
+    if (e.state !== 'screaming' && !isAirborne(e) && !pinLeapSquash(e)) {
+      const j = CHAOS.juice
+      ex.squashV += (j.squashSpring * (1 - e.anim.squash) - j.squashDamp * ex.squashV) * dt
+      e.anim.squash += ex.squashV * dt
+    } else {
+      ex.squashV = 0
+    }
     if (ex.surgeT > 0) ex.surgeT = Math.max(0, ex.surgeT - dt)
 
     if (e.hp <= 0 && e.state !== 'dying') beginDeath(world, e, ctx)
@@ -956,19 +1468,29 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     if (e.state === 'dying') {
       e.stateT += dt
       const sheet = enemySheet(e)
-      const corpseName = e.corpse && sheet?.manifest.clips[e.corpse] ? e.corpse : 'death'
-      const authored = !!sheet?.manifest.clips[corpseName]
-      const dur = authored && sheet ? sheetClipSeconds(sheet, corpseName) : DEATH_TIME
+      const kamikazeBody = extra(e).kamikazePopped
+      const keepAttack = kamikazeBody && sheet && !actorClipDone(enemyKey(e), 'attack')
+      const corpseName = corpseClipName(e) ?? (e.corpse && sheet?.manifest.clips[e.corpse] ? e.corpse : 'death')
+      const authored = !!sheet?.manifest.clips[corpseName ?? '']
+      const dur = authored && sheet && corpseName ? sheetClipSeconds(sheet, corpseName) : DEATH_TIME
       const deathDur = dur > 0 ? dur : DEATH_TIME
-      // The last cell is the painted remains (~1s, baked into the clip). Then it fades.
-      const fade = authored ? DEATH_FADE : 0
-      e.anim.deathT = authored ? (e.stateT <= deathDur ? 0 : Math.min(1, (e.stateT - deathDur) / fade)) : Math.min(1, e.stateT / deathDur)
+      const fade = authored && !kamikazeBody ? DEATH_FADE : 0
+      e.anim.deathT = keepAttack
+        ? Math.min(0.92, e.stateT / Math.max(0.4, deathDur))
+        : authored
+          ? e.stateT <= deathDur
+            ? 0
+            : Math.min(1, (e.stateT - deathDur) / fade)
+          : Math.min(1, e.stateT / deathDur)
       if (sheet) stepEnemySheet(world, e, dt, ctx)
       e.vx = damp(e.vx, 0, 8, dt)
       e.vy = damp(e.vy, 0, 8, dt)
       e.x += (e.vx + e.knock.x) * dt
       e.y += (e.vy + e.knock.y) * dt
-      if (e.stateT < deathDur + fade) keep.push(e)
+      const corpse = pushGardenSolids(e.x, e.y, e.r)
+      e.x = corpse.x
+      e.y = corpse.y
+      if (keepAttack || e.stateT < deathDur + fade) keep.push(e)
       else {
         forgetActor(enemyKey(e))
         byUid.delete(e.uid)
@@ -977,40 +1499,23 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
     }
 
     if (e.state === 'spawning') {
-      e.stateT += dt
-      e.vx = 0
-      e.vy = 0
-      const sheet = enemySheet(e)
-      if (sheet && !ex.spawnClip) {
-        ex.spawnClip = spawnClipName(sheet, ex.dropFromPlant) ?? ''
+      const still = tickEmerge(e, dt, ctx)
+      if (enemySheet(e)) stepEnemySheet(world, e, dt, ctx)
+      const emergeStuck = e.stateT > 3.2
+      if (still && e.state === 'spawning' && !actorClipDone(enemyKey(e), 'emerge') && !emergeStuck) {
+        tickFaceAnim(e.anim, dt, ex, {
+          moving: false,
+          speed: 0,
+          form: e.form,
+          screaming: false,
+          screamProgress: 0,
+          flinchT: 0,
+          nextBlink: () => ctx.rng.range(3, 6),
+        })
+        keep.push(e)
+        continue
       }
-      const emerge = ex.spawnClip && sheet?.manifest.clips[ex.spawnClip]
-      if (sheet && emerge && ex.spawnClip) {
-        const key = enemyKey(e)
-        const clipName = ex.spawnClip
-        if (!ex.emerge) {
-          ex.emerge = true
-          restartActorClip(key, clipName)
-        }
-        const events = advanceActorSheet(key, sheet, clipName, dt)
-        e.anim.spawnT = actorClipFraction(key, clipName)
-        // emerge_fx is the dirt pop or the vine snap. The spawn/fx pass paints it.
-        if (events.includes('emerged') || actorClipDone(key, clipName)) leaveSpawn(world, e, ctx)
-      } else {
-        e.anim.spawnT = Math.min(1, e.stateT / SPAWN_TIME)
-        if (e.stateT >= SPAWN_TIME) leaveSpawn(world, e, ctx)
-      }
-      tickFaceAnim(e.anim, dt, ex, {
-        moving: false,
-        speed: 0,
-        form: e.form,
-        screaming: false,
-        screamProgress: 0,
-        flinchT: 0,
-        nextBlink: () => ctx.rng.range(3, 6),
-      })
-      keep.push(e)
-      continue
+      if (e.state === 'spawning') leaveSpawn(world, e, ctx)
     }
 
     if (e.slow > 0) e.slow = Math.max(0, e.slow - dt)
@@ -1029,56 +1534,45 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
       }
     }
 
-    const tone = variantTone(e.kind)
-    if (!e.perform && tone === 'mud' && !ex.sawHero && dist(e.x, e.y, player.x, player.y) < SEE_RANGE) {
-      ex.sawHero = true
-      // charger-mud's attack clip already contains the scream. Don't play one in front of it.
-      if (enemyFamily(e.kind) !== 'charger') beginPerform(e, 'scream')
-    }
-    if (
-      !e.perform &&
-      tone === 'light' &&
-      e.state !== 'windup' &&
-      e.state !== 'charging' &&
-      e.state !== 'shooting'
-    ) {
-      ex.tauntCd -= dt
-      if (ex.tauntCd <= 0) {
-        ex.tauntCd = ctx.rng.range(4.2, 7.5)
-        if (ctx.rng.chance(0.7)) beginPerform(e, 'taunt')
-      }
-    }
+    if (e.perform) e.perform = undefined
 
-    if (e.state === 'screaming') {
-      tickScream(world, e, dt, ctx)
-    } else if (canScream(e)) {
-      e.screamCooldown -= dt
-      if (e.screamCooldown <= 0) startScream(e)
-    }
-
-    if (e.perform || e.state === 'screaming') {
-      e.vx = 0
-      e.vy = 0
+    if (e.state === 'screaming' && ex.authoredScream) {
+      tickAuthoredScream(e, dt)
     } else {
+      if (e.state === 'screaming') {
+        e.state = 'chase'
+        e.anim.scream = -1
+      } else if (canScream(e) && !specialOwns(e)) {
+        e.screamCooldown -= dt
+        if (e.screamCooldown <= 0) finishScream(world, e, ctx)
+      }
       updateBehavior(world, e, dt, ctx)
     }
-    if (enemySheet(e)) stepEnemySheet(world, e, dt, ctx)
-    e.x += (e.vx + e.knock.x) * dt
-    e.y += (e.vy + e.knock.y) * dt
-    const c = clampToArena(world, e.x, e.y, e.r)
+    noteStall(world, e, dt)
+    if (enemySheet(e)) {
+      const attackAim =
+        !specialOwns(e) && (e.state === 'windup' || e.state === 'shooting' || e.state === 'charging')
+      tickFacing(e, dt, attackAim)
+      if (pinLeapSquash(e)) e.anim.squash = 1
+      stepEnemySheet(world, e, dt, ctx)
+    }
+    if (familyHidden(e)) {
+      e.knock.x = 0
+      e.knock.y = 0
+    } else {
+      e.x += (e.vx + e.knock.x) * dt
+      e.y += (e.vy + e.knock.y) * dt
+    }
+    const nudged = pushGardenSolids(e.x, e.y, e.r)
+    const c = clampToArena(world, nudged.x, nudged.y, e.r)
     e.x = c.x
     e.y = c.y
     e.anim.moving = Math.hypot(e.vx, e.vy) > 8
     const posed = enemySheet(e)
     if (posed) {
-      // Authored clips already bob and squash. A second sine fights the feet.
+      // Authored clips already bob. Hit-squash is juice, so don't pin it to 1 on a flash.
       e.anim.bob = 0
-      e.anim.squash = 1
-      if (e.state === 'windup' || e.state === 'shooting' || e.state === 'charging') {
-        if (Math.abs(e.aim.x) + Math.abs(e.aim.y) > 0.01) e.anim.facing = e.aim.x >= 0 ? 1 : -1
-      } else if (Math.abs(e.vx) > 8) {
-        e.anim.facing = e.vx >= 0 ? 1 : -1
-      }
+      if (pinLeapSquash(e)) e.anim.squash = 1
       if (e.anim.moving && e.state !== 'windup' && e.state !== 'shooting') {
         ex.footAcc += dt
         if (ex.footAcc >= FEEL.motion.footEvery) {
@@ -1101,17 +1595,17 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
       flinchT: 0,
       nextBlink: () => ctx.rng.range(3, 6),
     })
-    if (e.state === 'screaming') poseScream(e, ctx)
     if (posed) {
       e.anim.kick.x = 0
       e.anim.kick.y = 0
       e.anim.bob = 0
-      e.anim.squash = 1
+      if (pinLeapSquash(e)) e.anim.squash = 1
     }
 
     const fam = enemyFamily(e.kind)
-    const sheetStrike = posed && (((fam === 'blob' || fam === 'beetle') && e.state === 'windup') || (e.kind === 'eliteBlob' && (e.state === 'windup' || e.state === 'recover')))
-    if (!sheetStrike && player.hp > 0 && player.invuln <= 0) {
+    const sheetStrike = posed && (((fam === 'blob' || fam === 'beetle' || fam === 'beetroot' || fam === 'onion') && e.state === 'windup') || (e.kind === 'eliteBlob' && (e.state === 'windup' || e.state === 'recover')))
+    const kamikazeWindup = e.def.behavior.type === 'kamikaze' && e.form !== 'nightmare' && e.state === 'windup'
+    if (!sheetStrike && !kamikazeWindup && player.hp > 0 && player.invuln <= 0 && collisionOn(e) && !isAirborne(e) && !familyHidden(e)) {
       const rad = e.r + player.r
       if (dist2(e.x, e.y, player.x, player.y) <= rad * rad) {
         damagePlayer(world, e.damage, ctx, e.form === 'nightmare' ? e.def.nightmareName : e.def.name, e)
@@ -1126,9 +1620,18 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
   // uid back resurrected the corpse, and the fresh playhead was the cream
   // first cell of the death clip. Only actors spawned during this pass join.
   world.enemies = retainSpawned(roster, world.enemies, keep)
+  tickGas(world, dt)
+  if (consumeGasMudTick()) damagePlayer(world, CHAOS.families.onion.mudTick, ctx, 'toxic gas')
   separate(world)
 
   world.boss = null
+  if (import.meta.env.DEV && typeof window !== 'undefined') {
+    const p = world.player
+    ;(window as unknown as { __aiSnap?: { kind: string; state: string; d: number }[] }).__aiSnap = world.enemies
+      .filter((e) => e.state !== 'dying')
+      .slice(0, 24)
+      .map((e) => ({ kind: e.kind, state: aiOverlayText(e), d: Math.round(dist(e.x, e.y, p.x, p.y)) }))
+  }
   for (const e of world.enemies) {
     if (e.boss) {
       world.boss = e

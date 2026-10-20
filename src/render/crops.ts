@@ -1,8 +1,9 @@
 import { TAU } from '../core/math.ts'
 import type { CropId, Plot } from '../core/types.ts'
 import { CROPS, GARDEN_ROW_COUNT, GARDEN_ROWS } from '../data/crops.ts'
+import { cropToPlant, drawPaintedCrop, gardenSheet } from '../game/garden.ts'
 import { FEEL } from '../feel.ts'
-import { drawProp } from './sheets.ts'
+import { drawNamedClip, drawProp } from './sheets.ts'
 import { inkStroke, makeCanvas, wash } from './watercolor.ts'
 
 const FURROW_NATIVE_W = 613
@@ -52,7 +53,7 @@ function furrow(ctx: CanvasRenderingContext2D, plots: readonly Plot[], row: numb
   const scale = FEEL.garden.scale
   const furrowW = Math.round(FURROW_NATIVE_W * scale)
   const furrowH = FURROW_NATIVE_H * (furrowW / FURROW_NATIVE_W)
-  if (drawProp(ctx, 'prop-furrow', midX, y + 6, { width: furrowW, hi })) {
+  if (drawProp(ctx, 'prop-furrow-v1', midX, y + 6, { width: furrowW, hi })) {
     ctx.save()
     ctx.translate(midX - furrowW * 0.42, y + 6 - furrowH * 0.5 - 14)
     paintRowLabel(ctx, GARDEN_ROWS[row] ?? '', labelAlpha, 0)
@@ -93,7 +94,7 @@ export function drawFarmRows(
 
 function bed(ctx: CanvasRenderingContext2D, plot: Plot, hi: boolean): void {
   const bedW = Math.round(BED_NATIVE_DRAW * FEEL.garden.scale)
-  if (drawProp(ctx, 'prop-bed', plot.x, plot.y + 4, { width: bedW, hi })) return
+  if (drawProp(ctx, 'prop-bed-v1', plot.x, plot.y + 4, { width: bedW, hi })) return
   ctx.save()
   ctx.translate(plot.x, plot.y)
   ctx.fillStyle = 'rgba(42, 28, 16, 0.28)'
@@ -231,8 +232,9 @@ function chiliPlant(ctx: CanvasRenderingContext2D, g: number, sway: number, uid:
   ctx.restore()
 }
 
-function foliage(ctx: CanvasRenderingContext2D, plot: Plot): void {
+function foliage(ctx: CanvasRenderingContext2D, plot: Plot, time = 0): void {
   if (!plot.crop) return
+  if (drawPaintedCrop(ctx, plot, time)) return
   ctx.save()
   ctx.translate(plot.x, plot.y)
   const g = plot.growth
@@ -250,8 +252,8 @@ export function drawFarmBeds(ctx: CanvasRenderingContext2D, plots: readonly Plot
   for (const p of plots) bed(ctx, p, hi)
 }
 
-export function drawFarmPlant(ctx: CanvasRenderingContext2D, plot: Plot): void {
-  foliage(ctx, plot)
+export function drawFarmPlant(ctx: CanvasRenderingContext2D, plot: Plot, time = 0): void {
+  foliage(ctx, plot, time)
 }
 
 export function paintSeedIcon(ctx: CanvasRenderingContext2D, crop: CropId): void {
@@ -274,6 +276,22 @@ export function paintSeedIcon(ctx: CanvasRenderingContext2D, crop: CropId): void
 const seedUrlCache = new Map<string, string>()
 
 export function seedIconDataUrl(crop: CropId, size = 48): string {
+  const sheet = gardenSheet()
+  const plant = cropToPlant(crop)
+  const clip = `seed_${plant}`
+  const paintedKey = `${crop}:${size}:sheet`
+  if (sheet?.manifest.clips[clip]) {
+    const hit = seedUrlCache.get(paintedKey)
+    if (hit) return hit
+    const { canvas, ctx } = makeCanvas(size, size)
+    if (ctx) {
+      ctx.translate(size / 2, size / 2)
+      drawNamedClip(ctx, sheet, `seedicon:${crop}`, clip, 0, { scale: size / sheet.manifest.frameWidth, alpha: 1 })
+    }
+    const url = canvas.toDataURL('image/png')
+    seedUrlCache.set(paintedKey, url)
+    return url
+  }
   const key = `${crop}:${size}`
   const hit = seedUrlCache.get(key)
   if (hit) return hit

@@ -1,0 +1,697 @@
+{
+ "image": "enemy-beetroot-mud.webp",
+ "frameWidth": 204,
+ "frameHeight": 227,
+ "columns": 10,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.6681
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 120
+    },
+    {
+     "i": 1,
+     "ms": 120
+    },
+    {
+     "i": 2,
+     "ms": 120
+    },
+    {
+     "i": 3,
+     "ms": 120
+    },
+    {
+     "i": 4,
+     "ms": 120
+    },
+    {
+     "i": 5,
+     "ms": 120
+    },
+    {
+     "i": 6,
+     "ms": 120
+    },
+    {
+     "i": 7,
+     "ms": 120
+    },
+    {
+     "i": 8,
+     "ms": 120
+    },
+    {
+     "i": 9,
+     "ms": 120
+    }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 10,
+     "ms": 80
+    },
+    {
+     "i": 11,
+     "ms": 80
+    },
+    {
+     "i": 12,
+     "ms": 80
+    },
+    {
+     "i": 13,
+     "ms": 80
+    },
+    {
+     "i": 14,
+     "ms": 80
+    },
+    {
+     "i": 15,
+     "ms": 80
+    },
+    {
+     "i": 16,
+     "ms": 80
+    },
+    {
+     "i": 17,
+     "ms": 80
+    },
+    {
+     "i": 18,
+     "ms": 80
+    },
+    {
+     "i": 19,
+     "ms": 80
+    }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 20,
+     "ms": 40,
+     "event": "hurt"
+    },
+    {
+     "i": 21,
+     "ms": 60
+    },
+    {
+     "i": 22,
+     "ms": 80
+    }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 45,
+     "ms": 60,
+     "ox": -1.2,
+     "event": "attack_windup"
+    },
+    {
+     "i": 46,
+     "ms": 60,
+     "ox": -2.4
+    },
+    {
+     "i": 47,
+     "ms": 45,
+     "ox": 4.8
+    },
+    {
+     "i": 48,
+     "ms": 65,
+     "ox": 13.3,
+     "events": [
+      "hit",
+      "attack_hit"
+     ]
+    },
+    {
+     "i": 49,
+     "ms": 50,
+     "ox": 12.1
+    },
+    {
+     "i": 50,
+     "ms": 70,
+     "ox": 7.3
+    },
+    {
+     "i": 51,
+     "ms": 70,
+     "ox": 3.0
+    },
+    {
+     "i": 52,
+     "ms": 60,
+     "event": "attack_done"
+    }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 53,
+     "ms": 60
+    },
+    {
+     "i": 54,
+     "ms": 70
+    },
+    {
+     "i": 55,
+     "ms": 45,
+     "event": "spawnFx"
+    },
+    {
+     "i": 56,
+     "ms": 50
+    },
+    {
+     "i": 57,
+     "ms": 55
+    },
+    {
+     "i": 58,
+     "ms": 65
+    },
+    {
+     "i": 59,
+     "ms": 75
+    },
+    {
+     "i": 60,
+     "ms": 85
+    },
+    {
+     "i": 61,
+     "ms": 950
+    }
+   ]
+  },
+  "scream": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 28,
+     "ms": 120,
+     "event": "scream_windup"
+    },
+    {
+     "i": 29,
+     "ms": 100
+    },
+    {
+     "i": 30,
+     "ms": 60,
+     "event": "scream"
+    },
+    {
+     "i": 31,
+     "ms": 85,
+     "ox": 1.6
+    },
+    {
+     "i": 32,
+     "ms": 85,
+     "ox": -1.6
+    },
+    {
+     "i": 33,
+     "ms": 85,
+     "ox": 1.4
+    },
+    {
+     "i": 34,
+     "ms": 85,
+     "ox": -1.4
+    },
+    {
+     "i": 35,
+     "ms": 70,
+     "ox": 1.0
+    },
+    {
+     "i": 36,
+     "ms": 80
+    },
+    {
+     "i": 37,
+     "ms": 70,
+     "event": "scream_done"
+    }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 62,
+     "ms": 45
+    },
+    {
+     "i": 63,
+     "ms": 55,
+     "event": "spawnFx"
+    },
+    {
+     "i": 64,
+     "ms": 60
+    },
+    {
+     "i": 68,
+     "ms": 65
+    },
+    {
+     "i": 69,
+     "ms": 70
+    },
+    {
+     "i": 70,
+     "ms": 75
+    },
+    {
+     "i": 71,
+     "ms": 950
+    }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 72,
+     "ms": 40
+    },
+    {
+     "i": 73,
+     "ms": 45
+    },
+    {
+     "i": 74,
+     "ms": 45
+    },
+    {
+     "i": 75,
+     "ms": 65,
+     "events": [
+      "spawnFx",
+      "splat"
+     ]
+    },
+    {
+     "i": 76,
+     "ms": 75
+    },
+    {
+     "i": 77,
+     "ms": 300
+    },
+    {
+     "i": 84,
+     "ms": 110
+    },
+    {
+     "i": 85,
+     "ms": 110
+    }
+   ]
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 65,
+     "ms": 90,
+     "event": "emerge_fx"
+    },
+    {
+     "i": 66,
+     "ms": 90
+    },
+    {
+     "i": 67,
+     "ms": 100
+    },
+    {
+     "i": 86,
+     "ms": 150
+    },
+    {
+     "i": 87,
+     "ms": 80
+    },
+    {
+     "i": 88,
+     "ms": 70
+    },
+    {
+     "i": 89,
+     "ms": 60
+    },
+    {
+     "i": 90,
+     "ms": 60
+    },
+    {
+     "i": 0,
+     "ms": 120,
+     "event": "emerged"
+    }
+   ]
+  },
+  "burrow": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 91,
+     "ms": 90
+    },
+    {
+     "i": 92,
+     "ms": 70
+    },
+    {
+     "i": 93,
+     "ms": 70
+    },
+    {
+     "i": 94,
+     "ms": 80,
+     "event": "burrow"
+    },
+    {
+     "i": 78,
+     "ms": 70
+    },
+    {
+     "i": 79,
+     "ms": 140
+    },
+    {
+     "i": 80,
+     "ms": 80
+    },
+    {
+     "i": 81,
+     "ms": 80,
+     "event": "burrowed"
+    }
+   ]
+  },
+  "resurface": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 82,
+     "ms": 70,
+     "event": "emerge_fx"
+    },
+    {
+     "i": 83,
+     "ms": 60
+    },
+    {
+     "i": 95,
+     "ms": 60,
+     "event": "hit"
+    },
+    {
+     "i": 96,
+     "ms": 70
+    },
+    {
+     "i": 97,
+     "ms": 70
+    },
+    {
+     "i": 98,
+     "ms": 80
+    },
+    {
+     "i": 0,
+     "ms": 150,
+     "event": "emerged"
+    }
+   ]
+  },
+  "prop_mound": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 81,
+     "ms": 300
+    }
+   ]
+  },
+  "bite": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 38,
+     "ms": 50,
+     "event": "bite_windup"
+    },
+    {
+     "i": 39,
+     "ms": 70,
+     "ox": -1.0
+    },
+    {
+     "i": 40,
+     "ms": 40,
+     "events": [
+      "bite_hit",
+      "attack_hit",
+      "hit"
+     ],
+     "ox": 3.5
+    },
+    {
+     "i": 41,
+     "ms": 40,
+     "ox": 2.6
+    },
+    {
+     "i": 42,
+     "ms": 60,
+     "ox": 0.8
+    },
+    {
+     "i": 43,
+     "ms": 60,
+     "ox": 0.2
+    },
+    {
+     "i": 44,
+     "ms": 80,
+     "event": "bite_done"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 23,
+     "ms": 30,
+     "event": "turn"
+    },
+    {
+     "i": 24,
+     "ms": 35
+    },
+    {
+     "i": 25,
+     "ms": 40
+    },
+    {
+     "i": 26,
+     "ms": 35
+    },
+    {
+     "i": 27,
+     "ms": 30,
+     "event": "turn_done"
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Mud beetroot (scary): lava-crust tank, HARD-snap scream, burrows + resurfaces; nfvar layers | side view v2",
+  "source": "derived_mud.png",
+  "cells": [
+   "sv_idle_0",
+   "sv_idle_1",
+   "sv_idle_2",
+   "sv_idle_3",
+   "sv_idle_4",
+   "sv_idle_5",
+   "sv_idle_6",
+   "sv_idle_7",
+   "sv_idle_8",
+   "sv_idle_9",
+   "sv_walk_0",
+   "sv_walk_1",
+   "sv_walk_2",
+   "sv_walk_3",
+   "sv_walk_4",
+   "sv_walk_5",
+   "sv_walk_6",
+   "sv_walk_7",
+   "sv_walk_8",
+   "sv_walk_9",
+   "sv_hurt_0",
+   "sv_hurt_1",
+   "sv_hurt_2",
+   "sv_turn_0",
+   "sv_turn_1",
+   "sv_turn_2",
+   "sv_turn_3",
+   "sv_turn_4",
+   "sv_scream_0",
+   "sv_scream_1",
+   "sv_scream_2",
+   "sv_scream_3",
+   "sv_scream_4",
+   "sv_scream_5",
+   "sv_scream_6",
+   "sv_scream_7",
+   "sv_scream_8",
+   "sv_scream_9",
+   "sv_bite_0",
+   "sv_bite_1",
+   "sv_bite_2",
+   "sv_bite_3",
+   "sv_bite_4",
+   "sv_bite_5",
+   "sv_bite_6",
+   "sv_attack_0",
+   "sv_attack_1",
+   "sv_attack_2",
+   "sv_attack_3",
+   "sv_attack_4",
+   "sv_attack_5",
+   "sv_attack_6",
+   "sv_attack_7",
+   "sv_death_0",
+   "sv_death_1",
+   "sv_death_2",
+   "sv_death_3",
+   "sv_death_4",
+   "sv_death_5",
+   "sv_death_6",
+   "sv_death_7",
+   "sv_death_8",
+   "sv_death_slice_0",
+   "sv_death_slice_1",
+   "sv_death_slice_2",
+   "emerge0",
+   "emerge1",
+   "emerge2",
+   "sv_death_slice_3",
+   "sv_death_slice_4",
+   "sv_death_slice_5",
+   "sv_death_slice_6",
+   "sv_death_smash_0",
+   "sv_death_smash_1",
+   "sv_death_smash_2",
+   "sv_death_smash_3",
+   "sv_death_smash_4",
+   "sv_death_smash_5",
+   "burrow4",
+   "burrow5",
+   "burrow6",
+   "burrow7",
+   "resurface0",
+   "resurface1",
+   "sv_death_smash_6",
+   "sv_death_smash_7",
+   "sv_emerge_3",
+   "sv_emerge_4",
+   "sv_emerge_5",
+   "sv_emerge_6",
+   "sv_emerge_7",
+   "sv_burrow_0",
+   "sv_burrow_1",
+   "sv_burrow_2",
+   "sv_burrow_3",
+   "sv_resurface_2",
+   "sv_resurface_3",
+   "sv_resurface_4",
+   "sv_resurface_5"
+  ],
+  "feetY": 208.68,
+  "gameRadius": 23,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-beetroot-mud/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-beetroot-mud.png",
+  "cellCrop": {
+   "from": [
+    288,
+    288
+   ],
+   "x0": 42,
+   "y0": 39,
+   "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
+  },
+  "splat": "mud",
+  "attacksSmash": {
+   "version": 2,
+   "date": "2026-10-18",
+   "attack": "v2",
+   "death_smash": "v2",
+   "splat": "mud",
+   "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "right",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "right",
+   "specials": [
+    "bite",
+    "scream",
+    "turn"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "sideview": {
+   "version": 2,
+   "date": "2026-10-18",
+   "tool": "tools/sideview/build.py",
+   "src": "tools/sideview/src/beetroot_mud_side_v1.jpg",
+   "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
+  },
+  "smashV3": {
+   "version": 3,
+   "date": "2026-10-18",
+   "tool": "tools/smash_v3/build_v3.py",
+   "pancake": "side-profile painting",
+   "chunks": "organic torn re-cut + painted torn chunks",
+   "note": "clip names/frames/ms/events unchanged; see tools/smash_v3/README.md"
+  },
+  "rimV3": "ground v3: cells [66, 67, 86, 87, 88, 78, 79, 82, 83] (emerge/burrow/resurface) re-rimmed with the soft v2 rim; old hot outline stripped"
+ }
+}

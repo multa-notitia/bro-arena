@@ -1,0 +1,1598 @@
+{
+ "version": "garden-v2-tidy",
+ "units": "world px (pr5 coordinates)",
+ "lawn": {
+  "tile": "ground-lawn-mown",
+  "note": "one tile everywhere (512 world px), no decal scatter"
+ },
+ "beds": {
+  "L1": {
+   "region": [
+    -1072,
+    -384,
+    560,
+    768
+   ],
+   "raisedBed": {
+    "rect": [
+     -962.0,
+     -230.0,
+     340,
+     460
+    ],
+    "clip": "bed_v",
+    "centre": [
+     -792.0,
+     0.0
+    ]
+   },
+   "rows": [
+    [
+     -792.0,
+     -146.0
+    ],
+    [
+     -792.0,
+     -6.0
+    ],
+    [
+     -792.0,
+     134.0
+    ]
+   ],
+   "plotOffsetsX": [
+    -84,
+    -28,
+    28,
+    84
+   ],
+   "gateSide": "right"
+  },
+  "L2": {
+   "region": [
+    -1632,
+    -384,
+    560,
+    768
+   ],
+   "raisedBed": {
+    "rect": [
+     -1522.0,
+     -230.0,
+     340,
+     460
+    ],
+    "clip": "bed_v",
+    "centre": [
+     -1352.0,
+     0.0
+    ]
+   },
+   "rows": [
+    [
+     -1352.0,
+     -146.0
+    ],
+    [
+     -1352.0,
+     -6.0
+    ],
+    [
+     -1352.0,
+     134.0
+    ]
+   ],
+   "plotOffsetsX": [
+    -84,
+    -28,
+    28,
+    84
+   ],
+   "gateSide": "right"
+  },
+  "R1": {
+   "region": [
+    512,
+    -384,
+    560,
+    768
+   ],
+   "raisedBed": {
+    "rect": [
+     622.0,
+     -230.0,
+     340,
+     460
+    ],
+    "clip": "bed_v",
+    "centre": [
+     792.0,
+     0.0
+    ]
+   },
+   "rows": [
+    [
+     792.0,
+     -146.0
+    ],
+    [
+     792.0,
+     -6.0
+    ],
+    [
+     792.0,
+     134.0
+    ]
+   ],
+   "plotOffsetsX": [
+    -84,
+    -28,
+    28,
+    84
+   ],
+   "gateSide": "left"
+  },
+  "R2": {
+   "region": [
+    1072,
+    -384,
+    560,
+    768
+   ],
+   "raisedBed": {
+    "rect": [
+     1182.0,
+     -230.0,
+     340,
+     460
+    ],
+    "clip": "bed_v",
+    "centre": [
+     1352.0,
+     0.0
+    ]
+   },
+   "rows": [
+    [
+     1352.0,
+     -146.0
+    ],
+    [
+     1352.0,
+     -6.0
+    ],
+    [
+     1352.0,
+     134.0
+    ]
+   ],
+   "plotOffsetsX": [
+    -84,
+    -28,
+    28,
+    84
+   ],
+   "gateSide": "left"
+  },
+  "N": {
+   "region": [
+    -512,
+    -832,
+    1024,
+    448
+   ],
+   "raisedBed": {
+    "rect": [
+     -340.0,
+     -738.0,
+     680,
+     260
+    ],
+    "clip": "bed_h",
+    "centre": [
+     0.0,
+     -608.0
+    ]
+   },
+   "rows": [
+    [
+     -170.0,
+     -674.0
+    ],
+    [
+     170.0,
+     -674.0
+    ],
+    [
+     -170.0,
+     -554.0
+    ],
+    [
+     170.0,
+     -554.0
+    ]
+   ],
+   "plotOffsetsX": [
+    -84,
+    -28,
+    28,
+    84
+   ],
+   "gateSide": "bottom"
+  },
+  "S": {
+   "region": [
+    -512,
+    384,
+    1024,
+    448
+   ],
+   "raisedBed": {
+    "rect": [
+     -340.0,
+     478.0,
+     680,
+     260
+    ],
+    "clip": "bed_h",
+    "centre": [
+     0.0,
+     608.0
+    ]
+   },
+   "rows": [
+    [
+     -170.0,
+     542.0
+    ],
+    [
+     170.0,
+     542.0
+    ],
+    [
+     -170.0,
+     662.0
+    ],
+    [
+     170.0,
+     662.0
+    ]
+   ],
+   "plotOffsetsX": [
+    -84,
+    -28,
+    28,
+    84
+   ],
+   "gateSide": "top"
+  }
+ },
+ "paths": {
+  "width": 48,
+  "fill": "ground-path-gravel (512 world px seamless pattern)",
+  "edge": {
+   "color": "#4a4232",
+   "width": 3,
+   "shadow": "rgba(20,24,10,0.25) 4px down-right"
+  },
+  "recipe": "draw every rect grown by 3 px in the edge colour (+ shadow) first, then fill every rect with the gravel pattern -> one clean union outline",
+  "rects": [
+   {
+    "id": "cross_h",
+    "rect": [
+     -550,
+     -24.0,
+     1100,
+     48
+    ]
+   },
+   {
+    "id": "cross_v",
+    "rect": [
+     -24.0,
+     -406,
+     48,
+     812
+    ]
+   },
+   {
+    "id": "ring_L1_t",
+    "rect": [
+     -1034.0,
+     -302.0,
+     484,
+     48
+    ]
+   },
+   {
+    "id": "ring_L1_b",
+    "rect": [
+     -1034.0,
+     254.0,
+     484,
+     48
+    ]
+   },
+   {
+    "id": "ring_L1_l",
+    "rect": [
+     -1034.0,
+     -302.0,
+     48,
+     604
+    ]
+   },
+   {
+    "id": "ring_L1_r",
+    "rect": [
+     -598.0,
+     -302.0,
+     48,
+     604
+    ]
+   },
+   {
+    "id": "ring_L2_t",
+    "rect": [
+     -1594.0,
+     -302.0,
+     484,
+     48
+    ]
+   },
+   {
+    "id": "ring_L2_b",
+    "rect": [
+     -1594.0,
+     254.0,
+     484,
+     48
+    ]
+   },
+   {
+    "id": "ring_L2_l",
+    "rect": [
+     -1594.0,
+     -302.0,
+     48,
+     604
+    ]
+   },
+   {
+    "id": "ring_L2_r",
+    "rect": [
+     -1158.0,
+     -302.0,
+     48,
+     604
+    ]
+   },
+   {
+    "id": "ring_R1_t",
+    "rect": [
+     550.0,
+     -302.0,
+     484,
+     48
+    ]
+   },
+   {
+    "id": "ring_R1_b",
+    "rect": [
+     550.0,
+     254.0,
+     484,
+     48
+    ]
+   },
+   {
+    "id": "ring_R1_l",
+    "rect": [
+     550.0,
+     -302.0,
+     48,
+     604
+    ]
+   },
+   {
+    "id": "ring_R1_r",
+    "rect": [
+     986.0,
+     -302.0,
+     48,
+     604
+    ]
+   },
+   {
+    "id": "ring_R2_t",
+    "rect": [
+     1110.0,
+     -302.0,
+     484,
+     48
+    ]
+   },
+   {
+    "id": "ring_R2_b",
+    "rect": [
+     1110.0,
+     254.0,
+     484,
+     48
+    ]
+   },
+   {
+    "id": "ring_R2_l",
+    "rect": [
+     1110.0,
+     -302.0,
+     48,
+     604
+    ]
+   },
+   {
+    "id": "ring_R2_r",
+    "rect": [
+     1546.0,
+     -302.0,
+     48,
+     604
+    ]
+   },
+   {
+    "id": "ring_N_t",
+    "rect": [
+     -412.0,
+     -810.0,
+     824,
+     48
+    ]
+   },
+   {
+    "id": "ring_N_b",
+    "rect": [
+     -412.0,
+     -454.0,
+     824,
+     48
+    ]
+   },
+   {
+    "id": "ring_N_l",
+    "rect": [
+     -412.0,
+     -810.0,
+     48,
+     404
+    ]
+   },
+   {
+    "id": "ring_N_r",
+    "rect": [
+     364.0,
+     -810.0,
+     48,
+     404
+    ]
+   },
+   {
+    "id": "ring_S_t",
+    "rect": [
+     -412.0,
+     406.0,
+     824,
+     48
+    ]
+   },
+   {
+    "id": "ring_S_b",
+    "rect": [
+     -412.0,
+     762.0,
+     824,
+     48
+    ]
+   },
+   {
+    "id": "ring_S_l",
+    "rect": [
+     -412.0,
+     406.0,
+     48,
+     404
+    ]
+   },
+   {
+    "id": "ring_S_r",
+    "rect": [
+     364.0,
+     406.0,
+     48,
+     404
+    ]
+   },
+   {
+    "id": "link_L1_L2",
+    "rect": [
+     -1110,
+     -24.0,
+     76,
+     48
+    ]
+   },
+   {
+    "id": "link_R1_R2",
+    "rect": [
+     1034,
+     -24.0,
+     76,
+     48
+    ]
+   }
+  ]
+ },
+ "fence": {
+  "lines": {
+   "x0": -1656,
+   "x1": 1656,
+   "y0": -856,
+   "y1": 856
+  },
+  "pieces": [
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": -1646,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": -1568,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": -1490,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": -1412,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": -1334,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_ivy",
+    "x": -1256,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": -1178,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": -1100,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": -1022,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": -944,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": -866,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": -788,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": -710,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": -632,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": -554,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": -476,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": -398,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": -320,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": -242,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": -164,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": -86,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "gate_decor_n",
+    "x": 0,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": 70,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": 148,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": 226,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": 304,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": 382,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": 460,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": 538,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": 616,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": 694,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": 772,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": 850,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": 928,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": 1006,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": 1084,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": 1162,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_ivy",
+    "x": 1240,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": 1318,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": 1396,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": 1474,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_b",
+    "x": 1552,
+    "y": -856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_n_a",
+    "x": 1630,
+    "y": -856,
+    "clipW": 16
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": -1646,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": -1568,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": -1490,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": -1412,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": -1334,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": -1256,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": -1178,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": -1100,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": -1022,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": -944,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": -866,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": -788,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": -710,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": -632,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": -554,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": -476,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": -398,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": -320,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": -242,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": -164,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": -86,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": -8,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": 70,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": 148,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": 226,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": 304,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": 382,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": 460,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": 538,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": 616,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": 694,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": 772,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": 850,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": 928,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": 1006,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": 1084,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": 1162,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": 1240,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": 1318,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": 1396,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": 1474,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_b",
+    "x": 1552,
+    "y": 856
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_s_low_a",
+    "x": 1630,
+    "y": 856,
+    "clipW": 16
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w",
+    "x": -1656,
+    "y": -842
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w_b",
+    "x": -1656,
+    "y": -764
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w",
+    "x": -1656,
+    "y": -686
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w_b",
+    "x": -1656,
+    "y": -608
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w",
+    "x": -1656,
+    "y": -530
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w_b",
+    "x": -1656,
+    "y": -452
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w",
+    "x": -1656,
+    "y": -374
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w_ivy",
+    "x": -1656,
+    "y": -296
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w",
+    "x": -1656,
+    "y": -218
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w_b",
+    "x": -1656,
+    "y": -140
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w",
+    "x": -1656,
+    "y": -62
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w_b",
+    "x": -1656,
+    "y": 16
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w",
+    "x": -1656,
+    "y": 94
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w_b",
+    "x": -1656,
+    "y": 172
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w",
+    "x": -1656,
+    "y": 250
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w_b",
+    "x": -1656,
+    "y": 328
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w",
+    "x": -1656,
+    "y": 406
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w_b",
+    "x": -1656,
+    "y": 484
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w",
+    "x": -1656,
+    "y": 562
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w_b",
+    "x": -1656,
+    "y": 640
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w",
+    "x": -1656,
+    "y": 718
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_w_b",
+    "x": -1656,
+    "y": 796,
+    "clipH": 50
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e",
+    "x": 1656,
+    "y": -842
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e_b",
+    "x": 1656,
+    "y": -764
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e",
+    "x": 1656,
+    "y": -686
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e_b",
+    "x": 1656,
+    "y": -608
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e",
+    "x": 1656,
+    "y": -530
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e_b",
+    "x": 1656,
+    "y": -452
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e",
+    "x": 1656,
+    "y": -374
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e_ivy",
+    "x": 1656,
+    "y": -296
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e",
+    "x": 1656,
+    "y": -218
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e_b",
+    "x": 1656,
+    "y": -140
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e",
+    "x": 1656,
+    "y": -62
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e_b",
+    "x": 1656,
+    "y": 16
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e",
+    "x": 1656,
+    "y": 94
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e_b",
+    "x": 1656,
+    "y": 172
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e",
+    "x": 1656,
+    "y": 250
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e_b",
+    "x": 1656,
+    "y": 328
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e",
+    "x": 1656,
+    "y": 406
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e_b",
+    "x": 1656,
+    "y": 484
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e",
+    "x": 1656,
+    "y": 562
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e_b",
+    "x": 1656,
+    "y": 640
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e",
+    "x": 1656,
+    "y": 718
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "fence_e_b",
+    "x": 1656,
+    "y": 796,
+    "clipH": 50
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "corner_nw",
+    "x": -1656,
+    "y": -854
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "corner_ne",
+    "x": 1656,
+    "y": -854
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "corner_sw",
+    "x": -1656,
+    "y": 858
+   },
+   {
+    "sheet": "props-fence",
+    "clip": "corner_se",
+    "x": 1656,
+    "y": 858
+   }
+  ]
+ },
+ "props": [
+  {
+   "sheet": "props-garden-decor",
+   "clip": "shed_corner",
+   "x": -1545,
+   "y": -740
+  },
+  {
+   "sheet": "props-garden-decor",
+   "clip": "rain_barrel",
+   "x": -1462,
+   "y": -716
+  },
+  {
+   "sheet": "props-garden-decor",
+   "clip": "wheelbarrow",
+   "x": -1392,
+   "y": -648
+  },
+  {
+   "sheet": "props-garden-decor",
+   "clip": "compost_bin",
+   "x": 1560,
+   "y": -738
+  },
+  {
+   "sheet": "props-arena",
+   "clip": "tree_apple",
+   "x": -1460,
+   "y": 650
+  },
+  {
+   "sheet": "props-arena",
+   "clip": "tree_apple",
+   "x": 1460,
+   "y": 650,
+   "flipX": true
+  }
+ ],
+ "lockedFence": [
+  {
+   "bed": "L1",
+   "side": "top",
+   "line": [
+    -1072,
+    -384,
+    -512,
+    -384
+   ]
+  },
+  {
+   "bed": "L1",
+   "side": "bottom",
+   "line": [
+    -1072,
+    384,
+    -512,
+    384
+   ]
+  },
+  {
+   "bed": "L1",
+   "side": "left",
+   "line": [
+    -1072,
+    -384,
+    -1072,
+    384
+   ]
+  },
+  {
+   "bed": "L1",
+   "side": "right",
+   "line": [
+    -512,
+    -384,
+    -512,
+    384
+   ]
+  },
+  {
+   "bed": "L2",
+   "side": "top",
+   "line": [
+    -1632,
+    -384,
+    -1072,
+    -384
+   ]
+  },
+  {
+   "bed": "L2",
+   "side": "bottom",
+   "line": [
+    -1632,
+    384,
+    -1072,
+    384
+   ]
+  },
+  {
+   "bed": "L2",
+   "side": "right",
+   "line": [
+    -1072,
+    -384,
+    -1072,
+    384
+   ]
+  },
+  {
+   "bed": "R1",
+   "side": "top",
+   "line": [
+    512,
+    -384,
+    1072,
+    -384
+   ]
+  },
+  {
+   "bed": "R1",
+   "side": "bottom",
+   "line": [
+    512,
+    384,
+    1072,
+    384
+   ]
+  },
+  {
+   "bed": "R1",
+   "side": "left",
+   "line": [
+    512,
+    -384,
+    512,
+    384
+   ]
+  },
+  {
+   "bed": "R1",
+   "side": "right",
+   "line": [
+    1072,
+    -384,
+    1072,
+    384
+   ]
+  },
+  {
+   "bed": "R2",
+   "side": "top",
+   "line": [
+    1072,
+    -384,
+    1632,
+    -384
+   ]
+  },
+  {
+   "bed": "R2",
+   "side": "bottom",
+   "line": [
+    1072,
+    384,
+    1632,
+    384
+   ]
+  },
+  {
+   "bed": "R2",
+   "side": "left",
+   "line": [
+    1072,
+    -384,
+    1072,
+    384
+   ]
+  },
+  {
+   "bed": "N",
+   "side": "bottom",
+   "line": [
+    -512,
+    -384,
+    512,
+    -384
+   ]
+  },
+  {
+   "bed": "N",
+   "side": "left",
+   "line": [
+    -512,
+    -832,
+    -512,
+    -384
+   ]
+  },
+  {
+   "bed": "N",
+   "side": "right",
+   "line": [
+    512,
+    -832,
+    512,
+    -384
+   ]
+  },
+  {
+   "bed": "S",
+   "side": "top",
+   "line": [
+    -512,
+    384,
+    512,
+    384
+   ]
+  },
+  {
+   "bed": "S",
+   "side": "left",
+   "line": [
+    -512,
+    384,
+    -512,
+    832
+   ]
+  },
+  {
+   "bed": "S",
+   "side": "right",
+   "line": [
+    512,
+    384,
+    512,
+    832
+   ]
+  }
+ ],
+ "notes": [
+  "Bed regions (unlock areas, low fence seams, gates) are unchanged from data/beds.ts; only the rows move inside the raised bed.",
+  "C (centre) is the clean start lawn: the art layout has no rows there. If gameplay still needs the C garden rows, draw them in the N/S beds or keep them as is - coder call.",
+  "Draw order: lawn -> paths -> raised beds -> prop-furrow rows -> prop-bed planting dips + crops -> y-sorted fence/props/actors."
+ ]
+}

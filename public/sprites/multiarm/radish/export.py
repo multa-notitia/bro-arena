@@ -323,6 +323,10 @@ def main():
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "..", "tools", "weapons_v2"))
     import weapons_v2_apply as weapons_v2
     weapons_v2.apply(OUT, "radish")
+    # art pass 9: multi-arm weapon spread + dark far-side weapon twins (tools/pass9/spread_apply.py, data in tools/pass9/data)
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "..", "tools", "pass9"))
+    import spread_apply as pass9
+    pass9.apply(OUT, "radish")
 
 if __name__ == "__main__":
     main()

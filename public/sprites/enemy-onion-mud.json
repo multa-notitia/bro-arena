@@ -1,0 +1,672 @@
+{
+ "image": "enemy-onion-mud.webp",
+ "frameWidth": 204,
+ "frameHeight": 227,
+ "columns": 10,
+ "anchor": {
+  "x": 0.5,
+  "y": 0.7491
+ },
+ "clips": {
+  "idle": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 0,
+     "ms": 115
+    },
+    {
+     "i": 1,
+     "ms": 115
+    },
+    {
+     "i": 2,
+     "ms": 115
+    },
+    {
+     "i": 3,
+     "ms": 115
+    },
+    {
+     "i": 4,
+     "ms": 115
+    },
+    {
+     "i": 5,
+     "ms": 115
+    },
+    {
+     "i": 6,
+     "ms": 115
+    },
+    {
+     "i": 7,
+     "ms": 115
+    },
+    {
+     "i": 8,
+     "ms": 115
+    },
+    {
+     "i": 9,
+     "ms": 115
+    }
+   ]
+  },
+  "walk": {
+   "loop": true,
+   "frames": [
+    {
+     "i": 10,
+     "ms": 64
+    },
+    {
+     "i": 11,
+     "ms": 64
+    },
+    {
+     "i": 12,
+     "ms": 64
+    },
+    {
+     "i": 13,
+     "ms": 64
+    },
+    {
+     "i": 14,
+     "ms": 63
+    },
+    {
+     "i": 15,
+     "ms": 63
+    },
+    {
+     "i": 16,
+     "ms": 63
+    },
+    {
+     "i": 17,
+     "ms": 63
+    },
+    {
+     "i": 18,
+     "ms": 63
+    },
+    {
+     "i": 19,
+     "ms": 63
+    },
+    {
+     "i": 20,
+     "ms": 63
+    },
+    {
+     "i": 21,
+     "ms": 63
+    }
+   ]
+  },
+  "hurt": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 22,
+     "ms": 40,
+     "event": "hurt"
+    },
+    {
+     "i": 23,
+     "ms": 60
+    },
+    {
+     "i": 24,
+     "ms": 80
+    }
+   ]
+  },
+  "attack": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 48,
+     "ms": 60,
+     "ox": -0.9,
+     "event": "attack_windup"
+    },
+    {
+     "i": 49,
+     "ms": 60,
+     "ox": -1.9
+    },
+    {
+     "i": 50,
+     "ms": 45,
+     "ox": 3.8
+    },
+    {
+     "i": 51,
+     "ms": 65,
+     "ox": 10.4,
+     "events": [
+      "hit",
+      "spawnFx",
+      "attack_hit"
+     ]
+    },
+    {
+     "i": 52,
+     "ms": 50,
+     "ox": 9.5
+    },
+    {
+     "i": 53,
+     "ms": 70,
+     "ox": 5.7
+    },
+    {
+     "i": 54,
+     "ms": 70,
+     "ox": 2.4
+    },
+    {
+     "i": 55,
+     "ms": 60,
+     "event": "attack_done"
+    }
+   ]
+  },
+  "death": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 56,
+     "ms": 60
+    },
+    {
+     "i": 57,
+     "ms": 70
+    },
+    {
+     "i": 58,
+     "ms": 45,
+     "events": [
+      "spawnFx",
+      "gas"
+     ]
+    },
+    {
+     "i": 59,
+     "ms": 50
+    },
+    {
+     "i": 60,
+     "ms": 55
+    },
+    {
+     "i": 61,
+     "ms": 65
+    },
+    {
+     "i": 62,
+     "ms": 75
+    },
+    {
+     "i": 63,
+     "ms": 85
+    },
+    {
+     "i": 64,
+     "ms": 950
+    }
+   ]
+  },
+  "scream": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 30,
+     "ms": 120,
+     "event": "scream_windup"
+    },
+    {
+     "i": 31,
+     "ms": 100
+    },
+    {
+     "i": 32,
+     "ms": 60,
+     "event": "scream"
+    },
+    {
+     "i": 33,
+     "ms": 70,
+     "ox": 1.6
+    },
+    {
+     "i": 34,
+     "ms": 70,
+     "ox": -1.6
+    },
+    {
+     "i": 35,
+     "ms": 70,
+     "ox": 1.4
+    },
+    {
+     "i": 36,
+     "ms": 70,
+     "ox": -1.4
+    },
+    {
+     "i": 37,
+     "ms": 70,
+     "ox": 1.0
+    },
+    {
+     "i": 38,
+     "ms": 70,
+     "ox": -0.8
+    },
+    {
+     "i": 39,
+     "ms": 80
+    },
+    {
+     "i": 40,
+     "ms": 70,
+     "event": "scream_done"
+    }
+   ]
+  },
+  "death_slice": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 65,
+     "ms": 45
+    },
+    {
+     "i": 66,
+     "ms": 55,
+     "events": [
+      "spawnFx",
+      "gas"
+     ]
+    },
+    {
+     "i": 67,
+     "ms": 60
+    },
+    {
+     "i": 70,
+     "ms": 65
+    },
+    {
+     "i": 71,
+     "ms": 70
+    },
+    {
+     "i": 72,
+     "ms": 75
+    },
+    {
+     "i": 73,
+     "ms": 950
+    }
+   ]
+  },
+  "death_smash": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 74,
+     "ms": 40
+    },
+    {
+     "i": 75,
+     "ms": 45
+    },
+    {
+     "i": 76,
+     "ms": 45
+    },
+    {
+     "i": 77,
+     "ms": 65,
+     "events": [
+      "spawnFx",
+      "gas",
+      "splat"
+     ]
+    },
+    {
+     "i": 86,
+     "ms": 75
+    },
+    {
+     "i": 87,
+     "ms": 300
+    },
+    {
+     "i": 88,
+     "ms": 110
+    },
+    {
+     "i": 89,
+     "ms": 110
+    }
+   ]
+  },
+  "emerge": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 68,
+     "ms": 110,
+     "event": "emerge_fx"
+    },
+    {
+     "i": 69,
+     "ms": 100
+    },
+    {
+     "i": 90,
+     "ms": 90
+    },
+    {
+     "i": 91,
+     "ms": 80
+    },
+    {
+     "i": 92,
+     "ms": 70
+    },
+    {
+     "i": 93,
+     "ms": 70
+    },
+    {
+     "i": 94,
+     "ms": 70
+    },
+    {
+     "i": 95,
+     "ms": 60
+    },
+    {
+     "i": 96,
+     "ms": 60
+    },
+    {
+     "i": 0,
+     "ms": 70,
+     "event": "emerged"
+    }
+   ]
+  },
+  "gas_cloud": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 78,
+     "ms": 80
+    },
+    {
+     "i": 79,
+     "ms": 90
+    },
+    {
+     "i": 80,
+     "ms": 110
+    },
+    {
+     "i": 81,
+     "ms": 140
+    },
+    {
+     "i": 82,
+     "ms": 180
+    },
+    {
+     "i": 83,
+     "ms": 220
+    },
+    {
+     "i": 84,
+     "ms": 260
+    },
+    {
+     "i": 85,
+     "ms": 300
+    }
+   ]
+  },
+  "bite": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 41,
+     "ms": 50,
+     "event": "bite_windup"
+    },
+    {
+     "i": 42,
+     "ms": 70,
+     "ox": -1.0
+    },
+    {
+     "i": 43,
+     "ms": 40,
+     "events": [
+      "bite_hit",
+      "attack_hit",
+      "hit"
+     ],
+     "ox": 3.5
+    },
+    {
+     "i": 44,
+     "ms": 40,
+     "ox": 2.6
+    },
+    {
+     "i": 45,
+     "ms": 60,
+     "ox": 0.8
+    },
+    {
+     "i": 46,
+     "ms": 60,
+     "ox": 0.2
+    },
+    {
+     "i": 47,
+     "ms": 80,
+     "event": "bite_done"
+    }
+   ]
+  },
+  "turn": {
+   "loop": false,
+   "frames": [
+    {
+     "i": 25,
+     "ms": 30,
+     "event": "turn"
+    },
+    {
+     "i": 26,
+     "ms": 35
+    },
+    {
+     "i": 27,
+     "ms": 40
+    },
+    {
+     "i": 28,
+     "ms": 35
+    },
+    {
+     "i": 29,
+     "ms": 30,
+     "event": "turn_done"
+    }
+   ]
+  }
+ },
+ "meta": {
+  "title": "Mud onion (scary): slimy layer per hit, HARD-snap scream, pops into toxic gas; nfvar layers | side view v2",
+  "source": "derived_mud.png",
+  "cells": [
+   "sv_idle_0",
+   "sv_idle_1",
+   "sv_idle_2",
+   "sv_idle_3",
+   "sv_idle_4",
+   "sv_idle_5",
+   "sv_idle_6",
+   "sv_idle_7",
+   "sv_idle_8",
+   "sv_idle_9",
+   "sv_walk_0",
+   "sv_walk_1",
+   "sv_walk_2",
+   "sv_walk_3",
+   "sv_walk_4",
+   "sv_walk_5",
+   "sv_walk_6",
+   "sv_walk_7",
+   "sv_walk_8",
+   "sv_walk_9",
+   "sv_walk_10",
+   "sv_walk_11",
+   "sv_hurt_0",
+   "sv_hurt_1",
+   "sv_hurt_2",
+   "sv_turn_0",
+   "sv_turn_1",
+   "sv_turn_2",
+   "sv_turn_3",
+   "sv_turn_4",
+   "sv_scream_0",
+   "sv_scream_1",
+   "sv_scream_2",
+   "sv_scream_3",
+   "sv_scream_4",
+   "sv_scream_5",
+   "sv_scream_6",
+   "sv_scream_7",
+   "sv_scream_8",
+   "sv_scream_9",
+   "sv_scream_10",
+   "sv_bite_0",
+   "sv_bite_1",
+   "sv_bite_2",
+   "sv_bite_3",
+   "sv_bite_4",
+   "sv_bite_5",
+   "sv_bite_6",
+   "sv_attack_0",
+   "sv_attack_1",
+   "sv_attack_2",
+   "sv_attack_3",
+   "sv_attack_4",
+   "sv_attack_5",
+   "sv_attack_6",
+   "sv_attack_7",
+   "sv_death_0",
+   "sv_death_1",
+   "sv_death_2",
+   "sv_death_3",
+   "sv_death_4",
+   "sv_death_5",
+   "sv_death_6",
+   "sv_death_7",
+   "sv_death_8",
+   "sv_death_slice_0",
+   "sv_death_slice_1",
+   "sv_death_slice_2",
+   "emerge0",
+   "emerge1",
+   "sv_death_slice_3",
+   "sv_death_slice_4",
+   "sv_death_slice_5",
+   "sv_death_slice_6",
+   "sv_death_smash_0",
+   "sv_death_smash_1",
+   "sv_death_smash_2",
+   "sv_death_smash_3",
+   "gas_cloud0",
+   "gas_cloud1",
+   "gas_cloud2",
+   "gas_cloud3",
+   "gas_cloud4",
+   "gas_cloud5",
+   "gas_cloud6",
+   "gas_cloud7",
+   "sv_death_smash_4",
+   "sv_death_smash_5",
+   "sv_death_smash_6",
+   "sv_death_smash_7",
+   "sv_emerge_2",
+   "sv_emerge_3",
+   "sv_emerge_4",
+   "sv_emerge_5",
+   "sv_emerge_6",
+   "sv_emerge_7",
+   "sv_emerge_8"
+  ],
+  "feetY": 214.68,
+  "gameRadius": 18,
+  "gameFit": 0.25,
+  "rig": "figures/enemy-onion-mud/rig.py (cut-out animation, tools/rig)",
+  "note": "anchor = body centre so the feet land on the game's shadow (y + 0.62r) at the current snapScale fit; ox/oy are world px; limb motion is baked into the cells (rigged), so most frames carry no runtime scale.",
+  "pngFallback": "enemy-onion-mud.png",
+  "cellCrop": {
+   "from": [
+    288,
+    288
+   ],
+   "x0": 42,
+   "y0": 33,
+   "note": "cells cropped from the rig's square cell to fit more frames in 2048x2048 (smoothness pass)"
+  },
+  "splat": "purple",
+  "attacksSmash": {
+   "version": 2,
+   "date": "2026-10-18",
+   "attack": "v2",
+   "death_smash": "v2",
+   "splat": "purple",
+   "tool": "tools/attacks_smash/apply.py"
+  },
+  "facing": "right",
+  "behaviors": {
+   "version": 1,
+   "date": "2026-10-18",
+   "tool": "tools/behaviors/apply.py",
+   "facing": "right",
+   "specials": [
+    "bite",
+    "scream",
+    "turn"
+   ],
+   "notes": "see tools/behaviors/NOTES.md (behaviour table, events, timings)"
+  },
+  "sideview": {
+   "version": 2,
+   "date": "2026-10-18",
+   "tool": "tools/sideview/build.py",
+   "src": "tools/sideview/src/onion_mud_side_v1.jpg",
+   "note": "three-quarter side view facing +x (mirror for -x); clip names/events/timings unchanged; play `turn` with the NEW facing; see tools/sideview/NOTES.md"
+  },
+  "smashV3": {
+   "version": 3,
+   "date": "2026-10-18",
+   "tool": "tools/smash_v3/build_v3.py",
+   "pancake": "side-profile painting",
+   "chunks": "organic torn re-cut + painted torn chunks",
+   "note": "clip names/frames/ms/events unchanged; see tools/smash_v3/README.md"
+  }
+ }
+}

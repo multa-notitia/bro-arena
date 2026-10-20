@@ -1,4 +1,5 @@
 import type { EnemyDef, EnemyKind, Palette, ProjectileDef, WeaponId } from '../core/types.ts'
+import { deathStyleForWeapon } from './chaos.ts'
 
 const SPIT: ProjectileDef = {
   speed: 230,
@@ -7,6 +8,15 @@ const SPIT: ProjectileDef = {
   pierce: 0,
   trail: 'ink',
   paint: 'spit',
+}
+
+const PEA_SHOT: ProjectileDef = {
+  speed: 200,
+  radius: 5,
+  life: 1.6,
+  pierce: 0,
+  trail: 'none',
+  paint: 'pea',
 }
 
 const SPORE: ProjectileDef = {
@@ -53,6 +63,8 @@ const cabbage = veg('#8fb87a', '#5a7a48', '#c5d4a8', '#9dff8a', '#2c3010', '#1c2
 const carrot = veg('#e57a2c', '#b3541c', '#4f8a3c', '#ffd23d', '#4a2410', '#1c1008')
 const marrow = veg('#6f8f4a', '#3e5a2c', '#b9c98a', '#a4ff3d', '#0e160a', '#f4e8a8')
 const beet = veg('#7a1f3a', '#3d0f1f', '#e9c7d1', '#ff1f4b', '#06040c', '#f0e0a0')
+const tomato = veg('#d94a32', '#9a2418', '#4f8a3c', '#ff5a3a', '#2c100c', '#1a0806')
+const bean = veg('#7a9e3a', '#4a6824', '#c4d48a', '#b6ff4a', '#1c2810', '#14200c')
 
 type VariantKind = Extract<EnemyKind, `${string}-light` | `${string}-mud`>
 const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
@@ -65,7 +77,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 8,
     rank: 'basic',
     hp: 8,
-    speed: 78,
+    speed: 92,
     damage: 1,
     radius: 14,
     materials: 1,
@@ -75,6 +87,8 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     knockbackResist: 0,
     hpScale: 0.14,
     damageScale: 0.06,
+    juiceColor: pea.body,
+    juiceFamily: 'green',
   },
   sprout: {
     kind: 'sprout',
@@ -85,7 +99,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 9,
     rank: 'basic',
     hp: 18,
-    speed: 48,
+    speed: 46,
     damage: 1,
     radius: 16,
     materials: 1,
@@ -95,6 +109,8 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     knockbackResist: 0,
     hpScale: 0.14,
     damageScale: 0.06,
+    juiceColor: sprout.body,
+    juiceFamily: 'green',
   },
   runner: {
     kind: 'runner',
@@ -105,7 +121,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 7,
     rank: 'basic',
     hp: 5,
-    speed: 148,
+    speed: 168,
     damage: 1,
     radius: 12,
     materials: 1,
@@ -115,6 +131,8 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     knockbackResist: 0,
     hpScale: 0.12,
     damageScale: 0.05,
+    juiceColor: radish.body,
+    juiceFamily: 'red',
   },
   crab: {
     kind: 'crab',
@@ -125,7 +143,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 8,
     rank: 'basic',
     hp: 14,
-    speed: 62,
+    speed: 78,
     damage: 2,
     radius: 17,
     materials: 1,
@@ -145,7 +163,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 10,
     rank: 'basic',
     hp: 10,
-    speed: 88,
+    speed: 84,
     damage: 1,
     radius: 13,
     materials: 1,
@@ -165,7 +183,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 9,
     rank: 'basic',
     hp: 45,
-    speed: 42,
+    speed: 34,
     damage: 3,
     radius: 28,
     materials: 2,
@@ -175,6 +193,9 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     knockbackResist: 0.6,
     hpScale: 0.16,
     damageScale: 0.08,
+    burst: { radius: 92, damageFrac: 0.55, kamikaze: true },
+    juiceColor: pumpkin.body,
+    juiceFamily: 'orange',
   },
   spitter: {
     kind: 'spitter',
@@ -185,7 +206,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 8,
     rank: 'basic',
     hp: 16,
-    speed: 54,
+    speed: 64,
     damage: 2,
     radius: 16,
     materials: 1,
@@ -195,6 +216,9 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     knockbackResist: 0.1,
     hpScale: 0.14,
     damageScale: 0.07,
+    burst: { radius: 70, damageFrac: 0.4 },
+    juiceColor: chili.body,
+    juiceFamily: 'red',
   },
   hive: {
     kind: 'hive',
@@ -205,16 +229,18 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 10,
     rank: 'basic',
     hp: 32,
-    speed: 30,
+    speed: 26,
     damage: 1,
     radius: 24,
     materials: 2,
-    behavior: { type: 'spawner', child: 'blob', interval: 4, max: 5 },
+    behavior: { type: 'spawner', child: 'blob-light', interval: 4, max: 5 },
     palette: cabbage,
     paint: 'cabbage',
     knockbackResist: 0.35,
     hpScale: 0.15,
     damageScale: 0.05,
+    burst: { radius: 84, damageFrac: 0.38 },
+    juiceColor: cabbage.body,
   },
   charger: {
     kind: 'charger',
@@ -225,16 +251,64 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 7,
     rank: 'basic',
     hp: 24,
-    speed: 70,
+    speed: 78,
     damage: 3,
     radius: 18,
     materials: 1,
-    behavior: { type: 'charge', windup: 0.72, speedMult: 3.2, cooldown: 2.8, range: 230 },
+    behavior: { type: 'charge', windup: 0.85, speedMult: 2.6, cooldown: 2.8, range: 230 },
     palette: carrot,
     paint: 'carrot',
     knockbackResist: 0.25,
     hpScale: 0.15,
     damageScale: 0.08,
+    juiceColor: carrot.body,
+    juiceFamily: 'orange',
+  },
+  tomato: {
+    kind: 'tomato',
+    name: 'Tomato',
+    species: 'tomato',
+    nightmareName: 'Mud Tomato',
+    form: 'normal',
+    screamInterval: 6,
+    rank: 'basic',
+    hp: 12,
+    speed: 96,
+    damage: 3,
+    radius: 14,
+    materials: 1,
+    behavior: { type: 'kamikaze', range: 86, cooldown: 1.15, radius: 70 },
+    palette: tomato,
+    paint: 'tomato',
+    knockbackResist: 0.05,
+    hpScale: 0.13,
+    damageScale: 0.07,
+    burst: { radius: 70, damageFrac: 0.7, kamikaze: true },
+    juiceColor: tomato.body,
+    juiceFamily: 'red',
+  },
+  bean: {
+    kind: 'bean',
+    name: 'Bean',
+    species: 'bean',
+    nightmareName: 'Mud Bean',
+    form: 'normal',
+    screamInterval: 8,
+    rank: 'basic',
+    hp: 14,
+    speed: 88,
+    damage: 2,
+    radius: 17,
+    materials: 1,
+    behavior: { type: 'chase' },
+    palette: bean,
+    paint: 'bean',
+    knockbackResist: 0,
+    hpScale: 0.13,
+    damageScale: 0.06,
+    leap: { range: 190, cooldown: 1.8, height: 22, duration: 0.4 },
+    juiceColor: bean.body,
+    juiceFamily: 'green',
   },
   eliteBlob: {
     kind: 'eliteBlob',
@@ -245,7 +319,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 5,
     rank: 'elite',
     hp: 120,
-    speed: 72,
+    speed: 70,
     damage: 4,
     radius: 24,
     materials: 8,
@@ -265,7 +339,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 5,
     rank: 'elite',
     hp: 680,
-    speed: 38,
+    speed: 32,
     damage: 6,
     radius: 40,
     materials: 12,
@@ -285,7 +359,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 6,
     rank: 'boss',
     hp: 540,
-    speed: 52,
+    speed: 48,
     damage: 4,
     radius: 46,
     materials: 28,
@@ -296,7 +370,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
         { until: 0.34, pattern: 'ring', interval: 2.7 },
         { until: 0, pattern: 'charge', interval: 3.1 },
       ],
-      summon: 'sprout',
+      summon: 'pea-light',
       projectile: MOTHER_ORB,
     },
     palette: marrow,
@@ -314,7 +388,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
     screamInterval: 6,
     rank: 'boss',
     hp: 1480,
-    speed: 58,
+    speed: 52,
     damage: 6,
     radius: 52,
     materials: 45,
@@ -325,7 +399,7 @@ const ENEMY_BASE: Record<Exclude<EnemyKind, VariantKind>, EnemyDef> = {
         { until: 0.3, pattern: 'charge', interval: 2.6 },
         { until: 0, pattern: 'summon', interval: 3.4 },
       ],
-      summon: 'runner',
+      summon: 'charger-light',
       projectile: LORD_ORB,
     },
     palette: beet,
@@ -362,7 +436,7 @@ const BEETLE: EnemyDef = {
   screamInterval: 8,
   rank: 'basic',
   hp: 22,
-  speed: 62,
+  speed: 76,
   damage: 2,
   radius: 17,
   materials: 1,
@@ -416,6 +490,71 @@ const BEAN: EnemyDef = {
   damageScale: 0.06,
 }
 
+const BEETROOT: EnemyDef = {
+  kind: 'beetroot-light',
+  name: 'Beetroot',
+  species: 'beet',
+  nightmareName: 'Mud Beetroot',
+  form: 'normal',
+  screamInterval: 8,
+  rank: 'basic',
+  hp: 32,
+  speed: 60,
+  damage: 2,
+  radius: 19,
+  materials: 2,
+  behavior: { type: 'chase' },
+  palette: beet,
+  paint: 'beet',
+  knockbackResist: 0.35,
+  hpScale: 0.16,
+  damageScale: 0.07,
+  juiceColor: beet.body,
+}
+
+const ONION: EnemyDef = {
+  kind: 'onion-light',
+  name: 'Onion',
+  species: 'onion',
+  nightmareName: 'Mud Onion',
+  form: 'normal',
+  screamInterval: 8,
+  rank: 'basic',
+  hp: 16,
+  speed: 90,
+  damage: 1,
+  radius: 15,
+  materials: 1,
+  behavior: { type: 'chase' },
+  palette: veg('#d8c46a', '#8a7a32', '#f0e8c4', '#ffe28a', '#3a3010', '#1c1408'),
+  paint: 'onion',
+  knockbackResist: 0.05,
+  hpScale: 0.14,
+  damageScale: 0.06,
+}
+
+const PEA_SPROUT: EnemyDef = {
+  kind: 'pea-light',
+  name: 'Pea Sprout',
+  species: 'pea',
+  nightmareName: 'Mud Pea Sprout',
+  form: 'normal',
+  screamInterval: 8,
+  rank: 'basic',
+  hp: 8,
+  speed: 105,
+  damage: 1,
+  radius: 14,
+  materials: 1,
+  behavior: { type: 'shoot', range: 220, cooldown: 1.8, projectile: PEA_SHOT, keepDistance: 135 },
+  palette: pea,
+  paint: 'pea',
+  knockbackResist: 0,
+  hpScale: 0.14,
+  damageScale: 0.06,
+  leap: { range: 200, cooldown: 2.1, height: 21, duration: 0.9 },
+}
+
 const SHROOM: EnemyDef = {
   kind: 'shroom-light',
   name: 'Toadstool',
@@ -425,7 +564,7 @@ const SHROOM: EnemyDef = {
   screamInterval: 9,
   rank: 'basic',
   hp: 14,
-  speed: 48,
+  speed: 44,
   damage: 2,
   radius: 14,
   materials: 1,
@@ -453,16 +592,20 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   'tomato-mud': variant(TOMATO, 'tomato-mud', 'mud', 17, 'Mud Tomato'),
   'bean-light': BEAN,
   'bean-mud': variant(BEAN, 'bean-mud', 'mud', 19, 'Mud Bean'),
+  'beetroot-light': BEETROOT,
+  'beetroot-mud': { ...variant(BEETROOT, 'beetroot-mud', 'mud', 23, 'Mud Beetroot'), speed: 50 },
+  'onion-light': ONION,
+  'onion-mud': { ...variant(ONION, 'onion-mud', 'mud', 18, 'Mud Onion'), speed: 80 },
+  'pea-light': PEA_SPROUT,
+  'pea-mud': { ...variant(PEA_SPROUT, 'pea-mud', 'mud', 17, 'Mud Pea Sprout'), speed: 95 },
 }
 
-const SLICE_WEAPONS = new Set<WeaponId>(['knife', 'sword', 'scythe'])
-const SMASH_WEAPONS = new Set<WeaponId>(['stick', 'hammer'])
-
-/** blades / knife / melee-slash → death_slice, club / hammer → death_smash, anything else → death. */
+/** blades → death_slice, club / hammer / other smash paints → death_smash, else death. */
 export function corpseClipFor(weapon: WeaponId | undefined): 'death' | 'death_slice' | 'death_smash' {
   if (!weapon) return 'death'
-  if (SLICE_WEAPONS.has(weapon)) return 'death_slice'
-  if (SMASH_WEAPONS.has(weapon)) return 'death_smash'
+  const style = deathStyleForWeapon(weapon)
+  if (style === 'slice') return 'death_slice'
+  if (style === 'smash') return 'death_smash'
   return 'death'
 }
 
@@ -474,4 +617,22 @@ export function variantTone(kind: EnemyKind): 'light' | 'mud' | null {
 
 export function enemyFamily(kind: EnemyKind): string {
   return kind.replace(/-(light|mud)$/, '')
+}
+
+/** Bare/legacy kinds the director still names, mapped onto painted sheets. */
+const PAINTED_KIND: Partial<Record<EnemyKind, EnemyKind>> = {
+  sprout: 'pea-light',
+  blob: 'blob-light',
+  charger: 'charger-light',
+  spitter: 'spitter-light',
+  brute: 'beetroot-mud',
+  eliteBrute: 'eliteBlob',
+  wisp: 'spitter-light',
+  runner: 'charger-light',
+  crab: 'beetle-light',
+  hive: 'shroom-light',
+}
+
+export function paintedEnemyKind(kind: EnemyKind): EnemyKind {
+  return PAINTED_KIND[kind] ?? kind
 }

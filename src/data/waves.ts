@@ -1,4 +1,4 @@
-import { lerp } from '../core/math.ts'
+import { CHAOS } from './chaos.ts'
 import type { EnemyDef, EnemyKind, WaveDef } from '../core/types.ts'
 
 type Pool = { kind: EnemyKind; weight: number }[]
@@ -12,10 +12,10 @@ function w(
   pool: Pool,
   extras: { boss?: EnemyKind } = {},
 ): WaveDef {
-  const t = (index - 1) / 19
-  const duration = Math.round(lerp(20, 60, t))
-  const spawnInterval = Math.round(lerp(1.4, 0.32, t) * 100) / 100
-  const batch = Math.max(1, Math.round(lerp(1, 4, t)))
+  const slot = Math.max(0, Math.min(19, index - 1))
+  const duration = CHAOS.pace.waveSeconds[slot] ?? 20
+  const spawnInterval = CHAOS.pace.spawnInterval[slot] ?? 1.4
+  const batch = CHAOS.pace.batch[slot] ?? 1
   const elites = index < 6 ? 0 : index < 10 ? 1 : index < 16 ? 2 : 3
   const trees = index <= 5 ? 2 : index <= 12 ? 3 : 4
   const hordeCount = index < 3 ? 0 : index < 8 ? 1 : index < 14 ? 2 : 3
@@ -48,53 +48,61 @@ function mix(light: EnemyKind, mud: EnemyKind, lightW: number): Pool {
 
 /** Farm loop still follows the beds. This pool is the mix when a spawn is not tied to a crop. */
 const EARLY: Pool = [
-  ...mix('blob-light', 'blob-mud', 48),
-  ...mix('beetle-light', 'beetle-mud', 16),
-  ...mix('shroom-light', 'shroom-mud', 14),
-  ...mix('tomato-light', 'tomato-mud', 12),
-  ...mix('bean-light', 'bean-mud', 10),
-  { kind: 'sprout', weight: 12 },
+  ...mix('blob-light', 'blob-mud', 40),
+  ...mix('beetle-light', 'beetle-mud', 12),
+  ...mix('shroom-light', 'shroom-mud', 10),
+  ...mix('bean-light', 'bean-mud', 18),
+  ...mix('tomato-light', 'tomato-mud', 10),
+  ...mix('pea-light', 'pea-mud', 10),
 ]
 const MID: Pool = [
-  ...mix('blob-light', 'blob-mud', 28),
-  ...mix('charger-light', 'charger-mud', 26),
-  ...mix('beetle-light', 'beetle-mud', 16),
-  ...mix('shroom-light', 'shroom-mud', 12),
-  ...mix('tomato-light', 'tomato-mud', 12),
-  ...mix('bean-light', 'bean-mud', 12),
-  { kind: 'sprout', weight: 10 },
+  ...mix('blob-light', 'blob-mud', 22),
+  ...mix('charger-light', 'charger-mud', 20),
+  ...mix('beetle-light', 'beetle-mud', 12),
+  ...mix('shroom-light', 'shroom-mud', 10),
+  ...mix('bean-light', 'bean-mud', 16),
+  ...mix('tomato-light', 'tomato-mud', 14),
+  ...mix('pea-light', 'pea-mud', 8),
 ]
 const LATE: Pool = [
-  ...mix('blob-light', 'blob-mud', 18),
-  ...mix('charger-light', 'charger-mud', 24),
-  ...mix('spitter-light', 'spitter-mud', 18),
-  ...mix('beetle-light', 'beetle-mud', 14),
-  ...mix('shroom-light', 'shroom-mud', 14),
-  ...mix('tomato-light', 'tomato-mud', 14),
-  ...mix('bean-light', 'bean-mud', 12),
+  ...mix('blob-light', 'blob-mud', 14),
+  ...mix('charger-light', 'charger-mud', 18),
+  ...mix('spitter-light', 'spitter-mud', 14),
+  ...mix('beetle-light', 'beetle-mud', 10),
+  ...mix('shroom-light', 'shroom-mud', 10),
+  ...mix('bean-light', 'bean-mud', 18),
+  ...mix('tomato-light', 'tomato-mud', 16),
 ]
+
+const BEETROOTS = mix('beetroot-light', 'beetroot-mud', 16)
+const ONIONS = mix('onion-light', 'onion-mud', 16)
+const PEAS = mix('pea-light', 'pea-mud', 16)
+
+function withPack(base: Pool, extra: Pool): Pool {
+  return [...base, ...extra]
+}
 
 export const WAVES: WaveDef[] = [
   w(1, EARLY),
   w(2, EARLY),
-  w(3, MID),
-  w(4, MID),
-  w(5, MID),
-  w(6, MID),
-  w(7, MID),
-  w(8, LATE),
-  w(9, LATE),
-  w(10, LATE, { boss: 'eliteBlob' }),
-  w(11, LATE),
-  w(12, LATE),
-  w(13, LATE),
-  w(14, LATE),
-  w(15, LATE),
-  w(16, LATE),
-  w(17, LATE),
-  w(18, LATE),
-  w(19, LATE),
-  w(20, LATE, { boss: 'eliteBlob' }),
+  w(3, withPack(MID, [...BEETROOTS, ...PEAS])),
+  w(4, withPack(MID, [...ONIONS, ...PEAS])),
+  w(5, withPack(MID, [...BEETROOTS, ...ONIONS])),
+  w(6, withPack(MID, [...BEETROOTS, ...ONIONS, ...PEAS])),
+  w(7, withPack(MID, [...ONIONS, ...PEAS])),
+  w(8, withPack(LATE, [...BEETROOTS, ...PEAS])),
+  w(9, withPack(LATE, [...ONIONS, ...BEETROOTS])),
+  w(10, withPack(LATE, [...PEAS, ...ONIONS]), { boss: 'eliteBlob' }),
+  w(11, withPack(LATE, [...BEETROOTS, ...ONIONS, ...PEAS])),
+  w(12, withPack(LATE, [...BEETROOTS, ...PEAS])),
+  w(13, withPack(LATE, [...ONIONS, ...PEAS])),
+  w(14, withPack(LATE, [...BEETROOTS, ...ONIONS])),
+  w(15, withPack(LATE, [...BEETROOTS, ...ONIONS, ...PEAS])),
+  w(16, withPack(LATE, [...PEAS, ...ONIONS])),
+  w(17, withPack(LATE, [...BEETROOTS, ...PEAS])),
+  w(18, withPack(LATE, [...ONIONS, ...BEETROOTS])),
+  w(19, withPack(LATE, [...PEAS, ...BEETROOTS])),
+  w(20, withPack(LATE, [...BEETROOTS, ...ONIONS, ...PEAS]), { boss: 'eliteBlob' }),
 ]
 
 export const WAVE_COUNT = WAVES.length

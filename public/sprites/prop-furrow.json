@@ -11,15 +11,19 @@
   "idle": {
    "loop": true,
    "frames": [
-    { "i": 0, "ms": 1000 }
+    {
+     "i": 0,
+     "ms": 1000
+    }
    ]
   }
  },
  "meta": {
-  "title": "Garden furrow strip",
-  "source": "image2.jpg",
+  "title": "Veggie row: neat soil ridge with one crop, evenly spaced",
+  "source": "tools/garden/src/g2_rows.jpg",
   "image2x": "prop-furrow@2x.webp",
-  "note": "static prop; draw at 1x for normal zoom, @2x for hi-dpi.",
-  "pngFallback": "prop-furrow.png"
+  "pngFallback": "prop-furrow.png",
+  "tool": "tools/garden/garden_tidy.py",
+  "note": "garden v2 tidy: same id/size/anchor as the old furrow strip. Crops sit between the four planting spots (native x -210,-70,70,210), so planted crops alternate with the painted ones."
  }
 }

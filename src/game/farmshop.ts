@@ -1,10 +1,12 @@
 import { uid } from '../core/math.ts'
+import { waveRecap } from './waves.ts'
 import type { CropId, FarmOffer, FarmShopView, World } from '../core/types.ts'
 import { CROP_IDS } from '../core/types.ts'
 import { CROPS, cropUnlockedAt } from '../data/crops.ts'
 import { rerollPrice } from '../data/economy.ts'
 import { addSeed, unlockCrop } from './farm.ts'
 import type { SimCtx } from './world.ts'
+import { bedOffers } from './beds.ts'
 
 export interface FarmShopSession {
   offers: FarmOffer[]
@@ -163,7 +165,7 @@ export function buyFarmOffer(world: World, ctx: SimCtx, session: FarmShopSession
   if (offer.kind === 'seed' && offer.crop) {
     addSeed(world.farm, offer.crop, offer.count)
     unlockCrop(world.farm, offer.crop)
-    ctx.ui.toast(`${CROPS[offer.crop].seedName} ×${offer.count}`)
+    ctx.ui.seedPop(offer.crop, offer.count)
   } else if (offer.kind === 'fertilizer') {
     world.farm.fertilizer += 1
     ctx.ui.toast('Fertilizer on the row.')
@@ -204,7 +206,9 @@ export function buildFarmShopView(world: World, session: FarmShopSession): FarmS
   return {
     wave: world.wave,
     nextWave: world.wave + 1,
+    recap: waveRecap(world),
     materials: world.player.materials,
+    beds: bedOffers(world.player.materials),
     offers: session.offers,
     rerollPrice: currentFarmRerollPrice(world, session),
     seeds: { ...world.farm.seeds },

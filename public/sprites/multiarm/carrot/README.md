@@ -119,3 +119,14 @@ FX on the key whose show contains "release":
 The game's weapon drawScale (chaos.ts `read.weaponMelee/weaponRanged`) must be **1.0**. `weapons.json` has keys for every game
 weapon id, so `paintName()` finds them directly. If `sockets.arms.raised.back` is present, back-layer slots on `raised:true`
 keys use that dark painting (see compose_ref). Details: art/WEAPONS_V2.md.
+
+
+## Art pass 9 (2026-10-18): weapon spread + dark far-side weapons
+This export runs `tools/pass9/spread_apply.py` after weapons_v2. It is data only:
+- new sprouted-slot `pos`/`dir` (designed fan)
+- far-native layout overrides (`pos`, `dir`; potato: `hero:"L"`)
+- per-slot rest wrist offsets baked into `body_track.json`
+- `<weapon>_dark` part twins plus `weapons.json imgBack`
+
+Parameters: `tools/pass9/data/spread_<hero>.json` (from `tools/pass9/spread_opt.py`). The runtime needs one line to use `imgBack` (see the pass9 NOTES.md).
+Preview: `art/previews/multiarm_spread_v1.{png,gif}`.

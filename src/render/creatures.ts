@@ -50,6 +50,8 @@ export const SPECIES_LIST: readonly Species[] = [
   'marrow',
   'corn',
   'broccoli',
+  'tomato',
+  'bean',
 ]
 
 export function isSpecies(s: string): s is Species {
@@ -66,6 +68,11 @@ const KIND_SPECIES: Record<string, Species> = {
   spitter: 'chili',
   hive: 'cabbage',
   charger: 'carrot',
+  tomato: 'tomato',
+  bean: 'bean',
+  beetroot: 'beet',
+  onion: 'onion',
+  pea: 'pea',
   eliteBlob: 'pea',
   eliteBrute: 'pumpkin',
   mother: 'marrow',
@@ -120,6 +127,8 @@ export const SPECIES_PALETTES: Record<Species, Palette> = {
   marrow: { body: '#6f8f4a', shade: '#3e5a28', ink: '#1c2410', accent: '#b9c98a', eye: '#14200c', mud: '#33241a', glow: '#a4ff3d' },
   corn: { body: '#e8c44a', shade: '#b08a22', ink: '#2c240c', accent: '#5a8a3a', eye: '#1a1408', mud: '#33241a', glow: '#ffe66a' },
   broccoli: { body: '#4a8a3a', shade: '#2c5a24', ink: '#142010', accent: '#8fbf6a', eye: '#0c1408', mud: '#33241a', glow: '#9dff8a' },
+  tomato: { body: '#d94a32', shade: '#9a2418', ink: '#2c100c', accent: '#4f8a3c', eye: '#1a0806', mud: '#33241a', glow: '#ff5a3a' },
+  bean: { body: '#7a9e3a', shade: '#4a6824', ink: '#1c2810', accent: '#c4d48a', eye: '#14200c', mud: '#33241a', glow: '#b6ff4a' },
 }
 
 export function sizeBucket(r: number): number {
@@ -214,6 +223,8 @@ const OUTLINE_KIND: Record<Species, OutlineKind> = {
   marrow: 'stripe',
   corn: 'husk',
   broccoli: 'floret',
+  tomato: 'rim',
+  bean: 'soft',
 }
 
 const EYE_KIND: Record<Species, EyeKind> = {
@@ -233,6 +244,8 @@ const EYE_KIND: Record<Species, EyeKind> = {
   marrow: 'side',
   corn: 'kernel',
   broccoli: 'stemEye',
+  tomato: 'round',
+  bean: 'dot',
 }
 
 function lookEyeKind(species: Species, form: Form, model: ModelDir): EyeKind {
@@ -288,6 +301,8 @@ const MOUTH_KIND: Record<Species, MouthKind> = {
   marrow: 'sideSmile',
   corn: 'grin',
   broccoli: 'pout',
+  tomato: 'pout',
+  bean: 'nub',
 }
 
 function rig(
@@ -1258,6 +1273,12 @@ function paintSpeciesSilhouette(
       break
     case 'broccoli':
       paintBroccoli(ctx, pal, r, seed, nm)
+      break
+    case 'tomato':
+      paintPea(ctx, pal, r, seed, nm)
+      break
+    case 'bean':
+      paintPea(ctx, pal, r, seed, nm)
       break
     default: {
       const _n: never = species

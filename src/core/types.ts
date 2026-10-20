@@ -136,6 +136,8 @@ export type Species =
   | 'marrow'
   | 'corn'
   | 'broccoli'
+  | 'tomato'
+  | 'bean'
 
 /**
  * Two forms for every vegetable. `normal` is the clean watercolour version.
@@ -191,6 +193,8 @@ export type ProjectilePaint =
   | 'spit'
   | 'spore'
   | 'orb'
+  | 'pea'
+  | 'seed'
 
 /** Enemy silhouettes are vegetable species. */
 export type EnemyPaint = Species
@@ -316,6 +320,14 @@ export type ItemSpecial =
   | 'slowOnHit'
   | 'materialOnDodge'
   | 'critHeals'
+  | 'chainSpark'
+  | 'stompOnHurt'
+  | 'orbitSeeds'
+  | 'sporeOnKill'
+  | 'guard'
+  | 'frenzyOnKill'
+  | 'cullLow'
+  | 'luckyKill'
 
 export interface ItemDef {
   id: string
@@ -378,6 +390,8 @@ export type EnemyKind =
   | 'spitter'
   | 'hive'
   | 'charger'
+  | 'tomato'
+  | 'bean'
   | 'eliteBlob'
   | 'eliteBrute'
   | 'mother'
@@ -396,6 +410,12 @@ export type EnemyKind =
   | 'tomato-mud'
   | 'bean-light'
   | 'bean-mud'
+  | 'beetroot-light'
+  | 'beetroot-mud'
+  | 'onion-light'
+  | 'onion-mud'
+  | 'pea-light'
+  | 'pea-mud'
 
 export interface BossPhase {
   /** Phase active while hp fraction is above this value. */
@@ -410,7 +430,23 @@ export type EnemyBehavior =
   | { type: 'charge'; windup: number; speedMult: number; cooldown: number; range: number }
   | { type: 'shoot'; range: number; cooldown: number; projectile: ProjectileDef; keepDistance: number }
   | { type: 'spawner'; child: EnemyKind; interval: number; max: number }
+  | { type: 'kamikaze'; range: number; cooldown: number; radius: number }
   | { type: 'boss'; phases: BossPhase[]; summon?: EnemyKind; projectile?: ProjectileDef }
+
+export type JuiceFamily = 'red' | 'orange' | 'green' | 'mud'
+
+export interface LeapDef {
+  range: number
+  cooldown: number
+  height: number
+  duration: number
+}
+
+export interface BurstDef {
+  radius: number
+  damageFrac: number
+  kamikaze?: boolean
+}
 
 export interface EnemyDef {
   kind: EnemyKind
@@ -439,6 +475,14 @@ export interface EnemyDef {
   /** Multiplies hp per wave beyond 1, e.g. 0.12. */
   hpScale: number
   damageScale: number
+  /** Optional hop toward the player. Plays `leap` (takeoff, land) when present. */
+  leap?: LeapDef
+  /** Neighbour splash on death. Kamikaze always pops. */
+  burst?: BurstDef
+  /** Splat / burst wash; defaults to body. */
+  juiceColor?: string
+  /** Funny FX family: veg_burst_red / orange / green, splat_mud when muddy. */
+  juiceFamily?: JuiceFamily
 }
 
 export interface WaveDef {
@@ -562,6 +606,9 @@ export type EnemyState =
   | 'recover'
   | 'screaming'
   | 'dying'
+  | 'burrowing'
+  | 'resurfacing'
+  | 'peeling'
 
 export interface Enemy extends Vec {
   /** Pose at the previous sim step. The renderer blends toward x/y. */
@@ -623,6 +670,8 @@ export interface Projectile extends Vec {
   weaponUid: number
   /** Homing strength copied from def for convenience. */
   homing: number
+  /** Authored projectile cell, e.g. the pea spit clip. */
+  sheetClip?: { sheet: string; clip: string }
 }
 
 export type PickupType = 'material' | 'materialBig' | 'fruit' | 'chest' | 'seed'
@@ -666,6 +715,8 @@ export interface Farm {
   lastHarvest: { materials: number; xp: number }
 }
 
+export type TreeKind = 'apple' | 'gnarly' | 'shrub'
+
 export interface Tree extends Vec {
   uid: number
   hp: number
@@ -673,12 +724,18 @@ export interface Tree extends Vec {
   r: number
   sway: number
   hitFlash: number
+  kind: TreeKind
+  /** Play `tree_*_hit` until the authored clip finishes. */
+  hitAnim: boolean
 }
 
 export interface SpawnMarker extends Vec {
   kind: EnemyKind
   t: number
   life: number
+  /** Mud-crack telegraph style. Default is a bed marker. */
+  style?: 'crack' | 'ring' | 'patch'
+  elite?: boolean
 }
 
 export interface Camera extends Vec {
@@ -703,6 +760,12 @@ export interface World {
   waveDef: WaveDef
   /** Seconds remaining in the wave. */
   waveLeft: number
+  /** Live walkable rect. Grows as beds open, so one side can extend alone. */
+  arenaMinX: number
+  arenaMaxX: number
+  arenaMinY: number
+  arenaMaxY: number
+  /** Max extent from the origin. Clamps use the rect above. */
   arenaHalfW: number
   arenaHalfH: number
   player: Player
@@ -778,21 +841,34 @@ export interface ShopOffer {
   paint: WeaponPaint | ItemPaint
   /** Human readable stat lines, e.g. "+5 Max HP" or "Damage 12 · Cooldown 1.1s". */
   lines: string[]
+  /** Item special, shown apart from the stat lines. */
+  effect?: string
   /** True when buying would combine into an owned weapon of the same id + tier. */
   combines: boolean
   affordable: boolean
+}
+
+export interface BedOffer {
+  id: string
+  label: string
+  cost: number
+  /** open = already yours, ready = can buy, gated = the inner bed is still shut. */
+  state: 'open' | 'ready' | 'gated'
+  affordable: boolean
+  hint: string
 }
 
 export interface ShopView {
   wave: number
   nextWave: number
   materials: number
+  beds: BedOffer[]
   offers: ShopOffer[]
   rerollPrice: number
   freeRerolls: number
   weapons: { uid: number; id: WeaponId; name: string; tier: Tier; paint: WeaponPaint; sellPrice: number; lines: string[] }[]
   weaponSlots: number
-  items: { id: string; name: string; tier: Tier; paint: ItemPaint; count: number }[]
+  items: { id: string; name: string; tier: Tier; paint: ItemPaint; count: number; lines: string[]; effect?: string }[]
   stats: { key: StatKey; label: string; value: number; percent: boolean }[]
   hp: number
   maxHp: number
@@ -819,6 +895,7 @@ export interface RunSummary {
 
 export interface ShopHandlers {
   buy(offerUid: number): void
+  buyBed(id: string): void
   toggleLock(offerUid: number): void
   reroll(): void
   sell(weaponUid: number): void
@@ -844,7 +921,10 @@ export interface FarmOffer {
 export interface FarmShopView {
   wave: number
   nextWave: number
+  /** "14 down · +43 scrap" for the wave just finished. */
+  recap: string
   materials: number
+  beds: BedOffer[]
   offers: FarmOffer[]
   rerollPrice: number
   seeds: Record<CropId, number>
@@ -855,6 +935,7 @@ export interface FarmShopView {
 
 export interface FarmShopHandlers {
   buy(offerUid: number): void
+  buyBed(id: string): void
   toggleLock(offerUid: number): void
   reroll(): void
   next(): void
@@ -914,6 +995,10 @@ export interface UiApi {
       setPaintStyle(style: PaintStyle): void
       reducedJuice: boolean
       setReducedJuice(v: boolean): void
+      fx: Record<FxToggle, boolean>
+      setFx(flag: FxToggle, value: boolean): void
+      zoom: number
+      setZoom(value: number): void
     },
   ): void
   renderGameOver(summary: RunSummary, handlers: { retry(): void; title(): void }): void
@@ -921,6 +1006,7 @@ export interface UiApi {
   /** Transient banner in the HUD layer ("Wave 4", "Boss incoming"). */
   banner(text: string, sub?: string, ms?: number): void
   toast(text: string): void
+  seedPop(crop: CropId, count?: number): void
   setJoystickVisible(visible: boolean): void
   /** Called by main to bind title buttons. */
   onTitle(handlers: {
@@ -941,6 +1027,11 @@ export interface InputApi {
   sample(): Vec
   /** Returns true once per key press. */
   consume(code: string): boolean
+  /**
+   * Wheel notches since the last call, positive = zoom in.
+   * One mouse notch is about 1. Cleared on read.
+   */
+  consumeWheel(): number
   down(code: string): boolean
   readonly coarse: boolean
 }
@@ -949,11 +1040,14 @@ export interface InputApi {
 // Render
 // ---------------------------------------------------------------------------
 
+export type FxToggle = 'telegraphs' | 'damageNumbers' | 'combo' | 'shake' | 'hitStop'
+
 export interface DamageNumberOpts {
   crit?: boolean
   heal?: boolean
   dodge?: boolean
   burn?: boolean
+  mergeId?: number
 }
 
 /** Implemented by src/render/fx.ts. World-space coordinates unless noted. */
@@ -964,6 +1058,8 @@ export interface FxApi {
   slash(x: number, y: number, angle: number, arc: number, radius: number, color: string): void
   thrust(x: number, y: number, angle: number, length: number, color: string): void
   shockwave(x: number, y: number, radius: number, color: string): void
+  /** Crackling lightning arc between two points. */
+  bolt(x: number, y: number, tx: number, ty: number, color: string): void
   damageNumber(x: number, y: number, amount: number, opts?: DamageNumberOpts): void
   text(x: number, y: number, text: string, color: string): void
   sparkle(x: number, y: number, color: string): void
@@ -987,7 +1083,7 @@ export interface FxApi {
   flash(color: string, strength: number): void
   update(dt: number): void
   /** Draw world-space fx. Caller has already applied the camera transform. */
-  drawWorld(ctx: CanvasRenderingContext2D): void
+  drawWorld(ctx: CanvasRenderingContext2D, hero?: Vec, layer?: 'near' | 'far'): void
   /** Draw screen-space fx (transition, flash, vignette). Called in screen space. */
   drawScreen(ctx: CanvasRenderingContext2D, w: number, h: number): void
   clear(): void

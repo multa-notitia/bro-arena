@@ -1,13 +1,15 @@
 import { clamp, dist2, uid } from '../core/math.ts'
 import type { CropId, Enemy, EnemyDef, Pickup, PickupType, Tree, World } from '../core/types.ts'
-import { CROPS, cropByEnemy } from '../data/crops.ts'
+import { cropByEnemy } from '../data/crops.ts'
 import { ITEM_LIST } from '../data/items.ts'
 import { harvestPayout, materialDropValue, tierOdds } from '../data/economy.ts'
 import { addSeed, harvestFarm, seedDropChance } from './farm.ts'
+import { CHAOS } from '../data/chaos.ts'
 import { addXp, countSpecial, extraState, healPlayer, recomputeStats } from './player.ts'
 import type { SimCtx } from './world.ts'
+import { kickTreeHit } from './arenaProps.ts'
 
-const BASE_PICKUP_RANGE = 90
+const BASE_PICKUP_RANGE = CHAOS.pace.pickupRange
 
 export function spawnPickup(
   world: World,
@@ -102,6 +104,7 @@ export function hitTree(world: World, tree: Tree, damage: number, ctx: SimCtx): 
   if (tree.hp <= 0 || damage <= 0) return
   tree.hp -= damage
   tree.hitFlash = 1
+  kickTreeHit(tree)
   ctx.render.fx.puff(tree.x, tree.y - 10, '#5a7a38', 10)
   ctx.render.fx.hitSpark(tree.x, tree.y, ctx.rng.range(0, Math.PI * 2), '#7a9a40')
   if (tree.hp <= 0) {
@@ -177,7 +180,7 @@ function collectPickup(world: World, pickup: Pickup, ctx: SimCtx): void {
     const crop = pickup.crop
     if (crop) {
       addSeed(world.farm, crop, 1)
-      ctx.ui.toast(crop ? CROPS[crop].seedName : 'Seed')
+      ctx.ui.seedPop(crop, 1)
     }
     ctx.audio.play('pickup')
     ctx.render.fx.sparkle(pickup.x, pickup.y, '#c4a050')
@@ -203,12 +206,13 @@ export function updatePickups(world: World, dt: number, ctx: SimCtx): void {
       const dx = player.x - p.x
       const dy = player.y - p.y
       const d = Math.hypot(dx, dy) || 1
-      const pull = 90 + p.t * 520
+      const coin = p.type === 'material' || p.type === 'materialBig'
+      const pull = coin ? CHAOS.read.coinMagnet + (1 - clamp(d / range, 0, 1)) * 420 : 90 + p.t * 520
       p.vx = (dx / d) * pull
       p.vy = (dy / d) * pull
       p.x += p.vx * dt
       p.y += p.vy * dt
-      if (d < 26) {
+      if (d < (coin ? 14 : 26)) {
         collectPickup(world, p, ctx)
         continue
       }
@@ -217,8 +221,8 @@ export function updatePickups(world: World, dt: number, ctx: SimCtx): void {
       p.vy = dampVel(p.vy, dt)
       p.x += p.vx * dt
       p.y += p.vy * dt
-      p.x = clamp(p.x, -world.arenaHalfW + 8, world.arenaHalfW - 8)
-      p.y = clamp(p.y, -world.arenaHalfH + 8, world.arenaHalfH - 8)
+      p.x = clamp(p.x, world.arenaMinX + 8, world.arenaMaxX - 8)
+      p.y = clamp(p.y, world.arenaMinY + 8, world.arenaMaxY - 8)
     }
     keep.push(p)
   }

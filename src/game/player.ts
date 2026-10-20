@@ -1,5 +1,7 @@
 import { clamp, damp, ease, uid, wrapAngle } from '../core/math.ts'
 import { FEEL } from '../feel.ts'
+import { CHAOS, walkPlaybackRate } from '../data/chaos.ts'
+import { playerGasSlow } from './families.ts'
 import type {
   AnimState,
   CharacterDef,
@@ -18,21 +20,20 @@ import { ITEMS } from '../data/items.ts'
 import { computeStats } from '../data/stats.ts'
 import { xpForLevel } from '../data/economy.ts'
 import type { SimCtx } from './world.ts'
+import { pushGardenSolids } from './gardenSolids.ts'
 import { debugHeroWeapons, multiArmSheet, potatoMultiArm, resetMultiArm } from '../render/multiarm.ts'
 import {
   actorClipActive,
   advanceActorSheet,
   consumeHurtKick,
   notePlayerRelease,
+  presentActorClip,
   resolveSheet,
   restartActorClip,
   sheetKeysForPlayer,
 } from '../render/sheets.ts'
 
 const START_RICH = 40
-const MOVE_ACCEL = 2100
-const MOVE_FRICTION = 11
-const BASE_SPEED = 210
 const SQUASH_TIME = 0.22
 
 export interface PlayerExtra {
@@ -332,17 +333,17 @@ function stepPlayerSheet(world: World, dt: number, ctx: SimCtx): void {
     if (ev.includes('release')) notePlayerRelease()
   }
   if (clip) {
+    presentActorClip('player', clip)
     // Walk keeps the phase it had before idle, hurt, or attack. Rate matches
     // travel speed so the feet don't skate at a crawl or a sprint.
     const spd = Math.hypot(player.vx, player.vy)
-    const cruise = BASE_SPEED * (1 + player.stats.speed / 100)
-    const walkRate = clamp(cruise > 1 ? spd / cruise : 1, 0.45, 1.7)
+    const cruise = CHAOS.pace.playerSpeed * (1 + player.stats.speed / 100)
+    const walkRate = walkPlaybackRate(spd, cruise)
     const ev = advanceActorSheet('player', sheet, clip, dt, walkRate)
     flash(ev, clip)
     if (clip === 'attack' && ev.includes('release')) notePlayerRelease()
   }
   anim.bob = 0
-  anim.squash = 1
 }
 
 export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): void {
@@ -373,13 +374,13 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
   player.invuln = Math.max(0, player.invuln - dt)
   anim.hitFlash = Math.max(0, anim.hitFlash - dt * 4)
 
-  const maxSpeed = BASE_SPEED * (1 + player.stats.speed / 100)
+  const maxSpeed = CHAOS.pace.playerSpeed * (1 + player.stats.speed / 100) * playerGasSlow()
   const mag = Math.hypot(move.x, move.y)
   if (mag > 0.08) {
     const nx = move.x / mag
     const ny = move.y / mag
-    player.vx += nx * MOVE_ACCEL * dt
-    player.vy += ny * MOVE_ACCEL * dt
+    player.vx += nx * CHAOS.pace.playerAccel * dt
+    player.vy += ny * CHAOS.pace.playerAccel * dt
     const spd = Math.hypot(player.vx, player.vy)
     if (spd > maxSpeed) {
       const s = maxSpeed / spd
@@ -387,14 +388,15 @@ export function updatePlayer(world: World, dt: number, move: Vec, ctx: SimCtx): 
       player.vy *= s
     }
   } else {
-    player.vx = damp(player.vx, 0, MOVE_FRICTION, dt)
-    player.vy = damp(player.vy, 0, MOVE_FRICTION, dt)
+    player.vx = damp(player.vx, 0, CHAOS.pace.playerFriction, dt)
+    player.vy = damp(player.vy, 0, CHAOS.pace.playerFriction, dt)
   }
 
   player.x += player.vx * dt
   player.y += player.vy * dt
-  player.x = clamp(player.x, -world.arenaHalfW + player.r, world.arenaHalfW - player.r)
-  player.y = clamp(player.y, -world.arenaHalfH + player.r, world.arenaHalfH - player.r)
+  const nudged = pushGardenSolids(player.x, player.y, player.r)
+  player.x = clamp(nudged.x, world.arenaMinX + player.r, world.arenaMaxX - player.r)
+  player.y = clamp(nudged.y, world.arenaMinY + player.r, world.arenaMaxY - player.r)
 
   const spd = Math.hypot(player.vx, player.vy)
   anim.moving = spd > 18

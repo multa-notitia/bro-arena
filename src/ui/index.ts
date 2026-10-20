@@ -7,9 +7,11 @@ import type {
   ItemPaint,
   LevelUpOption,
   ModelDir,
+  FxToggle,
   PaintStyle,
   PlantHandlers,
   PlantView,
+  BedOffer,
   FarmShopHandlers,
   FarmShopView,
   RenderApi,
@@ -25,6 +27,7 @@ import type { CropId } from '../core/types.ts'
 import { CROPS } from '../data/crops.ts'
 import { MODEL_LABELS, PAINT_STYLE_LABELS, PAINT_STYLES, defaultModelForSpecies, getLastModel, lookKey, modelsForSpecies } from '../render/look.ts'
 import { seedIconDataUrl } from '../render/crops.ts'
+import { MAP_CHOICES, arenaMap, setArenaMap } from '../data/mapMode.ts'
 
 const OVERLAYS: readonly Exclude<RunPhase, 'wave'>[] = [
   'boot',
@@ -56,6 +59,23 @@ function h<K extends keyof HTMLElementTagNameMap>(
   if (opts?.text !== undefined) n.textContent = opts.text
   if (opts?.id) n.id = opts.id
   return n
+}
+
+function fillBeds(host: HTMLElement, beds: BedOffer[], onBuy: (id: string) => void): void {
+  host.replaceChildren()
+  for (const bed of beds) {
+    const card = h('button', {
+      className: `bed-card is-${bed.state}${bed.affordable ? '' : ' is-broke'}`,
+    })
+    card.type = 'button'
+    card.disabled = bed.state !== 'ready' || !bed.affordable
+    card.append(h('span', { className: 'bed-name', text: bed.label }))
+    card.append(h('span', { className: 'bed-cost', text: bed.hint }))
+    if (bed.state === 'ready' && bed.affordable) {
+      card.addEventListener('click', () => onBuy(bed.id))
+    }
+    host.append(card)
+  }
 }
 
 function fmtNum(n: number): string {
@@ -97,6 +117,10 @@ const SKELETON = `
         <div id="hud-wave" class="wave-name">Wave 1</div>
         <div id="hud-clock" class="wave-clock">0:00</div>
         <div id="hud-row" class="row-label">Fallow</div>
+        <div id="hud-callout" class="hud-callout" hidden>
+          <div id="hud-callout-text" class="hud-callout-text"></div>
+          <div id="hud-callout-sub" class="hud-callout-sub" hidden></div>
+        </div>
         <div id="hud-mud" class="mud-meter" hidden>Mud · <span id="hud-mud-count">0</span></div>
       </div>
       <div id="hud-boss" class="scrap" hidden>
@@ -123,6 +147,7 @@ const SKELETON = `
   <p id="banner-sub" class="banner-sub" hidden></p>
 </div>
 <div id="toasts" class="toasts" aria-live="polite"></div>
+<div id="seed-pops" class="seed-pops" aria-live="polite"></div>
 
 <div id="screen-boot" class="overlay cover" hidden>
   <div class="cover-inner">
@@ -163,6 +188,10 @@ const SKELETON = `
       <div id="title-paint" class="paint-row"></div>
       <button id="btn-title-juice" class="btn ghost juice-btn" type="button" aria-pressed="false">Ease the shake</button>
     </div>
+    <fieldset class="options-panel" id="title-map">
+      <legend class="paint-kicker">Garden map</legend>
+      <div class="map-pick" role="group" aria-label="Garden map"></div>
+    </fieldset>
     <ul class="howto">
       <li>WASD or arrows to move. P holds still. 1–4 pick. M quiets.</li>
       <li>Between waves, sow the rows. They come up from those beds. Seeds you sow are spent.</li>
@@ -218,8 +247,11 @@ const SKELETON = `
     <header class="shop-head">
       <p class="kicker">THE SHED</p>
       <h1>Farm supplies</h1>
+      <p id="farm-recap" class="wave-recap"></p>
       <p id="farm-lede" class="lede"></p>
       <p class="bag-line">Bag <strong id="farm-bag">0</strong></p>
+      <h2 class="bed-kicker">Beds</h2>
+      <div id="farm-beds" class="bed-row" aria-label="Garden beds"></div>
     </header>
     <div class="shop-grid farm-shop-grid">
       <section class="shop-col">
@@ -259,12 +291,15 @@ const SKELETON = `
       <h1>The gardener's table</h1>
       <p id="shop-lede" class="lede"></p>
       <p class="bag-line">Bag <strong id="shop-bag">0</strong></p>
+      <h2 class="bed-kicker">Beds</h2>
+      <div id="shop-beds" class="bed-row" aria-label="Garden beds"></div>
     </header>
     <div class="shop-grid">
       <section class="shop-col">
         <h2>On the table</h2>
         <div id="shop-offers" class="offers"></div>
         <button id="shop-reroll" class="btn ghost" type="button">Turn over</button>
+        <p class="hint">Number keys buy. R turns over. Enter starts the wave.</p>
       </section>
       <section class="shop-col">
         <h2>In your hands</h2>
@@ -294,6 +329,19 @@ const SKELETON = `
       <div id="pause-paint" class="paint-row"></div>
       <button id="btn-pause-juice" class="btn ghost juice-btn" type="button" aria-pressed="false">Ease the shake</button>
     </div>
+    <fieldset class="options-panel" id="pause-options">
+      <legend class="paint-kicker">Options</legend>
+      <label class="opt-row"><input type="checkbox" id="opt-telegraphs" /> Ground marks</label>
+      <label class="opt-row"><input type="checkbox" id="opt-nums" /> Damage numbers</label>
+      <label class="opt-row"><input type="checkbox" id="opt-combo" /> Chain text</label>
+      <label class="opt-row"><input type="checkbox" id="opt-shake" /> Screen shake</label>
+      <label class="opt-row"><input type="checkbox" id="opt-hitstop" /> Hit-stop</label>
+      <label class="opt-row opt-slider" for="opt-zoom">Camera
+        <input type="range" id="opt-zoom" min="0.7" max="1.5" step="0.05" />
+        <span id="opt-zoom-val">1.25</span>
+      </label>
+      <div class="map-pick" id="pause-map" role="group" aria-label="Garden map"></div>
+    </fieldset>
     <div class="actions">
       <button id="btn-resume" class="btn primary" type="button">Keep going</button>
       <button id="btn-quit" class="btn ghost" type="button">Walk off</button>
@@ -390,6 +438,21 @@ export function createUi(
 ): UiApi {
   root.innerHTML = SKELETON
 
+  const currentMap = arenaMap()
+  root.querySelectorAll<HTMLElement>('.map-pick').forEach((host) => {
+    host.replaceChildren(
+      ...MAP_CHOICES.map((choice) => {
+        const btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'btn ghost'
+        btn.textContent = choice.label
+        btn.setAttribute('aria-pressed', choice.id === currentMap ? 'true' : 'false')
+        btn.addEventListener('click', () => setArenaMap(choice.id))
+        return btn
+      }),
+    )
+  })
+
   const must = <T extends HTMLElement>(sel: string): T => {
     const n = root.querySelector<T>(sel)
     if (!n) throw new Error(`UI missing ${sel}`)
@@ -407,6 +470,9 @@ export function createUi(
   const waveEl = must<HTMLElement>('#hud-wave')
   const clockEl = must<HTMLElement>('#hud-clock')
   const rowEl = must<HTMLElement>('#hud-row')
+  const calloutEl = must<HTMLDivElement>('#hud-callout')
+  const calloutText = must<HTMLElement>('#hud-callout-text')
+  const calloutSub = must<HTMLElement>('#hud-callout-sub')
   const hudSeeds = must<HTMLDivElement>('#hud-seeds')
   const mudMeter = must<HTMLDivElement>('#hud-mud')
   const mudCount = must<HTMLElement>('#hud-mud-count')
@@ -422,6 +488,8 @@ export function createUi(
   const bannerText = must<HTMLElement>('#banner-text')
   const bannerSub = must<HTMLElement>('#banner-sub')
   const toastsEl = must<HTMLDivElement>('#toasts')
+  const seedPopsEl = must<HTMLDivElement>('#seed-pops')
+  const seedPopLive = new Map<CropId, { el: HTMLElement; count: number; timer: number }>
 
   const bootCopy = must<HTMLElement>('#boot-copy')
   const errorCopy = must<HTMLElement>('#error-copy')
@@ -449,6 +517,13 @@ export function createUi(
   const btnQuit = must<HTMLButtonElement>('#btn-quit')
   const btnPauseMute = must<HTMLButtonElement>('#btn-pause-mute')
   const btnPauseJuice = must<HTMLButtonElement>('#btn-pause-juice')
+  const optTelegraphs = must<HTMLInputElement>('#opt-telegraphs')
+  const optNums = must<HTMLInputElement>('#opt-nums')
+  const optCombo = must<HTMLInputElement>('#opt-combo')
+  const optShake = must<HTMLInputElement>('#opt-shake')
+  const optHitstop = must<HTMLInputElement>('#opt-hitstop')
+  const optZoom = must<HTMLInputElement>('#opt-zoom')
+  const optZoomVal = must<HTMLElement>('#opt-zoom-val')
   const overLede = must<HTMLElement>('#over-lede')
   const overHero = must<HTMLDivElement>('#over-hero')
   const overSummary = must<HTMLUListElement>('#over-summary')
@@ -475,12 +550,15 @@ export function createUi(
   const plantSow = must<HTMLButtonElement>('#plant-sow')
   const plantBuffs = must<HTMLElement>('#plant-buffs')
   const farmLede = must<HTMLElement>('#farm-lede')
+  const farmRecap = must<HTMLElement>('#farm-recap')
   const farmBag = must<HTMLElement>('#farm-bag')
   const farmOffers = must<HTMLDivElement>('#farm-offers')
   const farmReroll = must<HTMLButtonElement>('#farm-reroll')
   const farmPouch = must<HTMLDivElement>('#farm-pouch')
   const farmBuffs = must<HTMLElement>('#farm-buffs')
   const farmNext = must<HTMLButtonElement>('#farm-next')
+  const farmBeds = must<HTMLDivElement>('#farm-beds')
+  const shopBeds = must<HTMLDivElement>('#shop-beds')
 
   const overlayEls: Record<OverlayId, HTMLElement> = {
     boot: must('#screen-boot'),
@@ -599,6 +677,7 @@ export function createUi(
   let activeOverlay: OverlayId | null = null
   let bannerTimer = 0
   let bannerHideTimer = 0
+  let calloutTimer = 0
   let mutedUi = false
   let juiceUi = false
   let hpDelayFrac = 1
@@ -621,8 +700,13 @@ export function createUi(
     setPaintStyle(style: PaintStyle): void
     reducedJuice: boolean
     setReducedJuice(v: boolean): void
+    fx: Record<FxToggle, boolean>
+    setFx(flag: FxToggle, value: boolean): void
+    zoom: number
+    setZoom(value: number): void
   } | null = null
   let shopHandlers: ShopHandlers | null = null
+  let shopOfferUids: number[] = []
   let plantHandlers: PlantHandlers | null = null
   let farmShopHandlers: FarmShopHandlers | null = null
   let plantUnlocked: CropId[] = []
@@ -679,7 +763,8 @@ export function createUi(
     hpWrap.append(bar)
     host.append(hpWrap)
     for (const s of view.stats) {
-      const row = h('div', { className: 'stat-row' })
+      const sign = s.value > 0 ? 'is-pos' : s.value < 0 ? 'is-neg' : 'is-zero'
+      const row = h('div', { className: `stat-row ${sign}` })
       row.append(
         h('span', { text: s.label }),
         h('span', {
@@ -864,6 +949,19 @@ export function createUi(
     pauseHandlers?.setReducedJuice(!juiceUi)
   })
 
+  optTelegraphs.addEventListener('change', () => pauseHandlers?.setFx('telegraphs', optTelegraphs.checked))
+  optNums.addEventListener('change', () => pauseHandlers?.setFx('damageNumbers', optNums.checked))
+  optCombo.addEventListener('change', () => pauseHandlers?.setFx('combo', optCombo.checked))
+  optShake.addEventListener('change', () => pauseHandlers?.setFx('shake', optShake.checked))
+  optHitstop.addEventListener('change', () => pauseHandlers?.setFx('hitStop', optHitstop.checked))
+  const syncZoomLabel = () => {
+    optZoomVal.textContent = Number(optZoom.value).toFixed(2)
+  }
+  optZoom.addEventListener('input', () => {
+    syncZoomLabel()
+    pauseHandlers?.setZoom(Number(optZoom.value))
+  })
+
   shopReroll.addEventListener('click', () => {
     shopHandlers?.reroll()
   })
@@ -917,6 +1015,25 @@ export function createUi(
       if (e.code === 'Enter') {
         e.preventDefault()
         plantHandlers?.sow()
+        return
+      }
+    }
+    if (activeOverlay === 'shop' && shopHandlers) {
+      const digit = e.code.startsWith('Digit') ? Number(e.code.slice(5)) : e.code.startsWith('Numpad') ? Number(e.code.slice(6)) : 0
+      const uid = digit >= 1 ? shopOfferUids[digit - 1] : undefined
+      if (uid !== undefined) {
+        e.preventDefault()
+        shopHandlers.buy(uid)
+        return
+      }
+      if (e.code === 'KeyR') {
+        e.preventDefault()
+        shopHandlers.reroll()
+        return
+      }
+      if (e.code === 'Enter') {
+        e.preventDefault()
+        shopHandlers.next()
         return
       }
     }
@@ -1285,6 +1402,7 @@ export function createUi(
 
     renderFarmShop(view: FarmShopView, handlers: FarmShopHandlers): void {
       farmShopHandlers = handlers
+      farmRecap.textContent = view.recap
       farmLede.textContent = `Wave ${view.wave} is under. Same scraps as the gardener's table. New seeds show up as the rain goes on, and luck helps. Then you sow wave ${view.nextWave}.`
       farmBag.textContent = String(view.materials)
       farmReroll.textContent = `Turn over · ${view.rerollPrice}`
@@ -1292,6 +1410,7 @@ export function createUi(
         view.fertilizer || view.pesticide
           ? `On the row: ${view.fertilizer ? `fertilizer ×${view.fertilizer}` : ''}${view.fertilizer && view.pesticide ? ' · ' : ''}${view.pesticide ? `pesticide ×${view.pesticide}` : ''}. Lasts one wave.`
           : 'No fertilizer or pesticide on the row yet. One wave each.'
+      fillBeds(farmBeds, view.beds, (id) => handlers.buyBed(id))
 
       farmOffers.replaceChildren()
       if (view.offers.length === 0) {
@@ -1382,9 +1501,11 @@ export function createUi(
       shopReroll.textContent =
         view.freeRerolls > 0 ? 'Turn over · Free' : `Turn over · ${view.rerollPrice}`
       shopSlots.textContent = `${view.weapons.length} of ${view.weaponSlots} hands full.`
+      fillBeds(shopBeds, view.beds, (id) => handlers.buyBed(id))
 
       shopOffers.replaceChildren()
-      for (const offer of view.offers) {
+      shopOfferUids = view.offers.map((o) => o.uid)
+      for (const [i, offer] of view.offers.entries()) {
         const card = h('div', {
           className: `offer-card tier-${offer.tier}${offer.locked ? ' is-locked' : ''}${offer.affordable ? '' : ' is-broke'}`,
         })
@@ -1394,11 +1515,14 @@ export function createUi(
             : itemIcon(offer.paint as ItemPaint)
         card.append(img(src, offer.name, 48, 48))
         const body = h('div')
-        body.append(h('h3', { className: 'offer-name', text: offer.name }))
+        const name = h('h3', { className: 'offer-name', text: offer.name })
+        name.append(h('span', { className: 'offer-key', text: String(i + 1) }))
+        body.append(name)
         body.append(h('p', { className: 'offer-flavor', text: offer.flavor }))
         const lines = h('ul', { className: 'offer-lines' })
         for (const line of offer.lines) lines.append(h('li', { text: line }))
         body.append(lines)
+        if (offer.effect) body.append(h('p', { className: 'offer-effect', text: offer.effect }))
         if (offer.combines) {
           body.append(h('div', { className: 'combine-tag', text: 'Combines with one you already hold' }))
         }
@@ -1451,8 +1575,12 @@ export function createUi(
       } else {
         for (const it of view.items) {
           const row = h('div', { className: `item-row tier-${it.tier}` })
+          row.title = [...it.lines, it.effect].filter(Boolean).join(' · ')
           row.append(img(itemIcon(it.paint), it.name, 40, 40))
-          row.append(h('p', { className: 'item-name', text: it.name }))
+          const mid = h('div', { className: 'item-mid' })
+          mid.append(h('p', { className: 'item-name', text: it.name }))
+          mid.append(h('p', { className: it.effect ? 'item-effect' : 'item-lines', text: it.effect ?? it.lines.join(' · ') }))
+          row.append(mid)
           row.append(h('span', { className: 'item-count', text: it.count > 1 ? `×${it.count}` : '×1' }))
           shopItems.append(row)
         }
@@ -1470,6 +1598,10 @@ export function createUi(
         setPaintStyle(style: PaintStyle): void
         reducedJuice: boolean
         setReducedJuice(v: boolean): void
+        fx: Record<FxToggle, boolean>
+        setFx(flag: FxToggle, value: boolean): void
+        zoom: number
+        setZoom(value: number): void
       },
     ): void {
       pauseHandlers = handlers
@@ -1477,6 +1609,13 @@ export function createUi(
       setMutedUi(handlers.muted)
       setJuiceUi(handlers.reducedJuice)
       fillPaintRow(pausePaint, handlers.paintStyle, handlers.setPaintStyle)
+      optTelegraphs.checked = handlers.fx.telegraphs
+      optNums.checked = handlers.fx.damageNumbers
+      optCombo.checked = handlers.fx.combo
+      optShake.checked = handlers.fx.shake
+      optHitstop.checked = handlers.fx.hitStop
+      optZoom.value = String(handlers.zoom)
+      optZoomVal.textContent = handlers.zoom.toFixed(2)
     },
 
     renderGameOver(summary: RunSummary, handlers: { retry(): void; title(): void }): void {
@@ -1499,6 +1638,22 @@ export function createUi(
     },
 
     banner(text: string, sub?: string, ms = 2400): void {
+      if (text === 'Elite') {
+        window.clearTimeout(calloutTimer)
+        calloutText.textContent = text
+        if (sub) {
+          calloutSub.textContent = sub
+          calloutSub.hidden = false
+        } else {
+          calloutSub.textContent = ''
+          calloutSub.hidden = true
+        }
+        calloutEl.hidden = false
+        calloutTimer = window.setTimeout(() => {
+          calloutEl.hidden = true
+        }, ms)
+        return
+      }
       window.clearTimeout(bannerTimer)
       window.clearTimeout(bannerHideTimer)
       bannerText.textContent = text
@@ -1542,6 +1697,34 @@ export function createUi(
         el.classList.add('is-out')
         window.setTimeout(() => el.remove(), reduceMotion.matches ? 0 : 300)
       }, 2600)
+    },
+
+    seedPop(crop: CropId, count = 1): void {
+      const add = Math.max(1, count)
+      const rec = seedPopLive.get(crop)
+      if (rec) {
+        rec.count += add
+        const n = rec.el.querySelector('.seed-pop-n')
+        if (n) n.textContent = `+${rec.count}`
+        window.clearTimeout(rec.timer)
+        rec.timer = window.setTimeout(() => {
+          rec.el.classList.add('is-out')
+          window.setTimeout(() => rec.el.remove(), 220)
+          seedPopLive.delete(crop)
+        }, 1400)
+        rec.el.classList.remove('is-out')
+        return
+      }
+      const el = h('div', { className: `seed-pop crop-${crop}` })
+      el.append(img(seedIconDataUrl(crop, 48), CROPS[crop].seedName, 28, 28))
+      el.append(h('span', { className: 'seed-pop-n', text: `+${add}` }))
+      seedPopsEl.append(el)
+      const timer = window.setTimeout(() => {
+        el.classList.add('is-out')
+        window.setTimeout(() => el.remove(), 220)
+        seedPopLive.delete(crop)
+      }, 1400)
+      seedPopLive.set(crop, { el, count: add, timer })
     },
 
     setJoystickVisible(visible: boolean): void {

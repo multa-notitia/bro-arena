@@ -2,6 +2,7 @@
 // cooldowns, spawn rates) stay in src/data and src/game. Tweak these, not those.
 
 import { clamp } from './core/math.ts'
+import { fxOn } from './data/chaos.ts'
 import type { World } from './core/types.ts'
 
 const JUICE_KEY = 'bro.reducedJuice'
@@ -16,36 +17,42 @@ export const FEEL = {
      * 12% of a 720p frame. Enemies share this zoom. zoomMin keeps a
      * narrower window from shrinking the hero; zoomMax leaves 1280 unclamped.
      */
-    zoomMin: 2.2,
-    zoomMax: 3.35,
+    /**
+     * Floor on the world-pixel zoom. Low enough that a 0.7× options zoom
+     * still zooms out on a ~1000px window (1008/441×0.7 ≈ 1.6). The arena
+     * fit in syncViewport raises this when the view would leave the beds.
+     */
+    zoomMin: 1.05,
+    /** High enough for the 1.5× Options zoom on a 1280 window. */
+    zoomMax: 5.2,
   },
   shake: {
-    max: 22,
-    decay: 9,
+    max: 7,
+    decay: 18,
     /** Directional share vs. noisy perpendicular jitter. */
     directional: 0.72,
     jitter: 0.55,
     freqX: 61.3,
     freqY: 73.9,
-    hit: 2.4,
-    crit: 5.2,
-    kill: 6.5,
-    eliteKill: 10,
-    bossKill: 16,
-    hurt: 11,
-    weaponKick: 2.8,
-    bossEnter: 14,
-    scream: 7,
+    hit: 1.1,
+    crit: 2.0,
+    kill: 2.4,
+    eliteKill: 3.2,
+    bossKill: 5.5,
+    hurt: 3.4,
+    weaponKick: 1.15,
+    bossEnter: 4.2,
+    scream: 2.1,
   },
   hitStop: {
     /** Seconds; stacked then capped. Tiny on chips so hordes stay at 60fps. */
-    hit: 0.012,
-    crit: 0.028,
-    kill: 0.038,
-    eliteKill: 0.055,
-    bossKill: 0.09,
-    hurt: 0.055,
-    max: 0.08,
+    hit: 0.008,
+    crit: 0.016,
+    kill: 0.022,
+    eliteKill: 0.03,
+    bossKill: 0.045,
+    hurt: 0.028,
+    max: 0.045,
   },
   kill: {
     chunkScale: 1.42,
@@ -118,8 +125,16 @@ export function juiceScale(): number {
 }
 
 export function requestHitStop(kind: HitStopKind): void {
-  if (reduced) return
+  if (reduced || !fxOn('hitStop')) return
   freeze = Math.min(FEEL.hitStop.max, freeze + FEEL.hitStop[kind])
+}
+
+/** Direct freeze in seconds. `replace` avoids stacking a horde into a stall. */
+export function requestHitStopMs(seconds: number, replace = false): void {
+  if (reduced || !fxOn('hitStop')) return
+  const add = Math.max(0, seconds)
+  if (add <= 0) return
+  freeze = Math.min(FEEL.hitStop.max, replace ? Math.max(freeze, add) : freeze + add)
 }
 
 /** Real dt in, sim dt out. Zero while a freeze frame is holding. */
@@ -140,6 +155,7 @@ function unit(dx: number, dy: number): { x: number; y: number } {
 }
 
 export function addTrauma(world: World, amount: number, dirX = 0, dirY = 0): void {
+  if (!fxOn('shake')) return
   const add = amount * juiceScale()
   if (add <= 0.01) return
   const cam = world.camera

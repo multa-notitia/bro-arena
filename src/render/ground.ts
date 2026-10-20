@@ -1,20 +1,21 @@
 import { TAU, clamp, hashNoise, lerp } from '../core/math.ts'
 import { getPaintStyle, lookKey } from './look.ts'
 import { paperColor } from './paintLang.ts'
-import { gardenGround } from './sheets.ts'
+import { arenaMap } from '../data/mapMode.ts'
+import { gardenGround, gardenGroundVariant, gardenLawnMown } from './sheets.ts'
+import { tileVariant } from './groundHash.ts'
+import { gardenFadeRect } from './garden.ts'
+import { drawGroundDecals } from './decals.ts'
 import {
   granulate,
-  inkStroke,
   makeCanvas,
   mixColor,
   n01,
-  wash,
   wobbleBlob,
 } from './watercolor.ts'
 
 export const GROUND_TILE = 512
 const BORDER_PAD = 96
-const POST_SPACING = 120
 
 const paddockTiles: HTMLCanvasElement[] = []
 let sharedBase: HTMLCanvasElement | null = null
@@ -331,14 +332,6 @@ function getOutside(q: number): HTMLCanvasElement {
   return canvas
 }
 
-function paintFencePost(ctx: CanvasRenderingContext2D, x: number, y: number, seed: number): void {
-  ctx.save()
-  ctx.translate(x, y)
-  wash(ctx, 0, 0, 4.8, 12, '#7a542e', { seed, shade: '#3a2410', n: 5, wobble: 0.1, passes: 2 })
-  inkStroke(ctx, 0, 0, 5.2, 12.6, '#14100a', { seed, width: 1.5, n: 6, alpha: 0.88 })
-  ctx.restore()
-}
-
 function walkEdge(
   x0: number,
   y0: number,
@@ -442,15 +435,6 @@ function paintBorderOverlay(ctx: CanvasRenderingContext2D, aw: number, ah: numbe
     }
   }
   ctx.restore()
-
-  for (let e = 0; e < edges.length; e++) {
-    const edge = edges[e]
-    if (!edge) continue
-    walkEdge(edge[0], edge[1], edge[2], edge[3], POST_SPACING, (x, y, nx, ny, i) => {
-      if (i === 0) return
-      paintFencePost(ctx, x + nx * 11, y + ny * 11, 300 + e * 20 + i)
-    })
-  }
 }
 
 function borderOverlay(aw: number, ah: number): HTMLCanvasElement {
@@ -496,12 +480,68 @@ export function drawPaddock(
   ah: number,
   q: number,
 ): void {
-  const garden = gardenGround(q >= 2)
+  const hi = q >= 2
+  const map = arenaMap()
+  if (map === 'rows') {
+    const painted = (tx: number, ty: number): CanvasImageSource | null => gardenGroundVariant(hi, tileVariant(tx, ty))
+    const garden = painted(0, 0) ?? gardenGroundVariant(false, tileVariant(0, 0))
+    if (garden) {
+      ctx.save()
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      tileFill(ctx, viewL, viewT, viewW, viewH, (tx, ty) => painted(tx, ty) ?? garden)
+      drawGroundDecals(ctx, viewL, viewT, viewW, viewH)
+      const fade = gardenFadeRect()
+      ctx.beginPath()
+      ctx.rect(viewL, viewT, viewW, viewH)
+      ctx.rect(fade.x, fade.y, fade.w, fade.h)
+      ctx.fillStyle = 'rgba(2, 4, 8, 0.58)'
+      ctx.fill('evenodd')
+      ctx.restore()
+      return
+    }
+  }
+  if (map === 'classic') {
+    const single = gardenGround(hi) ?? gardenGround(false)
+    if (single) {
+      ctx.save()
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      tileFill(ctx, viewL, viewT, viewW, viewH, () => single)
+      ctx.beginPath()
+      ctx.rect(viewL, viewT, viewW, viewH)
+      ctx.rect(-aw, -ah, aw * 2, ah * 2)
+      ctx.fillStyle = 'rgba(2, 4, 8, 0.58)'
+      ctx.fill('evenodd')
+      ctx.restore()
+      const overlay = borderOverlay(aw, ah)
+      ctx.drawImage(overlay, -aw - BORDER_PAD, -ah - BORDER_PAD)
+      return
+    }
+  }
+  const mown = map === 'tidy' ? gardenLawnMown(hi) ?? gardenLawnMown(false) : null
+  if (mown) {
+    ctx.save()
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    tileFill(ctx, viewL, viewT, viewW, viewH, () => mown)
+    const fade = gardenFadeRect()
+    ctx.beginPath()
+    ctx.rect(viewL, viewT, viewW, viewH)
+    ctx.rect(fade.x, fade.y, fade.w, fade.h)
+    ctx.fillStyle = 'rgba(2, 4, 8, 0.58)'
+    ctx.fill('evenodd')
+    ctx.restore()
+    return
+  }
+
+  const painted = (tx: number, ty: number): CanvasImageSource | null => gardenGroundVariant(hi, tileVariant(tx, ty))
+  const garden = painted(0, 0)
   if (garden) {
     ctx.save()
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = 'high'
-    tileFill(ctx, viewL, viewT, viewW, viewH, () => garden)
+    tileFill(ctx, viewL, viewT, viewW, viewH, (tx, ty) => painted(tx, ty) ?? garden)
     ctx.beginPath()
     ctx.rect(viewL, viewT, viewW, viewH)
     ctx.rect(-aw, -ah, aw * 2, ah * 2)

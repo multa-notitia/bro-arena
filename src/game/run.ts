@@ -16,10 +16,11 @@ import { GATE_CHARACTERS, characterById } from '../data/characters.ts'
 import { rollLevelUps } from '../data/levelups.ts'
 import { WAVE_COUNT, waveDef } from '../data/waves.ts'
 import { peekKillSource, takeKillSource } from './combat.ts'
-import { nightmaresAlive, updateEnemies } from './enemies.ts'
+import { nightmaresAlive, resetOverlapProbe, updateEnemies } from './enemies.ts'
 import { applyLevelUp } from './levelup.ts'
 import { collectAllNow, magnetAll, updatePickups } from './pickups.ts'
-import { updatePlayer } from './player.ts'
+import { recomputeStats, updatePlayer } from './player.ts'
+import { ITEMS } from '../data/items.ts'
 import { updateProjectiles } from './projectiles.ts'
 import {
   buildShopView,
@@ -42,10 +43,18 @@ import {
 } from './farmshop.ts'
 import { hudSnapshot, runSummary } from './snapshots.ts'
 import { updateWeapons } from './weapons.ts'
+import { resetItemFx, updateItemFx } from './itemFx.ts'
 import { beginWave, settleWave, updateDirector } from './waves.ts'
 import { clearPlots, plantView, selectCrop, syncFarmUnlocks, togglePlot } from './farm.ts'
 import { captureRenderPoses, createWorld, pinRenderPoses, syncViewport, updateCamera, updateTrees, type SimCtx } from './world.ts'
+import { bedRevealActive, tickBeds, tryBuyBed } from './beds.ts'
+import { dressBed } from './arenaProps.ts'
+import { getCameraZoomTarget, getFxState, nudgeCameraZoom, setCameraZoom, setFxFlag, tickCameraZoom } from '../data/chaos.ts'
 import { consumeHitStop, getReducedJuice, resetFeel, setReducedJuice } from '../feel.ts'
+import { applyChaosDemo } from './chaosDemo.ts'
+import { chaosDemoRequested, resetChaosDirector } from './chaosDirector.ts'
+import { resetChaosJuice, tickChaosJuice } from './chaosJuice.ts'
+import { resetChaosFx } from '../render/chaosFx.ts'
 import { defaultModelForSpecies, getLastModel, getPaintStyle, modelsForSpecies, setLastModel, setPaintStyle } from '../render/look.ts'
 import { isConceptAReady, preloadConceptA } from '../render/conceptA.ts'
 import { isBoardReady, preloadBoard } from '../render/board.ts'
@@ -86,6 +95,8 @@ export class Run {
   private plantFirst = true
   /** Leftover time since the last 1/60 sim step. Drawing blends across it. */
   private simAcc = 0
+  /** Shop phase hidden while a bed reveal plays on the garden. */
+  private bedCover: RunPhase | null = null
 
   constructor(deps: RunDeps) {
     this.deps = deps
@@ -144,6 +155,7 @@ export class Run {
     }
 
     this.handleGlobalInput()
+    this.applyZoomInput()
 
     if (this._phase === 'boot') {
       this.bootT += dt
@@ -155,7 +167,10 @@ export class Run {
 
     const world = this.world
     if (world) {
+      tickCameraZoom(dt)
+      const revealing = tickBeds(world, dt)
       syncViewport(world, this.deps.canvas)
+      this.syncBedCover(revealing)
       if (this._phase === 'wave' && !world.paused && !this.transitioning) {
         const step = 1 / 60
         this.simAcc += dt
@@ -167,10 +182,13 @@ export class Run {
         }
         if (this.simAcc > step) this.simAcc = step
         world.renderAlpha = clamp(this.simAcc / step, 0, 1)
-      } else if (this._phase === 'plant' || this._phase === 'farmshop') {
+      } else if ((this._phase === 'plant' || this._phase === 'farmshop') && !revealing) {
         for (const plot of world.farm.plots) plot.sway += dt
         world.camera.x = damp(world.camera.x, 0, 5, dt)
         world.camera.y = damp(world.camera.y, 0, 5, dt)
+        pinRenderPoses(world)
+      } else if (revealing) {
+        updateCamera(world, dt)
         pinRenderPoses(world)
       } else {
         pinRenderPoses(world)
@@ -189,6 +207,45 @@ export class Run {
       ui: this.deps.ui,
       rng: this.rng,
     }
+  }
+
+  private applyZoomInput(): void {
+    const { input } = this.deps
+    const zoomIn = input.consume('Equal') || input.consume('NumpadAdd')
+    const zoomOut = input.consume('Minus') || input.consume('NumpadSubtract')
+    const wheel = input.consumeWheel()
+    const live = this._phase === 'wave' || this._phase === 'paused' || bedRevealActive()
+    if (!live) return
+    let steps = wheel
+    if (zoomIn) steps += 1
+    if (zoomOut) steps -= 1
+    if (steps !== 0) nudgeCameraZoom(steps * 0.05)
+  }
+
+  private syncBedCover(revealing: boolean): void {
+    if (revealing) {
+      if (this.bedCover) return
+      if (this._phase !== 'shop' && this._phase !== 'farmshop') return
+      this.bedCover = this._phase
+      this.deps.ui.showScreen(null)
+      return
+    }
+    if (!this.bedCover) return
+    const phase = this.bedCover
+    this.bedCover = null
+    if (this._phase !== phase) return
+    this.deps.ui.showScreen(phase)
+    if (phase === 'shop') this.renderShop()
+    else if (phase === 'farmshop') this.renderFarmShop()
+  }
+
+  private buyBed(id: string): void {
+    if (!this.world) return
+    const bed = tryBuyBed(this.world, id)
+    if (!bed) return
+    dressBed(this.world, this.sim(), bed)
+    this.deps.audio.play('uiClick')
+    this.deps.ui.banner(bed.label, 'The hedge opens.', 1500)
   }
 
   private handleGlobalInput(): void {
@@ -229,6 +286,10 @@ export class Run {
       this.pickCharacter(hero)
       return
     }
+    if (chaosDemoRequested()) {
+      this.pickCharacter('well-rounded')
+      return
+    }
     this.enterCharSelect()
   }
 
@@ -254,6 +315,7 @@ export class Run {
       reducedJuice: getReducedJuice(),
       setReducedJuice: (v: boolean) => this.changeReducedJuice(v),
     })
+    if (chaosDemoRequested()) this.playFromTitle()
   }
 
   private enterCharSelect(): void {
@@ -280,6 +342,10 @@ export class Run {
     this.deps.render.fx.clear()
     resetFeel()
     resetSheetPlayback()
+    resetChaosJuice()
+    resetItemFx()
+    resetChaosFx()
+    resetChaosDirector()
     this.world = createWorld(
       ch,
       waveDef(1),
@@ -287,6 +353,23 @@ export class Run {
       canvas.clientHeight || canvas.height,
       model,
     )
+    // `?items=static-jar,thistle-halo` hands items over at the gate for testing.
+    const gift = new URLSearchParams(location.search).get('items')
+    if (gift) {
+      for (const id of gift.split(',')) if (ITEMS[id]) this.world.player.items.push(id)
+      recomputeStats(this.world.player)
+    }
+    if (chaosDemoRequested()) {
+      const wave = applyChaosDemo(this.world)
+      this.plantFirst = false
+      this.transitioning = true
+      this.deps.ui.showScreen(null)
+      resetOverlapProbe()
+      beginWave(this.world, this.sim(), wave)
+      this.enterWaveView()
+      this.transitioning = false
+      return
+    }
     this.enterPlant(true)
   }
 
@@ -368,6 +451,10 @@ export class Run {
         buyFarmOffer(world, this.sim(), this.farmShop, offerUid)
         this.renderFarmShop()
       },
+      buyBed: (id) => {
+        this.buyBed(id)
+        this.renderFarmShop()
+      },
       toggleLock: (offerUid) => {
         toggleFarmLock(this.sim(), this.farmShop, offerUid)
         this.renderFarmShop()
@@ -411,6 +498,7 @@ export class Run {
     const ctx = this.sim()
     const simDt = consumeHitStop(dt) * world.slowMo
     world.time += simDt
+    tickChaosJuice(simDt)
     this.deps.ui.setJoystickVisible(this.deps.input.coarse)
     this.musicT += simDt
     if (this.musicT >= 2) {
@@ -433,6 +521,7 @@ export class Run {
     const move = this.deps.input.sample()
     updatePlayer(world, simDt, move, ctx)
     if (!this.settling) updateWeapons(world, simDt, ctx)
+    if (!this.settling) updateItemFx(world, simDt, ctx)
     updateProjectiles(world, simDt, ctx)
     updateEnemies(world, simDt, ctx)
     updatePickups(world, simDt, ctx)
@@ -527,6 +616,10 @@ export class Run {
         if (buyOffer(world, this.sim(), this.shop, offerUid)) this.renderShop()
         else this.renderShop()
       },
+      buyBed: (id) => {
+        this.buyBed(id)
+        this.renderShop()
+      },
       toggleLock: (offerUid) => {
         toggleLock(this.sim(), this.shop, offerUid)
         this.renderShop()
@@ -585,6 +678,10 @@ export class Run {
       setPaintStyle: (s: PaintStyle) => this.changePaintStyle(s),
       reducedJuice: getReducedJuice(),
       setReducedJuice: (v: boolean) => this.changeReducedJuice(v),
+      fx: getFxState(),
+      setFx: (flag, value) => setFxFlag(flag, value),
+      zoom: getCameraZoomTarget(),
+      setZoom: (value) => setCameraZoom(value),
     })
   }
 
