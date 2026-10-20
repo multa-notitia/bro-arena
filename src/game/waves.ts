@@ -8,6 +8,7 @@ import { farmSpawnBatch, farmSpawnInterval, plantedPlots, tickFarm } from './far
 import { magnetAll, payoutHarvest } from './pickups.ts'
 import { resetWeaponRuntime } from './weapons.ts'
 import { resetForWave, spawnOutsideView } from './world.ts'
+import { resetItemFx } from './itemFx.ts'
 import type { SimCtx } from './world.ts'
 import { hasOpenWing } from './beds.ts'
 import { chaosBatch, chaosInterval, onHorde, resetChaosDirector, tickChaosDirector } from './chaosDirector.ts'
@@ -173,9 +174,22 @@ function placeTrees(world: World, ctx: SimCtx): void {
   }
 }
 
+let startKills = 0
+let startScrap = 0
+
+/** One line for the end of a wave: what it was worth. */
+export function waveRecap(world: World): string {
+  const kills = world.player.kills - startKills
+  const scrap = world.player.materialsCollected - startScrap
+  return `${kills} down · +${scrap} scrap`
+}
+
 export function beginWave(world: World, ctx: SimCtx, index: number): void {
+  startKills = world.player.kills
+  startScrap = world.player.materialsCollected
   const wdef = waveDef(index)
   resetForWave(world, wdef)
+  resetItemFx()
   resetWeaponRuntime()
   resetEnemyRuntime()
   resetChaosDirector()

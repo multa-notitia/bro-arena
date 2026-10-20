@@ -247,6 +247,7 @@ const SKELETON = `
     <header class="shop-head">
       <p class="kicker">THE SHED</p>
       <h1>Farm supplies</h1>
+      <p id="farm-recap" class="wave-recap"></p>
       <p id="farm-lede" class="lede"></p>
       <p class="bag-line">Bag <strong id="farm-bag">0</strong></p>
       <h2 class="bed-kicker">Beds</h2>
@@ -298,6 +299,7 @@ const SKELETON = `
         <h2>On the table</h2>
         <div id="shop-offers" class="offers"></div>
         <button id="shop-reroll" class="btn ghost" type="button">Turn over</button>
+        <p class="hint">Number keys buy. R turns over. Enter starts the wave.</p>
       </section>
       <section class="shop-col">
         <h2>In your hands</h2>
@@ -548,6 +550,7 @@ export function createUi(
   const plantSow = must<HTMLButtonElement>('#plant-sow')
   const plantBuffs = must<HTMLElement>('#plant-buffs')
   const farmLede = must<HTMLElement>('#farm-lede')
+  const farmRecap = must<HTMLElement>('#farm-recap')
   const farmBag = must<HTMLElement>('#farm-bag')
   const farmOffers = must<HTMLDivElement>('#farm-offers')
   const farmReroll = must<HTMLButtonElement>('#farm-reroll')
@@ -703,6 +706,7 @@ export function createUi(
     setZoom(value: number): void
   } | null = null
   let shopHandlers: ShopHandlers | null = null
+  let shopOfferUids: number[] = []
   let plantHandlers: PlantHandlers | null = null
   let farmShopHandlers: FarmShopHandlers | null = null
   let plantUnlocked: CropId[] = []
@@ -759,7 +763,8 @@ export function createUi(
     hpWrap.append(bar)
     host.append(hpWrap)
     for (const s of view.stats) {
-      const row = h('div', { className: 'stat-row' })
+      const sign = s.value > 0 ? 'is-pos' : s.value < 0 ? 'is-neg' : 'is-zero'
+      const row = h('div', { className: `stat-row ${sign}` })
       row.append(
         h('span', { text: s.label }),
         h('span', {
@@ -1010,6 +1015,25 @@ export function createUi(
       if (e.code === 'Enter') {
         e.preventDefault()
         plantHandlers?.sow()
+        return
+      }
+    }
+    if (activeOverlay === 'shop' && shopHandlers) {
+      const digit = e.code.startsWith('Digit') ? Number(e.code.slice(5)) : e.code.startsWith('Numpad') ? Number(e.code.slice(6)) : 0
+      const uid = digit >= 1 ? shopOfferUids[digit - 1] : undefined
+      if (uid !== undefined) {
+        e.preventDefault()
+        shopHandlers.buy(uid)
+        return
+      }
+      if (e.code === 'KeyR') {
+        e.preventDefault()
+        shopHandlers.reroll()
+        return
+      }
+      if (e.code === 'Enter') {
+        e.preventDefault()
+        shopHandlers.next()
         return
       }
     }
@@ -1378,6 +1402,7 @@ export function createUi(
 
     renderFarmShop(view: FarmShopView, handlers: FarmShopHandlers): void {
       farmShopHandlers = handlers
+      farmRecap.textContent = view.recap
       farmLede.textContent = `Wave ${view.wave} is under. Same scraps as the gardener's table. New seeds show up as the rain goes on, and luck helps. Then you sow wave ${view.nextWave}.`
       farmBag.textContent = String(view.materials)
       farmReroll.textContent = `Turn over · ${view.rerollPrice}`
@@ -1479,7 +1504,8 @@ export function createUi(
       fillBeds(shopBeds, view.beds, (id) => handlers.buyBed(id))
 
       shopOffers.replaceChildren()
-      for (const offer of view.offers) {
+      shopOfferUids = view.offers.map((o) => o.uid)
+      for (const [i, offer] of view.offers.entries()) {
         const card = h('div', {
           className: `offer-card tier-${offer.tier}${offer.locked ? ' is-locked' : ''}${offer.affordable ? '' : ' is-broke'}`,
         })
@@ -1489,11 +1515,14 @@ export function createUi(
             : itemIcon(offer.paint as ItemPaint)
         card.append(img(src, offer.name, 48, 48))
         const body = h('div')
-        body.append(h('h3', { className: 'offer-name', text: offer.name }))
+        const name = h('h3', { className: 'offer-name', text: offer.name })
+        name.append(h('span', { className: 'offer-key', text: String(i + 1) }))
+        body.append(name)
         body.append(h('p', { className: 'offer-flavor', text: offer.flavor }))
         const lines = h('ul', { className: 'offer-lines' })
         for (const line of offer.lines) lines.append(h('li', { text: line }))
         body.append(lines)
+        if (offer.effect) body.append(h('p', { className: 'offer-effect', text: offer.effect }))
         if (offer.combines) {
           body.append(h('div', { className: 'combine-tag', text: 'Combines with one you already hold' }))
         }
@@ -1546,8 +1575,12 @@ export function createUi(
       } else {
         for (const it of view.items) {
           const row = h('div', { className: `item-row tier-${it.tier}` })
+          row.title = [...it.lines, it.effect].filter(Boolean).join(' · ')
           row.append(img(itemIcon(it.paint), it.name, 40, 40))
-          row.append(h('p', { className: 'item-name', text: it.name }))
+          const mid = h('div', { className: 'item-mid' })
+          mid.append(h('p', { className: 'item-name', text: it.name }))
+          mid.append(h('p', { className: it.effect ? 'item-effect' : 'item-lines', text: it.effect ?? it.lines.join(' · ') }))
+          row.append(mid)
           row.append(h('span', { className: 'item-count', text: it.count > 1 ? `×${it.count}` : '×1' }))
           shopItems.append(row)
         }

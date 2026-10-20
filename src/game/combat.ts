@@ -14,6 +14,7 @@ import {
   rememberDeathStyle,
 } from './chaosJuice.ts'
 import { familyUntargetable, maybePeel } from './families.ts'
+import { onItemBlock, onItemHit, onItemHurt, onItemKill } from './itemFx.ts'
 import { extraState, countSpecial, healPlayer } from './player.ts'
 import { spawnMaterial } from './pickups.ts'
 import type { SimCtx } from './world.ts'
@@ -134,6 +135,7 @@ export function dealDamageToEnemy(
     if (opts.effects?.includes('slow') || countSpecial(world.player, 'slowOnHit') > 0) {
       enemy.slow = Math.max(enemy.slow, 2.2)
     }
+    onItemHit(world, enemy, dmg, ctx)
   }
 
   const killed = enemy.hp <= 0
@@ -141,6 +143,7 @@ export function dealDamageToEnemy(
     enemy.hp = 0
     enemy.corpse = corpseClipFor(opts.weapon ?? (opts.weaponId as WeaponId | undefined))
     if (opts.slice) enemy.sliced = true
+    onItemKill(world, enemy, ctx)
     if (chaosJuiceOn() && !opts.thorns && !opts.burnTick) {
       juiceOnKill(world, enemy, ctx, dmg)
       chainBurst(world, enemy, ctx, dmg)
@@ -189,6 +192,7 @@ export function damagePlayer(
     }
     return false
   }
+  if (onItemBlock(world, ctx)) return false
 
   const armor = player.stats.armor
   const factor = 15 / Math.max(0.75, armor + 15)
@@ -207,6 +211,7 @@ export function damagePlayer(
 
   const extra = extraState(player)
   extra.flinchT = 0.3
+  onItemHurt(world, ctx)
 
   if (sourceEnemy) {
     const away = unit(player.x - sourceEnemy.x, player.y - sourceEnemy.y)

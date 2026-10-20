@@ -55,12 +55,13 @@ Concept sources live in `public/concept-a/`. Cut frames live in `src/assets/conc
 - **Plant UI between waves**, seed drops, and spawns from planted beds. Crops stay readable on the field while the wave runs.
 - **Two shops, same scrap:** the shed (seeds, fertilizer, pesticide) then the gardener's table (weapons and items). First wave skips both.
 - **16 weapons in 4 tiers** across melee, ranged, and elemental.
-- **Full stat sheet**, 40 items, chests, trees.
+- **Full stat sheet**, 43 items, chests, trees.
+- **Item effects** beyond stats, each with its own paint: lightning that arcs between foes (Jar of Static, Storm Lantern), a stomp when hit (Lead Boots), a guard that eats one hit (Iron Skillet), thistle seeds that orbit and cut (Thistle Halo), spore clouds from kills (Puffball), kill frenzy (Blood Fang), culling hurt foes (Skull Crown), and lucky scrap bursts (Golden Clover). Effects show as a ✦ line in the shop and pockets. Test any of them with `?items=static-jar,thistle-halo` on the URL.
 - **Procedural watercolour / ink / stain renderer**, Board radish, Board chili, and Painted chili image sprites, and synthesized audio.
 
 ## Controls
 
-WASD / arrows to move. P or Escape holds still. 1–4 pick cards. 1–6 pick an unlocked seed on the plant screen. M quiets the garden. Virtual stick on touch. On the gate, left/right or F cycles Wash / Sketch / Stain, plus Board on Radish, and Board and Painted on Chili. Chili opens on Board.
+WASD / arrows to move. P or Escape holds still. 1–4 pick cards. At the gardener's table, number keys buy, R turns over, Enter starts the wave. 1–6 pick an unlocked seed on the plant screen. M quiets the garden. Virtual stick on touch. On the gate, left/right or F cycles Wash / Sketch / Stain, plus Board on Radish, and Board and Painted on Chili. Chili opens on Board.
 
 ## Layout
 

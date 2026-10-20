@@ -320,6 +320,14 @@ export type ItemSpecial =
   | 'slowOnHit'
   | 'materialOnDodge'
   | 'critHeals'
+  | 'chainSpark'
+  | 'stompOnHurt'
+  | 'orbitSeeds'
+  | 'sporeOnKill'
+  | 'guard'
+  | 'frenzyOnKill'
+  | 'cullLow'
+  | 'luckyKill'
 
 export interface ItemDef {
   id: string
@@ -833,6 +841,8 @@ export interface ShopOffer {
   paint: WeaponPaint | ItemPaint
   /** Human readable stat lines, e.g. "+5 Max HP" or "Damage 12 · Cooldown 1.1s". */
   lines: string[]
+  /** Item special, shown apart from the stat lines. */
+  effect?: string
   /** True when buying would combine into an owned weapon of the same id + tier. */
   combines: boolean
   affordable: boolean
@@ -858,7 +868,7 @@ export interface ShopView {
   freeRerolls: number
   weapons: { uid: number; id: WeaponId; name: string; tier: Tier; paint: WeaponPaint; sellPrice: number; lines: string[] }[]
   weaponSlots: number
-  items: { id: string; name: string; tier: Tier; paint: ItemPaint; count: number }[]
+  items: { id: string; name: string; tier: Tier; paint: ItemPaint; count: number; lines: string[]; effect?: string }[]
   stats: { key: StatKey; label: string; value: number; percent: boolean }[]
   hp: number
   maxHp: number
@@ -911,6 +921,8 @@ export interface FarmOffer {
 export interface FarmShopView {
   wave: number
   nextWave: number
+  /** "14 down · +43 scrap" for the wave just finished. */
+  recap: string
   materials: number
   beds: BedOffer[]
   offers: FarmOffer[]
@@ -1046,6 +1058,8 @@ export interface FxApi {
   slash(x: number, y: number, angle: number, arc: number, radius: number, color: string): void
   thrust(x: number, y: number, angle: number, length: number, color: string): void
   shockwave(x: number, y: number, radius: number, color: string): void
+  /** Crackling lightning arc between two points. */
+  bolt(x: number, y: number, tx: number, ty: number, color: string): void
   damageNumber(x: number, y: number, amount: number, opts?: DamageNumberOpts): void
   text(x: number, y: number, text: string, color: string): void
   sparkle(x: number, y: number, color: string): void

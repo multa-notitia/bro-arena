@@ -11,7 +11,7 @@ const MAX_PARTICLES = 720
 const MAX_STAINS = 110
 const STAIN_LIFE = FEEL.kill.stainLife
 
-type Kind = 'splat' | 'bloom' | 'spark' | 'slash' | 'thrust' | 'shock' | 'dmg' | 'text' | 'sparkle' | 'puff' | 'stain' | 'chunk'
+type Kind = 'splat' | 'bloom' | 'spark' | 'slash' | 'thrust' | 'shock' | 'dmg' | 'text' | 'sparkle' | 'puff' | 'stain' | 'chunk' | 'bolt'
 
 interface Particle {
   kind: Kind
@@ -328,6 +328,17 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
       p.color = color
       p.life = 0.18
       p.maxLife = 0.18
+    },
+    bolt(x, y, tx, ty, color) {
+      const p = alloc()
+      p.kind = 'bolt'
+      p.x = x
+      p.y = y
+      p.angle = Math.atan2(ty - y, tx - x)
+      p.length = Math.hypot(tx - x, ty - y)
+      p.color = color
+      p.life = 0.2
+      p.maxLife = 0.2
     },
     shockwave(x, y, radius, color) {
       if (!fxOn('telegraphs')) return
@@ -690,6 +701,30 @@ export function createFx(): FxApi & { drawFloor(ctx: CanvasRenderingContext2D): 
           ctx.lineWidth = 3.2 * fade
           ctx.beginPath()
           ctx.arc(p.x, p.y, r, 0, TAU)
+          ctx.stroke()
+        } else if (p.kind === 'bolt') {
+          // Jagged arc, re-rolled every few frames so it crackles.
+          const segs = Math.max(3, Math.round(p.length / 18))
+          const flick = Math.floor(u * 9)
+          const nx = -Math.sin(p.angle)
+          const ny = Math.cos(p.angle)
+          ctx.lineCap = 'round'
+          ctx.lineJoin = 'round'
+          ctx.beginPath()
+          ctx.moveTo(p.x, p.y)
+          for (let s = 1; s < segs; s++) {
+            const t = s / segs
+            const off = (n01(p.id * 31 + s, 70 + flick) - 0.5) * 22
+            ctx.lineTo(p.x + Math.cos(p.angle) * p.length * t + nx * off, p.y + Math.sin(p.angle) * p.length * t + ny * off)
+          }
+          ctx.lineTo(p.x + Math.cos(p.angle) * p.length, p.y + Math.sin(p.angle) * p.length)
+          ctx.globalAlpha = fade * 0.45
+          ctx.strokeStyle = p.color
+          ctx.lineWidth = 6 * fade + 1
+          ctx.stroke()
+          ctx.globalAlpha = fade
+          ctx.strokeStyle = '#f6fbff'
+          ctx.lineWidth = 1.6
           ctx.stroke()
         } else if (p.kind === 'chunk') {
           ctx.save()

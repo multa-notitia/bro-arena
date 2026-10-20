@@ -1,4 +1,5 @@
 import { uid } from '../core/math.ts'
+import { waveRecap } from './waves.ts'
 import type { CropId, FarmOffer, FarmShopView, World } from '../core/types.ts'
 import { CROP_IDS } from '../core/types.ts'
 import { CROPS, cropUnlockedAt } from '../data/crops.ts'
@@ -205,6 +206,7 @@ export function buildFarmShopView(world: World, session: FarmShopSession): FarmS
   return {
     wave: world.wave,
     nextWave: world.wave + 1,
+    recap: waveRecap(world),
     materials: world.player.materials,
     beds: bedOffers(world.player.materials),
     offers: session.offers,

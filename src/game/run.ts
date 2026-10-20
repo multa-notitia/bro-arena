@@ -19,7 +19,8 @@ import { peekKillSource, takeKillSource } from './combat.ts'
 import { nightmaresAlive, resetOverlapProbe, updateEnemies } from './enemies.ts'
 import { applyLevelUp } from './levelup.ts'
 import { collectAllNow, magnetAll, updatePickups } from './pickups.ts'
-import { updatePlayer } from './player.ts'
+import { recomputeStats, updatePlayer } from './player.ts'
+import { ITEMS } from '../data/items.ts'
 import { updateProjectiles } from './projectiles.ts'
 import {
   buildShopView,
@@ -42,6 +43,7 @@ import {
 } from './farmshop.ts'
 import { hudSnapshot, runSummary } from './snapshots.ts'
 import { updateWeapons } from './weapons.ts'
+import { resetItemFx, updateItemFx } from './itemFx.ts'
 import { beginWave, settleWave, updateDirector } from './waves.ts'
 import { clearPlots, plantView, selectCrop, syncFarmUnlocks, togglePlot } from './farm.ts'
 import { captureRenderPoses, createWorld, pinRenderPoses, syncViewport, updateCamera, updateTrees, type SimCtx } from './world.ts'
@@ -341,6 +343,7 @@ export class Run {
     resetFeel()
     resetSheetPlayback()
     resetChaosJuice()
+    resetItemFx()
     resetChaosFx()
     resetChaosDirector()
     this.world = createWorld(
@@ -350,6 +353,12 @@ export class Run {
       canvas.clientHeight || canvas.height,
       model,
     )
+    // `?items=static-jar,thistle-halo` hands items over at the gate for testing.
+    const gift = new URLSearchParams(location.search).get('items')
+    if (gift) {
+      for (const id of gift.split(',')) if (ITEMS[id]) this.world.player.items.push(id)
+      recomputeStats(this.world.player)
+    }
     if (chaosDemoRequested()) {
       const wave = applyChaosDemo(this.world)
       this.plantFirst = false
@@ -512,6 +521,7 @@ export class Run {
     const move = this.deps.input.sample()
     updatePlayer(world, simDt, move, ctx)
     if (!this.settling) updateWeapons(world, simDt, ctx)
+    if (!this.settling) updateItemFx(world, simDt, ctx)
     updateProjectiles(world, simDt, ctx)
     updateEnemies(world, simDt, ctx)
     updatePickups(world, simDt, ctx)

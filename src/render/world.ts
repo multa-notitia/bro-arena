@@ -1,4 +1,5 @@
 import { TAU, clamp, dist, ease, hashNoise, lerp } from '../core/math.ts'
+import { drawItemFxFloor, drawItemFxTop } from '../game/itemFx.ts'
 import { CHAOS, crowdPaintScale, fxOn } from '../data/chaos.ts'
 import { comboCount, corpseClipName, deathClipName } from '../game/chaosJuice.ts'
 import { vineOf } from '../game/emerge.ts'
@@ -1394,6 +1395,7 @@ export function drawWorld(
   drawArenaGround(ctx, world, dt)
   fx.drawFloor(ctx)
   drawChaosFloor(ctx)
+  drawItemFxFloor(ctx, world)
   darkenGround(ctx, cam.x - hw, cam.y - hh, hw * 2, hh * 2)
   ctx.save()
   const hudWorld = CHAOS.read.splatHudClip / zoom
@@ -1532,6 +1534,7 @@ export function drawWorld(
   drawGasPuffs(ctx, dt)
   drawFunnyBursts(ctx, dt, world.player, 'far')
   fx.drawWorld(ctx, world.player, 'far')
+  drawItemFxTop(ctx, world)
   ctx.restore()
 
   fx.drawScreen(ctx, cssW, cssH)

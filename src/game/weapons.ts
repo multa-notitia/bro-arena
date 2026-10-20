@@ -28,6 +28,7 @@ import {
 } from '../render/multiarm.ts'
 import { deathStyleForWeapon } from '../data/chaos.ts'
 import { dealDamageToEnemy } from './combat.ts'
+import { frenzyRate } from './itemFx.ts'
 import { hitTree, nearestTree } from './pickups.ts'
 import { spawnProjectile } from './projectiles.ts'
 import { accentColor } from './world.ts'
@@ -575,7 +576,7 @@ export function updateWeapons(world: World, dt: number, ctx: SimCtx): void {
       const desired = target ? Math.atan2(target.y - player.y, target.x - player.x) : player.facingAngle
       w.angle += wrapAngle(desired - w.angle) * Math.min(1, 14 * dt)
       noteArmTarget(w.uid, target ? target.x : null, target ? target.y : null)
-      w.cooldown = Math.max(0, w.cooldown - dt)
+      w.cooldown = Math.max(0, w.cooldown - dt * frenzyRate())
       if (b.type === 'shoot' && w.burstLeft > 0) {
         if (armIdle(w.uid)) beginArmAttack(w.uid)
         continue
@@ -594,7 +595,7 @@ export function updateWeapons(world: World, dt: number, ctx: SimCtx): void {
     }
 
     aimWeapon(world, w, range, dt, melee)
-    w.cooldown = Math.max(0, w.cooldown - dt)
+    w.cooldown = Math.max(0, w.cooldown - dt * frenzyRate())
 
     if (b.type === 'shoot' && w.burstLeft > 0) {
       w.burstTimer -= dt

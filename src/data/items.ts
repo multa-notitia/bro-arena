@@ -117,6 +117,8 @@ export const ITEMS: Record<string, ItemDef> = {
     flavor: 'Breakfast iron. Dinner armor.',
     paint: 'anvil',
     stats: { armor: 3, meleeDamage: 2, speed: -6 },
+    special: 'guard',
+    maxStacks: 3,
   },
   'running-root': {
     id: 'running-root',
@@ -209,6 +211,19 @@ export const ITEMS: Record<string, ItemDef> = {
     flavor: 'You stay. They leave. The soil keeps you.',
     paint: 'boot',
     stats: { armor: 4, knockback: 20, speed: -10 },
+    special: 'stompOnHurt',
+    maxStacks: 3,
+  },
+  'static-jar': {
+    id: 'static-jar',
+    name: 'Jar of Static',
+    tier: 2,
+    price: 33,
+    flavor: 'Caught in July. Still angry about it.',
+    paint: 'lantern',
+    stats: { attackSpeed: 4 },
+    special: 'chainSpark',
+    maxStacks: 3,
   },
   'boom-tuber': {
     id: 'boom-tuber',
@@ -322,6 +337,28 @@ export const ITEMS: Record<string, ItemDef> = {
     paint: 'eye',
     stats: { critChance: 12, range: 15 },
   },
+  'thistle-halo': {
+    id: 'thistle-halo',
+    name: 'Thistle Halo',
+    tier: 3,
+    price: 54,
+    flavor: 'Seeds that never land. They found something else to do.',
+    paint: 'feather',
+    stats: { meleeDamage: 2 },
+    special: 'orbitSeeds',
+    maxStacks: 3,
+  },
+  puffball: {
+    id: 'puffball',
+    name: 'Puffball',
+    tier: 3,
+    price: 50,
+    flavor: 'Step on it and it remembers. So does the row.',
+    paint: 'mushroom',
+    stats: { elementalDamage: 2 },
+    special: 'sporeOnKill',
+    maxStacks: 2,
+  },
   'skull-crown': {
     id: 'skull-crown',
     name: 'Skull Crown',
@@ -330,6 +367,8 @@ export const ITEMS: Record<string, ItemDef> = {
     flavor: 'Looks expensive. Feels like compost.',
     paint: 'skull',
     stats: { damage: 20, critChance: 10, maxHp: -4, armor: -2 },
+    special: 'cullLow',
+    maxStacks: 3,
   },
   'golden-clover': {
     id: 'golden-clover',
@@ -339,6 +378,8 @@ export const ITEMS: Record<string, ItemDef> = {
     flavor: 'Ate the luck. The mud missed you again.',
     paint: 'clover',
     stats: { luck: 30, harvesting: 15 },
+    special: 'luckyKill',
+    maxStacks: 3,
   },
   'war-heart': {
     id: 'war-heart',
@@ -357,6 +398,8 @@ export const ITEMS: Record<string, ItemDef> = {
     flavor: 'Weather inside you, and angry.',
     paint: 'lantern',
     stats: { elementalDamage: 6, attackSpeed: 10 },
+    special: 'chainSpark',
+    maxStacks: 3,
   },
   'silent-feather': {
     id: 'silent-feather',
@@ -375,6 +418,8 @@ export const ITEMS: Record<string, ItemDef> = {
     flavor: 'Bite back. Then keep biting.',
     paint: 'fang',
     stats: { meleeDamage: 8, lifeSteal: 12 },
+    special: 'frenzyOnKill',
+    maxStacks: 1,
   },
 }
 
