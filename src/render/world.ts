@@ -725,7 +725,8 @@ function drawEnemy(
   }
   ctx.save()
   ctx.translate(ox + (sheet ? frontWaddle(e) : 0), oy - hop)
-  const tilt = sheet ? motionTilt(e) : 0
+  // Lean back from a knock: the feet go first, the head catches up.
+  const tilt = sheet ? motionTilt(e) + clamp(-e.knock.x * 0.0028, -0.2, 0.2) : 0
   if (tilt) ctx.rotate(tilt)
   if (sheet) {
     const playKey = `e:${e.uid}`
@@ -762,6 +763,9 @@ function drawEnemy(
         r: bodyR,
         facing,
         alpha: 1,
+        // Cream hit flash on the silhouette: one sharp pop per hit, gone in ~100 ms,
+        // so a monster under steady fire still shows its paint.
+        flash: dyingSheet ? 0 : clamp((e.anim.hitFlash - 0.6) / 0.4, 0, 1) * 0.7,
       })
     }
     ctx.restore()
@@ -1126,6 +1130,10 @@ function heroPaintAlpha(p: Player): number {
   return on ? CHAOS.read.heroIframeHi : CHAOS.read.heroIframeLo
 }
 
+/** Eased facing for the sheet hero, so a turn pinches through edge-on instead of popping. */
+let heroFlip = 1
+let heroFlipT = 0
+
 function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCache): void {
   const p = world.player
   const pal = p.character.palette
@@ -1195,6 +1203,12 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, cache: SpriteCa
       c.save()
       c.translate(x, y)
       c.rotate(bodyRot)
+      // Start, stop and turn punch, about the feet. Arms ride the same scale.
+      const punch = lerp(1, squash, 0.35)
+      const frameDt = clamp(world.time - heroFlipT, 0, 0.05)
+      heroFlipT = world.time
+      heroFlip += (facing - heroFlip) * Math.min(1, frameDt * 30)
+      c.scale(punch * Math.max(0.25, Math.abs(heroFlip)), 1 / punch)
       // Side-facing heroes are authored facing right. One scale flips the body
       // and every arm together, so near arms stay in front and far arms stay behind.
       if (arms) c.scale(facing, 1)

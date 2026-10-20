@@ -244,7 +244,9 @@ export const CHAOS = {
     hitStopReplace: true,
     knockback: 1.15,
     squash: 0.62,
-    squashRecover: 16,
+    /** Hit-squash spring on monsters: stiffness and damping (overshoots ~30 %, settles in ~0.3 s). */
+    squashSpring: 420,
+    squashDamp: 15,
     numberPop: 1.08,
     /** ~1/3 the old 15/22 Georgia numbers. */
     numberSize: 5,

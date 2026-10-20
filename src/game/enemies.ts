@@ -73,6 +73,8 @@ interface EnemyExtra {
   /** Seconds of idle before the attack clip, so attack_hit lands on the AI windup. */
   attackHold: number
   footAcc: number
+  /** Velocity of the hit-squash spring. */
+  squashV: number
   kamikazePopped: boolean
   authoredScream: boolean
   lungeAfterScream: boolean
@@ -104,6 +106,7 @@ function extra(e: Enemy): EnemyExtra {
       attackFired: false,
       attackHold: 0,
       footAcc: 0,
+      squashV: 0,
       kamikazePopped: false,
       authoredScream: false,
       lungeAfterScream: false,
@@ -237,6 +240,7 @@ export function spawnEnemy(
     attackFired: false,
     attackHold: 0,
     footAcc: 0,
+    squashV: 0,
     kamikazePopped: false,
     authoredScream: false,
     lungeAfterScream: false,
@@ -1446,10 +1450,17 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
   for (const e of world.enemies) {
     e.anim.t += dt
     e.anim.hitFlash = Math.max(0, e.anim.hitFlash - dt * 4)
-    if (e.state !== 'screaming') e.anim.squash = damp(e.anim.squash, 1, 10, dt)
     e.knock.x = damp(e.knock.x, 0, CHAOS.smooth.knockDamp, dt)
     e.knock.y = damp(e.knock.y, 0, CHAOS.smooth.knockDamp, dt)
     const ex = extra(e)
+    // Underdamped spring: a hit squash wobbles past round and settles, jelly not putty.
+    if (e.state !== 'screaming' && !isAirborne(e) && !pinLeapSquash(e)) {
+      const j = CHAOS.juice
+      ex.squashV += (j.squashSpring * (1 - e.anim.squash) - j.squashDamp * ex.squashV) * dt
+      e.anim.squash += ex.squashV * dt
+    } else {
+      ex.squashV = 0
+    }
     if (ex.surgeT > 0) ex.surgeT = Math.max(0, ex.surgeT - dt)
 
     if (e.hp <= 0 && e.state !== 'dying') beginDeath(world, e, ctx)
@@ -1562,9 +1573,6 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
       // Authored clips already bob. Hit-squash is juice, so don't pin it to 1 on a flash.
       e.anim.bob = 0
       if (pinLeapSquash(e)) e.anim.squash = 1
-      else if (e.anim.hitFlash < 0.05 && !isAirborne(e)) {
-        e.anim.squash = damp(e.anim.squash, 1, CHAOS.juice.squashRecover, dt)
-      }
       if (e.anim.moving && e.state !== 'windup' && e.state !== 'shooting') {
         ex.footAcc += dt
         if (ex.footAcc >= FEEL.motion.footEvery) {
@@ -1592,9 +1600,6 @@ export function updateEnemies(world: World, dt: number, ctx: SimCtx): void {
       e.anim.kick.y = 0
       e.anim.bob = 0
       if (pinLeapSquash(e)) e.anim.squash = 1
-      else if (e.anim.hitFlash < 0.05 && !isAirborne(e)) {
-        e.anim.squash = damp(e.anim.squash, 1, CHAOS.juice.squashRecover, dt)
-      }
     }
 
     const fam = enemyFamily(e.kind)

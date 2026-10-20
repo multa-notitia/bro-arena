@@ -208,6 +208,25 @@ export function frameCell(
   return cell
 }
 
+const flashCache = new Map<HTMLCanvasElement, HTMLCanvasElement>()
+
+/** The cell's silhouette in the guide's cream hurt flash, cached per cell. */
+function flashCell(cell: HTMLCanvasElement): HTMLCanvasElement | null {
+  const hit = flashCache.get(cell)
+  if (hit) return hit
+  const out = document.createElement('canvas')
+  out.width = cell.width
+  out.height = cell.height
+  const g = out.getContext('2d')
+  if (!g) return null
+  g.drawImage(cell, 0, 0)
+  g.globalCompositeOperation = 'source-in'
+  g.fillStyle = '#fff7e6'
+  g.fillRect(0, 0, out.width, out.height)
+  flashCache.set(cell, out)
+  return out
+}
+
 interface InkBurst {
   clip: string
   elapsed: number
@@ -946,7 +965,7 @@ function paintFrame(
   sheet: LoadedSheet,
   clip: SheetClip,
   frame: SheetFrame,
-  opts: { fit: number; facing: 1 | -1; alpha: number; ox?: number; oy?: number; scaleX?: number; scaleY?: number },
+  opts: { fit: number; facing: 1 | -1; alpha: number; ox?: number; oy?: number; scaleX?: number; scaleY?: number; flash?: number },
 ): void {
   const { img, columns } = sheet
   const fw = sheet.manifest.frameWidth
@@ -976,6 +995,14 @@ function paintFrame(
   ctx.translate(ox * opts.facing, oy)
   ctx.scale(opts.facing * opts.fit * scaleX, opts.fit * scaleY)
   blitCell(ctx, cell, -ax, -ay, fw, fh)
+  const flash = opts.flash ?? 0
+  if (flash > 0.02) {
+    const white = flashCell(cell)
+    if (white) {
+      ctx.globalAlpha *= Math.min(1, flash)
+      blitCell(ctx, white, -ax, -ay, fw, fh)
+    }
+  }
   ctx.restore()
 }
 
@@ -984,7 +1011,7 @@ function paintSampled(
   sheet: LoadedSheet,
   playKey: string,
   clipName: string,
-  opts: { fit: number; facing: 1 | -1; alpha: number },
+  opts: { fit: number; facing: 1 | -1; alpha: number; flash?: number },
 ): void {
   const clip = sheet.manifest.clips[clipName]
   if (!clip || !clip.frames.length) return
@@ -998,6 +1025,7 @@ function paintSampled(
     oy: pose.oy,
     scaleX: pose.scaleX,
     scaleY: pose.scaleY,
+    flash: opts.flash,
   })
 }
 
@@ -1007,7 +1035,7 @@ export function drawActorSheet(
   sheet: LoadedSheet,
   playKey: string,
   clipName: string,
-  opts: { r: number; facing: 1 | -1; alpha: number },
+  opts: { r: number; facing: 1 | -1; alpha: number; flash?: number },
 ): void {
   const clip = sheet.manifest.clips[clipName]
   if (!clip || !clip.frames.length) return
@@ -1016,11 +1044,12 @@ export function drawActorSheet(
   const fit = snapScale((opts.r * 2.35) / Math.max(fw, fh))
   const blend = locomotionBlend(playKey)
   if (blend && isLoco(clipName) && blend.from !== clipName && sheet.manifest.clips[blend.from]) {
-    paintSampled(ctx, sheet, playKey, blend.from, { fit, facing: opts.facing, alpha: opts.alpha * blend.old })
-    paintSampled(ctx, sheet, playKey, clipName, { fit, facing: opts.facing, alpha: opts.alpha * blend.neu })
+    // The outgoing pose stays opaque underneath. Two half-alpha poses read as a see-through ghost.
+    paintSampled(ctx, sheet, playKey, blend.from, { fit, facing: opts.facing, alpha: opts.alpha, flash: opts.flash })
+    paintSampled(ctx, sheet, playKey, clipName, { fit, facing: opts.facing, alpha: opts.alpha * blend.neu, flash: opts.flash })
     return
   }
-  paintSampled(ctx, sheet, playKey, clipName, { fit, facing: opts.facing, alpha: opts.alpha })
+  paintSampled(ctx, sheet, playKey, clipName, { fit, facing: opts.facing, alpha: opts.alpha, flash: opts.flash })
 }
 
 /** `clip.drawScale` wins, then sheet meta, then 0.25 (heroes / garden). */
